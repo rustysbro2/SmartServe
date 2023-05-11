@@ -4,7 +4,7 @@ import discord
 import ast
 from discord.ext import commands
 
-TOKEN = 'your-token-here'
+TOKEN = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.GPvg6N.9tTbgt6_foufoqCXQMErzIilg4wdhud8QEPq3Y'
 
 intents = discord.Intents.default()
 intents.typing = False
