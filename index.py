@@ -79,6 +79,24 @@ async def reset_channel(channel, error_message):
 data = load_data()
 
 @bot.event
+async def on_ready():
+    print(f'{bot.user} has connected to Discord!')
+
+@bot.command(name='increment')
+async def increment(ctx, increment_value: int = 1):
+    global data
+    data['increment'] = increment_value
+    save_data(data)
+    await ctx.send(f"The increment value has been set to {data['increment']}.")
+
+@bot.command(name='set_channel')
+@commands.has_permissions(manage_channels=True)
+async def set_counting_channel(ctx, channel: discord.TextChannel):
+    data['counting_channel_id'] = channel.id
+    save_data(data)
+    await ctx.send(f"Counting channel has been set to {channel.mention}.")
+
+@bot.event
 async def on_message(message):
     global last_user
     global data
@@ -124,3 +142,5 @@ async def on_message(message):
     save_data(data)
 
 bot.run(TOKEN)
+
+       
