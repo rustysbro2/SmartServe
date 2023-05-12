@@ -114,42 +114,38 @@ async def on_message(message):
     if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
         return
-    
-if guild_id in last_user and message.author == last_user[guild_id]:
-    await message.add_reaction("❌")
-    error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count. Resetting the game..."
-    increment_message = f"The current increment value is {server_data['increment']}."
-    message.channel = await reset_channel(message.channel, error_message, increment_message)
-    return
 
-try:
-    int_message = int(message.content)
-except ValueError:
-    return
+    if guild_id in last_user and message.author == last_user[guild_id]:
+        await message.add_reaction("❌")
+        error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count. Resetting the game..."
+        increment_message = f"The current increment value is {server_data['increment']}."
+        message.channel = await reset_channel(message.channel, error_message, increment_message)
+        return
 
-if int_message != server_data['counter']:
-    await message.add_reaction("❌")
-    error_message = f"Error: {message.author.mention}, the next number should be {server_data['counter']}. You typed: '{message.content}'. Resetting the game..."
-    increment_message = f"The current increment value is {server_data['increment']}."
-    message.channel = await reset_channel(message.channel, error_message, increment_message)
-    return
+    try:
+        int_message = int(message.content)
+    except ValueError:
+        return
 
-if server_data['counter'] > server_data['high_score']:
-    await message.add_reaction("🏆")
-    server_data['high_score'] = server_data['counter']
-else:
-    await message.add_reaction("✅")
+    if int_message != server_data['counter']:
+        await message.add_reaction("❌")
+        error_message = f"Error: {message.author.mention}, the next number should be {server_data['counter']}. You typed: '{message.content}'. Resetting the game..."
+        increment_message = f"The current increment value is {server_data['increment']}."
+        message.channel = await reset_channel(message.channel, error_message, increment_message)
+        return
 
-server_data['counter'] += server_data['increment']
-last_user[guild_id] = message.author
+    if server_data['counter'] > server_data['high_score']:
+        await message.add_reaction("🏆")
+        server_data['high_score'] = server_data['counter']
+    else:
+        await message.add_reaction("✅")
 
-if server_data['counting_channel_id'] is None:
-    server_data['counting_channel_id'] = message.channel.id
+    server_data['counter'] += server_data['increment']
+    last_user[guild_id] = message.author
 
-save_data(data)
+    if server_data['counting_channel_id'] is None:
+        server_data['counting_channel_id'] = message.channel.id
+
+    save_data(data)
 
 bot.run(TOKEN)
-    
- 
-    
- 
