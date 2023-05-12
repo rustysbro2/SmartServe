@@ -141,12 +141,12 @@ async def on_message(message):
         message.channel = await reset_channel(message.channel, error_message)
         return
 
-    if message_number == data['counter']:
-        if data['counter'] > data['high_score']:
-            data['high_score'] = data['counter']
-            await message.add_reaction("🏆")
-        else:
-            await message.add_reaction("✅")
+high_score = data.get('high_score', 0)
+if data['counter'] > high_score:
+    data['high_score'] = data['counter']
+    await message.add_reaction("🏆")
+else:
+    await message.add_reaction("✅")
         data['counter'] += 1
         last_user = message.author
     else:
