@@ -79,7 +79,10 @@ data = load_data()
 
 @bot.event
 async def on_ready():
+    global data
+    data = load_data()
     print(f'{bot.user} has connected to Discord!')
+
 
 @bot.command(name='increment')
 async def increment(ctx, increment_value: int = 1):
