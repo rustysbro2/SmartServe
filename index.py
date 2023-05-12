@@ -13,8 +13,6 @@ intents.reactions = True
 intents.messages = True
 intents.message_content = True
 
-data = load_data()
-
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 class CustomHelpCommand(commands.HelpCommand):
@@ -48,6 +46,8 @@ def load_data():
 def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
         json.dump(data, f, indent=4)
+       
+data = load_data()
 
 
 def get_server_data(guild_id):
