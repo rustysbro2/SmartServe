@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.G5Va7Y.oVou9CdPnBcPqJc_uKrM2QaAiDoJgVtDMImryU"
+TOKEN = "YOUR_TOKEN_HERE"
 
 intents = discord.Intents.default()
 intents.reactions = True
@@ -43,12 +43,12 @@ def load_data():
     except FileNotFoundError:
         return {}
 
-    
 def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
         json.dump(data, f)
 
 def get_server_data(guild_id):
+    guild_id = str(guild_id)
     if guild_id not in data:
         data[guild_id] = {
             'counter': 1,
@@ -59,7 +59,7 @@ def get_server_data(guild_id):
     return data[guild_id]
 
 async def reset_channel(channel, error_message, increment_message=None):
-    guild_id = channel.guild.id
+    guild_id = str(channel.guild.id)
     server_data = get_server_data(guild_id)
 
     new_channel = await channel.clone()
@@ -82,18 +82,16 @@ async def on_ready():
     data = load_data()
 
     for guild in bot.guilds:
-        get_server_data(str(guild.id))
+        get_server_data(guild.id)
 
     server_count = len(bot.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot.change_presence(activity=activity)
 
-
-
 @bot.command(name='increment')
 async def increment(ctx, increment_value: int = 1):
-    guild_id = ctx.guild.id
+    guild_id = str(ctx.guild.id)
     server_data = get_server_data(guild_id)
 
     server_data['increment'] = increment_value
@@ -103,7 +101,7 @@ async def increment(ctx, increment_value: int = 1):
 @bot.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
 async def set_counting_channel(ctx, channel: discord.TextChannel):
-    guild_id = ctx.guild.id
+    guild_id = str(ctx.guild.id)
     server_data = get_server_data(guild_id)
 
     server_data['counting_channel_id'] = channel.id
@@ -112,10 +110,10 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user:
-        return
+    if message.author == bot.user
+    return
 
-    guild_id = message.guild.id
+    guild_id = str(message.guild.id)
     server_data = get_server_data(guild_id)
 
     if server_data.get('counting_channel_id') is None:
@@ -158,4 +156,5 @@ async def on_message(message):
 
     save_data(data)
 
-bot.run(TOKEN)
+bot.run(TOKEN
+
