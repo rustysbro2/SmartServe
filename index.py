@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.G5exAC.pOs6dIx-lA3WhH-ZcC-6_bZSdypujcquc9uijE"
+TOKEN = "your_token_here"
 
 intents = discord.Intents.default()
 intents.reactions = True
@@ -34,6 +34,7 @@ class CustomHelpCommand(commands.HelpCommand):
 bot.help_command = CustomHelpCommand()
 
 last_user = None
+
 default_data = {
     'counter': 1,
     'high_score': 0,
@@ -60,7 +61,7 @@ def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
         json.dump(data, f)
 
-async def reset_channel(channel, error_message, increment_message=None):
+async def reset_channel(channel, error_message):
     global last_user
 
     new_channel = await channel.clone()
@@ -72,33 +73,11 @@ async def reset_channel(channel, error_message, increment_message=None):
 
     save_data(data)
 
-    if increment_message:
-        combined_message = f"{error_message}\n{increment_message}"
-    else:
-        combined_message = error_message
-
-    await new_channel.send(combined_message)
+    await new_channel.send(error_message)
     return new_channel
 
 data = load_data()
-@bot.event
-async def on_ready():
-    print(f'{bot.user} has connected to Discord!')
 
-@bot.command(name='increment')
-async def increment(ctx, increment_value: int = 1):
-    global data
-    data['increment'] = increment_value
-    save_data(data)
-    await ctx.send(f"The increment value has been set to {data['increment']}.")
-
-@bot.command(name='set_channel')
-@commands.has_permissions(manage_channels=True)
-async def set_counting_channel(ctx, channel: discord.TextChannel):
-    data['counting_channel_id'] = channel.id
-    save_data(data)
-    await ctx.send(f"Counting channel has been set to {channel.mention}.")
-    
 @bot.event
 async def on_message(message):
     global last_user
@@ -117,8 +96,7 @@ async def on_message(message):
     if message.author == last_user:
         await message.add_reaction("❌")
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count. Resetting the game..."
-        increment_message = f"The current increment value is {data['increment']}."
-        message.channel = await reset_channel(message.channel, error_message, increment_message)
+        message.channel = await reset_channel(message.channel, error_message)
         return
 
     try:
@@ -129,8 +107,7 @@ async def on_message(message):
     if int_message != data['counter']:
         await message.add_reaction("❌")
         error_message = f"Error: {message.author.mention}, the next number should be {data['counter']}. You typed: '{message.content}'. Resetting the game..."
-        increment_message = f"The current increment value is {data['increment']}."
-        message.channel = await reset_channel(message.channel, error_message, increment_message)
+        message.channel = await reset_channel(message.channel, error_message)
         return
 
     if data['counter'] > data['high_score']:
@@ -146,5 +123,4 @@ async def on_message(message):
 
     save_data(data)
 
-    
 bot.run(TOKEN)
