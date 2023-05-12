@@ -81,8 +81,11 @@ data = load_data()
 
 @bot.event
 async def on_ready():
-    global data
-    print(f'{bot.user} has connected to Discord!')
+    server_count = len(bot.guilds)
+    activity_name = f'Watching {server_count} Servers'
+    activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
+    await bot.change_presence(activity=activity)
+    print(f'Bot is ready. Serving in {server_count} servers.')
 
 @bot.command(name='increment')
 async def increment(ctx, increment_value: int = 1):
