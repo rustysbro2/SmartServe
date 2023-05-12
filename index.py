@@ -154,8 +154,8 @@ async def on_message(message):
     server_data['counter'] += server_data['increment']
     last_user[guild_id] = message.author
 
-    save_data(data)
+save_data(data)
     
-    bot.run(TOKEN)
+bot.run(TOKEN)
 
 
