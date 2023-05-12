@@ -77,10 +77,10 @@ async def reset_channel(channel, error_message, increment_message=None):
         await new_channel.send(increment_message)
     return new_channel
 
-data = load_data()
-
 @bot.event
 async def on_ready():
+    global data
+    data = load_data()
     server_count = len(bot.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
