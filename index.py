@@ -155,6 +155,6 @@ async def on_message(message):
     last_user[guild_id] = message.author
 
     save_data(data)
-    
-    bot.run(TOKEN)
 
+if __name__ == "__main__":
+    bot.run(TOKEN)
