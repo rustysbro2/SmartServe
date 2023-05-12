@@ -61,7 +61,7 @@ def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
         json.dump(data, f)
 
-async def reset_channel(channel, error_message):
+async def reset_channel(channel, error_message, increment_message=None):
     global last_user
 
     new_channel = await channel.clone()
@@ -73,7 +73,7 @@ async def reset_channel(channel, error_message):
 
     save_data(data)
 
-    await new_channel.send(error_message)
+    await new_channel.send(f"{error_message}\n{increment_message}")
     return new_channel
 
 data = load_data()
@@ -112,9 +112,9 @@ async def on_message(message):
         return
 
     if message.author == last_user:
-        await message.add_reaction("❌")
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count. Resetting the game..."
-        message.channel = await reset_channel(message.channel, error_message)
+        increment_message = f"The current increment value is {data['increment']}. You typed: '{message.content}'."
+        message.channel = await reset_channel(message.channel, error_message, increment_message)
         return
 
     try:
@@ -123,9 +123,9 @@ async def on_message(message):
         return
 
     if int_message != data['counter']:
-        await message.add_reaction("❌")
         error_message = f"Error: {message.author.mention}, the next number should be {data['counter']}. You typed: '{message.content}'. Resetting the game..."
-        message.channel = await reset_channel(message.channel, error_message)
+        increment_message = f"The current increment value is {data['increment']}."
+        message.channel = await reset_channel(message.channel, error_message, increment_message)
         return
 
     if data['counter'] > data['high_score']:
@@ -142,5 +142,3 @@ async def on_message(message):
     save_data(data)
 
 bot.run(TOKEN)
-
-       
