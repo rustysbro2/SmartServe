@@ -82,7 +82,7 @@ data = load_data()
 @bot.event
 async def on_ready():
     server_count = len(bot.guilds)
-    activity_name = f'Watching {server_count} Servers'
+    activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot.change_presence(activity=activity)
     print(f'Bot is ready. Serving in {server_count} servers.')
