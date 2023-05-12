@@ -58,7 +58,7 @@ def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
         json.dump(data, f)
 
-async def reset_channel(channel, error_message):
+async def reset_channel(channel, error_message, increment_message=None):
     global last_user
 
     new_channel = await channel.clone()
@@ -71,20 +71,30 @@ async def reset_channel(channel, error_message):
     save_data(data)
 
     await new_channel.send(error_message)
+    if increment_message:
+        await new_channel.send(increment_message)
     return new_channel
 
 data = load_data()
-
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
 @bot.command(name='increment')
-async def increment(ctx):
+async def increment(ctx, increment_value: int = 1):
     global data
-    data['counter'] += 1
+    data['increment'] = increment_value
     save_data(data)
-    await ctx.send(f"The counter has been incremented. The current counter value is {data['counter']}.")
+    await ctx.send(f"The increment value has been set to {data['increment']}.")
+
+if int_message != data['counter']:
+    await message.add_reaction("❌")
+    error_message = f"Error: {message.author.mention}, the next number should be {data['counter']}. You typed: '{message.content}'. Resetting the game..."
+    increment_message = f"The current increment value is {data['increment']}."
+    message.channel = await reset_channel(message.channel, error_message, increment_message)
+    return
+
+data['counter'] += data['increment']
 
 @bot.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
