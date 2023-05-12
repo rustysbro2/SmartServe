@@ -101,11 +101,11 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if data.get('counting_channel_id') is not None and message.channel.id != data.get('counting_channel_id'):
-        return
-
     if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
+        return
+
+    if data.get('counting_channel_id') is not None and message.channel.id != data.get('counting_channel_id'):
         return
 
     if message.author == last_user:
@@ -137,7 +137,7 @@ async def on_message(message):
         data['counting_channel_id'] = message.channel.id
 
     save_data(data)
-    await bot.process_commands(message)  # Add this line at the end
+
 
 bot.run(TOKEN)
 
