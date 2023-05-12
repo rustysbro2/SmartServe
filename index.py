@@ -110,7 +110,7 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user
+    if message.author == bot.user:
     return
 
     guild_id = str(message.guild.id)
