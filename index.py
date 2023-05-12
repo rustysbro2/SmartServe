@@ -77,10 +77,18 @@ async def reset_channel(channel, error_message, increment_message=None):
     return new_channel
 
 @bot.event
-async def on_connect():
+async def on_ready():
     global data
     data = load_data()
-    print(f'{bot.user} has connected to Discord!')
+
+    for guild in bot.guilds:
+        get_server_data(guild.id)
+
+    server_count = len(bot.guilds)
+    activity_name = f'{server_count} Servers'
+    activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
+    await bot.change_presence(activity
+
 
 @bot.command(name='increment')
 async def increment(ctx, increment_value: int = 1):
