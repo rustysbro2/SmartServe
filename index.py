@@ -17,7 +17,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 class CustomHelpCommand(commands.HelpCommand):
     def get_command_signature(self, command):
-        return f"{self.clean_prefix}{command.qualified_name} {command.signature}"
+        return f"{self.context.prefix}{command.qualified_name} {command.signature}"
 
     async def send_bot_help(self, mapping):
         embed = discord.Embed(title="Help", color=discord.Color.blue())
@@ -32,6 +32,7 @@ class CustomHelpCommand(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
 bot.help_command = CustomHelpCommand()
+
 
 last_user = None
 data = {
