@@ -129,7 +129,6 @@ async def on_message(message):
         increment_message = f"The current increment value is {server_data['increment']}."
         combined_message = f"{error_message}\n{increment_message}"
         channel = await reset_channel(message.channel, combined_message)
-        await channel.send(combined_message)
         return
 
     try:
@@ -142,7 +141,6 @@ async def on_message(message):
         increment_message = f"The current increment value is {server_data['increment']}."
         combined_message = f"{error_message}\n{increment_message}"
         channel = await reset_channel(message.channel, combined_message)
-        await channel.send(combined_message)
         return
 
     if server_data['counter'] > server_data['high_score']:
@@ -156,30 +154,4 @@ async def on_message(message):
 
     save_data(data)
 
-
-    save_data(data)
-
-    if int_message != server_data['counter']:
-        error_message = f"Error: {message.author.mention}, the next number should be {server_data['counter']}. You typed: '{message.content}'. Resetting the game...\n"
-        increment_message = f"The current increment value is {server_data['increment']}."
-        channel = await reset_channel(message.channel, error_message + increment_message)
-        await channel.send(error_message)
-        if increment_message:
-            await channel.send(increment_message)
-        return
-
-    if server_data['counter'] > server_data['high_score']:
-        await message.add_reaction("🏆")
-        server_data['high_score'] = server_data['counter']
-    else:
-        await message.add_reaction("✅")
-
-    server_data['counter'] += server_data['increment']
-    last_user[guild_id] = message.author.id
-
-    save_data(data)
-
-    
 bot.run(TOKEN)
-
-
