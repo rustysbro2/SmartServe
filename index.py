@@ -137,7 +137,7 @@ async def on_message(message):
         data['counting_channel_id'] = message.channel.id
 
     save_data(data)
-
+    await bot.process_commands(message)  # Add this line at the end
 
 bot.run(TOKEN)
 
