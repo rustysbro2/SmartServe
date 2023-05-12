@@ -108,7 +108,11 @@ async def on_message(message):
     guild_id = message.guild.id
     server_data = get_server_data(guild_id)
 
-    if server_data.get('counting_channel_id') is not None and message.channel.id != server_data.get('counting_channel_id'):
+    if server_data.get('counting_channel_id') is None:
+        # Don't process the message if no counting channel is set
+        return
+
+    if message.channel.id != server_data.get('counting_channel_id'):
         return
 
     if message.content.startswith(bot.command_prefix):
