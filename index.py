@@ -13,6 +13,8 @@ intents.reactions = True
 intents.messages = True
 intents.message_content = True
 
+data = load_data()
+
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 class CustomHelpCommand(commands.HelpCommand):
@@ -45,7 +47,8 @@ def load_data():
 
 def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
-        json.dump(data, f)
+        json.dump(data, f, indent=4)
+
 
 def get_server_data(guild_id):
     guild_id = str(guild_id)
@@ -79,8 +82,6 @@ async def reset_channel(channel, error_message, increment_message=None):
 @bot.event
 async def on_ready():
     global data
-    data = load_data()
-
     for guild in bot.guilds:
         get_server_data(guild.id)
 
@@ -88,7 +89,7 @@ async def on_ready():
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot.change_presence(activity=activity)
-
+    
 @bot.command(name='increment')
 async def increment(ctx, increment_value: int = 1):
     guild_id = str(ctx.guild.id)
