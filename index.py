@@ -36,14 +36,14 @@ bot.help_command = CustomHelpCommand()
 last_user = {}
 data = {}
 
-data = load_data() 
-
 def load_data():
     try:
         with open('counting_bot_data.json', 'r') as f:
             return json.load(f)
     except FileNotFoundError:
         return {}
+
+data = load_data() 
 
 def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
