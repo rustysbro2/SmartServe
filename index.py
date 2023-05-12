@@ -34,24 +34,27 @@ class CustomHelpCommand(commands.HelpCommand):
 bot.help_command = CustomHelpCommand()
 
 last_user = None
-data = {
+default_data = {
     'counter': 1,
     'high_score': 0,
     'counting_channel_id': None,
     'increment': 1
 }
 
+def update_data_with_defaults(data):
+    for key, value in default_data.items():
+        if key not in data:
+            data[key] = value
+    return data
+
 def load_data():
     try:
         with open('counting_bot_data.json', 'r') as f:
-            return json.load(f)
+            data = json.load(f)
+            updated_data = update_data_with_defaults(data)
+            return updated_data
     except FileNotFoundError:
-        return {
-            'counter': 1,
-            'high_score': 0,
-            'counting_channel_id': None,
-            'increment': 1
-        }
+        return default_data.copy()
 
 def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
@@ -69,9 +72,12 @@ async def reset_channel(channel, error_message, increment_message=None):
 
     save_data(data)
 
-    await new_channel.send(error_message)
     if increment_message:
-        await new_channel.send(increment_message)
+        combined_message = f"{error_message}\n{increment_message}"
+    else:
+        combined_message = error_message
+
+    await new_channel.send(combined_message)
     return new_channel
 
 data = load_data()
