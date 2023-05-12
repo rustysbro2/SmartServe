@@ -105,30 +105,33 @@ async def on_message(message):
         return
 
     if message.content.startswith(bot.command_prefix):
-        await bot.process_commands(message)
-        return
+            await bot.process_commands(message)
+    return
 
-    if message.author == last_user:
-        new_channel = await reset_channel(message.channel, f"{message.author.mention}, you cannot send two consecutive numbers. The channel has been reset.")
-        return
+if message.author == last_user:
+    await message.add_reaction("❌")
+    new_channel = await reset_channel(message.channel, f"{message.author.mention}, you cannot send two consecutive numbers. The channel has been reset.")
+    return
 
-    try:
-        int_message = int(message.content)
-    except ValueError:
-        return
+try:
+    int_message = int(message.content)
+except ValueError:
+    return
 
-    if int_message != data['counter']:
-        new_channel = await reset_channel(message.channel, f"{message.author.mention}, you were supposed to send {data['counter']}. The channel has been reset.")
-        return
+if int_message != data['counter']:
+    await message.add_reaction("❌")
+    new_channel = await reset_channel(message.channel, f"{message.author.mention}, you were supposed to send {data['counter']}. The channel has been reset.")
+    return
 
-    data['counter'] += 1
+await message.add_reaction("✅")
+data['counter'] += 1
 
-    if data['counter'] > data['high_score']:
-        data['high_score'] = data['counter']
-        save_data(data)
-        await message.channel.send(f"{message.author.mention} has set a new high score of {data['high_score']}!")
+if data['counter'] > data['high_score']:
+    data['high_score'] = data['counter']
+    save_data(data)
+    await message.channel.send(f"{message.author.mention} has set a new high score of {data['high_score']}!")
 
-    last_user = message.author
+last_user = message.author
 
 @bot.event
 async def on_command_error(ctx, error):
