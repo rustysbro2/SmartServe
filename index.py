@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "your_token_here"
+TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.G5Va7Y.oVou9CdPnBcPqJc_uKrM2QaAiDoJgVtDMImryU"
 
 intents = discord.Intents.default()
 intents.reactions = True
