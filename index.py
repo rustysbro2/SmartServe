@@ -37,11 +37,9 @@ last_user = None
 data = {
     'counter': 1,
     'high_score': 0,
-    'counting_channel_id': None
+    'counting_channel_id': None,
+    'increment': 1
 }
-
-def is_valid_equation(equation: str) -> bool:
-    return bool(re.match("^[0-9+\-*/\s]+$", equation))
 
 def load_data():
     try:
@@ -51,7 +49,8 @@ def load_data():
         return {
             'counter': 1,
             'high_score': 0,
-            'counting_channel_id': None
+            'counting_channel_id': None,
+            'increment': 1
         }
 
 def save_data(data):
@@ -87,15 +86,6 @@ async def increment(ctx, increment_value: int = 1):
     save_data(data)
     await ctx.send(f"The increment value has been set to {data['increment']}.")
 
-if int_message != data['counter']:
-    await message.add_reaction("❌")
-    error_message = f"Error: {message.author.mention}, the next number should be {data['counter']}. You typed: '{message.content}'. Resetting the game..."
-    increment_message = f"The current increment value is {data['increment']}."
-    message.channel = await reset_channel(message.channel, error_message, increment_message)
-    return
-
-data['counter'] += data['increment']
-
 @bot.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
 async def set_counting_channel(ctx, channel: discord.TextChannel):
@@ -114,7 +104,7 @@ async def on_message(message):
     if data.get('counting_channel_id') is not None and message.channel.id != data.get('counting_channel_id'):
         return
 
-    if message.content.startswith(bot.command_prefix):
+    if message.content.startswith(bot.command_prefix
         await bot.process_commands(message)
         return
 
