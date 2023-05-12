@@ -130,10 +130,10 @@ async def on_message(message):
         return
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
-        error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count. Resetting the game...\n"
+        error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
         increment_message = f"The current increment value is {server_data['increment']}."
-        channel = await reset_channel(message.channel, error_message + increment_message)
-        await channel.send(error_message + increment_message)
+        channel = await reset_channel(message.channel, error_message + " " + increment_message)
+        await channel.send(error_message + " " + increment_message)
         return
 
     try:
@@ -142,10 +142,10 @@ async def on_message(message):
         return
 
     if int_message != server_data['counter']:
-        error_message = f"Error: {message.author.mention}, the next number should be {server_data['counter']}. You typed: '{message.content}'. Resetting the game...\n"
+        error_message = f"Error: {message.author.mention}, the next number should be {server_data['counter']}. You typed: '{message.content}'."
         increment_message = f"The current increment value is {server_data['increment']}."
-        channel = await reset_channel(message.channel, error_message + increment_message)
-        await channel.send(error_message + increment_message)
+        channel = await reset_channel(message.channel, error_message + " " + increment_message)
+        await channel.send(error_message + " " + increment_message)
         return
 
     if server_data['counter'] > server_data['high_score']:
