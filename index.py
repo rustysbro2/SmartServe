@@ -33,7 +33,6 @@ class CustomHelpCommand(commands.HelpCommand):
 
 bot.help_command = CustomHelpCommand()
 
-
 last_user = None
 data = {
     'counter': 1,
@@ -80,6 +79,13 @@ data = load_data()
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
+@bot.command(name='increment')
+async def increment(ctx):
+    global data
+    data['counter'] += 1
+    save_data(data)
+    await ctx.send(f"The counter has been incremented. The current counter value is {data['counter']}.")
+
 @bot.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
 async def set_counting_channel(ctx, channel: discord.TextChannel):
@@ -99,46 +105,39 @@ async def on_message(message):
         return
 
     if message.content.startswith(bot.command_prefix):
-        await bot.process_commands(message)
-        return
-
-    if is_valid_equation(message.content):
-        try:
-                        message_number = int(eval(message.content))
-        except (ValueError, ZeroDivisionError, SyntaxError):
-            message_number = None
-    else:
-        message_number = None
-
-    if message_number is None:
-        await message.add_reaction("❌")
-        error_message = f"Error: {message.author.mention}, you must type a number or a valid math equation. You typed: '{message.content}'. Resetting the game..."
-        message.channel = await reset_channel(message.channel, error_message)
+                await bot.process_commands(message)
         return
 
     if message.author == last_user:
-        await message.add_reaction("❌")
-        error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count. You typed: '{message.content}'. Resetting the game..."
-        message.channel = await reset_channel(message.channel, error_message)
+        new_channel = await reset_channel(message.channel, f"{message.author.mention}, you cannot send two consecutive numbers. The channel has been reset.")
         return
 
-    if message_number == data['counter']:
-        if data['counter'] > data.get('high_score', 0):
-            data['high_score'] = data['counter']
-            await message.add_reaction("🏆")
-        else:
-            await message.add_reaction("✅")
-        data['counter'] += 1
-        last_user = message.author
+    try:
+        int_message = int(message.content)
+    except ValueError:
+        return
+
+    if int_message != data['counter']:
+        new_channel = await reset_channel(message.channel, f"{message.author.mention}, you were supposed to send {data['counter']}. The channel has been reset.")
+        return
+
+    data['counter'] += 1
+
+    if data['counter'] > data['high_score']:
+        data['high_score'] = data['counter']
+        save_data(data)
+        await message.channel.send(f"{message.author.mention} has set a new high score of {data['high_score']}!")
+
+    last_user = message.author
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        return
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("You do not have the required permissions to use this command.")
     else:
-        await message.add_reaction("❌")
-        error_message = f"Error: {message.author.mention}, the next number should be {data['counter']}. You typed: '{message.content}'. Resetting the game..."
-        message.channel = await reset_channel(message.channel, error_message)
-
-    if data['counting_channel_id'] is None:
-        data['counting_channel_id'] = message.channel.id
-
-    save_data(data)
+        raise error
 
 bot.run(TOKEN)
 
