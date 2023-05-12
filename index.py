@@ -110,7 +110,11 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if data.get('counting_channel_id') is not None and message.channel.id != data.get('counting_channel_id'):
+    counting_channel_id = data.get('counting_channel_id')
+    if counting_channel_id is None:
+        return
+
+    if message.channel.id != counting_channel_id:
         return
 
     if message.content.startswith(bot.command_prefix):
