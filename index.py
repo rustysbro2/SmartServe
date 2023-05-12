@@ -117,12 +117,7 @@ async def on_message(message):
     guild_id = str(message.guild.id)
     server_data = get_server_data(guild_id)
 
-    if server_data.get('counting_channel_id') is None:
-        if message.content.startswith(bot.command_prefix):
-            await bot.process_commands(message)
-        return
-
-    if message.channel.id != server_data.get('counting_channel_id'):
+    if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
         return
 
     if message.content.startswith(bot.command_prefix):
@@ -132,8 +127,9 @@ async def on_message(message):
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
         increment_message = f"The current increment value is {server_data['increment']}."
-        channel = await reset_channel(message.channel, error_message + " " + increment_message)
-        await channel.send(error_message + " " + increment_message)
+        combined_message = f"{error_message}\n{increment_message}"
+        channel = await reset_channel(message.channel, combined_message)
+        await channel.send(combined_message)
         return
 
     try:
@@ -144,8 +140,9 @@ async def on_message(message):
     if int_message != server_data['counter']:
         error_message = f"Error: {message.author.mention}, the next number should be {server_data['counter']}. You typed: '{message.content}'."
         increment_message = f"The current increment value is {server_data['increment']}."
-        channel = await reset_channel(message.channel, error_message + " " + increment_message)
-        await channel.send(error_message + " " + increment_message)
+        combined_message = f"{error_message}\n{increment_message}"
+        channel = await reset_channel(message.channel, combined_message)
+        await channel.send(combined_message)
         return
 
     if server_data['counter'] > server_data['high_score']:
@@ -156,6 +153,9 @@ async def on_message(message):
 
     server_data['counter'] += server_data['increment']
     last_user[guild_id] = message.author.id
+
+    save_data(data)
+
 
     save_data(data)
 
