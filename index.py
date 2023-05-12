@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "YOUR_TOKEN_HERE"
+TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.G2ppAC.yAchMMCTjDWx7kcuVEMrO4LpeqSn6OuAVvsZkA"
 
 intents = discord.Intents.default()
 intents.reactions = True
@@ -111,9 +111,9 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
-    return
+        return
 
-    guild_id = str(message.guild.id)
+    guild_id = message.guild.id
     server_data = get_server_data(guild_id)
 
     if server_data.get('counting_channel_id') is None:
@@ -156,5 +156,4 @@ async def on_message(message):
 
     save_data(data)
 
-bot.run(TOKEN
 
