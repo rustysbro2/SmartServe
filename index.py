@@ -16,6 +16,10 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 class CustomHelpCommand(commands.HelpCommand):
+    @property
+    def clean_prefix(self):
+        return self.context.prefix
+
     def get_command_signature(self, command):
         return f"{self.clean_prefix}{command.qualified_name} {command.signature}"
 
@@ -30,6 +34,7 @@ class CustomHelpCommand(commands.HelpCommand):
                 embed.add_field(name=cog_name, value="\n".join(command_signatures), inline=False)
 
         await self.get_destination().send(embed=embed)
+
 
 bot.help_command = CustomHelpCommand()
 
