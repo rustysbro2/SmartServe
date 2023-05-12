@@ -21,7 +21,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         embed = discord.Embed(title="Help", color=discord.Color.blue())
-        embed.set_thumbnail(url=self.context.bot.user.avatar_url)
+        embed.set_thumbnail(url=self.context.bot.user.avatar.url)
         for cog, commands in mapping.items():
             filtered_commands = await self.filter_commands(commands, sort=True)
             if filtered_commands:
