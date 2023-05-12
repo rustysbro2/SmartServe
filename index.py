@@ -76,24 +76,18 @@ async def reset_channel(channel, error_message, increment_message=None):
         await new_channel.send(increment_message)
     return new_channel
 
-counting_channels = {}
-
 @bot.event
 async def on_ready():
-    global data, counting_channels
+    global data
     data = load_data()
 
     for guild in bot.guilds:
-        server_data = get_server_data(guild.id)
-        if server_data['counting_channel_id'] is not None:
-            counting_channel = bot.get_channel(server_data['counting_channel_id'])
-            counting_channels[guild.id] = counting_channel
+        get_server_data(guild.id)
 
     server_count = len(bot.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot.change_presence(activity=activity)
-
 
 @bot.command(name='increment')
 async def increment(ctx, increment_value: int = 1):
@@ -110,11 +104,9 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     guild_id = str(ctx.guild.id)
     server_data = get_server_data(guild_id)
 
-    server_data['counting_channel_id'] = channel.id
-    counting_channels[ctx.guild.id] = channel
+    server_data['counting_channel_id'] =     channel.id
     save_data(data)
     await ctx.send(f"Counting channel has been set to {channel.mention}.")
-
 
 @bot.event
 async def on_message(message):
@@ -124,17 +116,13 @@ async def on_message(message):
     guild_id = message.guild.id
     server_data = get_server_data(guild_id)
 
-if guild_id not in counting_channels:
-    if message.content.startswith(bot.command_prefix):
-        await bot.process_commands(message)
-    return
+    if server_data.get('counting_channel_id') is None:
+        if message.content.startswith(bot.command_prefix):
+            await bot.process_commands(message)
+        return
 
-if message.channel.id != counting_channels[guild_id].id:
-    return
-
-
-
-
+    if message.channel.id != server_data.get('counting_channel_id'):
+        return
 
     if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
@@ -167,6 +155,7 @@ if message.channel.id != counting_channels[guild_id].id:
     last_user[guild_id] = message.author
 
     save_data(data)
-
-if __name__ == "__main__":
+    
     bot.run(TOKEN)
+
+
