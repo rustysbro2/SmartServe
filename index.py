@@ -111,17 +111,18 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    if message.content.startswith(bot.command_prefix):
-        await bot.process_commands(message)
+    if data.get('counting_channel_id') is not None and message.channel.id != data.get('counting_channel_id'):
         return
 
-    if data.get('counting_channel_id') is not None and message.channel.id != data.get('counting_channel_id'):
+    if message.content.startswith(bot.command_prefix):
+        await bot.process_commands(message)
         return
 
     if message.author == last_user:
         await message.add_reaction("❌")
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count. Resetting the game..."
-        message.channel = await reset_channel(message.channel, error_message)
+        increment_message = f"The current increment value is {data['increment']}."
+        message.channel = await reset_channel(message.channel, error_message, increment_message)
         return
 
     try:
@@ -132,22 +133,21 @@ async def on_message(message):
     if int_message != data['counter']:
         await message.add_reaction("❌")
         error_message = f"Error: {message.author.mention}, the next number should be {data['counter']}. You typed: '{message.content}'. Resetting the game..."
-        message.channel = await reset_channel(message.channel, error_message)
+        increment_message = f"The current increment value is {data['increment']}."
+        message.channel = await reset_channel(message.channel, error_message, increment_message)
         return
 
     if data['counter'] > data['high_score']:
         await message.add_reaction("🏆")
     else:
         await message.add_reaction("✅")
-        
-    data['counter'] += 1
+
+    data['counter'] += data['increment']
     last_user = message.author
 
     if data['counting_channel_id'] is None:
         data['counting_channel_id'] = message.channel.id
 
     save_data(data)
-
-
+    
 bot.run(TOKEN)
-
