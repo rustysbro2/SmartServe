@@ -82,12 +82,13 @@ async def on_ready():
     data = load_data()
 
     for guild in bot.guilds:
-        get_server_data(guild.id)
+        get_server_data(str(guild.id))
 
     server_count = len(bot.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot.change_presence(activity=activity)
+
 
 
 @bot.command(name='increment')
