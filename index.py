@@ -11,15 +11,11 @@ TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.G5exAC.pOs6dIx-lA3WhH-ZcC-6_bZSdypujcquc9uij
 intents = discord.Intents.default()
 intents.reactions = True
 intents.messages = True
-intents.message_content = True 
+intents.message_content = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 class CustomHelpCommand(commands.HelpCommand):
-    @property
-    def clean_prefix(self):
-        return self.context.prefix
-
     def get_command_signature(self, command):
         return f"{self.clean_prefix}{command.qualified_name} {command.signature}"
 
@@ -34,7 +30,6 @@ class CustomHelpCommand(commands.HelpCommand):
                 embed.add_field(name=cog_name, value="\n".join(command_signatures), inline=False)
 
         await self.get_destination().send(embed=embed)
-
 
 bot.help_command = CustomHelpCommand()
 
@@ -82,18 +77,7 @@ data = load_data()
 
 @bot.event
 async def on_ready():
-    global data
     print(f'{bot.user} has connected to Discord!')
-    counting_channel_id = data.get('counting_channel_id')
-    if counting_channel_id is not None:
-        channel = bot.get_channel(counting_channel_id)
-        if channel is not None:
-            print(f"Counting channel is set to {channel.name}.")
-        else:
-            print("Counting channel not found. Use !set_channel to set a new counting channel.")
-    else:
-        print("No counting channel set. Use !set_channel to set a counting channel.")
-
 
 @bot.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
@@ -110,11 +94,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    counting_channel_id = data.get('counting_channel_id')
-    if counting_channel_id is None:
-        return
-
-    if message.channel.id != counting_channel_id:
+    if data.get('counting_channel_id') is not None and message.channel.id != data.get('counting_channel_id'):
         return
 
     if message.content.startswith(bot.command_prefix):
@@ -141,12 +121,12 @@ async def on_message(message):
         message.channel = await reset_channel(message.channel, error_message)
         return
 
-high_score = data.get('high_score', 0)
-if data['counter'] > high_score:
-    data['high_score'] = data['counter']
-    await message.add_reaction("🏆")
-else:
-    await message.add_reaction("✅")
+    if message_number == data['counter']:
+        if data['counter'] > data.get('high_score', 0):
+            data['high_score'] = data['counter']
+            await message.add_reaction("🏆")
+        else:
+            await message.add_reaction("✅")
         data['counter'] += 1
         last_user = message.author
     else:
