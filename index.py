@@ -105,7 +105,7 @@ async def on_message(message):
         return
 
     if message.content.startswith(bot.command_prefix):
-                await bot.process_commands(message)
+        await bot.process_commands(message)
         return
 
     if message.author == last_user:
