@@ -143,6 +143,5 @@ async def on_message(message):
 
     save_data(data)
 
-
 bot.run(TOKEN)
 
