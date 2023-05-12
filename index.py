@@ -36,14 +36,19 @@ bot.help_command = CustomHelpCommand()
 last_user = {}
 data = {}
 
+data = load_data()
+
+
 def load_data():
     try:
         with open('counting_bot_data.json', 'r') as f:
             return json.load(f)
     except FileNotFoundError:
-        return {}
+        return {}last_user = {}
+data = {}
 
-data = load_data() 
+data = load_data()
+
 
 def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
@@ -78,14 +83,10 @@ async def reset_channel(channel, error_message, increment_message=None):
     return new_channel
 
 @bot.event
-async def on_ready():
+async def on_connect():
     global data
     data = load_data()
-    server_count = len(bot.guilds)
-    activity_name = f'{server_count} Servers'
-    activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
-    await bot.change_presence(activity=activity)
-    print(f'Bot is ready. Serving in {server_count} servers.')
+    print(f'{bot.user} has connected to Discord!')
 
 @bot.command(name='increment')
 async def increment(ctx, increment_value: int = 1):
