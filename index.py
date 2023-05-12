@@ -1,16 +1,3 @@
-@bot.event
-async def on_ready():
-    global data
-    print(f'{bot.user} has connected to Discord!')
-    counting_channel_id = data.get('counting_channel_id')
-    if counting_channel_id is not None:
-        channel = bot.get_channel(counting_channel_id)
-        if channel is not None:
-            print(f"Counting channel is set to {channel.name}.")
-        else:
-            print("Counting channel not found. Use !set_channel to set a new counting channel.")
-    else:
-        print("No counting channel set. Use !set_channel to set a counting channel.")
 import re
 import discord
 import json
