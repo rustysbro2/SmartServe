@@ -1,4 +1,4 @@
-import re
+bot.run(TOKEN)import re
 import discord
 import json
 from discord.ext import commands
@@ -155,5 +155,6 @@ async def on_message(message):
     last_user[guild_id] = message.author
 
     save_data(data)
-bot.start(TOKEN)
+    
+    bot.run(TOKEN)
 
