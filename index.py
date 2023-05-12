@@ -9,7 +9,7 @@ TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.G5exAC.pOs6dIx-lA3WhH-ZcC-6_bZSdypujcquc9uij
 
 intents = discord.Intents.default()
 intents.reactions = True
-intents.messages = Trueeee
+intents.messages = True
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
