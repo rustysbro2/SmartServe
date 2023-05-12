@@ -155,5 +155,5 @@ async def on_message(message):
     last_user[guild_id] = message.author
 
     save_data(data)
-
+bot.start(TOKEN)
 
