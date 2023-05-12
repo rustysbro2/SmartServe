@@ -104,7 +104,7 @@ async def on_message(message):
     if data.get('counting_channel_id') is not None and message.channel.id != data.get('counting_channel_id'):
         return
 
-    if message.content.startswith(bot.command_prefix
+    if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
         return
 
@@ -139,5 +139,6 @@ async def on_message(message):
         data['counting_channel_id'] = message.channel.id
 
     save_data(data)
+
     
 bot.run(TOKEN)
