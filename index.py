@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "YOUR_BOT_TOKEN"
+TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.G5Va7Y.oVou9CdPnBcPqJc_uKrM2QaAiDoJgVtDMImryU"
 
 intents = discord.Intents.default()
 intents.reactions = True
@@ -147,4 +147,5 @@ if server_data['counting_channel_id'] is None:
 
 save_data(data)
 
+bot.run(TOKEN)
         
