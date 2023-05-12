@@ -124,13 +124,16 @@ async def on_message(message):
     guild_id = message.guild.id
     server_data = get_server_data(guild_id)
 
-    if guild_id not in counting_channels:
+if guild_id not in counting_channels:
     if message.content.startswith(bot.command_prefix):
         await bot.process_commands(message)
     return
 
 if message.channel.id != counting_channels[guild_id].id:
     return
+
+
+
 
 
     if message.content.startswith(bot.command_prefix):
