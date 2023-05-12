@@ -141,4 +141,7 @@ async def on_message(message):
 
     save_data(data)
 
+    # Add this line to ensure commands work
+    await bot.process_commands(message)
+
 bot.run(TOKEN)
