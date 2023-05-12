@@ -44,12 +44,8 @@ def load_data():
         with open('counting_bot_data.json', 'r') as f:
             return json.load(f)
     except FileNotFoundError:
-        return {}last_user = {}
-data = {}
-
-data = load_data()
-
-
+        return 
+    
 def save_data(data):
     with open('counting_bot_data.json', 'w') as f:
         json.dump(data, f)
