@@ -12,6 +12,8 @@ intents = discord.Intents.default()
 intents.reactions = True
 intents.messages = True
 intents.message_content = True
+intents.guilds = True
+
 
 bot1 = commands.Bot(command_prefix='!', intents=intents)
 
@@ -190,15 +192,6 @@ async def on_message(message):
 
     await bot1.process_commands(message)  # Add this line to process commands
 
-
-@bot1.event
-async def on_message_edit(before, after):
-    await on_message(after)
-
-@bot1.event
-async def on_message_delete(message):
-    await on_message(message)
-    await bot1.process_commands(message)
 
 @bot1.event
 async def on_guild_join(guild):
