@@ -155,7 +155,7 @@ async def on_message(message):
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
     else:
         try:
-            int_message = int(eval(re.sub(r'([0-9]+)', r'(\1)', message.content.replace(" ", ""))))
+            int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|\/|\(|\)', message.content))))
         except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
             error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
         else:
@@ -183,6 +183,7 @@ async def on_message(message):
     await reset_channel(message.channel, error_message, increment_message, typed_message)
 
     save_data(data)
+
 
 
 @bot.event
