@@ -154,7 +154,7 @@ async def ping(ctx):
 
 @bot1.event
 async def on_message(message):
-    print("on_message event triggered")  # Add this line
+    print("on_message event triggered")
     # Rest of the code
     if message.author == bot1.user:
         return
@@ -190,6 +190,7 @@ async def on_message(message):
                 server_data['counter'] += server_data['increment']
                 last_user[guild_id] = message.author.id
                 save_data(data, last_user)
+                await bot1.process_commands(message)  # Process commands here
                 return
 
     increment_message = f"The increment is currently set to {server_data['increment']}."
@@ -197,7 +198,8 @@ async def on_message(message):
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
-await bot1.process_commands(message)  # Add this line to process commands
+    await bot1.process_commands(message)  # Process commands here
+
 
 @bot1.event
 async def on_message_edit(before, after):
@@ -206,6 +208,7 @@ async def on_message_edit(before, after):
 @bot1.event
 async def on_message_delete(message):
     await bot1.process_commands(message)
+
 
 
 
