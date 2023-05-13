@@ -153,9 +153,8 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-if message.content.startswith(bot1.command_prefix): 
- await bot1.process_commands(message)  # Move the call to process_commands here
-        return  # Add a return statement here
+    if message.content.startswith(bot1.command_prefix):
+        pass  # Replace the 'return' with 'pass'
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
@@ -187,10 +186,9 @@ if message.content.startswith(bot1.command_prefix):
     typed_message = f"You typed: '{message.content}'."
     combined_message = f"{error_message}\n\n{increment_message}\n\n{typed_message}"
     await reset_channel(message.channel, error_message, increment_message, typed_message)
-    
-    await bot1.process_commands(message)  # Move the call to process_commands here
-    save_data(data)
 
+    await bot1.process_commands(message)  # Keep the call to process_commands here
+    save_data(data)
 
 @bot1.event
 async def on_guild_join(guild):
