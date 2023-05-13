@@ -3,7 +3,8 @@ import json
 from discord.ext import commands
 import logging
 import re
-import bot from bot
+
+TOKEN1 = "MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY"
 
 logging.basicConfig(level=logging.INFO)
 
@@ -30,7 +31,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
         await self.get_destination().send(embed=embed)
 
-bot.help_command = CustomHelpCommand()
+bot1.help_command = CustomHelpCommand()
 
 last_user = {}
 data = {}
@@ -100,18 +101,18 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
     return new_channel
 
 
-@bot.event
+@bot1.event
 async def on_ready():
     global data
-    for guild in bot.guilds:
+    for guild in bot1.guilds:
         get_server_data(guild.id)
 
-    server_count = len(bot.guilds)
+    server_count = len(bot1.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
-    await bot.change_presence(activity=activity)
+    await bot1.change_presence(activity=activity)
 
-@bot.command(name='increment')
+@bot1.command(name='increment')
 async def increment(ctx, increment_value: int = None):
     guild_id = str(ctx.guild.id)
     server_data = get_server_data(guild_id)
@@ -126,7 +127,7 @@ async def increment(ctx, increment_value: int = None):
 
     save_data(data)
 
-@bot.command(name='set_channel')
+@bot1.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
 async def set_counting_channel(ctx, channel: discord.TextChannel):
     guild_id = str(ctx.guild.id)
@@ -136,9 +137,9 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     save_data(data)
     await ctx.send(f"Counting channel has been set to {channel.mention}.")
 
-@bot.event    
+@bot1.event
 async def on_message(message):
-    if message.author == bot.user:
+    if message.author == bot1.user:
         return
 
     guild_id = str(message.guild.id)
@@ -147,8 +148,8 @@ async def on_message(message):
     if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
         return
 
-    if message.content.startswith(bot.command_prefix):
-        await bot.process_commands(message)
+    if message.content.startswith(bot1.command_prefix):
+        await bot1.process_commands(message)
         return
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
@@ -183,24 +184,34 @@ async def on_message(message):
     await reset_channel(message.channel, error_message, increment_message, typed_message)
 
     save_data(data)
-@bot.event
+
+@bot1.event
 async def on_guild_join(guild):
     get_server_data(guild.id)
-    server_count = len(bot.guilds)
+    server_count = len(bot1.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
-    await bot.change_presence(activity=activity)
+    await bot1.change_presence(activity=activity)
 
-@bot.event
+@bot1.event
 async def on_guild_remove(guild):
     guild_id = str(guild.id)
     if guild_id in data:
         del data[guild_id]
         save_data(data)
 
-    server_count = len(bot.guilds)
+    server_count = len(bot1.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
-    await bot.change_presence(activity=activity)
+    await bot1.change_presence(activity=activity)
+
+@bot1.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send("Command not found. Use `!help` to see available commands.")
+
+bot1.on_command_error = on_command_error
 
 bot1.run(TOKEN1)
+
+
