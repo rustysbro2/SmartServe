@@ -154,8 +154,8 @@ async def on_message(message):
         return
 
     if message.content.startswith(bot1.command_prefix):
-        await bot1.process_commands(message)
-        return
+        pass
+    else:
 
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
@@ -188,6 +188,7 @@ async def on_message(message):
     typed_message = f"You typed: '{message.content}'."
     combined_message = f"{error_message}\n\n{increment_message}\n\n{typed_message}"
     await reset_channel(message.channel, error_message, increment_message, typed_message)
+    await bot1.process_commands(message)
 
     save_data(data)
 
