@@ -197,7 +197,7 @@ async def on_message(message):
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
-    await bot1.process_commands(message)  # Add this line to process commands
+await bot1.process_commands(message)  # Add this line to process commands
 
 @bot1.event
 async def on_message_edit(before, after):
