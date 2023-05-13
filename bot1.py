@@ -36,7 +36,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
         await self.get_destination().send(embed=embed)
 
-bot1.remove_command('help')
+bot1.help_command = CustomHelpCommand()
 
 last_user = {}
 data = {}
