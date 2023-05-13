@@ -120,13 +120,18 @@ async def increment(ctx, increment_value: int = None):
 
     if increment_value is not None:
         if guild_id not in last_user:  # Check if no one has counted yet
+            server_data['increment'] = increment_value
+            save_data(data)
+            await ctx.send(f"The increment value has been set to {increment_value} for the current game.")
+        else:
             server_data['next_increment'] = increment_value
             save_data(data)
             await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
-        else:
-            await ctx.send("The increment value cannot be changed until the current game is completed.")
+    else:
+        await ctx.send(f"The current increment value is {server_data['increment']}.")
 
     save_data(data)
+
 
 
 @bot1.command(name='set_channel')
