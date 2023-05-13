@@ -137,7 +137,6 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     save_data(data)
     await ctx.send(f"Counting channel has been set to {channel.mention}.")
     
-@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -156,7 +155,7 @@ async def on_message(message):
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
     else:
         try:
-            int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|\/|\(|\)', message.content))))
+            int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
         except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
             error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
         else:
