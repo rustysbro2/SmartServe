@@ -100,6 +100,7 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
 
     await new_channel.send(combined_message)
     return new_channel
+
 @bot1.event
 async def on_ready():
     global data, last_user
@@ -179,6 +180,9 @@ async def on_message(message):
     new_channel = await reset_channel(message.channel, error_message, increment_message, message.content)
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
+
+    await bot1.process_commands(message)  # Add this line to process commands
+
 
 @bot1.event
 async def on_message_edit(before, after):
