@@ -155,7 +155,7 @@ async def on_message(message):
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
     else:
         try:
-            int_message = int(eval(re.sub(r'([0-9]+)', r'(\1)', message.content.strip())))
+            int_message = int(eval(re.sub(r'([0-9]+)', r'(\1)', message.content.replace(" ", ""))))
         except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
             error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
         else:
