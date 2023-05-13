@@ -15,7 +15,7 @@ intents.message_content = True
 intents.guilds = True
 intents.members = True  # Add this line
 
-
+bot1.remove_command('help')
 
 
 bot1 = commands.Bot(command_prefix='!', intents=intents)
