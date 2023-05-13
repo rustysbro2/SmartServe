@@ -6,7 +6,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 
-TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.GtiAKn.kw5VwWhHxfkgy9HEfWz5a8Dsch6BxU10AywRcE"
+TOKEN = "YOUR_BOT_TOKEN"
 
 intents = discord.Intents.default()
 intents.reactions = True
@@ -49,7 +49,6 @@ def save_data(data):
        
 data = load_data()
 
-
 def get_server_data(guild_id):
     guild_id = str(guild_id)
     if guild_id not in data:
@@ -61,6 +60,8 @@ def get_server_data(guild_id):
         }
     return data[guild_id]
 
+locked_increment = {}
+
 async def reset_channel(channel, error_message, increment_message=None):
     guild_id = str(channel.guild.id)
     server_data = get_server_data(guild_id)
@@ -71,6 +72,10 @@ async def reset_channel(channel, error_message, increment_message=None):
     server_data['counter'] = 1
     server_data['counting_channel_id'] = new_channel.id
     last_user[guild_id] = None
+
+    if guild_id in locked_increment:
+        server_data['increment'] = locked_increment[guild_id]
+        del locked_increment[guild_id]
 
     save_data(data)
 
@@ -95,9 +100,8 @@ async def increment(ctx, increment_value: int = 1):
     guild_id = str(ctx.guild.id)
     server_data = get_server_data(guild_id)
 
-    server_data['increment'] = increment_value
-    save_data(data)
-    await ctx.send(f"The increment value has been set to {server_data['increment']}.")
+    locked_increment[guild_id] = increment_value
+    await ctx.send(f"The increment value will be set to {locked_increment[guild_id]} at the start of the next game.")
 
 @bot.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
@@ -105,7 +109,7 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     guild_id = str(ctx.guild.id)
     server_data = get_server_data(guild_id)
 
-    server_data['counting_channel_id'] =     channel.id
+    server_data['counting_channel_id'] = channel.id
     save_data(data)
     await ctx.send(f"Counting channel has been set to {channel.mention}.")
 
@@ -126,9 +130,10 @@ async def on_message(message):
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
-        increment_message = f"The current increment value is {server_data['increment']}."
+        increment_message = f"The current increment value is {server_data['increment']}." if server_data['increment'] != 1 else None
         combined_message = f"{error_message}\n{increment_message}"
         channel = await reset_channel(message.channel, combined_message)
+        await channel.send(combined_message)
         return
 
     try:
@@ -138,9 +143,10 @@ async def on_message(message):
 
     if int_message != server_data['counter']:
         error_message = f"Error: {message.author.mention}, the next number should be {server_data['counter']}. You typed: '{message.content}'."
-        increment_message = f"The current increment value is {server_data['increment']}."
+        increment_message = f"The current increment value is {server_data['increment']}." if server_data['increment'] != 1 else None
         combined_message = f"{error_message}\n{increment_message}"
         channel = await reset_channel(message.channel, combined_message)
+        await channel.send(combined_message)
         return
 
     if server_data['counter'] > server_data['high_score']:
@@ -155,3 +161,4 @@ async def on_message(message):
     save_data(data)
 
 bot.run(TOKEN)
+
