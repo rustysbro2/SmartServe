@@ -39,15 +39,16 @@ data = {}
 def load_data():
     try:
         with open('counting_bot_data.json', 'r') as f:
-            return json.load(f)
+            loaded_data = json.load(f)
+            return loaded_data.get("data", {}), loaded_data.get("last_user", {})
     except FileNotFoundError:
-        return {}
+        return {}, {}
 
-def save_data(data):
+def save_data(data, last_user):
     with open('counting_bot_data.json', 'w') as f:
-        json.dump(data, f, indent=4)
+        json.dump({"data": data, "last_user": last_user}, f, indent=4)
 
-data = load_data()
+data, last_user = load_data()
 
 def get_server_data(guild_id):
     guild_id = str(guild_id)
@@ -88,7 +89,7 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
     server_data['counter'] = server_data['increment']  # Start the counter at the current increment value
     server_data['counting_channel_id'] = new_channel.id
 
-    save_data(data)
+    save_data(data, last_user)
 
     messages = [error_message]
     if increment_message:
@@ -99,11 +100,9 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
 
     await new_channel.send(combined_message)
     return new_channel
-
-
 @bot1.event
 async def on_ready():
-    global data
+    global data, last_user
     for guild in bot1.guilds:
         get_server_data(guild.id)
 
@@ -120,19 +119,13 @@ async def increment(ctx, increment_value: int = None):
 
     if increment_value is not None:
         if guild_id not in last_user:  # Check if no one has counted yet
-            server_data['increment'] = increment_value
-            save_data(data)
-            await ctx.send(f"The increment value has been set to {increment_value} for the current game.")
-        else:
             server_data['next_increment'] = increment_value
-            save_data(data)
+            save_data(data, last_user)
             await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
-    else:
-        await ctx.send(f"The current increment value is {server_data['increment']}.")
+        else:
+            await ctx.send("The increment value cannot be changed until the current game is completed.")
 
-    save_data(data)
-
-
+    save_data(data, last_user)
 
 @bot1.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
@@ -141,10 +134,8 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     server_data = get_server_data(guild_id)
 
     server_data['counting_channel_id'] = channel.id
-    save_data(data)
+    save_data(data, last_user)
     await ctx.send(f"Counting channel has been set to {channel.mention}.")
-
-
 
 @bot1.event
 async def on_message(message):
@@ -155,11 +146,11 @@ async def on_message(message):
     server_data = get_server_data(guild_id)
 
     if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
-        await bot1.process_commands(message)
         return
 
     if message.content.startswith(bot1.command_prefix):
-        pass  # Replace the 'return' with 'pass'
+        await bot1.process_commands(message)
+        return
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
@@ -180,24 +171,25 @@ async def on_message(message):
                 else:
                     await message.add_reaction("✅")
                 server_data['counter'] += server_data['increment']
-                last_user[guild_id] = message.author.id
-                save_data(data)
+                                last_user[guild_id] = message.author.id
+                save_data(data, last_user)
                 return
 
-    if server_data['increment'] != 1:
-        increment_message = f"The current increment value is {server_data['increment']}."
-    else:
-        increment_message = ""
-    typed_message = f"You typed: '{message.content}'."
-    combined_message = f"{error_message}\n\n{increment_message}\n\n{typed_message}"
-    await reset_channel(message.channel, error_message, increment_message, typed_message)
+    increment_message = f"The increment is currently set to {server_data['increment']}."
+    new_channel = await reset_channel(message.channel, error_message, increment_message, message.content)
+    server_data['counting_channel_id'] = new_channel.id
+    save_data(data, last_user)
 
-    await bot1.process_commands(message)  # Keep the call to process_commands here
-    save_data(data)
+@bot1.event
+async def on_message_edit(before, after):
+    await on_message(after)
+
+@bot1.event
+async def on_message_delete(message):
+    await on_message(message)
 
 @bot1.event
 async def on_guild_join(guild):
-    get_server_data(guild.id)
     server_count = len(bot1.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
@@ -205,21 +197,19 @@ async def on_guild_join(guild):
 
 @bot1.event
 async def on_guild_remove(guild):
-    guild_id = str(guild.id)
-    if guild_id in data:
-        del data[guild_id]
-        save_data(data)
-
     server_count = len(bot1.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
 
-@bot1.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send("Command not found. Use `!help` to see available commands.")
-
-bot1.on_command_error = on_command_error
+    guild_id = str(guild.id)
+    if guild_id in data:
+        del data[guild_id]
+        save_data(data, last_user)
+    if guild_id in last_user:
+        del last_user[guild_id]
+        save_data(data, last_user)
 
 bot1.run(TOKEN1)
+
+
