@@ -15,10 +15,12 @@ intents.message_content = True
 intents.guilds = True
 intents.members = True  # Add this line
 
-bot1.remove_command('help')
+
 
 
 bot1 = commands.Bot(command_prefix='!', intents=intents)
+
+bot1.remove_command('help')
 
 class CustomHelpCommand(commands.HelpCommand):
     def get_command_signature(self, command):
