@@ -13,6 +13,9 @@ intents.reactions = True
 intents.messages = True
 intents.message_content = True
 intents.guilds = True
+intents.members = True  # Add this line
+
+
 
 
 bot1 = commands.Bot(command_prefix='!', intents=intents)
@@ -195,6 +198,15 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)  # Add this line to process commands
+
+@bot1.event
+async def on_message_edit(before, after):
+    await bot1.process_commands(after)
+
+@bot1.event
+async def on_message_delete(message):
+    await bot1.process_commands(message)
+
 
 
 @bot1.event
