@@ -145,6 +145,8 @@ async def test(ctx):
 
 @bot1.event
 async def on_message(message):
+    print("on_message event triggered")  # Add this line
+    # Rest of the code
     if message.author == bot1.user:
         return
 
