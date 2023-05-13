@@ -198,6 +198,7 @@ async def on_message_edit(before, after):
 @bot1.event
 async def on_message_delete(message):
     await on_message(message)
+await bot1.process_commands(message)
 
 @bot1.event
 async def on_guild_join(guild):
