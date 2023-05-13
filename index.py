@@ -182,8 +182,8 @@ async def on_message(message):
     combined_message = f"{error_message}\n\n{increment_message}\n\n{typed_message}"
     await reset_channel(message.channel, error_message, increment_message, typed_message)
 
-
     save_data(data)
+
 
 
 @bot.event
