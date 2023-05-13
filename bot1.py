@@ -100,7 +100,7 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
     elif 'increment' not in server_data:
         server_data['increment'] = 1  # Set default increment value if 'increment' is not set
 
-    server_data['counter'] = server_data['increment']  # Start the counter at the current increment value
+    server_data['counter'] = server_data['increment']
     server_data['counting_channel_id'] = new_channel.id
 
     save_data(data, last_user)
