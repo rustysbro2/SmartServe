@@ -115,28 +115,13 @@ async def on_ready():
 
 @bot1.command(name='increment')
 async def increment(ctx, increment_value: int = None):
-    guild_id = str(ctx.guild.id)
-    server_data = get_server_data(guild_id)
-
-    if increment_value is not None:
-        if guild_id not in last_user:  # Check if no one has counted yet
-            server_data['next_increment'] = increment_value
-            save_data(data)
-            await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
-        else:
-            await ctx.send("The increment value cannot be changed until the current game is completed.")
-
-    save_data(data)
+    # Your command code here
 
 @bot1.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
 async def set_counting_channel(ctx, channel: discord.TextChannel):
-    guild_id = str(ctx.guild.id)
-    server_data = get_server_data(guild_id)
+    # Your command code here
 
-    server_data['counting_channel_id'] = channel.id
-    save_data(data)
-    await ctx.send(f"Counting channel has been set to {channel.mention}.")
 
 @bot1.event
 async def on_message(message):
