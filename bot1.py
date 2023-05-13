@@ -144,6 +144,10 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
 async def test(ctx):
     await ctx.send('Test command executed successfully!')
 
+@bot1.command(name='ping')
+async def ping(ctx):
+    await ctx.send('Pong!')
+
 
 @bot1.event
 async def on_message(message):
