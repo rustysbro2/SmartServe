@@ -154,10 +154,10 @@ async def ping(ctx):
 
 @bot1.event
 async def on_message(message):
-    print("on_message event triggered")
-    # Rest of the code
     if message.author == bot1.user:
         return
+
+    await bot1.process_commands(message)
 
     guild_id = str(message.guild.id)
     server_data = get_server_data(guild_id)
