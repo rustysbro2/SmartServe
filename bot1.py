@@ -18,9 +18,7 @@ intents.members = True  # Add this line
 
 
 
-bot1 = commands.Bot(command_prefix='!', intents=intents)
-
-bot1.remove_command('help')
+bot1 = commands.Bot(command_prefix='!', intents=intents)bot1.remove_command('help')
 
 class CustomHelpCommand(commands.HelpCommand):
     def get_command_signature(self, command):
@@ -38,6 +36,7 @@ class CustomHelpCommand(commands.HelpCommand):
 
         await self.get_destination().send(embed=embed)
 
+bot1.remove_command('help')
 bot1.help_command = CustomHelpCommand()
 
 @bot1.command(name='help')
