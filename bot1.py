@@ -38,6 +38,13 @@ class CustomHelpCommand(commands.HelpCommand):
 
 bot1.help_command = CustomHelpCommand()
 
+@bot1.command(name='help')
+async def help_command(ctx):
+    # Implement your custom help functionality here
+    # You can send an embed or a text message with a list of available commands and their descriptions
+    # You can access the bot's commands using `bot1.commands` and iterate over them
+    await ctx.send("This is a custom help command. Implement your help functionality here.")
+
 last_user = {}
 data = {}
 
