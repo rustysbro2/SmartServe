@@ -171,7 +171,7 @@ async def on_message(message):
                 else:
                     await message.add_reaction("✅")
                 server_data['counter'] += server_data['increment']
-                                last_user[guild_id] = message.author.id
+                last_user[guild_id] = message.author.id
                 save_data(data, last_user)
                 return
 
