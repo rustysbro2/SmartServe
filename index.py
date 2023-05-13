@@ -185,7 +185,6 @@ async def on_message(message):
     save_data(data)
 
 
-
 @bot.event
 async def on_guild_join(guild):
     get_server_data(guild.id)
