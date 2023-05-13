@@ -136,7 +136,8 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     server_data['counting_channel_id'] = channel.id
     save_data(data)
     await ctx.send(f"Counting channel has been set to {channel.mention}.")
-    
+
+@bot.event    
 async def on_message(message):
     if message.author == bot.user:
         return
