@@ -3,10 +3,9 @@ import json
 from discord.ext import commands
 import logging
 import re
+import bot from bot
 
 logging.basicConfig(level=logging.INFO)
-
-TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.Gtxm_1.AUKZIq_xdfHhuG7LTvJKuimE-bhPqWJEJ8slq4"
 
 intents = discord.Intents.default()
 intents.reactions = True
@@ -204,4 +203,4 @@ async def on_guild_remove(guild):
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot.change_presence(activity=activity)
 
-bot.run(TOKEN)
+bot1.run(TOKEN1)
