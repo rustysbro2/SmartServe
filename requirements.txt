@@ -3,3 +3,4 @@ discord.py
 sympy
 re
 sys
+pynacl
