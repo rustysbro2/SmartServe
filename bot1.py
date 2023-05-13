@@ -12,7 +12,7 @@ intents.reactions = True
 intents.messages = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot1 = commands.Bot(command_prefix='!', intents=intents)
 
 class CustomHelpCommand(commands.HelpCommand):
     def get_command_signature(self, command):
