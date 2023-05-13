@@ -111,6 +111,7 @@ async def on_ready():
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
+    print(f"Bot1 is ready. Connected to {server_count} servers.")
 
 @bot1.command(name='increment')
 async def increment(ctx, increment_value: int = None):
@@ -213,5 +214,3 @@ async def on_command_error(ctx, error):
 bot1.on_command_error = on_command_error
 
 bot1.run(TOKEN1)
-
-
