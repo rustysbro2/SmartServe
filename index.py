@@ -137,6 +137,7 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     save_data(data)
     await ctx.send(f"Counting channel has been set to {channel.mention}.")
     
+@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -183,9 +184,6 @@ async def on_message(message):
     await reset_channel(message.channel, error_message, increment_message, typed_message)
 
     save_data(data)
-
-
-
 @bot.event
 async def on_guild_join(guild):
     get_server_data(guild.id)
