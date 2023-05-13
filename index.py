@@ -154,26 +154,31 @@ async def on_message(message):
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
-    elif not re.fullmatch(r'\d+', message.content):
-        error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
     else:
-        int_message = int(message.content)
-        expected_value = server_data['counter']
-
-        if int_message != expected_value:
-            error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
+        try:
+            int_message = int(eval(message.content))
+        except (ValueError, TypeError, NameError, ZeroDivisionError):
+            error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
         else:
-            if server_data['counter'] > server_data['high_score']:
-                await message.add_reaction("🏆")
-                server_data['high_score'] = server_data['counter']
-            else:
-                await message.add_reaction("✅")
-            server_data['counter'] += server_data['increment']
-            last_user[guild_id] = message.author.id
-            save_data(data)
-            return
+            expected_value = server_data['counter']
 
-    increment_message = f"The current increment value is {server_data['increment']}."
+            if int_message != expected_value:
+                error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
+            else:
+                if server_data['counter'] > server_data['high_score']:
+                    await message.add_reaction("🏆")
+                    server_data['high_score'] = server_data['counter']
+                else:
+                    await message.add_reaction("✅")
+                server_data['counter'] += server_data['increment']
+                last_user[guild_id] = message.author.id
+                save_data(data)
+                return
+
+    if server_data['increment'] != 1:
+        increment_message = f"The current increment value is {server_data['increment']}."
+    else:
+        increment_message = ""
     typed_message = f"You typed: '{message.content}'."
     combined_message = f"{error_message}\n\n{increment_message}\n\n{typed_message}"
     await reset_channel(message.channel, error_message, increment_message, typed_message)
