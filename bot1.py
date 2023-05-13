@@ -150,11 +150,13 @@ async def on_message(message):
     server_data = get_server_data(guild_id)
 
     if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
+        await bot1.process_commands(message)
         return
 
     if message.content.startswith(bot1.command_prefix):
         await bot1.process_commands(message)
         return
+
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
