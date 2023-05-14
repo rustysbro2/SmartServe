@@ -191,6 +191,7 @@ async def on_message(message):
                 server_data['counter'] += server_data['increment']
                 last_user[guild_id] = message.author.id
                 save_data(data, last_user)
+                await reset_channel(message.channel, error_message, increment_message, typed_message)
                 await bot1.process_commands(message)
                 return
 
@@ -207,6 +208,7 @@ async def on_message(message):
     logging.debug(f"Typed message: {typed_message}")
 
     await bot1.process_commands(message)
+
 
 
 
