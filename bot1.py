@@ -112,9 +112,6 @@ async def reset_channel(channel, error_embed):
     if guild is None:
         return
 
-    overwrites = channel.overwrites
-    category = channel.category
-
     try:
         owner = guild.owner
     except discord.errors.HTTPException:
@@ -124,6 +121,9 @@ async def reset_channel(channel, error_embed):
         await channel.delete(reason="Counting error")
     except discord.errors.NotFound:
         return
+
+    overwrites = channel.overwrites
+    category = channel.category
 
     try:
         new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
@@ -139,6 +139,7 @@ async def reset_channel(channel, error_embed):
     await new_channel.send(embed=error_embed)
 
     return new_channel
+
 
 
 
