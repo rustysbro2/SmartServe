@@ -191,18 +191,17 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     guild_id = str(ctx.guild.id)
     server_data = get_server_data(guild_id)
 
+    if server_data['counting_channel_id'] == channel.id:
+        await ctx.send("The counting channel is already set to that channel.")
+    else:
+        server_data['counting_channel_id'] = channel.id
+        save_data(data, last_user)
+        await ctx.send(f"Counting channel has been set to {channel.mention}.")
+
+
     server_data['counting_channel_id'] = channel.id
     save_data(data, last_user)
     await ctx.send(f"Counting channel has been set to {channel.mention}.")
-
-@bot1.command(name='test')
-async def test(ctx):
-    await ctx.send('Test command executed successfully!')
-
-@bot1.command(name='ping')
-async def ping(ctx):
-    await ctx.send('Pong!')
-
 
 @bot1.event
 async def on_message(message):
