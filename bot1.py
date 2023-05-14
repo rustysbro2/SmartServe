@@ -61,6 +61,7 @@ def get_server_data(guild_id):
     if guild_id not in data:
         data[guild_id] = {
             'counter': 1,
+            'previous_count': 0,
             'high_score': 0,
             'counting_channel_id': None,
             'increment': 1
@@ -75,6 +76,7 @@ def get_server_data(guild_id):
         if 'increment' not in server_data:
             server_data['increment'] = 1  # Set default value for 'increment' if not present
     return data[guild_id]
+
 
 async def reset_channel(channel, error_message, increment_message=None, typed_message=None):
     guild_id = str(channel.guild.id)
@@ -151,36 +153,33 @@ async def on_ready():
                 save_data(data, last_user)
                 continue
 
-            # Check if the same user counted twice in a row
-            guild_id = str(guild.id)
-            if guild_id in last_user and message.author.id == last_user[guild_id]:
-                error_message = f"Error: {message.author.mention}, you cannot count twice in a row."
-                new_channel = await reset_channel(counting_channel, error_message)
-                server_data['counting_channel_id'] = new_channel.id
-                save_data(data, last_user)
-                continue
+         # Check if the same user counted twice in a row
+guild_id = str(guild.id)
+if guild_id in last_user and message.author.id == last_user[guild_id]:
+    error_message = f"Error: {message.author.mention}, you cannot count twice in a row."
+    new_channel = await reset_channel(counting_channel, error_message)
+    server_data['counting_channel_id'] = new_channel.id
+    server_data['counter'] = server_data['previous_count'] + server_data['increment']  # Reset the counter to previous count + increment
+    save_data(data, last_user)
+    continue
 
-            # Update the counter and last user
-            if server_data['counter'] > server_data['high_score']:
-                try:
-                    await message.add_reaction("🏆")
-                except discord.errors.NotFound:
-                    pass  # Ignore if the channel or message is not found
-                server_data['high_score'] = server_data['counter']
-            else:
-                try:
-                    await message.add_reaction("✅")
-                except discord.errors.NotFound:
-                    pass  # Ignore if the channel or message is not found
-            server_data['counter'] += server_data['increment']
-            last_user[guild.id] = message.author.id
-            save_data(data, last_user)
+# Update the counter and last user
+if server_data['counter'] > server_data['high_score']:
+    try:
+        await message.add_reaction("🏆")
+    except discord.errors.NotFound:
+        pass  # Ignore if the channel or message is not found
+    server_data['high_score'] = server_data['counter']
+else:
+    try:
+        await message.add_reaction("✅")
+    except discord.errors.NotFound:
+        pass  # Ignore if the channel or message is not found
+server_data['previous_count'] = server_data['counter']  # Set the previous count to the current count
+server_data['counter'] += server_data['increment']
+last_user[guild.id] = message.author.id
+save_data(data, last_user)
 
-    server_count = len(bot1.guilds)
-    activity_name = f'{server_count} Servers'
-    activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
-    await bot1.change_presence(activity=activity)
-    print(f"Bot1 is ready. Connected to {server_count} servers.")
 
 
 @bot1.command(name='increment')
