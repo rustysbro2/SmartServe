@@ -1,7 +1,3 @@
-@bot1.event
-async def on_message_delete(message):
-    channel = message.channel
-    await bot1.process_commands(message)
 import json
 import discord
 from discord.ext import commands
