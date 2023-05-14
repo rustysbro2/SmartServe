@@ -160,8 +160,11 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    last_counter_id = last_user.get(guild_id)
-    if last_counter_id == message.author.id:
+    last_game_data = last_user.get(guild_id)
+    last_game_counter = last_game_data.get('counter') if last_game_data else None
+    last_game_user = last_game_data.get('user') if last_game_data else None
+
+    if last_game_counter == server_data['counter'] and last_game_user == message.author.id:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
         ping_message = await message.channel.send(content=message.author.mention)
         await ping_message.delete(delay=0)  # Deletes the message immediately
@@ -207,14 +210,15 @@ async def on_message(message):
     if server_data['counter'] > server_data['high_score']:
         await message.add_reaction("🏆")
         server_data['high_score'] = server_data['counter']
-    else:
-        await message.add_reaction("✅")
 
-    server_data['counter'] += server_data['increment']
-    last_user[guild_id] = message.author.id
-    save_data(data, last_user)
+    last_game_data = {'counter': server_data['counter'], 'user': message.author.id}
+    last_user[guild_id] = last_game_data  # Update last_user with current game's data
 
-    await bot1.process_commands(message)
+save_data(data, last_user)
+
+await bot1.process_commands(message)
+
+
 
 @bot1.event
 async def on_message_edit(before, after):
