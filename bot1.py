@@ -144,11 +144,6 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
     return new_channel
 
-
-
-
-
-
 @bot1.event
 async def on_message(message):
     if message.author == bot1.user:
@@ -165,7 +160,8 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    if guild_id in last_user and message.author.id == last_user[guild_id]:
+    last_counter_id = last_user.get(guild_id)
+    if last_counter_id == message.author.id:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
         ping_message = await message.channel.send(content=message.author.mention)
         await ping_message.delete(delay=0)  # Deletes the message immediately
@@ -220,11 +216,6 @@ async def on_message(message):
 
     await bot1.process_commands(message)
 
-
-
-
-
-
 @bot1.event
 async def on_message_edit(before, after):
     await bot1.process_commands(after)
@@ -256,8 +247,3 @@ async def on_guild_remove(guild):
         save_data(data, last_user)
 
 bot1.run(TOKEN1)
-
-
-
-
-
