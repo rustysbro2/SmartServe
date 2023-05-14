@@ -201,20 +201,20 @@ async def on_message(message):
 
         return
 
+    if int_message == expected_value:
+        await message.add_reaction("✅")  # Add checkmark reaction for a correct number
+        server_data['counter'] += server_data['increment']
+        save_data(data, last_user)
+
     if server_data['counter'] > server_data['high_score']:
         await message.add_reaction("🏆")
         server_data['high_score'] = server_data['counter']
-    else:
-        await message.add_reaction("✅")
 
     last_game_data = {'counter': server_data['counter'], 'user': message.author.id}
     last_user[guild_id] = last_game_data  # Update last_user with current game's data
     save_data(data, last_user)
 
     await bot1.process_commands(message)
-
-
-
     
 @bot1.event
 async def on_message_edit(before, after):
