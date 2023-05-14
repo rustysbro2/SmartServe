@@ -153,11 +153,12 @@ async def on_message(message):
 
     logging.debug(f"Received message: {message.content}")
 
-    if guild_id in last_user and message.author.id == last_user[guild_id] and server_data.get('game_id') == last_user.get(guild_id):
-        error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game. Wait for someone else to count."
-        ping_message = await message.channel.send(error_message)
-        await ping_message.delete()  # Deletes the message immediately
-        return
+    if guild_id in last_user and message.author.id == last_user[guild_id]:
+        if server_data.get('game_id') == last_user.get(guild_id):
+            error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game. Wait for someone else to count."
+            ping_message = await message.channel.send(error_message)
+            await ping_message.delete()  # Deletes the message immediately
+            return
     else:
         try:
             int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
@@ -197,6 +198,7 @@ async def on_message(message):
     logging.debug(f"Typed message: {typed_message}")
 
     await bot1.process_commands(message)
+
 
 
 
