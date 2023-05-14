@@ -1,52 +1,3 @@
-@bot1.event
-async def on_message(message):
-    if message.author == bot1.user:
-        return
-
-    guild_id = str(message.guild.id)
-    server_data = get_server_data(guild_id)
-
-    if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
-        await bot1.process_commands(message)
-        return
-
-    if message.content.startswith(bot1.command_prefix):
-        await bot1.process_commands(message)
-        return
-
-    if guild_id in last_user and message.author.id == last_user[guild_id]:
-        error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
-        ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=0)  # Deletes the message immediately
-        return
-
-    try:
-        int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
-    except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
-        error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
-        ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=0)  # Deletes the message immediately
-        return
-
-    expected_value = server_data['counter']
-
-    if int_message != expected_value:
-        error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
-        ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=0)  # Deletes the message immediately
-        return
-
-    if server_data['counter'] > server_data['high_score']:
-        await message.add_reaction("🏆")
-        server_data['high_score'] = server_data['counter']
-    else:
-        await message.add_reaction("✅")
-
-    server_data['counter'] += server_data['increment']
-    last_user[guild_id] = message.author.id
-    save_data(data, last_user)
-
-    await bot1.process_commands(message)
 import json
 import discord
 from discord.ext import commands
@@ -224,15 +175,6 @@ async def on_message(message):
 
     server_data['counter'] += server_data['increment']
     last_user[guild_id] = message.author.id
-    save_data(data, last_user)
-
-    await bot1.process_commands(message)
-
-
-    increment_message = f"The increment is currently set to {server_data['increment']}."
-    typed_message = f"You typed: {message.content}"
-    new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
-    server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
     await bot1.process_commands(message)
