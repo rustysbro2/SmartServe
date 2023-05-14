@@ -77,6 +77,37 @@ def get_server_data(guild_id):
             server_data['increment'] = 1  # Set default value for 'increment' if not present
     return data[guild_id]
 
+async def reset_channel(channel, error_message, increment_message=None, typed_message=None):
+    guild_id = str(channel.guild.id)
+    server_data = get_server_data(guild_id)
+
+    new_channel = await channel.clone()
+    await channel.delete()
+
+    if guild_id in last_user:
+        del last_user[guild_id]
+
+    if 'next_increment' in server_data:
+        server_data['increment'] = server_data['next_increment']
+        del server_data['next_increment']
+    elif 'increment' not in server_data:
+        server_data['increment'] = 1  # Set default increment value if 'increment' is not set
+
+    server_data['counter'] = server_data['increment']
+    server_data['counting_channel_id'] = new_channel.id
+
+    save_data(data, last_user)
+
+    messages = [error_message]
+    if increment_message:
+        messages.append(increment_message)
+    if typed_message:
+        messages.append(typed_message)
+    combined_message = '\n\n'.join(messages)
+
+    await new_channel.send(combined_message)
+    return new_channel
+
 
 async def on_ready():
     print(f'{bot1.user.name} is ready. Connected as {bot1.user.name}')
