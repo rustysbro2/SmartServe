@@ -1,4 +1,4 @@
-import discord
+iimport discord
 from discord.ext import commands
 
 intents = discord.Intents.default()
@@ -72,6 +72,8 @@ async def on_message(message):
     if message.author.bot:
         return
 
+    await bot.process_commands(message)  # Move this line to the beginning of the on_message event handler
+
     if message.guild and message.channel.id == counting_channels.get(message.guild.id):
         guild_id = message.guild.id
         increment = increments[guild_id]
@@ -91,8 +93,9 @@ async def on_message(message):
             counting_channels[guild_id] = new_channel.id
             embed = discord.Embed(title="Counting Failure", description=f"Reason: Invalid count\nIncrement: {increment}\nFailed message: {message.content}", color=0xFF0000)
             await new_channel.send(embed=embed)
-    else:
-        await bot.process_commands(message)
+
+
+
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
 
