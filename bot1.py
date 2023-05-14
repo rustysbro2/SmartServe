@@ -132,85 +132,38 @@ async def reset_channel(channel):
 async def on_message(message):
     if message.author == bot1.user:
         return
-
-    guild_id = str(message.guild.id)
-    server_data = get_server_data(guild_id)
-
-    if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
+    
+    if message.content.startswith('!'):
         await bot1.process_commands(message)
         return
 
-    if message.content.startswith(bot1.command_prefix):
-        await bot1.process_commands(message)
+    data = load_data()
+    server_data = data[str(message.guild.id)]
+    counting_channel_id = server_data["counting_channel"]
+
+    if message.channel.id != counting_channel_id:
         return
 
-    last_game_data = last_user.get(guild_id)
-    last_game_counter = last_game_data.get('counter') if last_game_data else None
-    last_game_user = last_game_data.get('user') if last_game_data else None
-
-    if last_game_counter is not None and last_game_user == message.author.id:
-        if last_game_counter == server_data['counter']:
-            error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game."
-            ping_message = await message.channel.send(content=message.author.mention)
-            await ping_message.delete(delay=5)  # Deletes the message after a delay
-            return
-
-    try:
-        int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
-    except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
-        error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
-        ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=5)  # Deletes the message after a delay
-
-        increment_message = f"The increment is currently set to {server_data['increment']}."
-        typed_message = f"You typed: {message.content}"
-        new_channel = await reset_channel(message.channel)
-        if new_channel:
-            server_data['counting_channel_id'] = new_channel.id
-            save_data(data, last_user)
-            error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
-            error_embed.add_field(name="Error Message", value=error_message)
-            error_embed.add_field(name="Increment", value=increment_message)
-            error_embed.add_field(name="Typed Message", value=typed_message)
-            await new_channel.send(embed=error_embed)
-
+    if not message.content.isdigit():
         return
 
-    expected_value = server_data['counter']
+    typed_number = int(message.content)
+    last_number = server_data["last_number"]
+    increment = server_data["increment"]
+    next_number = last_number + increment
 
-    if int_message != expected_value:
-        error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
-        ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=5)  # Deletes the message after a delay
+    if typed_number != next_number:
+        error_message = f"The next number should be {next_number}."
+        increment_message = f"The increment is currently set to {increment}."
+        typed_message = f"You typed: {typed_number}"
+        new_channel = await reset_channel(message.channel, message.author.mention, error_message, increment_message, typed_message)
+        data[str(message.guild.id)]["counting_channel"] = new_channel.id
+        save_data(data)
+    else:
+        await message.add_reaction("✅")
+        data[str(message.guild.id)]["last_number"] = typed_number
+        save_data(data)
 
-        increment_message = f"The increment is currently set to {server_data['increment']}."
-        typed_message = f"You typed: {message.content}"
-        new_channel = await reset_channel(message.channel)
-        if new_channel:
-            server_data['counting_channel_id'] = new_channel.id
-            save_data(data, last_user)
-            error_embed = discord.Embed(title="Counting Error",color=discord.Color.red())
-            error_embed.add_field(name="Error Message", value=error_message)
-            error_embed.add_field(name="Increment", value=increment_message)
-            error_embed.add_field(name="Typed Message", value=typed_message)
-            await new_channel.send(embed=error_embed)
-
-        return
-
-    if int_message == expected_value:
-        await message.add_reaction("✅")  # Add checkmark reaction for a correct number
-        server_data['counter'] += server_data['increment']
-        save_data(data, last_user)
-
-    if server_data['counter'] > server_data['high_score']:
-        await message.add_reaction("🏆")
-        server_data['high_score'] = server_data['counter']
-
-    last_game_data = {'counter': server_data['counter'], 'user': message.author.id}
-    last_user[guild_id] = last_game_data  # Update last_user with current game's data
-    save_data(data, last_user)
-
-    await bot1.process_commands(message)
 
 
 @bot1.event
