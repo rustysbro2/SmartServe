@@ -167,6 +167,10 @@ async def on_message(message):
                 await bot1.process_commands(message)
                 return
 
+    new_channel = await reset_channel(message.channel, guild_id)
+    server_data['counting_channel_id'] = new_channel.id
+    save_data(data, last_user)
+
     increment_message = f"The increment is currently set to {server_data['increment']}."
     typed_message = f"You typed: {message.content}"
     
@@ -175,13 +179,9 @@ async def on_message(message):
     embed.add_field(name="Last Typed", value=typed_message, inline=False)
     embed.add_field(name="Increment", value=increment_message, inline=False)
 
-    await message.channel.send(embed=embed)
-
-    new_channel = await reset_channel(message.channel, guild_id)
-    server_data['counting_channel_id'] = new_channel.id
-    save_data(data, last_user)
-
+    await new_channel.send(embed=embed)
     await bot1.process_commands(message)
+
 
 
 @bot1.event
