@@ -109,13 +109,27 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
 
 async def reset_channel(channel, error_message, increment_message, typed_message):
     guild = channel.guild
+    if guild is None:
+        return
+
     overwrites = channel.overwrites
     category = channel.category
 
-    await channel.delete(reason="Counting error")
+    try:
+        owner = guild.owner
+    except discord.errors.HTTPException:
+        return
 
-    ping_message = await channel.send(content=channel.guild.owner.mention)
-    await ping_message.delete(delay=0)  # Deletes the message immediately
+    try:
+        await channel.delete(reason="Counting error")
+    except discord.errors.NotFound:
+        return
+
+    try:
+        ping_message = await channel.send(content=owner.mention)
+        await ping_message.delete(delay=0)  # Deletes the message immediately
+    except discord.errors.NotFound:
+        return
 
     new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
     error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
@@ -125,6 +139,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     await new_channel.send(embed=error_embed)
 
     return new_channel
+
 
 
 
