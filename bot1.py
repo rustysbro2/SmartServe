@@ -135,7 +135,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
 
 
-@bot1.event
+@bot1@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -178,7 +178,7 @@ async def on_message(message):
                     await message.add_reaction("✅")
                 server_data['counter'] += server_data['increment']
                 last_user[guild_id] = message.author.id
-                last_user[guild_id] = server_data.get('game_id')  # Store the game ID
+                last_user[server_data['game_id']] = message.author.id  # Store the user ID with the game ID
                 save_data(data, last_user)
                 await bot1.process_commands(message)
                 return
@@ -197,6 +197,7 @@ async def on_message(message):
     logging.debug(f"Typed message: {typed_message}")
 
     await bot1.process_commands(message)
+
 
 
 
