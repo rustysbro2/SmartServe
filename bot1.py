@@ -182,6 +182,7 @@ async def increment(ctx, increment_value: int = None):
             await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
         else:
             await ctx.send("The increment value cannot be changed until the current game is completed.")
+            return
 
     save_data(data, last_user)
 
@@ -197,6 +198,7 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
         await ctx.send(f"Counting channel has been set to {channel.mention}.")
     else:
         await ctx.send("The counting channel is already set to that channel.")
+        return
 
 
 
