@@ -212,13 +212,7 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
-
-
-
-
-
-
-
+    
 @bot1.event
 async def on_message_edit(before, after):
     await bot1.process_commands(after)
