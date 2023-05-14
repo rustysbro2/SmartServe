@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 
 intents = discord.Intents.all()
-
 bot1 = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
 counting_channels = {}
@@ -85,13 +84,33 @@ async def on_message(message):
                 high_scores[guild_id] = score
                 await message.add_reaction("🏆")
         else:
+            # Store channel properties before deletion
+            channel_name = message.channel.name
+            channel_position = message.channel.position
+            channel_category = message.channel.category
+            channel_permissions = message.channel.permission_overwrites
+            channel_topic = message.channel.topic
+
+            # Delete the channel
             await message.channel.delete()
-            new_channel = await message.guild.create_text_channel("counting")
+
+            # Create a new channel with the same properties
+            new_channel = await message.guild.create_text_channel(
+                name=channel_name,
+                position=channel_position,
+                category=channel_category,
+                overwrites=channel_permissions,
+                topic=channel_topic
+            )
             counting_channels[guild_id] = new_channel.id
+            last_counters[guild_id] = None  # Clear the last user for the specific server
             embed = discord.Embed(title="Counting Failure", description=f"Reason: Invalid count\nIncrement: {increment}\nFailed message: {message.content}", color=0xFF0000)
             await new_channel.send(embed=embed)
     else:
         await bot1.process_commands(message)
+
+
+
 
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
 
