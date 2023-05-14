@@ -129,7 +129,7 @@ async def on_ready():
 
         # Fetch messages from the counting channel since the bot was last online
         last_message_id = server_data.get('last_message_id', 0)
-        messages = await counting_channel.history(after=discord.Object(id=last_message_id), limit=None).flatten()
+        messages = list(await counting_channel.history(after=discord.Object(id=last_message_id), limit=None))
 
         # Process each message
         for message in messages:
@@ -165,6 +165,7 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
     print(f"Bot1 is ready. Connected to {server_count} servers.")
+
 
 
 
