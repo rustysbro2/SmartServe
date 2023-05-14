@@ -74,7 +74,7 @@ def get_server_data(guild_id):
             del server_data['next_increment']
         if 'increment' not in server_data:
             server_data['increment'] = 1
-    return data[guild_id] contineu
+            return data[guild_id] contineu
 
 @bot1.event
 async def on_ready():
