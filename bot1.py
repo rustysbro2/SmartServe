@@ -143,16 +143,17 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-  if guild_id in last_user and message.author.id == last_user[guild_id]:
-    error_message = "Error: you cannot count twice in a row. Wait for someone else to count."
+    if guild_id in last_user and message.author.id == last_user[guild_id]:
+        error_message = "Error: you cannot count twice in a row. Wait for someone else to count."
     else:
         try:
             int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
         except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
-            error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
+            error_message = "Error: you typed an invalid expression or a non-integer."
         else:
             expected_value = server_data['counter']
-             if int_message != expected_value:
+
+            if int_message != expected_value:
                 error_message = f"Error: the next number should be {expected_value}."
             else:
                 if server_data['counter'] > server_data['high_score']:
@@ -166,20 +167,20 @@ async def on_message(message):
                 await bot1.process_commands(message)
                 return
 
-    new_channel = await reset_channel(message.channel, guild_id)
+    increment_message = f"The increment is currently set to {server_data['increment']}."
+    typed_message = f"You typed: {message.content}"
+    new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
-    increment_message = f"The increment is currently set to {server_data['increment']}."
-    typed_message = f"You typed: {message.content}"
-    
-    embed = discord.Embed(title="New Game", color=discord.Color.red())
-    embed.add_field(name="Error", value=error_message, inline=False)
-    embed.add_field(name="Last Typed", value=typed_message, inline=False)
-    embed.add_field(name="Increment", value=increment_message, inline=False)
+    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red(), description=f"{message.author.mention}, {error_message}")
+    error_embed.add_field(name="Error", value=f"{message.author.mention}, {error_message}", inline=False)
+    error_embed.add_field(name="Increment", value=increment_message, inline=False)
+    error_embed.add_field(name="Typed Message", value=typed_message, inline=False)
 
-    await new_channel.send(content=message.author.mention, embed=embed)
+    await new_channel.send(embed=error_embed)
     await bot1.process_commands(message)
+
 
 
 
