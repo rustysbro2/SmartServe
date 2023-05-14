@@ -127,10 +127,6 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
     return new_channel
 
-
-
-
-@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -181,12 +177,11 @@ async def on_message(message):
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
+    logging.info("Calling reset_channel function")
+    await reset_channel(message.channel, error_message, increment_message, typed_message)
+    logging.info("After calling reset_channel function")
+
     await bot1.process_commands(message)
-
-
-
-
-
 
 @bot1.event
 async def on_message_edit(before, after):
@@ -219,7 +214,3 @@ async def on_guild_remove(guild):
         save_data(data, last_user)
 
 bot1.run(TOKEN1)
-
-
-
-
