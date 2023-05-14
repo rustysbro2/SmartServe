@@ -125,7 +125,10 @@ async def on_ready():
             continue
 
         # Fetch messages from the counting channel
-        async for message in counting_channel.history(limit=None):
+        messages = await counting_channel.history(limit=None).flatten()
+
+        # Process each message
+        for message in messages:
             if message.author == bot1.user:
                 continue
 
@@ -148,6 +151,15 @@ async def on_ready():
                 save_data(data, last_user)
                 continue
 
+            # Check if the same user counted twice in a row
+            guild_id = str(guild.id)
+            if guild_id in last_user and message.author.id == last_user[guild_id]:
+                error_message = f"Error: {message.author.mention}, you cannot count twice in a row."
+                new_channel = await reset_channel(counting_channel, error_message)
+                server_data['counting_channel_id'] = new_channel.id
+                save_data(data, last_user)
+                continue
+
             # Update the counter and last user
             if server_data['counter'] > server_data['high_score']:
                 await message.add_reaction("🏆")
@@ -163,6 +175,7 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
     print(f"Bot1 is ready. Connected to {server_count} servers.")
+
 
 
 
