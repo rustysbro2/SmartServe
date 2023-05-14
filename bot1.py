@@ -164,20 +164,20 @@ async def on_message(message):
     last_game_counter = last_game_data.get('counter') if last_game_data else None
     last_game_user = last_game_data.get('user') if last_game_data else None
 
-    if last_game_counter == server_data['counter'] and last_game_user == message.author.id:
-        error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game."
-        increment_message = f"The increment is currently set to {server_data['increment']}."
-        typed_message = f"You typed: {message.content}"
-        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
-        server_data['counting_channel_id'] = new_channel.id
-        save_data(data, last_user)
-
-        return
+    if last_game_counter is not None and last_game_user == message.author.id:
+        if last_game_counter == server_data['counter']:
+            error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game."
+            ping_message = await message.channel.send(content=message.author.mention)
+            await ping_message.delete(delay=0)  # Deletes the message immediately
+            return
 
     try:
         int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
     except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
         error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
+        ping_message = await message.channel.send(content=message.author.mention)
+        await ping_message.delete(delay=0)  # Deletes the message immediately
+
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
         new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
@@ -190,6 +190,9 @@ async def on_message(message):
 
     if int_message != expected_value:
         error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
+        ping_message = await message.channel.send(content=message.author.mention)
+        await ping_message.delete(delay=0)  # Deletes the message immediately
+
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
         new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
@@ -209,6 +212,7 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
 
     
 @bot1.event
