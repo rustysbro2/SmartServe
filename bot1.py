@@ -11,14 +11,14 @@ increments = {}
 last_counters = {}
 high_scores = {}
 
-async def check_counting_message(ctx, count, increment, last_counter):
-    if ctx.author.id == last_counter:
-        await ctx.channel.send(f"{ctx.author.mention}, you can't count twice in a row!")
+async def check_counting_message(message, count, increment, last_counter):
+    if message.author.id == last_counter:
+        await message.channel.send(f"{message.author.mention}, you can't count twice in a row!")
         return False
     try:
         count = int(count)
     except ValueError:
-        await ctx.channel.send(f"{ctx.author.mention}, only numbers are allowed!")
+        await message.channel.send(f"{message.author.mention}, only numbers are allowed!")
         return False
     return count == increment
 
@@ -72,8 +72,6 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    await bot.process_commands(message)  # Move this line to the beginning of the on_message event handler
-
     if message.guild and message.channel.id == counting_channels.get(message.guild.id):
         guild_id = message.guild.id
         increment = increments[guild_id]
@@ -93,6 +91,11 @@ async def on_message(message):
             counting_channels[guild_id] = new_channel.id
             embed = discord.Embed(title="Counting Failure", description=f"Reason: Invalid count\nIncrement: {increment}\nFailed message: {message.content}", color=0xFF0000)
             await new_channel.send(embed=embed)
+    else:
+        await bot.process_commands(message)
+
+
+
 
 
 
