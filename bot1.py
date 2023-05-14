@@ -107,17 +107,13 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
         await ctx.send("The counting channel is already set to that channel.")
         return
 
-async def reset_channel(channel, error_message, increment_message, typed_message, guild_id):
+async def reset_channel(channel, guild_id):
     overwrites = channel.overwrites
     category = channel.category
     position = channel.position
 
     await channel.delete(reason="Resetting channel")
     new_channel = await category.create_text_channel(channel.name, overwrites=overwrites, position=position)
-
-    await new_channel.send(error_message)
-    await new_channel.send(increment_message)
-    await new_channel.send(typed_message)
 
     last_user[guild_id] = None
     server_data = get_server_data(guild_id)
@@ -131,13 +127,10 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
 
 
+
 @bot1.event
 async def on_message(message):
     if message.author == bot1.user:
-        return
-
-    if message.content.startswith(bot1.command_prefix):
-        await bot1.process_commands(message)
         return
 
     guild_id = str(message.guild.id)
@@ -146,7 +139,11 @@ async def on_message(message):
     if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
         return
 
-    if guild_id in last_user and message.author.id == last_user[guild_id] and message.content != "!reset":
+    if message.content.startswith(bot1.command_prefix):
+        await bot1.process_commands(message)
+        return
+
+    if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
     else:
         try:
@@ -167,15 +164,25 @@ async def on_message(message):
                 server_data['counter'] += server_data['increment']
                 last_user[guild_id] = message.author.id
                 save_data(data, last_user)
+                await bot1.process_commands(message)
                 return
 
     increment_message = f"The increment is currently set to {server_data['increment']}."
     typed_message = f"You typed: {message.content}"
-    new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message, guild_id)
+    
+    embed = discord.Embed(title="New Game", color=discord.Color.red())
+    embed.add_field(name="Error", value=error_message, inline=False)
+    embed.add_field(name="Last Typed", value=typed_message, inline=False)
+    embed.add_field(name="Increment", value=increment_message, inline=False)
+
+    await message.channel.send(embed=embed)
+
+    new_channel = await reset_channel(message.channel, guild_id)
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
 
 @bot1.event
 async def on_message_edit(before, after):
