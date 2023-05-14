@@ -127,6 +127,7 @@ async def reset_channel(channel):
 
     return new_channel
 
+
 async def on_message(message):
     if message.author == bot1.user:
         return
