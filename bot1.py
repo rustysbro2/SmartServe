@@ -4,7 +4,7 @@ from discord.ext import commands
 intents = discord.Intents.default()
 intents.messages = True
 intents.reactions = True
-bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
+bot1 = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
 counting_channels = {}
 increments = {}
@@ -22,11 +22,11 @@ async def check_counting_message(message, count, increment, last_counter):
         return False
     return count == increment
 
-@bot.event
+@bot1.event
 async def on_ready():
-    print(f'Logged in as {bot.user}')
+    print(f'Logged in as {bot1.user}')
 
-@bot.command()
+@bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     counting_channels[ctx.guild.id] = channel.id
     increments[ctx.guild.id] = 1
@@ -34,12 +34,12 @@ async def set_channel(ctx, channel: discord.TextChannel):
     high_scores[ctx.guild.id] = 0
     await ctx.send(f"Counting channel set to {channel.mention}")
 
-@bot.command()
+@bot1.command()
 async def increment(ctx, value: int):
     increments[ctx.guild.id] = value
     await ctx.send(f"Increment value set to {value}")
 
-@bot.command()
+@bot1.command()
 async def help(ctx):
     embed = discord.Embed(
         title="Counting Bot Help",
@@ -67,7 +67,7 @@ async def help(ctx):
 
     await ctx.send(embed=embed)
 
-@bot.event
+@bot1.event
 async def on_message(message):
     if message.author.bot:
         return
@@ -92,13 +92,7 @@ async def on_message(message):
             embed = discord.Embed(title="Counting Failure", description=f"Reason: Invalid count\nIncrement: {increment}\nFailed message: {message.content}", color=0xFF0000)
             await new_channel.send(embed=embed)
     else:
-        await bot.process_commands(message)
+        await bot1.process_commands(message)
 
-
-
-
-
-
-
-bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
+bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
 
