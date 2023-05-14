@@ -125,9 +125,7 @@ async def on_ready():
             continue
 
         # Fetch messages from the counting channel
-        messages = []
-        async for message in counting_channel.history(limit=None):
-            messages.append(message)
+        messages = await counting_channel.history(limit=None).flatten()
 
         # Process each message
         for message in messages:
@@ -170,6 +168,7 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
     print(f"Bot1 is ready. Connected to {server_count} servers.")
+
 
 
 @bot1.command(name='increment')
