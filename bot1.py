@@ -123,17 +123,17 @@ async def on_message(message):
     if message.author == bot1.user:
         return
 
+    if message.content.startswith(bot1.command_prefix):
+        await bot1.process_commands(message)
+        return
+
     guild_id = str(message.guild.id)
     server_data = get_server_data(guild_id)
 
     if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
         return
 
-    if message.content.startswith(bot1.command_prefix):
-        await bot1.process_commands(message)
-        return
-
-    if guild_id in last_user and message.author.id == last_user[guild_id]:
+    if guild_id in last_user and message.author.id == last_user[guild_id] and message.content != "!reset":
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
     else:
         try:
@@ -154,7 +154,6 @@ async def on_message(message):
                 server_data['counter'] += server_data['increment']
                 last_user[guild_id] = message.author.id
                 save_data(data, last_user)
-                await bot1.process_commands(message)
                 return
 
     increment_message = f"The increment is currently set to {server_data['increment']}."
