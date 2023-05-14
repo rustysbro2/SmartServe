@@ -107,7 +107,7 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
         await ctx.send("The counting channel is already set to that channel.")
         return
 
-async def reset_channel(channel, error_message, increment_message, typed_message):
+async def reset_channel(channel, error_embed):
     guild = channel.guild
     if guild is None:
         return
@@ -136,11 +136,10 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     except discord.errors.NotFound:
         return
 
-    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
-    error_embed.add_field(name="Error Message", value=f"{error_message}\n\nIncrement: {increment_message}\n\nTyped Message: {typed_message}")
     await new_channel.send(embed=error_embed)
 
     return new_channel
+
 
 
 
