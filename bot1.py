@@ -143,6 +143,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
 
 
+
 @bot1.event
 async def on_message(message):
     if message.author == bot1.user:
