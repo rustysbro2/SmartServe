@@ -1,6 +1,4 @@
-python-dotenv
-discord.py
-sympy
-re
-sys
-pynacl
+asyncio
+discord.pi
+ast
+openstor
