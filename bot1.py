@@ -128,7 +128,8 @@ async def on_ready():
             continue
 
         # Fetch messages from the counting channel since the bot was last online
-        messages = await counting_channel.history(after=bot1.user.last_message, limit=None).flatten()
+        last_message_id = server_data.get('last_message_id')
+        messages = await counting_channel.history(after=discord.Object(id=last_message_id), limit=None).flatten()
 
         # Process each message
         for message in messages:
@@ -155,11 +156,16 @@ async def on_ready():
             last_user[guild.id] = message.author.id
             save_data(data, last_user)
 
+        # Update the last message ID
+        server_data['last_message_id'] = message.id
+        save_data(data, last_user)
+
     server_count = len(bot1.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
     print(f"Bot1 is ready. Connected to {server_count} servers.")
+
 
 
 
