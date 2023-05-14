@@ -125,40 +125,25 @@ async def on_ready():
             continue
 
         # Fetch messages from the counting channel
-        messages = []
         async for message in counting_channel.history(limit=None):
-            messages.append(message)
-
-        # Process each message
-        for message in messages:
             if message.author == bot1.user:
                 continue
 
             # Check if the message content is a valid count
             expected_value = server_data['counter']
             try:
-                int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
-            except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
-                error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
-                increment_message = f"The increment is currently set to {server_data['increment']}."
-                new_channel = await reset_channel(counting_channel, error_message, increment_message, message.content)
+                int_message = int(message.content)
+            except ValueError:
+                error_message = f"Error: {message.author.mention}, you typed an invalid number."
+                new_channel = await reset_channel(counting_channel, error_message)
                 server_data['counting_channel_id'] = new_channel.id
                 save_data(data, last_user)
                 continue
 
             # Check if the count is correct
-            if expected_value == 1 and int_message != expected_value:
-                error_message = f"Error: {message.author.mention}, the first number should be 1."
-                increment_message = f"The increment is currently set to {server_data['increment']}."
-                new_channel = await reset_channel(counting_channel, error_message, increment_message, message.content)
-                server_data['counting_channel_id'] = new_channel.id
-                save_data(data, last_user)
-                continue
-
             if int_message != expected_value:
                 error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
-                increment_message = f"The increment is currently set to {server_data['increment']}."
-                new_channel = await reset_channel(counting_channel, error_message, increment_message, message.content)
+                new_channel = await reset_channel(counting_channel, error_message)
                 server_data['counting_channel_id'] = new_channel.id
                 save_data(data, last_user)
                 continue
@@ -178,6 +163,7 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
     print(f"Bot1 is ready. Connected to {server_count} servers.")
+
 
 
 @bot1.command(name='increment')
