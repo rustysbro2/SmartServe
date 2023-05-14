@@ -214,6 +214,7 @@ async def on_message(message):
     await bot1.process_commands(message)
 
 
+
     
 @bot1.event
 async def on_message_edit(before, after):
