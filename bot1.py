@@ -108,6 +108,15 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
         return
 
 async def reset_channel(channel, error_message, increment_message, typed_message):
+    logging.info("Resetting channel...")
+    logging.info(f"Channel name: {channel.name}")
+    logging.info(f"Error message: {error_message}")
+    logging.info(f"Increment message: {increment_message}")
+    logging.info(f"Typed message: {typed_message}")
+    
+    # Rest of the code...
+
+    
     guild = channel.guild
     overwrites = channel.overwrites
     category = channel.category
