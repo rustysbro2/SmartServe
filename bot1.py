@@ -113,61 +113,33 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
 
 @bot1.event
 async def on_ready():
-    global data, last_user
-    for guild in bot1.guilds:
-        get_server_data(guild.id)
+    print(f'{bot1.user.name} is ready. Connected as {bot1.user.name}')
+    guild = bot1.guilds[0]  # Replace with your desired guild or use bot1.get_guild(guild_id)
+    category = discord.utils.get(guild.categories, name='Counting')
+    
+    # Find the existing counting channel
+    counting_channel = discord.utils.get(category.channels, name='counting')
 
-        # Get the counting channel for the guild
-        server_data = get_server_data(guild.id)
-        counting_channel_id = server_data.get('counting_channel_id')
-        if counting_channel_id is None:
-            continue
+    if counting_channel:
+        # Get the last message in the counting channel
+        async for message in counting_channel.history(limit=1, oldest_first=False):
+            last_message = message
 
-        counting_channel = bot1.get_channel(counting_channel_id)
-        if counting_channel is None:
-            continue
-
-        # Fetch messages from the counting channel since the bot was last online
-        last_message_id = server_data.get('last_message_id', 0)
-        messages = []
-        async for message in counting_channel.history(after=discord.Object(id=last_message_id), limit=None):
-            messages.append(message)
-
-        # Process each message
-        for message in messages:
-            if message.author == bot1.user:
-                continue
-
-            # Check if the message content is a valid count
-            expected_value = server_data['counter']
-            int_message = int(message.content)
-            if int_message != expected_value:
-                error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
-                new_channel = await reset_channel(counting_channel, error_message)
-                server_data['counting_channel_id'] = new_channel.id
-                save_data(data, last_user)
-                continue
-
-            # Update the counter and last user
-            if server_data['counter'] > server_data['high_score']:
-                await message.add_reaction("🏆")
-                server_data['high_score'] = server_data['counter']
-            else:
-                await message.add_reaction("✅")
-            server_data['counter'] += server_data['increment']
-            last_user[guild.id] = message.author.id
-            save_data(data, last_user)
-
-        # Update the last message ID
-        server_data['last_message_id'] = message.id
-        save_data(data, last_user)
-
-    server_count = len(bot1.guilds)
-    activity_name = f'{server_count} Servers'
-    activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
-    await bot1.change_presence(activity=activity)
-    print(f"Bot1 is ready. Connected to {server_count} servers.")
-
+        # Check if the last message was sent by the bot
+        if last_message.author == bot1.user:
+            await last_message.delete()
+        else:
+            error_message = f"Error: The last message in the counting channel was not sent by the bot."
+            print(error_message)
+            new_channel = await reset_channel(counting_channel, error_message)
+            if new_channel:
+                counting_channel = new_channel
+    else:
+        error_message = f"Error: The counting channel does not exist."
+        print(error_message)
+        new_channel = await reset_channel(counting_channel, error_message)
+        if new_channel:
+            counting_channel = new_channel
 
 
 
