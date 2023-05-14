@@ -1,4 +1,24 @@
-import discord
+sync def reset_channel(channel, error_message, increment_message, typed_message, guild_id):
+    overwrites = channel.overwrites
+    category = channel.category
+    position = channel.position
+
+    await channel.delete(reason="Resetting channel")
+    new_channel = await category.create_text_channel(channel.name, overwrites=overwrites, position=position)
+
+    await new_channel.send(error_message)
+    await new_channel.send(increment_message)
+    await new_channel.send(typed_message)
+
+    last_user[guild_id] = None
+    server_data = get_server_data(guild_id)
+    if 'next_increment' in server_data:
+        server_data['increment'] = server_data['next_increment']
+        del server_data['next_increment']
+    server_data['counter'] = server_data['increment']
+    save_data(data, last_user)
+
+    return new_channelimport discord
 import json
 from discord.ext import commands
 import logging
@@ -107,7 +127,7 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
         await ctx.send("The counting channel is already set to that channel.")
         return
 
-async def reset_channel(channel, error_message, increment_message, typed_message, guild_id):
+sync def reset_channel(channel, error_message, increment_message, typed_message, guild_id):
     overwrites = channel.overwrites
     category = channel.category
     position = channel.position
@@ -120,6 +140,11 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     await new_channel.send(typed_message)
 
     last_user[guild_id] = None
+    server_data = get_server_data(guild_id)
+    if 'next_increment' in server_data:
+        server_data['increment'] = server_data['next_increment']
+        del server_data['next_increment']
+    server_data['counter'] = server_data['increment']
     save_data(data, last_user)
 
     return new_channel
