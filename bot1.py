@@ -168,6 +168,13 @@ async def on_message(message):
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game."
         ping_message = await message.channel.send(content=message.author.mention)
         await ping_message.delete(delay=0)  # Deletes the message immediately
+
+        increment_message = f"The increment is currently set to {server_data['increment']}."
+        typed_message = f"You typed: {message.content}"
+        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+        server_data['counting_channel_id'] = new_channel.id
+        save_data(data, last_user)
+
         return
 
     try:
@@ -203,10 +210,7 @@ async def on_message(message):
     if server_data['counter'] > server_data['high_score']:
         await message.add_reaction("🏆")
         server_data['high_score'] = server_data['counter']
-    else:
-        await message.add_reaction("✅")
 
-    server_data['counter'] += server_data['increment']
     last_game_data = {'counter': server_data['counter'], 'user': message.author.id}
     last_user[guild_id] = last_game_data  # Update last_user with current game's data
     save_data(data, last_user)
