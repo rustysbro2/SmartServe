@@ -62,8 +62,7 @@ def get_server_data(guild_id):
             'previous_count': 0,
             'high_score': 0,
             'counting_channel_id': None,
-            'increment': 1,
-            'counting_category': None  # Add counting category field
+            'increment': 1
         }
     else:
         server_data = data[guild_id]
@@ -75,7 +74,6 @@ def get_server_data(guild_id):
         if 'increment' not in server_data:
             server_data['increment'] = 1  # Set default value for 'increment' if not present
     return data[guild_id]
-
 
 @bot1.event
 async def on_ready():
@@ -92,7 +90,7 @@ async def increment(ctx, increment_value: int = None):
             save_data(data, last_user)
             await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
         else:
-            await ctx.send("The increment value cannot be changed until the current game is completed.")
+                        await ctx.send("The increment value cannot be changed until the current game is completed.")
             return
 
     save_data(data, last_user)
@@ -110,6 +108,15 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     else:
         await ctx.send("The counting channel is already set to that channel.")
         return
+
+async def reset_channel(channel, *messages):
+    new_channel = await channel.clone()
+    await channel.delete()
+
+    for message in messages:
+        await new_channel.send(message)
+
+    return new_channel
 
 @bot1.event
 async def on_message(message):
@@ -158,8 +165,6 @@ async def on_message(message):
 
     await bot1.process_commands(message)
 
-
-
 @bot1.event
 async def on_message_edit(before, after):
     await bot1.process_commands(after)
@@ -191,6 +196,7 @@ async def on_guild_remove(guild):
         save_data(data, last_user)
 
 bot1.run(TOKEN1)
+
 
 
 
