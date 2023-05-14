@@ -209,8 +209,6 @@ async def on_message(message):
     if message.author == bot1.user:
         return
 
-    await bot1.process_commands(message)
-
     guild_id = str(message.guild.id)
     server_data = get_server_data(guild_id)
 
