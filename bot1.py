@@ -13,10 +13,7 @@ intents.reactions = True
 intents.messages = True
 intents.message_content = True
 intents.guilds = True
-intents.members = True  # Add this line
-
-
-
+intents.members = True
 
 bot1 = commands.Bot(command_prefix='!', intents=intents)
 bot1.remove_command('help')
@@ -66,7 +63,7 @@ def get_server_data(guild_id):
             'high_score': 0,
             'counting_channel_id': None,
             'increment': 1,
-            'counting_category': None  # Add counting category field
+            'counting_category': None
         }
     else:
         server_data = data[guild_id]
@@ -76,103 +73,12 @@ def get_server_data(guild_id):
             server_data['increment'] = server_data['next_increment']
             del server_data['next_increment']
         if 'increment' not in server_data:
-            server_data['increment'] = 1  # Set default value for 'increment' if not present
-    return data[guild_id]
-
-async def reset_channel(channel, error_message, increment_message=None, typed_message=None):
-    guild_id = str(channel.guild.id)
-    server_data = get_server_data(guild_id)
-
-    new_channel = await channel.guild.create_text_channel(
-        name=channel.name,
-        category=channel.category,
-        reason="Resetting counting channel"
-    )
-    await channel.delete()
-
-    if guild_id in last_user:
-        del last_user[guild_id]
-
-    if 'next_increment' in server_data:
-        server_data['increment'] = server_data['next_increment']
-        del server_data['next_increment']
-    elif 'increment' not in server_data:
-        server_data['increment'] = 1
-
-    server_data['counter'] = server_data['increment']
-    server_data['counting_channel_id'] = new_channel.id
-
-    save_data(data, last_user)
-
-    messages = [error_message]
-    if increment_message:
-        messages.append(increment_message)
-    if typed_message:
-        messages.append(typed_message)
-    combined_message = '\n\n'.join(messages)
-
-    await new_channel.send(combined_message)
-    return new_channel
-
-
+            server_data['increment'] = 1
+    return data[guild_id] contineu
 
 @bot1.event
 async def on_ready():
     print(f'{bot1.user.name} is ready. Connected as {bot1.user.name}')
-    guild = bot1.guilds[0]  # Replace with your desired guild or use bot1.get_guild(guild_id)
-    category = discord.utils.get(guild.categories, name='Counting')
-
-    if category:
-        counting_channel = discord.utils.get(category.channels, name='counting')
-
-        if counting_channel:
-            async for message in counting_channel.history(limit=None, oldest_first=True):
-                if message.author == bot1.user:
-                    continue
-
-                guild_id = str(message.guild.id)
-                server_data = get_server_data(guild_id)
-
-                if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
-                    continue
-
-                if guild_id in last_user and message.author.id == last_user[guild_id]:
-                    error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
-                else:
-                    try:
-                        int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
-                    except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
-                        error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
-                    else:
-                        expected_value = server_data['counter']
-
-                        if int_message != expected_value:
-                            error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
-                        else:
-                            if server_data['counter'] > server_data['high_score']:
-                                await message.add_reaction("🏆")
-                                server_data['high_score'] = server_data['counter']
-                            else:
-                                await message.add_reaction("✅")
-                            server_data['counter'] += server_data['increment']
-                            last_user[guild_id] = message.author.id
-                            save_data(data, last_user)
-                            continue
-
-                increment_message = f"The increment is currently set to {server_data['increment']}."
-                typed_message = f"You typed: {message.content}"
-                new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
-                server_data['counting_channel_id'] = new_channel.id
-                save_data(data, last_user)
-                continue
-
-            print("Counting channel checked for missed messages.")
-        else:
-            print("Counting channel does not exist.")
-    else:
-        print("Counting category does not exist.")
-
-
 
 @bot1.command(name='increment')
 async def increment(ctx, increment_value: int = None):
@@ -203,10 +109,6 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
     else:
         await ctx.send("The counting channel is already set to that channel.")
         return
-
-
-
-
 @bot1.event
 async def on_message(message):
     if message.author == bot1.user:
@@ -254,9 +156,6 @@ async def on_message(message):
 
     await bot1.process_commands(message)  # Process commands here
 
-
-
-
 @bot1.event
 async def on_message_edit(before, after):
     await bot1.process_commands(after)
@@ -264,9 +163,6 @@ async def on_message_edit(before, after):
 @bot1.event
 async def on_message_delete(message):
     await bot1.process_commands(message)
-
-
-
 
 @bot1.event
 async def on_guild_join(guild):
@@ -291,5 +187,7 @@ async def on_guild_remove(guild):
         save_data(data, last_user)
 
 bot1.run(TOKEN1)
+
+
 
 
