@@ -113,11 +113,61 @@ async def on_ready():
     for guild in bot1.guilds:
         get_server_data(guild.id)
 
+        # Get the counting channel for the guild
+        server_data = get_server_data(guild.id)
+        counting_channel_id = server_data.get('counting_channel_id')
+        if counting_channel_id is None:
+            continue
+
+        counting_channel = bot1.get_channel(counting_channel_id)
+        if counting_channel is None:
+            continue
+
+        # Fetch messages from the counting channel
+        messages = await counting_channel.history(limit=None).flatten()
+
+        # Process each message
+        for message in messages:
+            if message.author == bot1.user:
+                continue
+
+            # Check if the message content is a valid count
+            expected_value = server_data['counter']
+            try:
+                int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
+            except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
+                error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
+                increment_message = f"The increment is currently set to {server_data['increment']}."
+                new_channel = await reset_channel(counting_channel, error_message, increment_message, message.content)
+                server_data['counting_channel_id'] = new_channel.id
+                save_data(data, last_user)
+                continue
+
+            # Check if the count is correct
+            if int_message != expected_value:
+                error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
+                increment_message = f"The increment is currently set to {server_data['increment']}."
+                new_channel = await reset_channel(counting_channel, error_message, increment_message, message.content)
+                server_data['counting_channel_id'] = new_channel.id
+                save_data(data, last_user)
+                continue
+
+            # Update the counter and last user
+            if server_data['counter'] > server_data['high_score']:
+                await message.add_reaction("🏆")
+                server_data['high_score'] = server_data['counter']
+            else:
+                await message.add_reaction("✅")
+            server_data['counter'] += server_data['increment']
+            last_user[guild.id] = message.author.id
+            save_data(data, last_user)
+
     server_count = len(bot1.guilds)
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
     print(f"Bot1 is ready. Connected to {server_count} servers.")
+
 
 @bot1.command(name='increment')
 async def increment(ctx, increment_value: int = None):
