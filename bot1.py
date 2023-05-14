@@ -70,7 +70,41 @@ def get_server_data(guild_id):
             server_data['next_increment'] = server_data.get('increment', 1)
         else:
             server_data['increment'] = server_data['next_increment']
-            del server_data['next_increment']
+            del server_data['next_increment']@bot1.event
+async def on_message(message):
+    if message.author == bot1.user:
+        return
+    
+    if message.content.startswith('!'):
+        await bot1.process_commands(message)
+        return
+
+    data, last_user = load_data()
+    server_data = data[str(message.guild.id)]
+    counting_channel_id = server_data["counting_channel"]
+
+    if message.channel.id != counting_channel_id:
+        return
+
+    if not message.content.isdigit():
+        return
+
+    typed_number = int(message.content)
+    last_number = server_data["last_number"]
+    increment = server_data["increment"]
+    next_number = last_number + increment
+
+    if typed_number != next_number:
+        error_message = f"The next number should be {next_number}."
+        increment_message = f"The increment is currently set to {increment}."
+        typed_message = f"You typed: {typed_number}"
+        new_channel = await reset_channel(message.channel, message.author.mention, error_message, increment_message, typed_message)
+        data[str(message.guild.id)]["counting_channel"] = new_channel.id
+        save_data(data)
+    else:
+        await message.add_reaction("✅")
+        data[str(message.guild.id)]["last_number"] = typed_number
+        save_data(data)
         if 'increment' not in server_data:
             server_data['increment'] = 1  # Set default value for 'increment' if not present
     return data[guild_id]
@@ -137,7 +171,7 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    data = load_data()
+    data, last_user = load_data()
     server_data = data[str(message.guild.id)]
     counting_channel_id = server_data["counting_channel"]
 
