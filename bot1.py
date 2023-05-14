@@ -1,4 +1,4 @@
-import discord
+"MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY"import discord
 from discord.ext import commands
 import json
 
@@ -106,7 +106,7 @@ async def reset_channel(channel, mention, error_message, increment_message, type
     await new_channel.send(embed=error_embed)
 
 if __name__ == "__main__":
-    bot_token = "MTEwNTU5ODczNjU1MTM4NzI0Nw.G2ppAC.yAchMMCTjDWx7kcuVEMrO4LpeqSn6OuAVvsZkA"
+    bot_token = "MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY"
     bot1.run(bot_token)
 
   
