@@ -107,7 +107,7 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
         await ctx.send("The counting channel is already set to that channel.")
         return
 
-async def reset_channel(channel, error_message, increment_message, typed_message):
+async def reset_channel(channel, user_mention, error_message, increment_message, typed_message):
     guild = channel.guild
     guild_id = str(guild.id)
     server_data = get_server_data(guild_id)
@@ -125,7 +125,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
     await channel.delete()
 
-    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red(), description=f"{message.author.mention}, {error_message}")
+    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red(), description=f"{user_mention}, {error_message}")
     error_embed.add_field(name="Increment", value=increment_message, inline=False)
     error_embed.add_field(name="Typed Message", value=typed_message, inline=False)
 
@@ -138,7 +138,6 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     return new_channel
 
 
-
 @bot1.event
 async def on_message(message):
     if message.author == bot1.user:
@@ -148,6 +147,7 @@ async def on_message(message):
     server_data = get_server_data(guild_id)
 
     if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
+        await bot1.process_commands(message)
         return
 
     if message.content.startswith(bot1.command_prefix):
@@ -155,17 +155,17 @@ async def on_message(message):
         return
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
-        error_message = "Error: you cannot count twice in a row. Wait for someone else to count."
+        error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
     else:
         try:
             int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
         except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
-            error_message = "Error: you typed an invalid expression or a non-integer."
+            error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
         else:
             expected_value = server_data['counter']
 
             if int_message != expected_value:
-                error_message = f"Error: the next number should be {expected_value}."
+                error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
             else:
                 if server_data['counter'] > server_data['high_score']:
                     await message.add_reaction("🏆")
@@ -184,13 +184,8 @@ async def on_message(message):
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
-    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red(), description=f"{message.author.mention}, {error_message}")
-    error_embed.add_field(name="Error", value=f"{message.author.mention}, {error_message}", inline=False)
-    error_embed.add_field(name="Increment", value=increment_message, inline=False)
-    error_embed.add_field(name="Typed Message", value=typed_message, inline=False)
-
-    await new_channel.send(embed=error_embed)
     await bot1.process_commands(message)
+
 
 
 
