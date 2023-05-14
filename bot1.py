@@ -127,6 +127,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
     return new_channel
 
+@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -141,6 +142,8 @@ async def on_message(message):
     if message.content.startswith(bot1.command_prefix):
         await bot1.process_commands(message)
         return
+
+    logging.debug(f"Received message: {message.content}")
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
@@ -177,11 +180,14 @@ async def on_message(message):
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
-    logging.info("Calling reset_channel function")
-    await reset_channel(message.channel, error_message, increment_message, typed_message)
-    logging.info("After calling reset_channel function")
+    logging.debug("Resetting the channel...")
+    logging.debug(f"Channel name: {message.channel.name}")
+    logging.debug(f"Error message: {error_message}")
+    logging.debug(f"Increment message: {increment_message}")
+    logging.debug(f"Typed message: {typed_message}")
 
     await bot1.process_commands(message)
+
 
 @bot1.event
 async def on_message_edit(before, after):
