@@ -127,7 +127,6 @@ async def reset_channel(channel):
 
     return new_channel
 
-@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -135,8 +134,7 @@ async def on_message(message):
     guild_id = str(message.guild.id)
     server_data = get_server_data(guild_id)
 
-    counting_channel_id = server_data.get('counting_channel_id')
-    if counting_channel_id is None or message.channel.id != counting_channel_id:
+    if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
         await bot1.process_commands(message)
         return
 
@@ -211,6 +209,8 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
+
 
 
 
