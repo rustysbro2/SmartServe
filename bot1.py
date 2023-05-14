@@ -106,8 +106,7 @@ async def on_ready():
         print(error_message)
         new_channel = await reset_channel(counting_channel, error_message)
         if new_channel:
-            counting_channel = new_channel
-z@bot1.event
+            counting_channel = new_channel@bot1.event
 async def on_ready():
     print(f'{bot1.user.name} is ready. Connected as {bot1.user.name}')
     guild = bot1.guilds[0]  # Replace with your desired guild or use bot1.get_guild(guild_id)
