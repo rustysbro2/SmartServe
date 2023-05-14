@@ -151,14 +151,11 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    logging.debug(f"Received message: {message.content}")
-
     if guild_id in last_user and message.author.id == last_user[guild_id]:
-        if server_data.get('game_id') == last_user.get(guild_id):
-            error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game. Wait for someone else to count."
-            ping_message = await message.channel.send(error_message)
-            await ping_message.delete()  # Deletes the message immediately
-            return
+        error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
+        ping_message = await message.channel.send(error_message)
+        await ping_message.delete()  # Deletes the message immediately
+        return
     else:
         try:
             int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
@@ -170,7 +167,7 @@ async def on_message(message):
             if int_message != expected_value:
                 error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
                 # Reset the counter after the game fails
-                server_data['counter'] = server_data['increment']
+                server_data['counter'] = 1
             else:
                 if server_data['counter'] > server_data['high_score']:
                     await message.add_reaction("🏆")
@@ -179,7 +176,6 @@ async def on_message(message):
                     await message.add_reaction("✅")
                 server_data['counter'] += server_data['increment']
                 last_user[guild_id] = message.author.id
-                last_user[server_data['game_id']] = message.author.id  # Store the user ID with the game ID
                 save_data(data, last_user)
                 await bot1.process_commands(message)
                 return
@@ -188,14 +184,7 @@ async def on_message(message):
     typed_message = f"You typed: {message.content}"
     new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
     server_data['counting_channel_id'] = new_channel.id
-    server_data['game_id'] = str(uuid.uuid4())  # Generate a new game ID
     save_data(data, last_user)
-
-    logging.debug("Resetting the channel...")
-    logging.debug(f"Channel name: {message.channel.name}")
-    logging.debug(f"Error message: {error_message}")
-    logging.debug(f"Increment message: {increment_message}")
-    logging.debug(f"Typed message: {typed_message}")
 
     await bot1.process_commands(message)
 
