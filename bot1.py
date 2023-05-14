@@ -63,7 +63,7 @@ def get_server_data(guild_id):
             'high_score': 0,
             'counting_channel_id': None,
             'increment': 1,
-            'counting_category': None
+            'counting_category': None  # Add counting category field
         }
     else:
         server_data = data[guild_id]
@@ -73,8 +73,9 @@ def get_server_data(guild_id):
             server_data['increment'] = server_data['next_increment']
             del server_data['next_increment']
         if 'increment' not in server_data:
-            server_data['increment'] = 1
-            return data[guild_id] contineu
+            server_data['increment'] = 1  # Set default value for 'increment' if not present
+    return data[guild_id]
+
 
 @bot1.event
 async def on_ready():
