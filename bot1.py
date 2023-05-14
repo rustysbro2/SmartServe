@@ -2,7 +2,12 @@ import discord
 from discord.ext import commands
 import json
 
-bot1 = commands.Bot(command_prefix='!')
+intents = discord.Intents.default()
+intents.messages = True
+intents.reactions = True
+
+bot1 = commands.Bot(command_prefix='!', intents=intents)
+
 
 def load_data():
     try:
