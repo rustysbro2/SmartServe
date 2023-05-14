@@ -115,26 +115,21 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     logging.info(f"Typed message: {typed_message}")
 
     guild = channel.guild
+    overwrites = channel.overwrites
+    category = channel.category
 
-    # Create a new channel with the same permissions as the existing channel
-    new_channel = await guild.create_text_channel(
-        name=channel.name,
-        overwrites=channel.overwrites,
-        category=channel.category
-    )
-
-    # Delete the existing channel
     await channel.delete(reason="Counting error")
+    logging.info("Channel deleted.")
 
-    # Send the error message embed to the new channel
-    error_embed = discord.Embed(
-        title="Counting Error",
-        color=discord.Color.red(),
-        description=f"{error_message}\n\n{increment_message}\n\n{typed_message}"
-    )
+    new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
+    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
+    error_embed.add_field(name="Error Message:", value=error_message, inline=False)
+    error_embed.add_field(name="Increment:", value=increment_message, inline=False)
+    error_embed.add_field(name="Typed Message:", value=typed_message, inline=False)
     await new_channel.send(embed=error_embed)
 
     return new_channel
+
 
 
 
