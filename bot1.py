@@ -165,23 +165,7 @@ async def on_message(message):
 
     increment_message = f"The increment is currently set to {server_data['increment']}."
     typed_message = f"You typed: {message.content}"
-    async def reset_channel(channel, error_message, increment_message, typed_message, guild_id):
-    overwrites = channel.overwrites
-    category = channel.category
-    position = channel.position
-
-    await channel.delete(reason="Resetting channel")
-    new_channel = await category.create_text_channel(channel.name, overwrites=overwrites, position=position)
-
-    await new_channel.send(error_message)
-    await new_channel.send(increment_message)
-    await new_channel.send(typed_message)
-
-    last_user[guild_id] = None
-    save_data(data, last_user)
-
-    return new_channel
-new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message, guild_id)
+    new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message, guild_id)
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
