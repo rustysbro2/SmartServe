@@ -36,6 +36,7 @@ class CustomHelpCommand(commands.HelpCommand):
                 embed.add_field(name=cog_name, value="\n".join(command_signatures), inline=False)
 
         await self.get_destination().send(embed=embed)
+        return
 
 bot1.help_command = CustomHelpCommand()
 
