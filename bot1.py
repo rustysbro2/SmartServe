@@ -179,7 +179,8 @@ async def on_message(message):
 
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
-        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+        error_embed = create_error_embed(error_message, increment_message, typed_message)
+        new_channel = await reset_channel(message.channel, error_embed)
         server_data['counting_channel_id'] = new_channel.id
         save_data(data, last_user)
 
@@ -194,7 +195,8 @@ async def on_message(message):
 
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
-        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+        error_embed = create_error_embed(error_message, increment_message, typed_message)
+        new_channel = await reset_channel(message.channel, error_embed)
         server_data['counting_channel_id'] = new_channel.id
         save_data(data, last_user)
 
@@ -213,21 +215,14 @@ async def on_message(message):
     last_user[guild_id] = last_game_data  # Update last_user with current game's data
     save_data(data, last_user)
 
-    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
-    error_embed.add_field(name="Error Message", value=f"Error: {message.author.mention}, the next number should be {expected_value}.")
-    error_embed.add_field(name="Increment", value=f"The increment is currently set to {server_data['increment']}.")
-    error_embed.add_field(name="Typed Message", value=f"You typed: {message.content}")
-    new_channel = await reset_channel(message.channel, error_embed)
-    server_data['counting_channel_id'] = new_channel.id
-    save_data(data, last_user)
+    # Check if the channel needs to be reset
+    if int_message != expected_value:
+        error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
+        increment_message = f"The increment is currently set to {server_data['increment']}."
+        typed_message = f"You typed: {message.content}"
+        error_embed = create_error_embed(error_message, increment_message, typed_message)
+        await reset_channel(message.channel, error_embed)
 
-    return
-    await bot1.process_commands(message)
-
-    
-    
-
-    
 @bot1.event
 async def on_message_edit(before, after):
     await bot1.process_commands(after)
@@ -257,5 +252,6 @@ async def on_guild_remove(guild):
     if guild_id in last_user:
         del last_user[guild_id]
         save_data(data, last_user)
-
+        
 bot1.run(TOKEN1)
+
