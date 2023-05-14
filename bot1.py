@@ -152,7 +152,6 @@ async def on_message(message):
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
         ping_message = await message.channel.send(error_message)
         await ping_message.delete()  # Deletes the message immediately
-        await message.delete()  # Delete the original counting message
         return
     else:
         try:
@@ -185,13 +184,13 @@ async def on_message(message):
     save_data(data, last_user)
 
     logging.debug("Resetting the channel...")
-    logging.debug(f"Channel name: {message.channel.name}")
+    logging.debug(f"Channel name: {new_channel.name}")
     logging.debug(f"Error message: {error_message}")
     logging.debug(f"Increment message: {increment_message}")
     logging.debug(f"Typed message: {typed_message}")
 
-    await message.delete()  # Delete the original counting message
-    await bot1.process_commands
+    await bot1.process_commands(message)
+
 
 
 
