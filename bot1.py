@@ -153,6 +153,8 @@ async def on_message(message):
 
             if int_message != expected_value:
                 error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
+                # Reset the counter after the game fails
+                server_data['counter'] = 1
             else:
                 if server_data['counter'] > server_data['high_score']:
                     await message.add_reaction("🏆")
@@ -172,6 +174,7 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
 
 
 
