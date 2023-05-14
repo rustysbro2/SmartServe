@@ -140,7 +140,6 @@ async def reset_channel(channel, error_embed):
 
     return new_channel
 
-@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -176,8 +175,7 @@ async def on_message(message):
 
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
-        error_embed = create_error_embed(error_message, increment_message, typed_message)
-        new_channel = await reset_channel(message.channel, error_embed)
+        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
         server_data['counting_channel_id'] = new_channel.id
         save_data(data, last_user)
 
@@ -192,8 +190,7 @@ async def on_message(message):
 
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
-        error_embed = create_error_embed(error_message, increment_message, typed_message)
-        new_channel = await reset_channel(message.channel, error_embed)
+        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
         server_data['counting_channel_id'] = new_channel.id
         save_data(data, last_user)
 
@@ -213,6 +210,7 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
 
 
 @bot1.event
