@@ -107,23 +107,35 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
         await ctx.send("The counting channel is already set to that channel.")
         return
 
-async def reset_channel(channel, guild_id):
-    overwrites = channel.overwrites
-    category = channel.category
-    position = channel.position
-
-    await channel.delete(reason="Resetting channel")
-    new_channel = await category.create_text_channel(channel.name, overwrites=overwrites, position=position)
-
-    last_user[guild_id] = None
+async def reset_channel(channel, error_message, increment_message, typed_message):
+    guild = channel.guild
+    guild_id = str(guild.id)
     server_data = get_server_data(guild_id)
-    if 'next_increment' in server_data:
-        server_data['increment'] = server_data['next_increment']
-        del server_data['next_increment']
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(read_messages=False)
+    }
+    category_id = server_data.get('counting_category')
+
+    if category_id is not None:
+        category = discord.utils.get(guild.categories, id=int(category_id))
+        if category is not None:
+            overwrites = category.overwrites
+
+    new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
+    await channel.delete()
+
+    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red(), description=f"{message.author.mention}, {error_message}")
+    error_embed.add_field(name="Increment", value=increment_message, inline=False)
+    error_embed.add_field(name="Typed Message", value=typed_message, inline=False)
+
+    await new_channel.send(embed=error_embed)
+
     server_data['counter'] = server_data['increment']
+    last_user[guild_id] = None
     save_data(data, last_user)
 
     return new_channel
+
 
 
 
