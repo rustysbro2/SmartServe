@@ -160,9 +160,9 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    last_game_data = last_user.get(guild_id)
-    last_game_counter = last_game_data.get('counter') if last_game_data else None
-    last_game_user = last_game_data.get('user') if last_game_data else None
+    last_game_data = last_user.get(guild_id, {})
+    last_game_counter = last_game_data.get('counter') if isinstance(last_game_data, dict) else None
+    last_game_user = last_game_data.get('user') if isinstance(last_game_data, dict) else None
 
     if last_game_counter == server_data['counter'] and last_game_user == message.author.id:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game."
@@ -203,6 +203,8 @@ async def on_message(message):
     if server_data['counter'] > server_data['high_score']:
         await message.add_reaction("🏆")
         server_data['high_score'] = server_data['counter']
+    else:
+        await message.add_reaction("✅")
 
     last_game_data = {'counter': server_data['counter'], 'user': message.author.id}
     last_user[guild_id] = last_game_data  # Update last_user with current game's data
