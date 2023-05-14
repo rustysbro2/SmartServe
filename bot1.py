@@ -1,5 +1,8 @@
 import discord
 from discord.ext import commands
+import asyncio
+import ast
+import operator
 
 intents = discord.Intents.all()
 bot1 = commands.Bot(command_prefix='!', intents=intents, help_command=None)
@@ -9,16 +12,37 @@ increments = {}
 last_counters = {}
 high_scores = {}
 
+allowed_operators = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.Pow: operator.pow,
+    ast.FloorDiv: operator.floordiv,
+}
+
 async def check_counting_message(message, count, increment, last_counter):
     if message.author.id == last_counter:
         await message.channel.send(f"{message.author.mention}, you can't count twice in a row!")
-        return False
+        return False, None
+
     try:
-        count = int(count)
-    except ValueError:
-        await message.channel.send(f"{message.author.mention}, only numbers are allowed!")
-        return False
-    return count == increment
+        node = ast.parse(count, mode='eval')
+    except SyntaxError:
+        await message.channel.send(f"{message.author.mention}, only numbers and math expressions are allowed!")
+        return False, None
+
+    if not all(isinstance(node, allowed_operators) for node in ast.walk(node)):
+        await message.channel.send(f"{message.author.mention}, only numbers and math expressions are allowed!")
+        return False, None
+
+    try:
+        result = eval(compile(ast.Expression(node.body), filename="<ast>", mode="eval"), {"__builtins__": None}, allowed_operators)
+    except ZeroDivisionError:
+        await message.channel.send(f"{message.author.mention}, division by zero is not allowed!")
+        return False, None
+
+    return result == increment, result
 
 @bot1.event
 async def on_ready():
@@ -75,13 +99,13 @@ async def on_message(message):
         increment = increments[guild_id]
         last_counter = last_counters[guild_id]
 
-        if await check_counting_message(message, message.content, increment, last_counter):
+        is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
+        if is_valid:
             last_counters[guild_id] = message.author.id
             await message.add_reaction("✅")
 
-            score = int(message.content)
-            if score > high_scores[guild_id]:
-                high_scores[guild_id] = score
+            if result > high_scores[guild_id]:
+                high_scores[guild_id] = result
                 await message.add_reaction("🏆")
         else:
             # Store channel properties before deletion
@@ -108,9 +132,6 @@ async def on_message(message):
             await new_channel.send(embed=embed)
     else:
         await bot1.process_commands(message)
-
-
-
 
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
 
