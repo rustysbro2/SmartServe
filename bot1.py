@@ -91,7 +91,7 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
         server_data['increment'] = server_data['next_increment']
         del server_data['next_increment']
     elif 'increment' not in server_data:
-        server_data['increment'] = 1  # Set default increment value if 'increment' is not set
+        server_data['increment'] = 1
 
     server_data['counter'] = server_data['increment']
     server_data['counting_channel_id'] = new_channel.id
@@ -109,39 +109,62 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
     return new_channel
 
 
+
+@bot1.event
 async def on_ready():
     print(f'{bot1.user.name} is ready. Connected as {bot1.user.name}')
     guild = bot1.guilds[0]  # Replace with your desired guild or use bot1.get_guild(guild_id)
     category = discord.utils.get(guild.categories, name='Counting')
 
     if category:
-        # Find the existing counting channel within the category
         counting_channel = discord.utils.get(category.channels, name='counting')
 
         if counting_channel:
-            # Get the last message in the counting channel
-            async for message in counting_channel.history(limit=1, oldest_first=False):
-                last_message = message
+            async for message in counting_channel.history(limit=None, oldest_first=True):
+                if message.author == bot1.user:
+                    continue
 
-            # Check if the last message was sent by the bot
-            if last_message.author == bot1.user:
-                await last_message.delete()
-            else:
-                error_message = f"Error: The last message in the counting channel was not sent by the bot."
-                print(error_message)
-                new_channel = await reset_channel(counting_channel, error_message)
-                if new_channel:
-                    counting_channel = new_channel
+                guild_id = str(message.guild.id)
+                server_data = get_server_data(guild_id)
+
+                if server_data.get('counting_channel_id') is None or message.channel.id != server_data.get('counting_channel_id'):
+                    continue
+
+                if guild_id in last_user and message.author.id == last_user[guild_id]:
+                    error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
+                else:
+                    try:
+                        int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
+                    except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
+                        error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
+                    else:
+                        expected_value = server_data['counter']
+
+                        if int_message != expected_value:
+                            error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
+                        else:
+                            if server_data['counter'] > server_data['high_score']:
+                                await message.add_reaction("🏆")
+                                server_data['high_score'] = server_data['counter']
+                            else:
+                                await message.add_reaction("✅")
+                            server_data['counter'] += server_data['increment']
+                            last_user[guild_id] = message.author.id
+                            save_data(data, last_user)
+                            continue
+
+                increment_message = f"The increment is currently set to {server_data['increment']}."
+                typed_message = f"You typed: {message.content}"
+                new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+                server_data['counting_channel_id'] = new_channel.id
+                save_data(data, last_user)
+                continue
+
+            print("Counting channel checked for missed messages.")
         else:
-            error_message = f"Error: The counting channel does not exist."
-            print(error_message)
-            new_channel = await reset_channel(counting_channel, error_message)
-            if new_channel:
-                counting_channel = new_channel
+            print("Counting channel does not exist.")
     else:
-        error_message = f"Error: The counting category does not exist."
-        print(error_message)
-        # Handle the case where the category does not exist, e.g., create the category or take appropriate action
+        print("Counting category does not exist.")
 
 @bot1.command(name='increment')
 async def increment(ctx, increment_value: int = None):
