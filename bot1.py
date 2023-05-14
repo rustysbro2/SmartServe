@@ -135,7 +135,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
 
 
-@bot1.event
+@bot1@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -151,16 +151,20 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
+    logging.debug(f"Received message: {message.content}")
+
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
         ping_message = await message.channel.send(error_message)
         await ping_message.delete()  # Deletes the message immediately
+        logging.debug("Counting Error: User counted twice in a row")
         return
     else:
         try:
             int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
         except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
             error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
+            logging.debug("Counting Error: Invalid input")
         else:
             expected_value = server_data['counter']
 
@@ -168,6 +172,7 @@ async def on_message(message):
                 error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
                 # Reset the counter after the game fails
                 server_data['counter'] = 1
+                logging.debug("Counting Error: Incorrect count")
             else:
                 if server_data['counter'] > server_data['high_score']:
                     await message.add_reaction("🏆")
@@ -186,7 +191,14 @@ async def on_message(message):
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
+    logging.debug("Resetting the channel...")
+    logging.debug(f"Channel name: {message.channel.name}")
+    logging.debug(f"Error message: {error_message}")
+    logging.debug(f"Increment message: {increment_message}")
+    logging.debug(f"Typed message: {typed_message}")
+
     await bot1.process_commands(message)
+
 
 
 
