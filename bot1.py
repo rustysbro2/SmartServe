@@ -1,6 +1,18 @@
 import discord
 from discord.ext import commands
 
+
+intents = discord.Intents.default()
+intents.typing = False
+intents.presences = False
+intents.messages = True
+intents.guilds = True
+intents.reactions = True
+intents.emojis_and_stickers = True
+intents.dm_messages = False
+intents.guild_messages = True
+
+
 TOKEN = "MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY"
 
 
