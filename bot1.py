@@ -101,7 +101,6 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
 
     server_data['counter'] = server_data['increment']
     server_data['counting_channel_id'] = new_channel.id
-    server_data['counting_category'] = channel.category.name  # Store the category name
 
     save_data(data, last_user)
 
