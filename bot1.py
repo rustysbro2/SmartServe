@@ -118,10 +118,18 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     overwrites = channel.overwrites
     category = channel.category
 
-    await channel.delete(reason="Counting error")
-    logging.info("Channel deleted.")
+    await channel.send("Resetting channel...")
+    await channel.edit(name=f"reset-{channel.name}", topic="Counting channel reset")
+    await channel.edit(position=0)
+    await channel.edit(reason="Counting error", category=None)
 
-    new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
+    new_channel = await guild.create_text_channel(
+        name=channel.name,
+        overwrites=overwrites,
+        category=category,
+        position=channel.position,
+    )
+
     error_embed = discord.Embed(
         title="Counting Error",
         color=discord.Color.red(),
