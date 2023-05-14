@@ -166,9 +166,6 @@ async def on_message(message):
 
     if last_game_counter == server_data['counter'] and last_game_user == message.author.id:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game."
-        ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=0)  # Deletes the message immediately
-
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
         new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
@@ -181,9 +178,6 @@ async def on_message(message):
         int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
     except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
         error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
-        ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=0)  # Deletes the message immediately
-
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
         new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
@@ -196,9 +190,6 @@ async def on_message(message):
 
     if int_message != expected_value:
         error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
-        ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=0)  # Deletes the message immediately
-
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
         new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
@@ -210,12 +201,15 @@ async def on_message(message):
     if server_data['counter'] > server_data['high_score']:
         await message.add_reaction("🏆")
         server_data['high_score'] = server_data['counter']
+    else:
+        await message.add_reaction("✅")
 
     last_game_data = {'counter': server_data['counter'], 'user': message.author.id}
     last_user[guild_id] = last_game_data  # Update last_user with current game's data
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
     
 @bot1.event
 async def on_message_edit(before, after):
