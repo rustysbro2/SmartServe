@@ -1,3 +1,16 @@
+@bot1.command(name='increment')
+async def increment(ctx, increment_value: int = None):
+    guild_id = str(ctx.guild.id)
+    server_data = get_server_data(guild_id)
+
+    if increment_value is not None:
+        server_data['next_increment'] = increment_value
+        save_data(data, last_user)
+        await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
+    else:
+        await ctx.send(f"The current increment value is {server_data['increment']}.")
+
+    save_data(data, last_user)
 import discord
 import json
 from discord.ext import commands
@@ -85,15 +98,14 @@ async def increment(ctx, increment_value: int = None):
     server_data = get_server_data(guild_id)
 
     if increment_value is not None:
-        if guild_id not in last_user:  # Check if no one has counted yet
-            server_data['next_increment'] = increment_value
-            save_data(data, last_user)
-            await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
-        else:
-             await ctx.send("The increment value cannot be changed until the current game is completed.")
-             return
+        server_data['next_increment'] = increment_value
+        save_data(data, last_user)
+        await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
+    else:
+        await ctx.send(f"The current increment value is {server_data['increment']}.")
 
     save_data(data, last_user)
+
 
 @bot1.command(name='set_channel')
 @commands.has_permissions(manage_channels=True)
