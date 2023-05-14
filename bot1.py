@@ -114,18 +114,19 @@ async def reset_channel(channel):
 
     try:
         await channel.delete(reason="Counting error")
-    except discord.NotFound:
-        pass
+    except discord.errors.NotFound:
+        return
 
     overwrites = channel.overwrites
     category = channel.category
 
     try:
         new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
-    except discord.HTTPException:
+    except discord.errors.HTTPException:
         return
 
     return new_channel
+
 
 @bot1.event
 async def on_message(message):
@@ -186,15 +187,15 @@ async def on_message(message):
         typed_message = f"You typed: {message.content}"
         new_channel = await reset_channel(message.channel)
         if new_channel:
-        server_data['counting_channel_id'] = new_channel.id
-        save_data(data, last_user)
-        error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
-        error_embed.add_field(name="Error Message", value=error_message)
-        error_embed.add_field(name="Increment", value=increment_message)
-        error_embed.add_field(name="Typed Message", value=typed_message)
-        await new_channel.send(embed=error_embed)
+            server_data['counting_channel_id'] = new_channel.id
+            save_data(data, last_user)
+            error_embed = discord.Embed(title="Counting Error",color=discord.Color.red())
+            error_embed.add_field(name="Error Message", value=error_message)
+            error_embed.add_field(name="Increment", value=increment_message)
+            error_embed.add_field(name="Typed Message", value=typed_message)
+            await new_channel.send(embed=error_embed)
 
-    return
+        return
 
     if int_message == expected_value:
         await message.add_reaction("✅")  # Add checkmark reaction for a correct number
@@ -211,17 +212,16 @@ async def on_message(message):
 
     await bot1.process_commands(message)
 
-@bot1.event
-async def on_ready():
-    print(f'{bot1.user.name} is ready. Connected as {bot1.user.name}')
 
 @bot1.event
 async def on_message_edit(before, after):
     await bot1.process_commands(after)
 
+
 @bot1.event
 async def on_message_delete(message):
     await bot1.process_commands(message)
+
 
 @bot1.event
 async def on_guild_join(guild):
@@ -229,6 +229,7 @@ async def on_guild_join(guild):
     activity_name = f'{server_count} Servers'
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
+
 
 @bot1.event
 async def on_guild_remove(guild):
@@ -244,6 +245,7 @@ async def on_guild_remove(guild):
     if guild_id in last_user:
         del last_user[guild_id]
         save_data(data, last_user)
+
 
 bot1.run(TOKEN1)
 
