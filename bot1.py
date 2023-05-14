@@ -162,10 +162,16 @@ async def on_ready():
 
             # Update the counter and last user
             if server_data['counter'] > server_data['high_score']:
-                await message.add_reaction("🏆")
+                try:
+                    await message.add_reaction("🏆")
+                except discord.errors.NotFound:
+                    pass  # Ignore if the channel or message is not found
                 server_data['high_score'] = server_data['counter']
             else:
-                await message.add_reaction("✅")
+                try:
+                    await message.add_reaction("✅")
+                except discord.errors.NotFound:
+                    pass  # Ignore if the channel or message is not found
             server_data['counter'] += server_data['increment']
             last_user[guild.id] = message.author.id
             save_data(data, last_user)
@@ -175,9 +181,6 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
     print(f"Bot1 is ready. Connected to {server_count} servers.")
-
-
-
 
 
 @bot1.command(name='increment')
