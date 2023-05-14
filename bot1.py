@@ -115,6 +115,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
         guild.default_role: discord.PermissionOverwrite(read_messages=False)
     }
     category_id = server_data.get('counting_category')
+    category = None  # Define the variable before using it
 
     if category_id is not None:
         category = discord.utils.get(guild.categories, id=int(category_id))
@@ -135,8 +136,6 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     save_data(data, last_user)
 
     return new_channel
-
-
 
 
 
