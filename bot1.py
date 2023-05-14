@@ -137,12 +137,11 @@ async def reset_channel(channel, error_message, increment_message, typed_message
         return
 
     error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
-    error_embed.add_field(name="Error Message", value=error_message)
-    error_embed.add_field(name="Increment", value=increment_message)
-    error_embed.add_field(name="Typed Message", value=typed_message)
+    error_embed.add_field(name="Error Message", value=f"{error_message}\n\nIncrement: {increment_message}\n\nTyped Message: {typed_message}")
     await new_channel.send(embed=error_embed)
 
     return new_channel
+
 
 
 @bot1.event
@@ -215,7 +214,20 @@ async def on_message(message):
     last_user[guild_id] = last_game_data  # Update last_user with current game's data
     save_data(data, last_user)
 
+    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
+    error_embed.add_field(name="Error Message", value=f"Error: {message.author.mention}, the next number should be {expected_value}.")
+    error_embed.add_field(name="Increment", value=f"The increment is currently set to {server_data['increment']}.")
+    error_embed.add_field(name="Typed Message", value=f"You typed: {message.content}")
+    new_channel = await reset_channel(message.channel, error_embed)
+    server_data['counting_channel_id'] = new_channel.id
+    save_data(data, last_user)
+
+    return
     await bot1.process_commands(message)
+
+    
+    
+
     
 @bot1.event
 async def on_message_edit(before, after):
