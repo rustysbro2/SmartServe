@@ -135,7 +135,6 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
 
 
-
 @bot1.event
 async def on_message(message):
     if message.author == bot1.user:
@@ -170,7 +169,7 @@ async def on_message(message):
             if int_message != expected_value:
                 error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
                 # Reset the counter after the game fails
-                server_data['counter'] = 1
+                server_data['counter'] = server_data['increment']
             else:
                 if server_data['counter'] > server_data['high_score']:
                     await message.add_reaction("🏆")
@@ -197,6 +196,7 @@ async def on_message(message):
     logging.debug(f"Typed message: {typed_message}")
 
     await bot1.process_commands(message)
+
 
 
 
