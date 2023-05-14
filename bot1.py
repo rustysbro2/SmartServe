@@ -140,10 +140,6 @@ async def reset_channel(channel, error_embed):
 
     return new_channel
 
-
-
-
-
 @bot1.event
 async def on_message(message):
     if message.author == bot1.user:
@@ -216,13 +212,8 @@ async def on_message(message):
     last_user[guild_id] = last_game_data  # Update last_user with current game's data
     save_data(data, last_user)
 
-    # Check if the channel needs to be reset
-    if int_message != expected_value:
-        error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
-        increment_message = f"The increment is currently set to {server_data['increment']}."
-        typed_message = f"You typed: {message.content}"
-        error_embed = create_error_embed(error_message, increment_message, typed_message)
-        await reset_channel(message.channel, error_embed)
+    await bot1.process_commands(message)
+
 
 @bot1.event
 async def on_message_edit(before, after):
