@@ -1,15 +1,3 @@
-@bot1.command(name='set_channel')
-@commands.has_permissions(manage_channels=True)
-async def set_counting_channel(ctx, channel: discord.TextChannel):
-    guild_id = str(ctx.guild.id)
-    server_data = get_server_data(guild_id)
-
-    if server_data['counting_channel_id'] != channel.id:
-        server_data['counting_channel_id'] = channel.id
-        save_data(data, last_user)
-        await ctx.send(f"Counting channel has been set to {channel.mention}.")
-    else:
-        await ctx.send("The counting channel is already set to that channel.")
 import discord
 import json
 from discord.ext import commands
@@ -209,6 +197,7 @@ async def set_counting_channel(ctx, channel: discord.TextChannel):
         await ctx.send(f"Counting channel has been set to {channel.mention}.")
     else:
         await ctx.send("The counting channel is already set to that channel.")
+
 
 
 
