@@ -78,35 +78,39 @@ def get_server_data(guild_id):
     return data[guild_id]
 
 
-@bot1.event
 async def on_ready():
     print(f'{bot1.user.name} is ready. Connected as {bot1.user.name}')
     guild = bot1.guilds[0]  # Replace with your desired guild or use bot1.get_guild(guild_id)
     category = discord.utils.get(guild.categories, name='Counting')
-    
-    # Find the existing counting channel
-    counting_channel = discord.utils.get(category.channels, name='counting')
 
-    if counting_channel:
-        # Get the last message in the counting channel
-        async for message in counting_channel.history(limit=1, oldest_first=False):
-            last_message = message
+    if category:
+        # Find the existing counting channel within the category
+        counting_channel = discord.utils.get(category.channels, name='counting')
 
-        # Check if the last message was sent by the bot
-        if last_message.author == bot1.user:
-            await last_message.delete()
+        if counting_channel:
+            # Get the last message in the counting channel
+            async for message in counting_channel.history(limit=1, oldest_first=False):
+                last_message = message
+
+            # Check if the last message was sent by the bot
+            if last_message.author == bot1.user:
+                await last_message.delete()
+            else:
+                error_message = f"Error: The last message in the counting channel was not sent by the bot."
+                print(error_message)
+                new_channel = await reset_channel(counting_channel, error_message)
+                if new_channel:
+                    counting_channel = new_channel
         else:
-            error_message = f"Error: The last message in the counting channel was not sent by the bot."
+            error_message = f"Error: The counting channel does not exist."
             print(error_message)
             new_channel = await reset_channel(counting_channel, error_message)
             if new_channel:
                 counting_channel = new_channel
     else:
-        error_message = f"Error: The counting channel does not exist."
+        error_message = f"Error: The counting category does not exist."
         print(error_message)
-        new_channel = await reset_channel(counting_channel, error_message)
-        if new_channel:
-            counting_channel = new_channel@bot1.event
+        # Handle the case where the category does not exist, e.g., create the category or take appropriate action
 
 @bot1.command(name='increment')
 async def increment(ctx, increment_value: int = None):
