@@ -83,7 +83,11 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
     guild_id = str(channel.guild.id)
     server_data = get_server_data(guild_id)
 
-    new_channel = await channel.clone(category_id=channel.category_id, reason="Resetting counting channel")  # Change 'category' to 'category_id'
+    new_channel = await channel.guild.create_text_channel(
+        name=channel.name,
+        category=channel.category,
+        reason="Resetting counting channel"
+    )
     await channel.delete()
 
     if guild_id in last_user:
