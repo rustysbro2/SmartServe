@@ -195,11 +195,14 @@ async def on_message(message):
                 return
 
     increment_message = f"The increment is currently set to {server_data['increment']}."
-    new_channel = await reset_channel(message.channel, error_message, increment_message, message.content)
+    typed_message = f"You typed: {message.content}"  # Added the typed message
+    new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
 
     await bot1.process_commands(message)  # Process commands here
+
+
 
 
 @bot1.event
