@@ -140,6 +140,9 @@ async def on_message(message):
 
     if guild_id in last_user and message.author.id == last_user[guild_id]:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
+        ping_message = await message.channel.send(error_message)
+        await ping_message.delete()  # Deletes the message immediately
+        return
     else:
         try:
             int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
