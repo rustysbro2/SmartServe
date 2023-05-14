@@ -90,8 +90,8 @@ async def increment(ctx, increment_value: int = None):
             save_data(data, last_user)
             await ctx.send(f"The increment value will be set to {increment_value} at the start of the next game.")
         else:
-                        await ctx.send("The increment value cannot be changed until the current game is completed.")
-            return
+             await ctx.send("The increment value cannot be changed until the current game is completed.")
+             return
 
     save_data(data, last_user)
 
