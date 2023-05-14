@@ -83,7 +83,7 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
     server_data = get_server_data(guild_id)
 
     new_channel = await channel.clone()
-    await channel.delete(reason="Resetting channel")  # Delete the channel
+    await channel.delete()
 
     if guild_id in last_user:
         del last_user[guild_id]
@@ -108,6 +108,7 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
 
     await new_channel.send(combined_message)
     return new_channel
+
 
 
 @bot1.event
