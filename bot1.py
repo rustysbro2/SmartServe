@@ -1,4 +1,39 @@
-import json
+async def reset_channel(channel, error_message, increment_message, typed_message):
+    guild = channel.guild
+    if guild is None:
+        return
+
+    overwrites = channel.overwrites
+    category = channel.category
+
+    try:
+        owner = guild.owner
+    except discord.errors.HTTPException:
+        return
+
+    try:
+        await channel.delete(reason="Counting error")
+    except discord.errors.NotFound:
+        return
+
+    try:
+        new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
+    except discord.errors.HTTPException:
+        return
+
+    try:
+        ping_message = await new_channel.send(content=owner.mention)
+        await ping_message.delete(delay=0)  # Deletes the message immediately
+    except discord.errors.NotFound:
+        return
+
+    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
+    error_embed.add_field(name="Error Message", value=error_message)
+    error_embed.add_field(name="Increment", value=increment_message)
+    error_embed.add_field(name="Typed Message", value=typed_message)
+    await new_channel.send(embed=error_embed)
+
+    return new_channelimport json
 import discord
 from discord.ext import commands
 import logging
@@ -160,9 +195,9 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    last_game_data = last_user.get(guild_id, {})
-    last_game_counter = last_game_data.get('counter') if isinstance(last_game_data, dict) else None
-    last_game_user = last_game_data.get('user') if isinstance(last_game_data, dict) else None
+    last_game_data = last_user.get(guild_id)
+    last_game_counter = last_game_data.get('counter') if last_game_data else None
+    last_game_user = last_game_data.get('user') if last_game_data else None
 
     if last_game_counter == server_data['counter'] and last_game_user == message.author.id:
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game."
@@ -211,6 +246,7 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
 
 
 
