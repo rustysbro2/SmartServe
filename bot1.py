@@ -213,10 +213,9 @@ async def on_message(message):
 
     last_game_data = {'counter': server_data['counter'], 'user': message.author.id}
     last_user[guild_id] = last_game_data  # Update last_user with current game's data
+    save_data(data, last_user)
 
-save_data(data, last_user)
-
-await bot1.process_commands(message)
+    await bot1.process_commands(message)
 
 
 
