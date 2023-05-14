@@ -113,19 +113,27 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     logging.info(f"Error message: {error_message}")
     logging.info(f"Increment message: {increment_message}")
     logging.info(f"Typed message: {typed_message}")
-
+    
     guild = channel.guild
     overwrites = channel.overwrites
     category = channel.category
 
-    await channel.delete(reason="Counting error")
+    try:
+        await channel.delete(reason="Counting error")
+        logging.info("Channel deleted.")
+    except discord.Forbidden:
+        logging.error(f"Unable to delete channel: {channel.name}")
 
-    new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
-    error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
-    error_embed.add_field(name="Error Message", value=error_message, inline=False)
-    error_embed.add_field(name="Increment", value=increment_message, inline=False)
-    error_embed.add_field(name="Typed Message", value=typed_message, inline=False)
-    await new_channel.send(embed=error_embed)
+    try:
+        new_channel = await guild.create_text_channel(name=channel.name, overwrites=overwrites, category=category)
+        error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
+        error_embed.add_field(name="Error Message", value=error_message, inline=False)
+        error_embed.add_field(name="Increment", value=increment_message, inline=False)
+        error_embed.add_field(name="Typed Message", value=typed_message, inline=False)
+        await new_channel.send(embed=error_embed)
+        logging.info("New channel created.")
+    except discord.Forbidden:
+        logging.error("Unable to create new channel.")
 
     return new_channel
 
