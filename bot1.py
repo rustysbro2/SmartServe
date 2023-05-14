@@ -147,6 +147,7 @@ async def on_message(message):
                 server_data['counter'] += server_data['increment']
                 last_user[guild_id] = message.author.id
                 save_data(data, last_user)
+                await bot1.process_commands(message)
                 return
 
     increment_message = f"The increment is currently set to {server_data['increment']}."
@@ -154,6 +155,9 @@ async def on_message(message):
     new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
     server_data['counting_channel_id'] = new_channel.id
     save_data(data, last_user)
+
+    await bot1.process_commands(message)
+
 
 
 @bot1.event
