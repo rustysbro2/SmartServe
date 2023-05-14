@@ -140,6 +140,7 @@ async def reset_channel(channel, error_embed):
 
     return new_channel
 
+@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -175,7 +176,11 @@ async def on_message(message):
 
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
-        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+        error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
+        error_embed.add_field(name="Error Message", value=error_message)
+        error_embed.add_field(name="Increment", value=increment_message)
+        error_embed.add_field(name="Typed Message", value=typed_message)
+        new_channel = await reset_channel(message.channel, error_embed)
         if new_channel:
             server_data['counting_channel_id'] = new_channel.id
             save_data(data, last_user)
@@ -191,7 +196,11 @@ async def on_message(message):
 
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
-        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+        error_embed = discord.Embed(title="Counting Error", color=discord.Color.red())
+        error_embed.add_field(name="Error Message", value=error_message)
+        error_embed.add_field(name="Increment", value=increment_message)
+        error_embed.add_field(name="Typed Message", value=typed_message)
+        new_channel = await reset_channel(message.channel, error_embed)
         if new_channel:
             server_data['counting_channel_id'] = new_channel.id
             save_data(data, last_user)
@@ -212,6 +221,8 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
+
 
 
 
