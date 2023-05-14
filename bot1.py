@@ -135,7 +135,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
 
 
 
-@bot1.event
+@bot1@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -187,6 +187,7 @@ async def on_message(message):
     typed_message = f"You typed: {message.content}"
     new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
     server_data['counting_channel_id'] = new_channel.id
+    server_data['game_id'] = str(uuid.uuid4())  # Generate a new game ID
     save_data(data, last_user)
 
     logging.debug("Resetting the channel...")
@@ -196,6 +197,7 @@ async def on_message(message):
     logging.debug(f"Typed message: {typed_message}")
 
     await bot1.process_commands(message)
+
 
 
 
