@@ -118,9 +118,11 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     overwrites = channel.overwrites
     category = channel.category
 
+    original_channel = channel  # Store the reference to the original channel
+
     try:
         await channel.clone(reason="Counting error", name=channel.name, overwrites=overwrites, category=category)
-        await channel.delete(reason="Counting error")
+        await original_channel.delete(reason="Counting error")  # Delete the original channel
         logging.info("Channel deleted.")
     except Exception as e:
         logging.exception(f"Failed to delete channel: {e}")
@@ -130,6 +132,7 @@ async def reset_channel(channel, error_message, increment_message, typed_message
     await new_channel.send(embed=error_embed)
 
     return new_channel
+
 
 
 @bot1.event
