@@ -163,7 +163,7 @@ async def on_message(message):
         if last_game_counter == server_data['counter']:
             error_message = f"Error: {message.author.mention}, you cannot count twice in a row within the same game."
             ping_message = await message.channel.send(content=message.author.mention)
-            await ping_message.delete(delay=0)  # Deletes the message immediately
+            await ping_message.delete(delay=5)  # Deletes the message after a delay
             return
 
     try:
@@ -171,13 +171,14 @@ async def on_message(message):
     except (ValueError, TypeError, NameError, ZeroDivisionError, SyntaxError):
         error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
         ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=0)  # Deletes the message immediately
+        await ping_message.delete(delay=5)  # Deletes the message after a delay
 
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
         new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
-        server_data['counting_channel_id'] = new_channel.id
-        save_data(data, last_user)
+        if new_channel:
+            server_data['counting_channel_id'] = new_channel.id
+            save_data(data, last_user)
 
         return
 
@@ -186,13 +187,14 @@ async def on_message(message):
     if int_message != expected_value:
         error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
         ping_message = await message.channel.send(content=message.author.mention)
-        await ping_message.delete(delay=0)  # Deletes the message immediately
+        await ping_message.delete(delay=5)  # Deletes the message after a delay
 
         increment_message = f"The increment is currently set to {server_data['increment']}."
         typed_message = f"You typed: {message.content}"
         new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
-        server_data['counting_channel_id'] = new_channel.id
-        save_data(data, last_user)
+        if new_channel:
+            server_data['counting_channel_id'] = new_channel.id
+            save_data(data, last_user)
 
         return
 
@@ -210,6 +212,7 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
 
 
 
