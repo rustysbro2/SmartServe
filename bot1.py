@@ -149,6 +149,13 @@ async def on_message(message):
         error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
         ping_message = await message.channel.send(content=message.author.mention)
         await ping_message.delete(delay=0)  # Deletes the message immediately
+
+        increment_message = f"The increment is currently set to {server_data['increment']}."
+        typed_message = f"You typed: {message.content}"
+        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+        server_data['counting_channel_id'] = new_channel.id
+        save_data(data, last_user)
+
         return
 
     try:
@@ -157,6 +164,13 @@ async def on_message(message):
         error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
         ping_message = await message.channel.send(content=message.author.mention)
         await ping_message.delete(delay=0)  # Deletes the message immediately
+
+        increment_message = f"The increment is currently set to {server_data['increment']}."
+        typed_message = f"You typed: {message.content}"
+        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+        server_data['counting_channel_id'] = new_channel.id
+        save_data(data, last_user)
+
         return
 
     expected_value = server_data['counter']
@@ -165,6 +179,13 @@ async def on_message(message):
         error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
         ping_message = await message.channel.send(content=message.author.mention)
         await ping_message.delete(delay=0)  # Deletes the message immediately
+
+        increment_message = f"The increment is currently set to {server_data['increment']}."
+        typed_message = f"You typed: {message.content}"
+        new_channel = await reset_channel(message.channel, error_message, increment_message, typed_message)
+        server_data['counting_channel_id'] = new_channel.id
+        save_data(data, last_user)
+
         return
 
     if server_data['counter'] > server_data['high_score']:
@@ -178,6 +199,7 @@ async def on_message(message):
     save_data(data, last_user)
 
     await bot1.process_commands(message)
+
 
 
 
