@@ -128,7 +128,9 @@ async def on_ready():
             continue
 
         # Fetch messages from the counting channel
-        messages = await counting_channel.history(limit=None).flatten()
+        messages = []
+        async for message in counting_channel.history(limit=None):
+            messages.append(message)
 
         # Process each message
         for message in messages:
