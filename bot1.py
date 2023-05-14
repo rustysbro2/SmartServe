@@ -147,6 +147,14 @@ async def on_ready():
                 continue
 
             # Check if the count is correct
+            if expected_value == 1 and int_message != expected_value:
+                error_message = f"Error: {message.author.mention}, the first number should be 1."
+                increment_message = f"The increment is currently set to {server_data['increment']}."
+                new_channel = await reset_channel(counting_channel, error_message, increment_message, message.content)
+                server_data['counting_channel_id'] = new_channel.id
+                save_data(data, last_user)
+                continue
+
             if int_message != expected_value:
                 error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
                 increment_message = f"The increment is currently set to {server_data['increment']}."
@@ -170,8 +178,6 @@ async def on_ready():
     activity = discord.Activity(type=discord.ActivityType.watching, name=activity_name)
     await bot1.change_presence(activity=activity)
     print(f"Bot1 is ready. Connected to {server_count} servers.")
-
-
 
 
 @bot1.command(name='increment')
