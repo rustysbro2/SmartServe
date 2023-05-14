@@ -64,7 +64,8 @@ def get_server_data(guild_id):
             'previous_count': 0,
             'high_score': 0,
             'counting_channel_id': None,
-            'increment': 1
+            'increment': 1,
+            'counting_category': None  # Add counting category field
         }
     else:
         server_data = data[guild_id]
@@ -77,11 +78,11 @@ def get_server_data(guild_id):
             server_data['increment'] = 1  # Set default value for 'increment' if not present
     return data[guild_id]
 
-async def reset_channel(channel, error_message, increment_message=None, typed_message=None):
+async def reset_channel(channel, category_name, error_message, increment_message=None, typed_message=None):
     guild_id = str(channel.guild.id)
     server_data = get_server_data(guild_id)
 
-    new_channel = await channel.clone()
+    new_channel = await channel.clone(category=channel.category, reason="Resetting counting channel")
     await channel.delete()
 
     if guild_id in last_user:
@@ -95,6 +96,7 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
 
     server_data['counter'] = server_data['increment']
     server_data['counting_channel_id'] = new_channel.id
+    server_data['counting_category'] = category_name  # Store the category name
 
     save_data(data, last_user)
 
