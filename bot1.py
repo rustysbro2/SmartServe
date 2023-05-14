@@ -113,6 +113,7 @@ async def reset_channel(channel, error_message, increment_message=None, typed_me
 @bot1.event
 async def on_ready():
     global data, last_user
+
     for guild in bot1.guilds:
         get_server_data(guild.id)
 
@@ -127,58 +128,33 @@ async def on_ready():
             continue
 
         # Fetch messages from the counting channel
-        messages = [message async for message in counting_channel.history(limit=None)]
+        messages = await counting_channel.history(limit=None).flatten()
 
         # Process each message
         for message in messages:
             if message.author == bot1.user:
                 continue
 
-            # Check if the message content is a valid count
-            expected_value = server_data['counter']
-            try:
-                int_message = int(message.content)
-            except ValueError:
-                error_message = f"Error: {message.author.mention}, you typed an invalid number."
+            # Check if the same user counted twice in a row
+            guild_id = str(guild.id)
+            if guild_id in last_user and message.author.id == last_user[guild_id]:
+                error_message = f"Error: {message.author.mention}, you cannot count twice in a row."
                 new_channel = await reset_channel(counting_channel, error_message)
                 server_data['counting_channel_id'] = new_channel.id
+                server_data['counter'] = server_data['previous_count'] + server_data['increment']  # Reset the counter to previous count + increment
                 save_data(data, last_user)
                 continue
 
-            # Check if the count is correct
-            if int_message != expected_value:
-                error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
-                new_channel = await reset_channel(counting_channel, error_message)
-                server_data['counting_channel_id'] = new_channel.id
-                save_data(data, last_user)
-                continue
-
-         # Check if the same user counted twice in a row
-guild_id = str(guild.id)
-if guild_id in last_user and message.author.id == last_user[guild_id]:
-    error_message = f"Error: {message.author.mention}, you cannot count twice in a row."
-    new_channel = await reset_channel(counting_channel, error_message)
-    server_data['counting_channel_id'] = new_channel.id
-    server_data['counter'] = server_data['previous_count'] + server_data['increment']  # Reset the counter to previous count + increment
-    save_data(data, last_user)
-    continue
-
-# Update the counter and last user
-if server_data['counter'] > server_data['high_score']:
-    try:
-        await message.add_reaction("🏆")
-    except discord.errors.NotFound:
-        pass  # Ignore if the channel or message is not found
-    server_data['high_score'] = server_data['counter']
-else:
-    try:
-        await message.add_reaction("✅")
-    except discord.errors.NotFound:
-        pass  # Ignore if the channel or message is not found
-server_data['previous_count'] = server_data['counter']  # Set the previous count to the current count
-server_data['counter'] += server_data['increment']
-last_user[guild.id] = message.author.id
-save_data(data, last_user)
+            # Update the counter and last user
+            if server_data['counter'] > server_data['high_score']:
+                await message.add_reaction("🏆")
+                server_data['high_score'] = server_data['counter']
+            else:
+                await message.add_reaction("✅")
+            server_data['previous_count'] = server_data['counter']  # Set the previous count to the current count
+            server_data['counter'] += server_data['increment']
+            last_user[guild.id] = message.author.id
+            save_data(data, last_user)
 
 
 
