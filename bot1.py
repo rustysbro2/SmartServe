@@ -143,8 +143,8 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    if guild_id in last_user and message.author.id == last_user[guild_id]:
-        error_message = f"Error: {message.author.mention}, you cannot count twice in a row. Wait for someone else to count."
+  if guild_id in last_user and message.author.id == last_user[guild_id]:
+    error_message = "Error: you cannot count twice in a row. Wait for someone else to count."
     else:
         try:
             int_message = int(eval("".join(re.findall(r'\d+|\+|\-|\*|x|\/|\(|\)', message.content.replace('x', '*')))))
@@ -152,9 +152,8 @@ async def on_message(message):
             error_message = f"Error: {message.author.mention}, you typed an invalid expression or a non-integer."
         else:
             expected_value = server_data['counter']
-
-            if int_message != expected_value:
-                error_message = f"Error: {message.author.mention}, the next number should be {expected_value}."
+             if int_message != expected_value:
+                error_message = f"Error: the next number should be {expected_value}."
             else:
                 if server_data['counter'] > server_data['high_score']:
                     await message.add_reaction("🏆")
@@ -179,7 +178,7 @@ async def on_message(message):
     embed.add_field(name="Last Typed", value=typed_message, inline=False)
     embed.add_field(name="Increment", value=increment_message, inline=False)
 
-    await new_channel.send(embed=embed)
+    await new_channel.send(content=message.author.mention, embed=embed)
     await bot1.process_commands(message)
 
 
