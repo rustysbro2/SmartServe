@@ -48,28 +48,22 @@ def save_data():
             'last_counter_users': last_counter_users
         }, f)
 
-async def check_counting_message(message, content, increment, last_counter):
+def check_counting_message(message, content, increment, last_counter):
     try:
-        node = ast.parse(content.strip(), mode="eval").body
-        if not all(isinstance(node, allowed_operators) for node in ast.walk(node)):
-            return False, "Invalid count"
+        number = int(content)
+    except ValueError:
+        return False, "Your message should only contain the number."
 
-        count = eval(content)
-        print(f"[DEBUG] Type of count: {type(count)}, value: {count}")  # Debug message
-        print(f"[DEBUG] Type of increment: {type(increment)}, value: {increment}")  # Debug message
-        if last_counter is None:
-            if count == increment:
-                print(f"[DEBUG] First count ({count}) is correct.")  # Debug message
-                return True, count
-            else:
-                print(f"[DEBUG] First count ({count}) is incorrect.")  # Debug message
-                return False, "Invalid count"
-        elif count == last_counter + increment:
-            return True, count
+    if last_counter is None:
+        if number == increment:
+            return True, number
         else:
-            return False, "Invalid count"
-    except Exception as e:
-        return False, "Invalid count"
+            return False, "Invalid count. The next number should be {increment}."
+    elif number == last_counter + increment:
+        return True, number
+    else:
+        return False, f"Invalid count. The next number should be {last_counter + increment}."
+
 
 
 async def handle_invalid_count(message, increment, last_counter):
