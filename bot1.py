@@ -192,12 +192,32 @@ async def on_message(message):
         return
 
     # Valid counting message
+    if last_counter is None and int(content) != 1:
+        failure_reason = "The first number should be 1."
+        failure_message = "You made a mistake in counting. The counting channel will be reset.\n\n" \
+                          "Failure Reason: {}\n" \
+                          "Your Count: {}\n" \
+                          "Increment: {}\n" \
+                          "Increment Changed To: {}".format(failure_reason, content, increment,
+                                                            count_data.get('increment', increment))
+
+        await reset_counting_channel(
+            message.guild,
+            failure_reason,
+            content,
+            increment,
+            changed_increment=count_data.get('increment', increment),
+            failure_message=failure_message
+        )
+        return
+
     count_data['last_counter'] = int(content)
     count_data['last_counter_user'] = message.author.id
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 
