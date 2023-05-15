@@ -180,15 +180,14 @@ async def on_message(message):
         embed.add_field(name="Increment", value=increment, inline=False)
         embed.add_field(name="Increment Changed To", value=count_data.get('increment', increment), inline=False)
 
-        await reset_counting_channel(
-            message.guild,
-            counting_channel,
-            failure_reason,
-            content,
-            increment,
-            changed_increment=count_data.get('increment', increment),
-            failure_embed=embed
-        )
+      await reset_counting_channel(
+    message.guild,
+    failure_reason,
+    content,
+    increment,
+    changed_increment=count_data.get('increment', increment)
+)
+
         return
 
     # Valid counting message
