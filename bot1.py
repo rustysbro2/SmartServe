@@ -124,6 +124,8 @@ async def on_message(message):
     if message.author == bot1.user:
         return
 
+    await bot1.process_commands(message)
+
     if not isinstance(message.channel, discord.TextChannel):
         return
 
@@ -132,19 +134,16 @@ async def on_message(message):
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count', {})
 
-    if counting_channel is None or counting_channel['id'] != message.channel.id:
-        await bot1.process_commands(message)
+    if counting_channel is None:
         return
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
 
-    if increment is None:
-        await bot1.process_commands(message)
+    if counting_channel['id'] != message.channel.id:
         return
 
     content = message.content.strip()
-
 
     # Check for failure scenarios
     if last_counter is not None:
