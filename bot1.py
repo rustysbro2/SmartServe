@@ -23,11 +23,7 @@ allowed_operators = {
     ast.UAdd: operator.pos
 }
 guilds = {}  # Declare guilds as a global variable
-counting_channels = {}  # Declare counting_channels as a global variable
-increments = {}  # Declare increments as a global variable
-last_counters = {}  # Declare last_counters as a global variable
-high_scores = {}  # Declare high_scores as a global variable
-last_counter_users = {}  #
+
 
 def save_data():
     with open('bot_data.json', 'w') as f:
