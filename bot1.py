@@ -118,9 +118,10 @@ async def on_message(message):
     if message.author == bot1.user:
         return
 
-    if message.channel.id in counting_channels.values():
+    if message.guild.id in increments:
         increment = increments[message.guild.id]
-        last_counter = last_counters.get(message.guild.id)
+    else:
+        increment = 1 
 
         print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
 
