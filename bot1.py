@@ -110,13 +110,9 @@ async def on_message(message):
         return
 
     guild_id = message.guild.id
-    guild_data = guilds.get(guild_id)
-    if guild_data is None:
-        guilds[guild_id] = {}
-        guild_data = guilds[guild_id]
-
+    guild_data = guilds.get(guild_id, {})
     counting_channel = guild_data.get('counting_channel')
-    count_data = guild_data.get('count')
+    count_data = guild_data.get('count', {})
 
     if counting_channel is None or counting_channel['id'] != message.channel.id:
         await bot1.process_commands(message)
@@ -124,6 +120,7 @@ async def on_message(message):
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
+    last_counter_user = count_data.get('last_counter_user')
 
     if increment is None:
         await bot1.process_commands(message)
@@ -131,46 +128,17 @@ async def on_message(message):
 
     content = message.content.strip()
 
-
     # Check for failure scenarios
-    if last_counter is None:
-        if int(content) == increment:  # Check if the first number equals the increment
-            count_data['last_counter'] = int(content)
-            count_data['last_counter_user'] = message.author.id
-            if int(content) > count_data.get('high_score', 0):
-                count_data['high_score'] = int(content)
-            save_data()
-            await message.add_reaction('✅')  # Add a reaction to the valid counting message
-        else:
-            await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
+    if last_counter_user == message.author.id:
+        await message.channel.send("You cannot count twice in a row. The counting game has failed.")
+        await reset_counting_channel(message.guild, counting_channel, "User counted twice in a row.")
         return
 
-    # Check if the counting message is valid
-    is_valid, failure_reason = check_counting_message(content, increment, last_counter)
+    result, failure_reason = check_counting_message(content, increment, last_counter)
 
-    if not is_valid:
-        # Send failure message and reset counting channel
-        embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-        embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-        embed.add_field(name="Your Count", value=content, inline=False)
-        embed.add_field(name="Increment", value=increment, inline=False)
-        embed.add_field(name="Increment Changed To", value=count_data.get('increment', increment), inline=False)
-
-        new_channel = await reset_counting_channel(
-            message.guild,
-            counting_channel,
-            failure_reason,
-            content,
-            increment,
-            changed_increment=count_data.get('increment', increment)
-        )
-
-        if new_channel is not None:
-            await new_channel.send(embed=embed)
-            count_data['last_counter'] = None
-            count_data['last_counter_user'] = None
-            save_data()
-
+    if not result:
+        await message.channel.send(failure_reason)
+        await reset_counting_channel(message.guild, counting_channel, failure_reason, content, increment)
         return
 
     # Valid counting message
@@ -180,6 +148,7 @@ async def on_message(message):
         count_data['high_score'] = int(content)
     save_data()
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
