@@ -1,30 +1,3 @@
-@bot1.event
-async def on_message(message):
-    if message.author == bot1.user:
-        return
-
-    if message.channel.id in counting_channels.values():
-        increment = increments[message.guild.id]
-        last_counter = last_counters.get(message.guild.id)
-
-        print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
-
-        is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
-        if is_valid:
-            await message.add_reaction("✅")
-            last_counters[message.guild.id] = result
-
-            if message.guild.id in high_scores:
-                if result > high_scores[message.guild.id]:
-                    high_scores[message.guild.id] = result
-                    await message.add_reaction("🏆")
-            else:
-                high_scores[message.guild.id] = result
-        else:
-            print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
-            await handle_invalid_count(message, increment, result)
-
-    await bot1.process_commands(message)
 import discord
 from discord.ext import commands
 import ast  
