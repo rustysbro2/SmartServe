@@ -3,17 +3,28 @@ from discord.ext import commands
 import ast  
 import operator
 import os
+import json
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot1 = commands.Bot(command_prefix="!", intents=intents)
 bot1.remove_command("help")
 
-counting_channels = {}
-increments = {}
-last_counters = {}
-high_scores = {}
-last_counter_users = {}
+if os.path.isfile('bot_data.json'):
+    with open('bot_data.json') as f:
+        data = json.load(f)
+        counting_channels = data['counting_channels']
+        increments = data['increments']
+        last_counters = data['last_counters']
+        high_scores = data['high_scores']
+        last_counter_users = data['last_counter_users']
+else:
+    counting_channels = {}
+    increments = {}
+    last_counters = {}
+    high_scores = {}
+    last_counter_users = {}
+
 
 allowed_operators = {
     ast.Add: operator.add,
@@ -27,6 +38,15 @@ allowed_operators = {
     ast.USub: operator.neg,
     ast.UAdd: operator.pos
 }
+def save_data():
+    with open('bot_data.json', 'w') as f:
+        json.dump({
+            'counting_channels': counting_channels,
+            'increments': increments,
+            'last_counters': last_counters,
+            'high_scores': high_scores,
+            'last_counter_users': last_counter_users
+        }, f)
 
 async def check_counting_message(message, content, increment, last_counter):
     try:
@@ -63,12 +83,16 @@ async def set_channel(ctx, channel: discord.TextChannel):
     increments[ctx.guild.id] = 1
     last_counters[ctx.guild.id] = None
     high_scores[ctx.guild.id] = 0
+    last_counter_users[ctx.guild.id] = None
     await ctx.send(f"Counting channel set to {channel.mention}")
+    save_data()
 
 @bot1.command()
 async def increment(ctx, num: int):
     increments[ctx.guild.id] = num
     await ctx.send(f"Increment changed to {num}")
+    save_data()
+
 
 @bot1.command()
 async def reset_channel(ctx):
@@ -108,6 +132,7 @@ async def on_message(message):
             await message.add_reaction("✅")
             last_counters[message.guild.id] = result
             last_counter_users[message.guild.id] = message.author.id
+            save_data()
 
             if message.guild.id in high_scores:
                 if result > high_scores[message.guild.id]:
@@ -115,6 +140,7 @@ async def on_message(message):
                     await message.add_reaction("🏆")
             else:
                 high_scores[message.guild.id] = result
+                save_data()
         else:
             await handle_invalid_count(message, increment, last_counter)
             await bot1.get_command('reset_channel').callback(message)
