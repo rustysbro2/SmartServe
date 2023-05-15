@@ -229,25 +229,6 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     guild_data['count']['last_counter_user'] = None  # Reset the last counter user in guild data
     save_data()
 
-    # Send the failure message to the new counting channel
-    embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-    embed.add_field(name="Your Count", value=current_count, inline=False)
-    embed.add_field(name="Increment", value=increment, inline=False)
-    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
-
-    new_message = await new_channel.send("You made a mistake in counting. The counting channel will be reset.", embed=embed)
-
-    if guild_data['count']['last_counter_user'] is not None:
-        # Fetch the old message in the old counting channel if last_counter_user is not None
-        old_channel = guild.get_channel(old_channel_id)
-        try:
-            message = await old_channel.fetch_message(guild_data['count']['last_counter_user'])
-            await message.delete()  # Delete the old message in the old counting channel
-        except discord.NotFound:
-            # If the old message is not found, continue without deleting it
-            pass
-
     # Delete the old counting channel
     old_channel = guild.get_channel(old_channel_id)
     if old_channel:
@@ -256,6 +237,15 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     # Update the counting channel ID in the guild data
     counting_channel['id'] = new_channel.id
     save_data()
+
+    # Send the failure message to the new counting channel
+    embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+    embed.add_field(name="Your Count", value=current_count, inline=False)
+    embed.add_field(name="Increment", value=increment, inline=False)
+    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
+
+    await new_channel.send("You made a mistake in counting. The counting channel will be reset.", embed=embed)
 
 
 
