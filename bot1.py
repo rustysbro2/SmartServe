@@ -120,6 +120,7 @@ async def on_message(message):
     # Rest of the code...
 
 
+
     increment = increments[message.guild.id]
     last_counter = last_counters.get(message.guild.id)
 
