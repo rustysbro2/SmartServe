@@ -26,6 +26,7 @@ else:
     last_counter_users = {}
 
 def save_data():
+    print(f"Saving data: {counting_channels}, {increments}, {last_counters}, {high_scores}, {last_counter_users}")
     with open('bot_data.json', 'w') as f:
         json.dump({
             'counting_channels': {str(guild_id): channel_id for guild_id, channel_id in counting_channels.items()},
@@ -34,6 +35,7 @@ def save_data():
             'high_scores': high_scores,
             'last_counter_users': last_counter_users
         }, f)
+
 
 def check_counting_message(content, increment, last_counter):
     try:
@@ -53,6 +55,13 @@ def check_counting_message(content, increment, last_counter):
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
+    if ctx.guild.id in counting_channels:
+        del counting_channels[ctx.guild.id]
+        del increments[ctx.guild.id]
+        del last_counters[ctx.guild.id]
+        del high_scores[ctx.guild.id]
+        del last_counter_users[ctx.guild.id]
+
     counting_channels[ctx.guild.id] = channel.id
     increments[ctx.guild.id] = 1
     last_counters[ctx.guild.id] = None
@@ -60,6 +69,17 @@ async def set_channel(ctx, channel: discord.TextChannel):
     last_counter_users[ctx.guild.id] = None
     await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
+def save_data():
+    print(f"Saving data: {counting_channels}, {increments}, {last_counters}, {high_scores}, {last_counter_users}")
+    with open('bot_data.json', 'w') as f:
+        json.dump({
+            'counting_channels': {str(guild_id): channel_id for guild_id, channel_id in counting_channels.items()},
+            'increments': increments,
+            'last_counters': last_counters,
+            'high_scores': high_scores,
+            'last_counter_users': last_counter_users
+        }, f)
+
 
 @bot1.command()
 async def increment(ctx, num: int):
