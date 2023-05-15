@@ -7,8 +7,8 @@ import json
 
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
-bot.remove_command("help")
+bot1 = commands.Bot(command_prefix="!", intents=intents)
+bot1.remove_command("help")
 
 if os.path.isfile('bot_data.json'):
     with open('bot_data.json') as f:
@@ -76,29 +76,8 @@ async def handle_invalid_count(message, increment, last_counter):
     await message.add_reaction("❌")
     await message.channel.send(f"Invalid count. The next number should be {next_number}.")
 
-    # Reset the counting channel
-    counting_channel_id = counting_channels[message.guild.id]
-    counting_channel = bot.get_channel(counting_channel_id)
-    increment = increments[message.guild.id]
 
-    overwrites = {
-        message.guild.default_role: discord.PermissionOverwrite(send_messages=False),
-        message.guild.me: discord.PermissionOverwrite(send_messages=True)
-    }
-
-    await counting_channel.delete(reason="Resetting channel for new counting game.")
-    new_counting_channel = await message.guild.create_text_channel("counting", overwrites=overwrites)
-
-    counting_channels[message.guild.id] = new_counting_channel.id
-    last_counters[message.guild.id] = None
-    high_scores[message.guild.id] = 0
-
-    await new_counting_channel.send(f"The counting starts at {increment}. Good luck!")
-    save_data()
-
-
-
-@bot.command()
+@bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     counting_channels[ctx.guild.id] = channel.id
     increments[ctx.guild.id] = 1
@@ -108,16 +87,17 @@ async def set_channel(ctx, channel: discord.TextChannel):
     await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
 
-@bot.command()
+
+@bot1.command()
 async def increment(ctx, num: int):
     increments[ctx.guild.id] = num
     await ctx.send(f"Increment changed to {num}")
     save_data()
 
 
-@bot.event
+@bot1.event
 async def on_message(message):
-    if message.author == bot.user:
+    if message.author == bot1.user:
         return
 
     if message.guild.id in increments:
@@ -146,20 +126,26 @@ async def on_message(message):
         print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
         await handle_invalid_count(message, increment, result)
 
-    await bot.process_commands(message)
+    await bot1.process_commands(message)
 
 
-@bot.command()
+@bot1.command()
 async def help(ctx):
-    embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=0x00FF00)
+    embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:",
+                          color=0x00FF00)
     embed.add_field(name="!set_channel [channel]", value="Sets the channel for counting.", inline=False)
     embed.add_field(name="!increment [number]", value="Changes the counting increment.", inline=False)
     await ctx.send(embed=embed)
 
 
-@bot.event
+@bot1.event
 async def on_ready():
-    print(f'{bot.user} has connected to Discord!')
+    print(f'{bot1.user} has connected to Discord!')
+
+
+bot1.run('YOUR_BOT_TOKEN')
+
+
 
 
 
