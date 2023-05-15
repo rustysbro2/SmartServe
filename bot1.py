@@ -180,14 +180,14 @@ async def on_message(message):
         embed.add_field(name="Increment", value=increment, inline=False)
         embed.add_field(name="Increment Changed To", value=count_data.get('increment', increment), inline=False)
 
-      await reset_counting_channel(
-    message.guild,
-    failure_reason,
-    content,
-    increment,
-    changed_increment=count_data.get('increment', increment)
-)
-
+        await message.channel.send("You made a mistake in counting. The counting channel will be reset.", embed=embed)
+        await reset_counting_channel(
+            message.guild,
+            failure_reason,
+            content,
+            increment,
+            changed_increment=count_data.get('increment', increment)
+        )
         return
 
     # Valid counting message
@@ -196,7 +196,7 @@ async def on_message(message):
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    await message.add_reaction('✅')  # Add a reaction to the valid counting messagee
 
 
 async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
