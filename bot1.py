@@ -181,6 +181,7 @@ async def on_message(message):
 
         new_channel = await reset_counting_channel(
             message.guild,
+            counting_channel,
             failure_reason,
             content,
             increment,
@@ -201,51 +202,24 @@ async def on_message(message):
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()
-    await message.add_reaction('✅')  # Add a reaction to the valid counting messagee
+    await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
 
+async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
+    old_channel = guild.get_channel(counting_channel['id'])
 
-
-
-
-async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
-    guild_data = guilds.get(guild.id, {})
-    counting_channel = guild_data.get('counting_channel')
-
-    if counting_channel is None:
+    if old_channel is None:
         await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
         save_data()
-        return
+        return None
 
-    old_channel_id = counting_channel['id']
-    old_channel = guild.get_channel(old_channel_id)
-    category_id = counting_channel['category_id']
-    channel_name = counting_channel['name']
+    new_channel = await old_channel.clone(reason="Counting channel reset")
+    await old_channel.delete(reason="Counting channel reset")
 
-    overwrites = {
-        guild.default_role: discord.PermissionOverwrite(send_messages=False),
-        guild.me: discord.PermissionOverwrite(send_messages=True)
-    }
-
-    topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
-            f"Last Count: {current_count}\n" \
-            f"Increment: {increment}\n" \
-            f"Increment Changed To: {changed_increment}"
-
-    new_channel = await guild.create_text_channel(name=channel_name, category_id=category_id, overwrites=overwrites, topic=topic)
-
-    guild_data['counting_channel']['id'] = new_channel.id
+    guild_data = guilds.get(guild.id, {})
+    guild_data['count']['increment'] = changed_increment
+    guild_data['count']['last_counter'] = None
     save_data()
-
-    await old_channel.delete()
-
-    embed = discord.Embed(title="Counting Channel Reset", color=0xFF0000)
-    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-    embed.add_field(name="Your Count", value=current_count, inline=False)
-    embed.add_field(name="Increment", value=increment, inline=False)
-    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
-
-    await new_channel.send(embed=embed)
 
     return new_channel
 
