@@ -127,7 +127,7 @@ async def on_message(message):
 
     print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
 
-    is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
+    is_valid, result = check_counting_message(message, message.content, increment, last_counter)
     if is_valid:
         await message.add_reaction("✅")
         last_counters[message.guild.id] = result
