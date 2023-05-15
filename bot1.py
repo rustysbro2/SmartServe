@@ -129,7 +129,6 @@ async def increment(ctx, num: int):
     save_data()
 
 
-@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -174,9 +173,23 @@ async def on_message(message):
                 failure_reason = result
 
         # Send failure message and reset counting channel
-        new_channel = await reset_counting_channel(message.guild, failure_reason, content, increment)
-        if new_channel:
+        embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+        embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+        embed.add_field(name="Your Count", value=content, inline=False)
+        embed.add_field(name="Increment", value=increment, inline=False)
+        embed.add_field(name="Increment Changed To", value=count_data.get('increment', increment), inline=False)
+
+        new_channel = await reset_counting_channel(
+            message.guild,
+            failure_reason,
+            content,
+            increment,
+            changed_increment=count_data.get('increment', increment)
+        )
+
+        if new_channel is not None:
             await new_channel.send(embed=embed)
+
         return
 
     # Valid counting message
@@ -186,6 +199,7 @@ async def on_message(message):
         count_data['high_score'] = int(content)
     save_data()
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 
