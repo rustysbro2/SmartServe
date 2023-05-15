@@ -101,6 +101,7 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
+    print(f"Message received: {message.content}")
     if message.author == bot1.user:
         return
 
