@@ -102,6 +102,7 @@ async def on_message(message):
         is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
         if is_valid:
             last_counters[guild_id] = message.author.id
+            increments[guild_id] = result + 1  # Update the increment value with the last valid result + 1
             await message.add_reaction("✅")
 
             if result > high_scores[guild_id]:
@@ -128,10 +129,12 @@ async def on_message(message):
             )
             counting_channels[guild_id] = new_channel.id
             last_counters[guild_id] = None  # Clear the last user for the specific server
+            increments[guild_id] = 1  # Reset the increment value to 1
             embed = discord.Embed(title="Counting Failure", description=f"Reason: Invalid count\nIncrement: {increment}\nFailed message: {message.content}", color=0xFF0000)
             await new_channel.send(embed=embed)
     else:
         await bot1.process_commands(message)
+
 
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
 
