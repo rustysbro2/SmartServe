@@ -5,6 +5,7 @@ import os
 intents = discord.Intents.default()
 intents.messages = True
 bot1 = commands.Bot(command_prefix="!", intents=intents)
+bot1.remove_command('help')
 
 counting_channels = {}
 increments = {}
