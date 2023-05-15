@@ -28,7 +28,17 @@ guilds = {}  # Declare guilds as a global variable
 def save_data():
     try:
         with open('bot_data.json', 'w') as f:
-            json.dump(guilds, f, indent=4)
+            to_save = {}
+            for guild_id, data in guilds.items():
+                to_save[guild_id] = {}
+                for key, value in data.items():
+                    if key == 'counting_channel':
+                        channel_data = value.copy()
+                        channel_data['overwrites'] = {str(k.id): str(v) for k, v in value['overwrites'].items()}
+                        to_save[guild_id][key] = channel_data
+                    else:
+                        to_save[guild_id][key] = value
+            json.dump(to_save, f, indent=4)
         print("Data saved successfully.")  # Print message when data is saved
     except Exception as e:
         print(f"Error when saving data: {e}")
@@ -105,7 +115,7 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
-    if message.author == bot1.user:
+    if message.author == bot1.user or message.content.startswith('!'):
         return
 
     await bot1.process_commands(message)
@@ -184,14 +194,14 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
 
     channel_id = counting_channel['id']
     channel_name = counting_channel['name']
-    category_id = counting_channel['category_id']
+    category = guild.get_channel(counting_channel['category_id'])  # Get category object
     overwrites = counting_channel['overwrites']
     topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
             f"Last Count: {current_count}\n" \
             f"Increment: {increment}\n" \
             f"Increment Changed To: {changed_increment}"
 
-    await guild.create_text_channel(name=channel_name, category_id=category_id, overwrites=overwrites, topic=topic)
+    await guild.create_text_channel(name=channel_name, category=category, overwrites=overwrites, topic=topic)
 
     guild_data['count'] = {
         'increment': changed_increment,
