@@ -54,6 +54,17 @@ async def increment(ctx, num: int):
     await ctx.send(f"Increment changed to {num}")
     save_data()
 
+def check_counting_message(content, increment, last_counter):
+    if last_counter is None:  # If there's no previous counter, expect the message to be the increment
+        expected_message = increment
+    else:
+        expected_message = last_counter + increment
+
+    try:
+        counter = int(content)
+    except ValueError:
+        return False, None  # If the
+
 
 @bot1.event
 async def on_message(message):
