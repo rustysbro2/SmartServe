@@ -1,16 +1,61 @@
 import discord
 from discord.ext import commands
+import ast  
+import operator
 import os
 
 intents = discord.Intents.default()
 intents.message_content = True
 bot1 = commands.Bot(command_prefix="!", intents=intents)
-bot1.remove_command('help')
+bot1.remove_command("help")
 
 counting_channels = {}
 increments = {}
 last_counters = {}
 high_scores = {}
+last_counter_users = {}
+
+allowed_operators = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+    ast.FloorDiv: operator.floordiv,
+    ast.Mod: operator.mod,
+    ast.Pow: operator.pow,
+    ast.BitXor: operator.xor,
+    ast.USub: operator.neg,
+    ast.UAdd: operator.pos
+}
+
+async def check_counting_message(message, content, increment, last_counter):
+    try:
+        node = ast.parse(content.strip(), mode="eval").body
+        if not all(isinstance(node, allowed_operators) for node in ast.walk(node)):
+            return False, "Invalid count"
+
+        count = eval(content)
+        if last_counter is None:
+            if count == increment:
+                return True, count
+            else:
+                return False, "Invalid count"
+        elif count == last_counter + increment:
+            return True, count
+        else:
+            return False, "Invalid count"
+    except Exception as e:
+        return False, "Invalid count"
+
+async def handle_invalid_count(message, increment, last_counter):
+    if last_counter is None:
+        next_number = increment
+    else:
+        next_number = last_counter + increment
+    await message.add_reaction("❌")
+    await message.channel.send(
+        f"Invalid count. The next number should be {next_number}."
+    )
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
@@ -18,40 +63,7 @@ async def set_channel(ctx, channel: discord.TextChannel):
     increments[ctx.guild.id] = 1
     last_counters[ctx.guild.id] = None
     high_scores[ctx.guild.id] = 0
-
-    # Save the channel settings
-    counting_channels_settings[ctx.guild.id] = {
-        "name": channel.name,
-        "topic": channel.topic,
-        "position": channel.position,
-        "permissions": {over.id: over for over in channel.overwrites}
-    }
-
     await ctx.send(f"Counting channel set to {channel.mention}")
-
-async def handle_invalid_count(message, increment, last_counter):
-    await message.add_reaction("❌")
-    next_number = increment if last_counter is None else last_counter + increment
-    await message.channel.send(
-        f"Invalid count. The next number should be {next_number}."
-    )
-
-    # Delete the channel and create a new one with the same settings
-    settings = counting_channels_settings[message.guild.id]
-    new_channel = await message.guild.create_text_channel(
-        name=settings["name"],
-        overwrites=settings["permissions"],
-        position=settings["position"],
-        topic=settings["topic"],
-    )
-
-    # Update the counting_channels dictionary
-    counting_channels[message.guild.id] = new_channel.id
-
-    # Reset the last counter and high score
-    last_counters[message.guild.id] = None
-    high_scores[message.guild.id] = 0
-
 
 @bot1.command()
 async def increment(ctx, num: int):
@@ -59,10 +71,24 @@ async def increment(ctx, num: int):
     await ctx.send(f"Increment changed to {num}")
 
 @bot1.command()
-async def reset_count(ctx):
-    last_counters[ctx.guild.id] = 0
+async def reset_channel(ctx):
+    counting_channel_id = counting_channels[ctx.guild.id]
+    counting_channel = bot1.get_channel(counting_channel_id)
+    increment = increments[ctx.guild.id]
+
+    overwrites = {
+        ctx.guild.default_role: discord.PermissionOverwrite(send_messages=False),
+        ctx.guild.me: discord.PermissionOverwrite(send_messages=True)
+    }
+
+    await counting_channel.delete(reason="Resetting channel for new counting game.")
+    new_counting_channel = await ctx.guild.create_text_channel("counting", overwrites=overwrites)
+
+    counting_channels[ctx.guild.id] = new_counting_channel.id
+    last_counters[ctx.guild.id] = None
     high_scores[ctx.guild.id] = 0
-    await ctx.send(f"Count reset.")
+
+    await new_counting_channel.send(f"The counting starts at {increment}. Good luck!")
 
 @bot1.event
 async def on_message(message):
@@ -73,12 +99,15 @@ async def on_message(message):
         increment = increments[message.guild.id]
         last_counter = last_counters.get(message.guild.id)
 
-        print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
+        if last_counter_users.get(message.guild.id) == message.author.id:
+            await handle_invalid_count(message, increment, last_counter)
+            return
 
         is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
         if is_valid:
             await message.add_reaction("✅")
             last_counters[message.guild.id] = result
+            last_counter_users[message.guild.id] = message.author.id
 
             if message.guild.id in high_scores:
                 if result > high_scores[message.guild.id]:
@@ -87,21 +116,23 @@ async def on_message(message):
             else:
                 high_scores[message.guild.id] = result
         else:
-            print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
             await handle_invalid_count(message, increment, last_counter)
+            await bot1.get_command('reset_channel').callback(message)
 
     await bot1.process_commands(message)
-
 
 @bot1.command()
 async def help(ctx):
     embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=0x00FF00)
     embed.add_field(name="!set_channel [channel]", value="Sets the channel for counting.", inline=False)
     embed.add_field(name="!increment [number]", value="Changes the counting increment.", inline=False)
+    embed.add_field(name="!reset_channel", value="Resets the counting channel.", inline=False)
     await ctx.send(embed=embed)
 
 @bot1.event
 async def on_ready():
     print(f'{bot1.user} has connected to Discord!')
+
+
 
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
