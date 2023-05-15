@@ -70,7 +70,7 @@ async def handle_invalid_count(message, increment, last_counter):
     if last_counter is None:
         next_number = increment
     else:
-        next_number = last_counter + increment
+        next_number = int(last_counter) + increment
     await message.add_reaction("❌")
     await message.channel.send(
         f"Invalid count. The next number should be {next_number}."
