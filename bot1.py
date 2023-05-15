@@ -2,7 +2,9 @@ import discord
 from discord.ext import commands
 import os
 
-bot1 = commands.Bot(command_prefix="!")
+intents = discord.Intents.default()
+intents.messages = True
+bot1 = commands.Bot(command_prefix="!"
 
 counting_channels = {}
 increments = {}
