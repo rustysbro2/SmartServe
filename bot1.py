@@ -211,7 +211,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         await old_channel.delete()
 
     # Create new channel
-    await guild.create_text_channel(name=channel_name, category=category, topic=topic)
+        await guild.create_text_channel(name=channel_name, category=category, topic=topic)
 
     # Create an embed message
     embed = discord.Embed(title="Counting Channel Reset", color=0xFF0000)
