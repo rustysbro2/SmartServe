@@ -6,6 +6,7 @@ import operator
 intents = discord.Intents.default()
 intents.message_content = True
 bot1 = commands.Bot(command_prefix="!", intents=intents)
+bot1.remove_command("help")
 
 counting_channels = {}
 increments = {}
@@ -115,5 +116,4 @@ async def help(ctx):
 async def on_ready():
     print(f'{bot1.user} has connected to Discord!')
 
-bot1.remove_command("help")
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
