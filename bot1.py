@@ -116,7 +116,7 @@ async def on_message(message):
 
     content = message.content.strip()
 
-        # Check for failure scenarios
+       # Check for failure scenarios
     if last_counter is not None:
         if message.author.id == last_counter_users.get(message.guild.id):
             # Same user counting twice in a row
@@ -204,97 +204,7 @@ async def highscore(ctx):
 async def help(ctx):
     embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=0x00FF00)
     embed.add_field(name="!set_channel [channel]", value="Sets the channel for counting.", inline=False)
-    embed.add_field(name="!increment [number
-
-    # Check for failure scenarios
-    if last_counter is not None:
-        if message.author.id == last_counter_users.get(message.guild.id):
-            # Same user counting twice in a row
-            failure_reason = "You counted twice in a row."
-        else:
-            is_valid, result = check_counting_message(content, increment, last_counter)
-            if is_valid:
-                last_counters[message.guild.id] = result
-                last_counter_users[message.guild.id] = message.author.id
-                if result > high_scores.get(message.guild.id, 0):
-                    high_scores[message.guild.id] = result
-                save_data()
-                await message.add_reaction('✅')  # Add a reaction to the valid counting message
-                return
-            else:
-                failure_reason = result
-
-        # Send failure message and reset counting channel
-        await message.channel.send(f"You made a mistake in counting. The counting channel will be reset.\n"
-                                   f"Failure Reason: {failure_reason}\n"
-                                   f"Your Count: {content}\n"
-                                   f"Increment: {increment}\n"
-                                   f"Increment Changed To: {increments.get(message.guild.id, increment)}")
-        await reset_counting_channel(
-            message.guild,
-            failure_reason,
-            content,
-            increment,
-            changed_increment=increments.get(message.guild.id, increment)
-        )
-        return
-
-    # Valid counting message
-    last_counters[message.guild.id] = int(content)
-    last_counter_users[message.guild.id] = message.author.id
-    if int(content) > high_scores.get(message.guild.id, 0):
-        high_scores[message.guild.id] = int(content)
-    save_data()
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
-
-
-async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
-    channel_id = counting_channels[guild.id]
-    channel = guild.get_channel(int(channel_id))
-
-    if channel is None:
-        await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
-        del counting_channels[guild.id]
-        del increments[guild.id]
-        del last_counters[guild.id]
-        del high_scores[guild.id]
-        del last_counter_users[guild.id]
-        save_data()
-        return
-
-    await channel.delete()
-
-    new_channel = await guild.create_text_channel(
-        name=channel.name,
-        category=channel.category,
-        overwrites=channel.overwrites,
-        topic=f"Counting Channel\nFailure Reason: {failure_reason}\n"
-              f"Last Count: {current_count}\n"
-              f"Increment: {increment}\n"
-              f"Increment Changed To: {changed_increment}"
-    )
-
-    counting_channels[guild.id] = str(new_channel.id)
-    increments[guild.id] = changed_increment
-    last_counters[guild.id] = None
-    high_scores[guild.id] = 0
-    last_counter_users[guild.id] = None
-    save_data()
-
-
-@bot1.command()
-async def highscore(ctx):
-    if ctx.guild.id in high_scores:
-        await ctx.send(f"The high score is {high_scores[ctx.guild.id]}")
-    else:
-        await ctx.send("No high score recorded yet.")
-
-
-@bot1.command()
-async def help(ctx):
-    embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=0x00FF00)
-    embed.add_field(name="!set_channel [channel]", value="Sets the channel for counting.", inline=False)
-    embed.add_field(name="!increment [number]", value="Changes the counting increment.", inline=False)
+        embed.add_field(name="!increment [number]", value="Changes the counting increment.", inline=False)
     await ctx.send(embed=embed)
 
 
@@ -303,7 +213,10 @@ async def on_ready():
     print(f'{bot1.user} has connected to Discord!')
 
 
-bot1.run('YOUR_BOT_TOKEN')
+
+
+
+
 
 
 
