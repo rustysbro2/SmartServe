@@ -232,9 +232,8 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
 
     channel_name = counting_channel['name']
     category_id = counting_channel['category_id']
-    overwrites = counting_channel['overwrites']
 
-    new_channel = await guild.create_text_channel(name=channel_name, category_id=category_id, overwrites=overwrites)
+    new_channel = await guild.create_text_channel(name=channel_name, category_id=category_id)
 
     guild_data['counting_channel']['id'] = new_channel.id
     guild_data['count']['increment'] = changed_increment
@@ -251,6 +250,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         old_channel = guild.get_channel(old_channel_id)
         if old_channel:
             await old_channel.delete()
+
 
 
 
