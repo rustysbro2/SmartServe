@@ -47,6 +47,13 @@ async def check_counting_message(message, content, increment, last_counter):
     except Exception as e:
         return False, "Invalid count"
 
+async def handle_invalid_count(message, increment, result):
+    await message.add_reaction("❌")
+    await message.channel.send(
+        f"Invalid count. The next number should be {result + increment}."
+    )
+
+
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
