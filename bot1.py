@@ -34,7 +34,8 @@ def save_data():
                 for key, value in data.items():
                     if key == 'counting_channel':
                         channel_data = value.copy()
-                        channel_data['overwrites'] = {str(k.id): (v.pair()[0].value, v.pair()[1].value) for k, v in value['overwrites'].items()}
+                        # Remove the line below that handles overwrites
+                        # channel_data['overwrites'] = {str(k.id): str(v) for k, v in value['overwrites'].items()}
                         to_save[guild_id][key] = channel_data
                     else:
                         to_save[guild_id][key] = value
@@ -44,19 +45,15 @@ def save_data():
         print(f"Error when saving data: {e}")
 
 
+
 def load_data():
     global guilds
     if os.path.isfile('bot_data.json'):
         with open('bot_data.json') as f:
-            data = json.load(f)
-            for guild_id, guild_data in data.items():
-                counting_channel = guild_data.get('counting_channel')
-                if counting_channel is not None:
-                    overwrites = counting_channel.get('overwrites', {})
-                    counting_channel['overwrites'] = {bot1.get_user(int(k)): discord.PermissionOverwrite.from_pair(discord.Permissions(v[0]), discord.Permissions(v[1])) for k, v in overwrites.items()}
-            guilds = data
+            guilds = json.load(f)
     else:
         guilds = {}
+
 
 
 @bot1.event
