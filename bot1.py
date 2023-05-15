@@ -199,7 +199,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         save_data()
         return
 
-    channel_id = counting_channel['id']
+    old_channel_id = counting_channel['id']
     channel_name = counting_channel['name']
     category = guild.get_channel(counting_channel['category_id'])  # Get category object
     topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
@@ -209,7 +209,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
 
     await guild.create_text_channel(name=channel_name, category=category, topic=topic)
 
- try:
+    try:
         old_channel = guild.get_channel(old_channel_id)
         if old_channel:
             await old_channel.delete()
@@ -223,6 +223,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         'last_counter_user': None
     }
     save_data()
+
 
 
 
