@@ -1,3 +1,6 @@
+if message.guild.id not in counting_channels:
+    counting_channels[message.guild.id] = str(message.channel.id)
+    save_data()
 import discord
 from discord.ext import commands
 import ast
@@ -110,8 +113,9 @@ async def on_message(message):
         return
 
     if message.guild.id not in counting_channels:
-        print("Guild ID not in counting_channels")  # Add this line
-        return
+        counting_channels[message.guild.id] = str(message.channel.id)
+        save_data()
+
 
     if message.channel.id != counting_channels[message.guild.id]:
         print("Channel ID does not match")  # Add this line
