@@ -189,6 +189,9 @@ async def on_message(message):
 
         if new_channel is not None:
             await new_channel.send(embed=embed)
+            count_data['last_counter'] = None
+            count_data['last_counter_user'] = None
+            save_data()
 
         return
 
@@ -199,6 +202,7 @@ async def on_message(message):
         count_data['high_score'] = int(content)
     save_data()
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
+e
 
 
 
