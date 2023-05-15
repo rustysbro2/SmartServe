@@ -155,22 +155,21 @@ async def on_message(message):
     content = message.content.strip()
 
     # Check for failure scenarios
-    if last_counter is not None:
-        if message.author.id == count_data.get('last_counter_user'):
-            # Same user counting twice in a row
-            failure_reason = "You counted twice in a row."
-        else:
-            is_valid, result = check_counting_message(content, increment, last_counter)
-            if is_valid:
-                count_data['last_counter'] = result
-                count_data['last_counter_user'] = message.author.id
-                if result > count_data.get('high_score', 0):
-                    count_data['high_score'] = result
-                save_data()
-                await message.add_reaction('✅')  # Add a reaction to the valid counting message
-                return
-            else:
-                failure_reason = result
+   # ...
+if last_counter is None:
+    if int(content) == increment:  # Check if the first number equals the increment
+        count_data['last_counter'] = int(content)
+        count_data['last_counter_user'] = message.author.id
+        if int(content) > count_data.get('high_score', 0):
+            count_data['high_score'] = int(content)
+        save_data()
+        await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    else:
+        await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
+    return
+
+# The rest of the code...
+
 
         # Send failure message and reset counting channel
         embed = discord.Embed(title="Counting Failure", color=0xFF0000)
