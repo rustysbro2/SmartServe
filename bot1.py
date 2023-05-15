@@ -101,7 +101,7 @@ async def increment(ctx, num: int):
     save_data()
 
 
-@bot1@bot1.event
+@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
