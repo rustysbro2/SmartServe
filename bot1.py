@@ -200,40 +200,49 @@ async def on_message(message):
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
 
-async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment, failure_embed=None):
+async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
+    guild_data = guilds.get(guild.id, {})
+    counting_channel = guild_data.get('counting_channel')
+
+    if counting_channel is None:
+        await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
+        del guilds[guild.id]
+        save_data()
+        return
+
     old_channel_id = counting_channel['id']
-    channel_name = counting_channel['name']
-    category = guild.get_channel(counting_channel['category_id'])  # Get category object
-    topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
-            f"Last Count: {current_count}\n" \
-            f"Increment: {increment}\n" \
-            f"Increment Changed To: {changed_increment}"
+    old_channel = guild.get_channel(old_channel_id)
+    new_channel_name = counting_channel['name']
+    category_id = counting_channel['category_id']
+    category = guild.get_channel(category_id)
 
-    new_channel = await guild.create_text_channel(name=channel_name, category=category, topic=topic)
+    try:
+        await old_channel.delete()
+    except discord.HTTPException:
+        print(f"Failed to delete the old counting channel: {old_channel.id}")
 
-    counting_channel['id'] = new_channel.id  # Update the counting channel ID in guild data
+    new_channel = await guild.create_text_channel(name=new_channel_name, category=category)
+
+    failure_embed = None
+    if failure_reason:
+        failure_embed = discord.Embed(title="Counting Failure", color=discord.Color.red())
+        failure_embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+        failure_embed.add_field(name="Your Count", value=current_count, inline=False)
+        failure_embed.add_field(name="Increment", value=increment, inline=False)
+        failure_embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
+
+    if failure_embed:
+        await new_channel.send(embed=failure_embed)
+
+    guild_data['count'] = {
+        'increment': changed_increment,
+        'last_counter': None,
+        'high_score': 0,
+        'last_counter_user': None
+    }
+    guild_data['counting_channel']['id'] = new_channel.id  # Update the counting channel ID
     save_data()
 
-    # Delete the old counting channel
-    old_channel = guild.get_channel(old_channel_id)
-    if old_channel:
-       try:
-    await old_channel.delete()
-except discord.HTTPException:
-    print(f"Failed to delete the old counting channel: {old_channel.id}")
-
-# Send the embed in the new counting channel
-if failure_embed:
-    await new_channel.send(embed=failure_embed)
-
-# Update the count data in guilds
-guild_data = guilds.get(guild.id, {})
-count_data = guild_data.get('count', {})
-count_data['last_counter'] = None
-count_data['high_score'] = 0
-count_data['last_counter_user'] = None
-count_data['increment'] = changed_increment
-save_data()
 
 
 
