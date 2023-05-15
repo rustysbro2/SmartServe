@@ -99,6 +99,7 @@ async def increment(ctx, num: int):
     save_data()
 
 
+
 @bot1.event
 async def on_message(message):
     print(f"Message received: {message.content}")
