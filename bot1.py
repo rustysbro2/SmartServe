@@ -13,17 +13,9 @@ bot1.remove_command("help")
 if os.path.isfile('bot_data.json'):
     with open('bot_data.json') as f:
         data = json.load(f)
-        counting_channels = {int(guild_id): channel_id for guild_id, channel_id in data['counting_channels'].items()}
-        increments = data['increments']
-        last_counters = data['last_counters']
-        high_scores = data['high_scores']
-        last_counter_users = data['last_counter_users']
+        guilds = data['guilds']
 else:
-    counting_channels = {}
-    increments = {}
-    last_counters = {}
-    high_scores = {}
-    last_counter_users = {}
+    guilds = {}
 
 
 allowed_operators = {
@@ -42,13 +34,7 @@ allowed_operators = {
 
 def save_data():
     with open('bot_data.json', 'w') as f:
-        json.dump({
-            'counting_channels': {str(guild_id): channel_id for guild_id, channel_id in counting_channels.items()},
-            'increments': increments,
-            'last_counters': last_counters,
-            'high_scores': high_scores,
-            'last_counter_users': last_counter_users
-        }, f)
+        json.dump(guilds, f, indent=4)
 
 
 def evaluate_expression(expression):
@@ -75,25 +61,34 @@ def check_counting_message(content, increment, last_counter):
 
 
 @bot1.command()
-async def set_channel(ctx):
-    counting_channels[ctx.guild.id] = str(ctx.channel.id)
-    increments[ctx.guild.id] = 1
-    last_counters[ctx.guild.id] = None
-    high_scores[ctx.guild.id] = 0
-    last_counter_users[ctx.guild.id] = None
-    await ctx.send(f"Counting channel set to {ctx.channel.mention}")
+async def set_channel(ctx, channel: discord.TextChannel):
+    guild_id = ctx.guild.id
+    guild_data = guilds.get(guild_id, {})
+    guild_data['counting_channel'] = {
+        'id': channel.id,
+        'name': channel.name,
+        'topic': '',
+        'category_id': channel.category_id,
+        'overwrites': channel.overwrites
+    }
+    guild_data['count'] = {
+        'increment': 1,
+        'last_counter': None,
+        'high_score': 0,
+        'last_counter_user': None
+    }
+    guilds[guild_id] = guild_data
+    await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
-
-
-    # Debug statement
-    print(counting_channels)
-
-
 
 
 @bot1.command()
 async def increment(ctx, num: int):
-    increments[ctx.guild.id] = num
+    guild_id = ctx.guild.id
+    guild_data = guilds.get(guild_id, {})
+    count_data = guild_data.get('count', {})
+    count_data['increment'] = num
+    guilds[guild_id] = guild_data
     await ctx.send(f"Increment changed to {num}")
     save_data()
 
@@ -108,39 +103,34 @@ async def on_message(message):
     if not isinstance(message.channel, discord.TextChannel):
         return
 
-    if message.guild.id not in counting_channels:
-        print("Guild ID not in counting_channels")
+    guild_id = message.guild.id
+    guild_data = guilds.get(guild_id, {})
+    counting_channel = guild_data.get('counting_channel')
+    count_data = guild_data.get('count', {})
+
+    if counting_channel is None or counting_channel['id'] != message.channel.id:
         return
 
-    channel_id = counting_channels[message.guild.id]
-    if message.channel.id != int(channel_id):
-        print("Channel ID does not match")
+    increment = count_data.get('increment')
+    last_counter = count_data.get('last_counter')
+
+    if increment is None:
         return
-
-    if message.guild.id not in increments:
-        print("Guild ID not in increments")
-
-
-
-
-
-    increment = increments.get(message.guild.id, 1)
-    last_counter = last_counters.get(message.guild.id)
 
     content = message.content.strip()
 
-       # Check for failure scenarios
+    # Check for failure scenarios
     if last_counter is not None:
-        if message.author.id == last_counter_users.get(message.guild.id):
+        if message.author.id == count_data.get('last_counter_user'):
             # Same user counting twice in a row
             failure_reason = "You counted twice in a row."
         else:
             is_valid, result = check_counting_message(content, increment, last_counter)
             if is_valid:
-                last_counters[message.guild.id] = result
-                last_counter_users[message.guild.id] = message.author.id
-                if result > high_scores.get(message.guild.id, 0):
-                    high_scores[message.guild.id] = result
+                count_data['last_counter'] = result
+                count_data['last_counter_user'] = message.author.id
+                if result > count_data.get('high_score', 0):
+                    count_data['high_score'] = result
                 save_data()
                 await message.add_reaction('✅')  # Add a reaction to the valid counting message
                 return
@@ -148,73 +138,67 @@ async def on_message(message):
                 failure_reason = result
 
         # Send failure message and reset counting channel
-        await message.channel.send(f"You made a mistake in counting. The counting channel will be reset.\n"
-                                   f"Failure Reason: {failure_reason}\n"
-                                   f"Your Count: {content}\n"
-                                   f"Increment: {increment}\n"
-                                   f"Increment Changed To: {increments.get(message.guild.id, increment)}")
+        embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+        embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+        embed.add_field(name="Your Count", value=content, inline=False)
+        embed.add_field(name="Increment", value=increment, inline=False)
+        embed.add_field(name="Increment Changed To", value=count_data.get('increment', increment), inline=False)
+
+        await message.channel.send("You made a mistake in counting. The counting channel will be reset.", embed=embed)
         await reset_counting_channel(
             message.guild,
             failure_reason,
             content,
             increment,
-            changed_increment=increments.get(message.guild.id, increment)
+            changed_increment=count_data.get('increment', increment)
         )
         return
 
     # Valid counting message
-    last_counters[message.guild.id] = int(content)
-    last_counter_users[message.guild.id] = message.author.id
-    if int(content) > high_scores.get(message.guild.id, 0):
-        high_scores[message.guild.id] = int(content)
+    count_data['last_counter'] = int(content)
+    count_data['last_counter_user'] = message.author.id
+    if int(content) > count_data.get('high_score', 0):
+        count_data['high_score'] = int(content)
     save_data()
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
 
 async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
-    channel_id = counting_channels[guild.id]
-    channel = guild.get_channel(int(channel_id))
+    guild_data = guilds.get(guild.id, {})
+    counting_channel = guild_data.get('counting_channel')
 
-    if channel is None:
+    if counting_channel is None:
         await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
-        del counting_channels[guild.id]
-        del increments[guild.id]
-        del last_counters[guild.id]
-        del high_scores[guild.id]
-        del last_counter_users[guild.id]
+        del guilds[guild.id]
         save_data()
         return
 
-    await channel.delete()
+    channel_id = counting_channel['id']
+    channel_name = counting_channel['name']
+    category_id = counting_channel['category_id']
+    overwrites = counting_channel['overwrites']
+    topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
+            f"Last Count: {current_count}\n" \
+            f"Increment: {increment}\n" \
+            f"Increment Changed To: {changed_increment}"
 
-    new_channel = await guild.create_text_channel(
-        name=channel.name,
-        category=channel.category,
-        overwrites=channel.overwrites
-    )
+    await guild.create_text_channel(name=channel_name, category_id=category_id, overwrites=overwrites, topic=topic)
 
-    counting_channels[guild.id] = str(new_channel.id)
-    increments[guild.id] = changed_increment
-    last_counters[guild.id] = None
-    high_scores[guild.id] = 0
-    last_counter_users[guild.id] = None
+        guild_data['count'] = {
+        'increment': changed_increment,
+        'last_counter': None,
+        'high_score': 0,
+        'last_counter_user': None
+    }
     save_data()
-
-    embed = discord.Embed(title="Counting Channel Reset",
-                          description="The counting channel has been reset. Here are the details:",
-                          color=0x00FF00)
-    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-    embed.add_field(name="Current Count", value=current_count, inline=False)
-    embed.add_field(name="Increment", value=increment, inline=False)
-    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
-
-    await new_channel.send(embed=embed)
 
 
 @bot1.command()
 async def highscore(ctx):
-    if ctx.guild.id in high_scores:
-        await ctx.send(f"The high score is {high_scores[ctx.guild.id]}")
+    guild_data = guilds.get(ctx.guild.id, {})
+    high_score = guild_data.get('count', {}).get('high_score')
+    if high_score is not None:
+        await ctx.send(f"The high score is {high_score}")
     else:
         await ctx.send("No high score recorded yet.")
 
@@ -233,10 +217,7 @@ async def on_ready():
 
 
 
-
-
-
-
+       
 
 
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
