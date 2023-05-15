@@ -10,8 +10,6 @@ intents.message_content = True
 bot1 = commands.Bot(command_prefix="!", intents=intents)
 bot1.remove_command("help")
 
-
-
 allowed_operators = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -24,6 +22,13 @@ allowed_operators = {
     ast.USub: operator.neg,
     ast.UAdd: operator.pos
 }
+
+guilds = {}
+counting_channels = {}
+increments = {}
+last_counters = {}
+high_scores = {}
+last_counter_users = {}
 
 
 def save_data():
@@ -56,7 +61,6 @@ def load_data():
         last_counters = {}
         high_scores = {}
         last_counter_users = {}
-
 
 
 def evaluate_expression(expression):
@@ -177,13 +181,12 @@ async def on_message(message):
         return
 
     # Valid counting message
-    count_data['last_counter'] = int(content)
-    count_data['last_counter_user'] = message.author.id
-    if int(content) > count_data.get('high_score', 0):
-        count_data['high_score'] = int(content)
-    save_data()
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
-
+count_data['last_counter'] = int(content)
+count_data['last_counter_user'] = message.author.id
+if int(content) > count_data.get('high_score', 0):
+    count_data['high_score'] = int(content)
+save_data()
+await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
 async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
     guild_data = guilds.get(guild.id, {})
@@ -214,7 +217,6 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     }
     save_data()
 
-
 @bot1.command()
 async def highscore(ctx):
     guild_data = guilds.get(ctx.guild.id, {})
@@ -224,7 +226,6 @@ async def highscore(ctx):
     else:
         await ctx.send("No high score recorded yet.")
 
-
 @bot1.command()
 async def help(ctx):
     embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=0x00FF00)
@@ -232,14 +233,11 @@ async def help(ctx):
     embed.add_field(name="!increment [number]", value="Changes the counting increment.", inline=False)
     await ctx.send(embed=embed)
 
-
 @bot1.event
 async def on_ready():
     print(f'{bot1.user} has connected to Discord!')
 
-
-
-       
-
-
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
+
+
+
