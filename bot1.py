@@ -1,68 +1,19 @@
 import discord
 from discord.ext import commands
-import ast  
-import operator
+import os
 
-intents = discord.Intents.default()
-intents.message_content = True
-bot1 = commands.Bot(command_prefix="!", intents=intents)
-bot1.remove_command("help")
+bot1 = commands.Bot(command_prefix="!")
 
 counting_channels = {}
 increments = {}
 last_counters = {}
 high_scores = {}
 
-allowed_operators = {
-    ast.Add: operator.add,
-    ast.Sub: operator.sub,
-    ast.Mult: operator.mul,
-    ast.Div: operator.truediv,
-    ast.FloorDiv: operator.floordiv,
-    ast.Mod: operator.mod,
-    ast.Pow: operator.pow,
-    ast.BitXor: operator.xor,
-    ast.USub: operator.neg,
-    ast.UAdd: operator.pos
-}
-
-async def check_counting_message(message, content, increment, last_counter):
-    try:
-        node = ast.parse(content.strip(), mode="eval").body
-        if not all(isinstance(node, allowed_operators) for node in ast.walk(node)):
-            return False, "Invalid count"
-
-        count = eval(content)
-        if last_counter is None:
-            if count == increment:
-                print(f"[DEBUG] First count ({count}) is correct.")  # Debug message
-                return True, count
-            else:
-                print(f"[DEBUG] First count ({count}) is incorrect.")  # Debug message
-                return False, "Invalid count"
-        elif count == last_counter + increment:
-            return True, count
-        else:
-            return False, "Invalid count"
-    except Exception as e:
-        return False, "Invalid count"
-
-async def handle_invalid_count(message, increment, result):
-    await message.add_reaction("❌")
-    await message.channel.send(
-        "Invalid count. The next number should be {}.".format(result + increment)
-    )
-
-
-
-
-
-
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     counting_channels[ctx.guild.id] = channel.id
     increments[ctx.guild.id] = 1
-    last_counters[ctx.guild.id] = None
+    last_counters[ctx.guild.id] = 0
     high_scores[ctx.guild.id] = 0
     await ctx.send(f"Counting channel set to {channel.mention}")
 
@@ -71,34 +22,40 @@ async def increment(ctx, num: int):
     increments[ctx.guild.id] = num
     await ctx.send(f"Increment changed to {num}")
 
+@bot1.command()
+async def reset_count(ctx):
+    last_counters[ctx.guild.id] = 0
+    high_scores[ctx.guild.id] = 0
+    await ctx.send(f"Count reset.")
+
 @bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
 
-    if message.channel.id in counting_channels.values():
-        increment = increments[message.guild.id]
+    if message.channel.id == counting_channels.get(message.guild.id):
+        increment = increments.get(message.guild.id)
         last_counter = last_counters.get(message.guild.id)
 
-        print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
+        try:
+            count = int(message.content)
+        except ValueError:
+            return
 
-        is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
-        if is_valid:
+        if last_counter is not None and count == last_counter + increment:
             await message.add_reaction("✅")
-            last_counters[message.guild.id] = result
+            last_counters[message.guild.id] = count
 
-            if message.guild.id in high_scores:
-                if result > high_scores[message.guild.id]:
-                    high_scores[message.guild.id] = result
-                    await message.add_reaction("🏆")
-            else:
-                high_scores[message.guild.id] = result
+            if count > high_scores.get(message.guild.id, 0):
+                high_scores[message.guild.id] = count
+                await message.add_reaction("🏆")
         else:
-            print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
-            await handle_invalid_count(message, increment, result)
+            await message.add_reaction("❌")
+            await message.channel.send(
+                f"Invalid count. The next number should be {last_counter + increment}."
+            )
 
     await bot1.process_commands(message)
-
 
 @bot1.command()
 async def help(ctx):
@@ -111,4 +68,4 @@ async def help(ctx):
 async def on_ready():
     print(f'{bot1.user} has connected to Discord!')
 
-bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
+bot1.run(os.getenv('DISCORD_BOT_TOKEN'))
