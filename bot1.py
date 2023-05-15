@@ -43,12 +43,13 @@ allowed_operators = {
 def save_data():
     with open('bot_data.json', 'w') as f:
         json.dump({
-            'counting_channels': counting_channels,
+            'counting_channels': {str(guild_id): channel_id for guild_id, channel_id in counting_channels.items()},
             'increments': increments,
             'last_counters': last_counters,
             'high_scores': high_scores,
             'last_counter_users': last_counter_users
         }, f)
+
 
 
 
