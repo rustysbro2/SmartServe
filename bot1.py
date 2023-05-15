@@ -127,7 +127,8 @@ async def on_message(message):
         return
 
     if message.content.startswith(bot1.command_prefix):
-        return  # Ignore messages starting with the command prefix
+        await bot1.process_commands(message)  # Process commands even if it's not a counting message
+        return
 
     guild_id = message.guild.id
     guild_data = guilds.get(guild_id, {})
@@ -135,17 +136,17 @@ async def on_message(message):
     count_data = guild_data.get('count', {})
 
     if counting_channel is None or counting_channel['id'] != message.channel.id:
-        await bot1.process_commands(message)
         return
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
 
     if increment is None:
-        await bot1.process_commands(message)
         return
 
     content = message.content.strip()
+
+
 
     # Check for failure scenarios
     if last_counter is not None:
