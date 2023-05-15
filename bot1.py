@@ -31,33 +31,21 @@ last_counter_users = {}  #
 
 def save_data():
     with open('bot_data.json', 'w') as f:
-        json.dump({
-            'guilds': guilds,
-            'counting_channels': {str(guild_id): channel_id for guild_id, channel_id in counting_channels.items()},
-            'increments': increments,
-            'last_counters': last_counters,
-            'high_scores': high_scores,
-            'last_counter_users': last_counter_users
-        }, f, indent=4)
+        json.dump(guilds, f, indent=4)
+
 
 def load_data():
-    global guilds, counting_channels, increments, last_counters, high_scores, last_counter_users
+    global guilds
     if os.path.isfile('bot_data.json'):
         with open('bot_data.json') as f:
-            data = json.load(f)
-            guilds = data.get('guilds', {})
-            counting_channels = {int(guild_id): channel_id for guild_id, channel_id in data['counting_channels'].items()}
-            increments = data.get('increments', {})
-            last_counters = data.get('last_counters', {})
-            high_scores = data.get('high_scores', {})
-            last_counter_users = data.get('last_counter_users', {})
+            guilds = json.load(f)
     else:
         guilds = {}
-        counting_channels = {}
-        increments = {}
-        last_counters = {}
-        high_scores = {}
-        last_counter_users = {}
+@bot1.event
+async def on_ready():
+    load_data()
+    print(f'{bot1.user} has connected to Discord!')
+
 
 def evaluate_expression(expression):
     try:
@@ -233,7 +221,9 @@ async def help(ctx):
 
 @bot1.event
 async def on_ready():
+    load_data()
     print(f'{bot1.user} has connected to Discord!')
+
 
 
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
