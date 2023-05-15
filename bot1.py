@@ -167,8 +167,16 @@ async def on_message(message):
         return
 
     # Check if the current user has counted twice in a row
-    if last_counter == int(content) and last_counter_user == message.author.id:
-        await message.channel.send("You cannot count twice in a row. The game failed.")
+    if last_counter_user == message.author.id:
+        await message.channel.send("You cannot count twice in a row. The game has failed.")
+        count_data['last_counter'] = None
+        count_data['last_counter_user'] = None
+        save_data()
+        return
+
+    # Check if the current count is the same as the previous count
+    if int(content) == last_counter:
+        await message.channel.send("You cannot count the same number twice in a row. The game has failed.")
         count_data['last_counter'] = None
         count_data['last_counter_user'] = None
         save_data()
@@ -210,7 +218,6 @@ async def on_message(message):
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
 
-
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
     old_channel = guild.get_channel(counting_channel['id'])
 
@@ -226,6 +233,7 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
     guild_data['counting_channel']['id'] = new_channel.id
     guild_data['count']['increment'] = changed_increment
     guild_data['count']['last_counter'] = None
+    guild_data['count']['last_counter_user'] = None
     save_data()
     return new_channel
 
@@ -248,7 +256,8 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 
-    
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
+
+
 
 
