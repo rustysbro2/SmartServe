@@ -195,33 +195,19 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     counting_channel = guild_data.get('counting_channel')
 
     if counting_channel is None:
-        await guild.create_text_channel(name=channel_name, category=category, topic=topic)owner.send("The counting channel no longer exists. Please set a new counting channel.")
+        await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
         save_data()
         return
 
     channel_id = counting_channel['id']
     channel_name = counting_channel['name']
     category = guild.get_channel(counting_channel['category_id'])  # Get category object
-    overwrites = counting_channel['overwrites']
+    topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
+            f"Last Count: {current_count}\n" \
+            f"Increment: {increment}\n" \
+            f"Increment Changed To: {changed_increment}"
 
-    # Get the old channel
-    old_channel = guild.get_channel(channel_id)
-    # Delete the old channel
-    if old_channel:
-        await old_channel.delete()
-
-    # Create new channel
-        await guild.create_text_channel(name=channel_name, category=category, topic=topic)
-
-    # Create an embed message
-    embed = discord.Embed(title="Counting Channel Reset", color=0xFF0000)
-    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-    embed.add_field(name="Last Count", value=current_count, inline=False)
-    embed.add_field(name="Increment", value=increment, inline=False)
-    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
-
-    # Send the embed message in the new channel
-    await new_channel.send(embed=embed)
+    await guild.create_text_channel(name=channel_name, category=category, topic=topic)
 
     guild_data['count'] = {
         'increment': changed_increment,
@@ -230,6 +216,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         'last_counter_user': None
     }
     save_data()
+
 
 
 
