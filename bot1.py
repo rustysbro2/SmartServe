@@ -217,10 +217,10 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
     await old_channel.delete(reason="Counting channel reset")
 
     guild_data = guilds.get(guild.id, {})
+    guild_data['counting_channel']['id'] = new_channel.id
     guild_data['count']['increment'] = changed_increment
     guild_data['count']['last_counter'] = None
     save_data()
-
     return new_channel
 
 
