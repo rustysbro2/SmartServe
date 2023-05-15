@@ -174,19 +174,20 @@ async def on_message(message):
                 failure_reason = result
 
         # Send failure message and reset counting channel
-        embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-        embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-        embed.add_field(name="Your Count", value=content, inline=False)
-        embed.add_field(name="Increment", value=increment, inline=False)
-        embed.add_field(name="Increment Changed To", value=count_data.get('increment', increment), inline=False)
+        failure_message = "You made a mistake in counting. The counting channel will be reset.\n\n" \
+                          "Failure Reason: {}\n" \
+                          "Your Count: {}\n" \
+                          "Increment: {}\n" \
+                          "Increment Changed To: {}".format(failure_reason, content, increment,
+                                                            count_data.get('increment', increment))
 
-        await message.channel.send("You made a mistake in counting. The counting channel will be reset.", embed=embed)
         await reset_counting_channel(
             message.guild,
             failure_reason,
             content,
             increment,
-            changed_increment=count_data.get('increment', increment)
+            changed_increment=count_data.get('increment', increment),
+            failure_message=failure_message
         )
         return
 
@@ -196,10 +197,11 @@ async def on_message(message):
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()
-    await message.add_reaction('✅')  # Add a reaction to the valid counting messagee
+    await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
 
-async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
+
+async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment, failure_message):
     guild_data = guilds.get(guild.id, {})
     counting_channel = guild_data.get('counting_channel')
 
@@ -230,14 +232,9 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     guild_data['count']['last_counter_user'] = None  # Reset the last counter user
     save_data()
 
-    # Send the reset message in the new counting channel
-    reset_embed = discord.Embed(title="Counting Channel Reset", color=0xFF0000)
-    reset_embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-    reset_embed.add_field(name="Last Count", value=current_count, inline=False)
-    reset_embed.add_field(name="Increment", value=increment, inline=False)
-    reset_embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
+    # Send the failure message in the new counting channel
+    await new_channel.send(failure_message)
 
-    await new_channel.send("You made a mistake in counting. The counting channel will be reset.", embed=reset_embed)
 
 
 
