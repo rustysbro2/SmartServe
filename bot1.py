@@ -111,7 +111,12 @@ async def on_message(message):
 
     if message.guild.id not in counting_channels:
         counting_channels[message.guild.id] = str(message.channel.id)
+        increments[message.guild.id] = 1
+        last_counters[message.guild.id] = None
+        high_scores[message.guild.id] = 0
+        last_counter_users[message.guild.id] = None
         save_data()
+
 
 
     if message.channel.id != counting_channels[message.guild.id]:
