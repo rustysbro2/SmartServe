@@ -55,10 +55,14 @@ async def check_counting_message(message, content, increment, last_counter):
             return False, "Invalid count"
 
         count = eval(content)
+        print(f"[DEBUG] Type of count: {type(count)}, value: {count}")  # Debug message
+        print(f"[DEBUG] Type of increment: {type(increment)}, value: {increment}")  # Debug message
         if last_counter is None:
             if count == increment:
+                print(f"[DEBUG] First count ({count}) is correct.")  # Debug message
                 return True, count
             else:
+                print(f"[DEBUG] First count ({count}) is incorrect.")  # Debug message
                 return False, "Invalid count"
         elif count == last_counter + increment:
             return True, count
@@ -66,6 +70,7 @@ async def check_counting_message(message, content, increment, last_counter):
             return False, "Invalid count"
     except Exception as e:
         return False, "Invalid count"
+
 
 async def handle_invalid_count(message, increment, last_counter):
     if last_counter is None:
