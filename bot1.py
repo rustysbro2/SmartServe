@@ -145,6 +145,7 @@ async def on_message(message):
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
+    last_counter_user = count_data.get('last_counter_user')
 
     if increment is None:
         await bot1.process_commands(message)
@@ -152,7 +153,7 @@ async def on_message(message):
 
     content = message.content.strip()
 
-    # Check for failure scenarios
+    # Check if the first number equals the increment
     if last_counter is None:
         if int(content) == increment:
             count_data['last_counter'] = int(content)
@@ -160,14 +161,19 @@ async def on_message(message):
             if int(content) > count_data.get('high_score', 0):
                 count_data['high_score'] = int(content)
             save_data()
-            await message.add_reaction('✅')
+            await message.add_reaction('✅')  # Add a reaction to the valid counting message
         else:
-            await message.channel.send(f"The first number should be {increment}.")
+            await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
         return
 
-    # Check counting message
-    is_valid, failure_reason = check_counting_message(content, increment, last_counter)
-    if not is_valid:
+    # Check if the current user has counted twice in a row within the same game
+    if last_counter_user == message.author.id:
+        await message.channel.send("You cannot count twice in a row within the same game.")
+        return
+
+    # Check for failure scenarios
+    valid_count, failure_reason = check_counting_message(content, increment, last_counter)
+    if not valid_count:
         # Send failure message and reset counting channel
         embed = discord.Embed(title="Counting Failure", color=0xFF0000)
         embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
@@ -198,7 +204,8 @@ async def on_message(message):
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()
-    await message.add_reaction('✅')
+    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
