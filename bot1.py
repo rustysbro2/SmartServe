@@ -110,7 +110,7 @@ async def on_message(message):
         return
 
     guild_id = message.guild.id
-    guild_data = guilds.get(guild_id)
+    guild_data = guilds.get(guild_id, {})
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
 
