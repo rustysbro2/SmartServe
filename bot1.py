@@ -140,6 +140,9 @@ async def on_message(message):
 
     is_valid, result = check_counting_message(message, message.content, increment, last_counter)
     if is_valid:
+        if last_counter is not None and int(message.content) == last_counter:
+            return  # Return if the user counts the same number twice in a row
+
         await message.add_reaction("✅")
         last_counters[message.guild.id] = result
         save_data()
@@ -154,6 +157,7 @@ async def on_message(message):
     else:
         print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
         await handle_invalid_count(message, increment, result)
+
 
 
 
