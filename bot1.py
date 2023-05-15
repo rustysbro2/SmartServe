@@ -32,7 +32,7 @@ async def check_counting_message(message, count, increment, last_counter):
         await message.channel.send(f"{message.author.mention}, only numbers and math expressions are allowed!")
         return False, None
 
-    if not all(isinstance(node, allowed_operators) for node in ast.walk(node)):
+    if not all(isinstance(node, tuple(allowed_operators.keys())) for node in ast.walk(node)):
         await message.channel.send(f"{message.author.mention}, only numbers and math expressions are allowed!")
         return False, None
 
@@ -43,6 +43,7 @@ async def check_counting_message(message, count, increment, last_counter):
         return False, None
 
     return result == increment, result
+
 
 @bot1.event
 async def on_ready():
