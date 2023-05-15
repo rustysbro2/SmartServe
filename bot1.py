@@ -230,30 +230,28 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         save_data()
         return
 
-    old_channel_id = counting_channel['id']
     channel_name = counting_channel['name']
-    category = guild.get_channel(counting_channel['category_id'])  # Get category object
-    topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
-            f"Last Count: {current_count}\n" \
-            f"Increment: {increment}\n" \
-            f"Increment Changed To: {changed_increment}"
+    category_id = counting_channel['category_id']
+    overwrites = counting_channel['overwrites']
 
-    # Delete the old counting channel
-    old_channel = guild.get_channel(old_channel_id)
-    await old_channel.delete()
+    new_channel = await guild.create_text_channel(name=channel_name, category_id=category_id, overwrites=overwrites)
 
-    # Create a new counting channel
-    new_channel = await guild.create_text_channel(name=channel_name, category=category, topic=topic)
-
-    guild_data['counting_channel']['id'] = new_channel.id  # Update the counting channel ID
-    guild_data['count']['increment'] = changed_increment  # Update the increment value
-    guild_data['count']['last_counter'] = None  # Reset the last counter
-    guild_data['count']['high_score'] = 0  # Reset the high score
-    guild_data['count']['last_counter_user'] = None  # Reset the last counter user
+    guild_data['counting_channel']['id'] = new_channel.id
+    guild_data['count']['increment'] = changed_increment
+    guild_data['count']['last_counter'] = None
+    guild_data['count']['high_score'] = 0
+    guild_data['count']['last_counter_user'] = None
     save_data()
 
-    # Send the failure message in the new counting channel
     await new_channel.send(failure_message)
+
+    # Delete the old channel if it exists
+    old_channel_id = counting_channel.get('id')
+    if old_channel_id:
+        old_channel = guild.get_channel(old_channel_id)
+        if old_channel:
+            await old_channel.delete()
+
 
 
 
