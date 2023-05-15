@@ -75,14 +75,15 @@ def check_counting_message(content, increment, last_counter):
 
 
 @bot1.command()
-async def set_channel(ctx, channel: discord.TextChannel):
-    counting_channels[ctx.guild.id] = str(channel.id)
+async def set_channel(ctx):
+    counting_channels[ctx.guild.id] = str(ctx.channel.id)
     increments[ctx.guild.id] = 1
     last_counters[ctx.guild.id] = None
     high_scores[ctx.guild.id] = 0
     last_counter_users[ctx.guild.id] = None
-    await ctx.send(f"Counting channel set to {channel.mention}")
+    await ctx.send(f"Counting channel set to {ctx.channel.mention}")
     save_data()
+
 
     # Debug statement
     print(counting_channels)
