@@ -105,7 +105,6 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
-    load_data()
     if message.author == bot1.user:
         return
 
@@ -180,7 +179,6 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
 
     if counting_channel is None:
         await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
-        del guilds[guild.id]
         save_data()
         return
 
