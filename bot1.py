@@ -71,4 +71,4 @@ async def help(ctx):
 async def on_ready():
     print(f'{bot1.user} has connected to Discord!')
 
-bot1.run(os.getenv('DISCORD_BOT_TOKEN'))
+bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
