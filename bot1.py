@@ -136,6 +136,7 @@ async def on_message(message):
             if message.guild.id in high_scores:
                 if result > high_scores[message.guild.id]:
                     high_scores[message.guild.id] = result
+                    message = await message.channel.fetch_message(message.id)  # Fetch the updated message
                     await message.add_reaction("🏆")
             else:
                 high_scores[message.guild.id] = result
@@ -143,6 +144,7 @@ async def on_message(message):
     else:
         print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
         await handle_invalid_count(message, increment, result)
+
 
 
 @bot1.command()
