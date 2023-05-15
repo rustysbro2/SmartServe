@@ -202,8 +202,7 @@ async def highscore(ctx):
 
 @bot1.command()
 async def help(ctx):
-    embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:",
-                          color=0x00FF00)
+    embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=0x00FF00)
     embed.add_field(name="!set_channel [channel]", value="Sets the channel for counting.", inline=False)
     embed.add_field(name="!increment [number
 
