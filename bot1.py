@@ -1,21 +1,3 @@
-async def check_counting_message(message, content, increment, last_counter):
-    try:
-        node = ast.parse(content.strip(), mode="eval").body
-        if not all(isinstance(node, allowed_operators) for node in ast.walk(node)):
-            return False, "Invalid count"
-
-        count = eval(content)
-        if last_counter is None:
-            if count == increment:
-                return True, count
-            else:
-                return False, "Invalid count"
-        elif count == last_counter + increment:
-            return True, count
-        else:
-            return False, "Invalid count"
-    except Exception as e:
-        return False, "Invalid count"import discord
 from discord.ext import commands
 import ast  
 import operator
