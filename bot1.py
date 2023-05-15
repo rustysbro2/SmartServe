@@ -99,7 +99,6 @@ async def increment(ctx, num: int):
     save_data()
 
 
-
 @bot1.event
 async def on_message(message):
     print(f"Message received: {message.content}")
@@ -136,14 +135,15 @@ async def on_message(message):
             if message.guild.id in high_scores:
                 if result > high_scores[message.guild.id]:
                     high_scores[message.guild.id] = result
-                    message = await message.channel.fetch_message(message.id)  # Fetch the updated message
-                    await message.add_reaction("🏆")
+                    updated_message = await message.channel.fetch_message(message.id)  # Fetch the updated message
+                    await updated_message.add_reaction("🏆")
             else:
                 high_scores[message.guild.id] = result
                 save_data()
     else:
         print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
         await handle_invalid_count(message, increment, result)
+
 
 
 
