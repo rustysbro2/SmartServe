@@ -224,7 +224,7 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
 async def highscore(ctx):
     guild_data = guilds.get(ctx.guild.id, {})
     high_score = guild_data.get('count', {}).get('high_score')
-        if high_score is not None:
+    if high_score is not None:
         await ctx.send(f"The high score is {high_score}")
     else:
         await ctx.send("No high score recorded yet.")
