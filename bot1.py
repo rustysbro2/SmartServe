@@ -116,10 +116,12 @@ async def on_message(message):
         increment = increments[message.guild.id]
         last_counter = last_counters.get(message.guild.id)  # Get the last counter for the guild, or None if not found
     else:
+        print(f"[DEBUG] Guild ID {message.guild.id} not in increments.")
         return  # Return if counting channel is not set for the guild
 
     counting_channel_id = counting_channels.get(str(message.guild.id))
     if counting_channel_id != str(message.channel.id):
+        print(f"[DEBUG] Channel ID {message.channel.id} not equal to counting_channel_id {counting_channel_id}")
         return  # Return if the message is not in the counting channel
 
     print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
@@ -143,7 +145,9 @@ async def on_message(message):
                 high_scores[message.guild.id] = result
                 save_data()
     else:
+        print("Adding cross reaction")
         await handle_invalid_count(message, increment, result)
+
 
 
 @bot1.command()
