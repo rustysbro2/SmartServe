@@ -111,6 +111,10 @@ async def on_message(message):
 
     guild_id = message.guild.id
     guild_data = guilds.get(guild_id)
+    if guild_data is None:
+        guilds[guild_id] = {}
+        guild_data = guilds[guild_id]
+
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
 
@@ -126,6 +130,7 @@ async def on_message(message):
         return
 
     content = message.content.strip()
+
 
     # Check for failure scenarios
     if last_counter is None:
