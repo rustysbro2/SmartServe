@@ -1,4 +1,21 @@
-import discord
+async def check_counting_message(message, content, increment, last_counter):
+    try:
+        node = ast.parse(content.strip(), mode="eval").body
+        if not all(isinstance(node, allowed_operators) for node in ast.walk(node)):
+            return False, "Invalid count"
+
+        count = eval(content)
+        if last_counter is None:
+            if count == increment:
+                return True, count
+            else:
+                return False, "Invalid count"
+        elif count == last_counter + increment:
+            return True, count
+        else:
+            return False, "Invalid count"
+    except Exception as e:
+        return False, "Invalid count"import discord
 from discord.ext import commands
 import ast  
 import operator
@@ -26,28 +43,24 @@ allowed_operators = {
     ast.UAdd: operator.pos
 }
 
-async def check_counting_message(message, count, increment, last_counter):
-    if message.author.id == last_counter:
-        await message.channel.send(f"{message.author.mention}, you can't count twice in a row!")
-        return False, None
-
+async def check_counting_message(message, content, increment, last_counter):
     try:
-        node = ast.parse(count, mode='eval')
-    except SyntaxError:
-        await message.channel.send(f"{message.author.mention}, only numbers and math expressions are allowed!")
-        return False, None
+        node = ast.parse(content.strip(), mode="eval").body
+        if not all(isinstance(node, allowed_operators) for node in ast.walk(node)):
+            return False, "Invalid count"
 
-    if not all(isinstance(node, tuple(allowed_operators.keys())) for node in ast.walk(node)):
-        await message.channel.send(f"{message.author.mention}, only numbers and math expressions are allowed!")
-        return False, None
-
-    try:
-        result = eval(compile(ast.Expression(node.body), filename="<ast>", mode="eval"), {"__builtins__": None}, allowed_operators)
-    except ZeroDivisionError:
-        await message.channel.send(f"{message.author.mention}, division by zero is not allowed!")
-        return False, None
-
-    return result == increment, result
+        count = eval(content)
+        if last_counter is None:
+            if count == increment:
+                return True, count
+            else:
+                return False, "Invalid count"
+        elif count == last_counter + increment:
+            return True, count
+        else:
+            return False, "Invalid count"
+    except Exception as e:
+        return False, "Invalid count"
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
