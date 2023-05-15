@@ -1,7 +1,5 @@
 import discord
 from discord.ext import commands
-import ast
-import operator
 import os
 import json
 
@@ -13,7 +11,7 @@ bot1.remove_command("help")
 if os.path.isfile('bot_data.json'):
     with open('bot_data.json') as f:
         data = json.load(f)
-        counting_channels = {int(guild_id): int(channel_id) for guild_id, channel_id in data['counting_channels'].items()}  # change here
+        counting_channels = {int(guild_id): channel_id for guild_id, channel_id in data['counting_channels'].items()}
         increments = data['increments']
         last_counters = data['last_counters']
         high_scores = data['high_scores']
@@ -25,21 +23,35 @@ else:
     high_scores = {}
     last_counter_users = {}
 
-
 def save_data():
     with open('bot_data.json', 'w') as f:
         json.dump({
-            'counting_channels': {str(guild_id): str(channel_id) for guild_id, channel_id in counting_channels.items()},  # change here
+            'counting_channels': {str(guild_id): channel_id for guild_id, channel_id in counting_channels.items()},
             'increments': increments,
             'last_counters': last_counters,
             'high_scores': high_scores,
             'last_counter_users': last_counter_users
         }, f)
 
+def check_counting_message(content, increment, last_counter):
+    try:
+        number = int(content)
+    except ValueError:
+        return False, "Your message should only contain a valid number."
+
+    if last_counter is None:
+        if number == increment:
+            return True, number
+        else:
+            return False, f"The first number should be {increment}."
+    elif number == last_counter + increment:
+        return True, number
+    else:
+        return False, f"The next number should be {last_counter + increment}."
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
-    counting_channels[ctx.guild.id] = channel.id  # change here
+    counting_channels[ctx.guild.id] = channel.id
     increments[ctx.guild.id] = 1
     last_counters[ctx.guild.id] = None
     high_scores[ctx.guild.id] = 0
@@ -47,69 +59,49 @@ async def set_channel(ctx, channel: discord.TextChannel):
     await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
 
-
 @bot1.command()
 async def increment(ctx, num: int):
     increments[ctx.guild.id] = num
     await ctx.send(f"Increment changed to {num}")
     save_data()
 
-def check_counting_message(content, increment, last_counter):
-    if last_counter is None:  # If there's no previous counter, expect the message to be the increment
-        expected_message = increment
-    else:
-        expected_message = last_counter + increment
-
-    try:
-        counter = int(content)
-    except ValueError:
-        return False, None  # If the
-
-
 @bot1.event
 async def on_message(message):
-    print(f"Message received: {message.content}")
     if message.author == bot1.user:
         return
 
-    await bot1.process_commands(message)  # Process commands first
+    await bot1.process_commands(message)
 
     if not isinstance(message.channel, discord.TextChannel):
         return
 
-    if message.guild.id in increments:
-        increment = increments[message.guild.id]
-        last_counter = last_counters.get(message.guild.id)  # Get the last counter for the guild, or None if not found
-    else:
-        return  # Return if counting channel is not set for the guild
+    if message.guild.id not in counting_channels:
+        return
 
-    counting_channel_id = counting_channels.get(message.guild.id)  # change here
-    if counting_channel_id != message.channel.id:  # change here
-        return  # Return if the message is not in the counting channel
+    if message.channel.id != counting_channels[message.guild.id]:
+        return
 
-    print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
-
+    increment = increments[message.guild.id]
+    last_counter = last_counters[message.guild.id]
     is_valid, result = check_counting_message(message.content, increment, last_counter)
+
     if is_valid:
-        if last_counter is not None and message.author.id == last_counter_users.get(message.guild.id):
-            await handle_invalid_count(message, increment, "You need to wait for someone else to count.")
+        if last_counter is not None and message.author.id == last_counter_users[message.guild.id]:
+            await message.channel.send("You can't count twice in a row.")
         else:
-            print("Adding checkmark reaction")
-            await message.add_reaction("✅")
             last_counters[message.guild.id] = result
             last_counter_users[message.guild.id] = message.author.id
-            save_data()
-
-            if message.guild.id in high_scores:
-                if result > high_scores[message.guild.id]:
-                    high_scores[message.guild.id] = result
-                    await message.add_reaction("🏆")
-            else:
+            if result > high_scores[message.guild.id]:
                 high_scores[message.guild.id] = result
-                save_data()
+            save_data()
     else:
-        print("Adding cross reaction")
-        await handle_invalid_count(message, increment, result)
+        await message.channel.send(result)
+
+@bot1.command()
+async def highscore(ctx):
+    if ctx.guild.id in high_scores:
+        await ctx.send(f"The high score is {high_scores[ctx.guild.id]}
+
 
 
 
