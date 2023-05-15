@@ -63,46 +63,31 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
-    if message.author.bot:
+    if message.author == bot1.user:
         return
 
-    if message.guild and message.channel.id == counting_channels.get(message.guild.id):
-        guild_id = message.guild.id
-        increment = increments[guild_id]
-        last_counter = last_counters[guild_id]
+    if message.channel.id in counting_channels.values():
+        increment = increments[message.guild.id]
+        last_counter = last_counters.get(message.guild.id)
+
+        print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
 
         is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
         if is_valid:
-            last_counters[guild_id] = message.author.id
-            increments[guild_id] = result + 1
             await message.add_reaction("✅")
+            last_counters[message.guild.id] = result
 
-            if result > high_scores[guild_id]:
-                high_scores[guild_id] = result
-                await message.add_reaction("🏆")
+            if message.guild.id in high_scores:
+                if result > high_scores[message.guild.id]:
+                    high_scores[message.guild.id] = result
+                    await message.add_reaction("🏆")
+            else:
+                high_scores[message.guild.id] = result
         else:
-            channel_name = message.channel.name
-            channel_position = message.channel.position
-            channel_category = message.channel.category
-            channel_overwrites = message.channel.overwrites
-            channel_topic = message.channel.topic
+            print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
+            await handle_count_failure(message, increment, result)
 
-            await message.channel.delete()
-
-            new_channel = await message.guild.create_text_channel(
-                name=channel_name,
-                position=channel_position,
-                category=channel_category,
-                overwrites=channel_overwrites,
-                topic=channel_topic
-            )
-            counting_channels[guild_id] = new_channel.id
-            last_counters[guild_id] = None
-            increments[guild_id] = 1
-            embed = discord.Embed(title="Counting Failure", description=f"Reason: Invalid count\nIncrement: {increment}\nFailed message: {message.content}", color=0xFF0000)
-            await new_channel.send(embed=embed)
-    else:
-        await bot1.process_commands(message)
+    await bot1.process_commands(message)
 
 @bot1.command()
 async def help(ctx):
