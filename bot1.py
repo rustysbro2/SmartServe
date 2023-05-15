@@ -212,8 +212,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         save_data()
         return
 
-    old_channel_id = counting_channel['id']  # Store the ID of the old counting channel
-
+    old_channel_id = counting_channel['id']
     channel_name = counting_channel['name']
     category = guild.get_channel(counting_channel['category_id'])  # Get category object
     topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
@@ -223,18 +222,27 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
 
     new_channel = await guild.create_text_channel(name=channel_name, category=category, topic=topic)
 
-    guild_data['counting_channel']['id'] = new_channel.id  # Update the counting channel ID with the new channel ID
-    guild_data['count'] = {
-        'increment': changed_increment,
-        'last_counter': None,
-        'high_score': 0,
-        'last_counter_user': None
-    }
+    guild_data['counting_channel']['id'] = new_channel.id  # Update the counting channel ID in guild data
+    guild_data['count']['increment'] = changed_increment  # Update the increment in guild data
+    guild_data['count']['last_counter'] = None  # Reset the last counter in guild data
+    guild_data['count']['high_score'] = 0  # Reset the high score in guild data
+    guild_data['count']['last_counter_user'] = None  # Reset the last counter user in guild data
     save_data()
 
-    old_channel = guild.get_channel(old_channel_id)  # Get the old counting channel object
-    if old_channel:
-        await old_channel.delete()  # Delete the old counting channel
+    # Send the failure message to the new counting channel
+    embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+    embed.add_field(name="Your Count", value=current_count, inline=False)
+    embed.add_field(name="Increment", value=increment, inline=False)
+    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
+
+    await new_channel.send("You made a mistake in counting. The counting channel will be reset.", embed=embed)
+
+    # Fetch the old message in the old counting channel
+    old_channel = guild.get_channel(old_channel_id)
+    message = await old_channel.fetch_message(guild_data['count']['last_counter_user'])
+    await message.delete()  # Delete the old message in the old counting channel
+
 
 
 
