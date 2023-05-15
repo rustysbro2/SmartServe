@@ -49,6 +49,16 @@ def save_data():
             'high_scores': high_scores,
             'last_counter_users': last_counter_users
         }, f)
+@bot1.command()
+async def set_channel(ctx, channel: discord.TextChannel):
+    counting_channels[ctx.guild.id] = channel.id
+    increments[ctx.guild.id] = 1
+    last_counters[ctx.guild.id] = None
+    high_scores[ctx.guild.id] = 0
+    last_counter_users[ctx.guild.id] = None
+    await ctx.send(f"Counting channel set to {channel.mention}")
+    save_data()
+
 
 
 def check_counting_message(message, content, increment, last_counter):
@@ -108,6 +118,7 @@ async def set_channel(ctx, channel: discord.TextChannel):
     last_counter_users[ctx.guild.id] = None
     await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
+
 
 
 @bot1.command()
@@ -178,6 +189,19 @@ async def help(ctx):
 @bot1.event
 async def on_ready():
     print(f'{bot1.user} has connected to Discord!')
+
+    if os.path.isfile('bot_data.json'):
+        with open('bot_data.json') as f:
+            data = json.load(f)
+            counting_channels.update(data.get('counting_channels', {}))
+            increments.update(data.get('increments', {}))
+            last_counters.update(data.get('last_counters', {}))
+            high_scores.update(data.get('high_scores', {}))
+            last_counter_users.update(data.get('last_counter_users', {}))
+
+    save_data()
+
+
 
 
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
