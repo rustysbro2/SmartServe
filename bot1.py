@@ -229,14 +229,16 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     guild_data['count']['high_score'] = 0  # Reset the high score
     guild_data['count']['last_counter_user'] = None  # Reset the last counter user
     save_data()
-    
+
     # Send the reset message in the new counting channel
-    embed = discord.Embed(title="Counting Channel Reset", color=0xFF0000)
-    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-    embed.add_field(name="Last Count", value=current_count, inline=False)
-    embed.add_field(name="Increment", value=increment, inline=False)
-    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
-    await new_channel.send("The counting channel has been reset.", embed=embed)
+    reset_embed = discord.Embed(title="Counting Channel Reset", color=0xFF0000)
+    reset_embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+    reset_embed.add_field(name="Last Count", value=current_count, inline=False)
+    reset_embed.add_field(name="Increment", value=increment, inline=False)
+    reset_embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
+
+    await new_channel.send("You made a mistake in counting. The counting channel will be reset.", embed=reset_embed)
+
 
 
 
