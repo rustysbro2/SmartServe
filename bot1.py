@@ -81,6 +81,9 @@ async def on_message(message):
     if message.channel.id != counting_channels[message.guild.id]:
         return
 
+    if message.guild.id not in increments:
+        return
+
     increment = increments[message.guild.id]
     last_counter = last_counters[message.guild.id]
     is_valid, result = check_counting_message(message.content, increment, last_counter)
@@ -97,6 +100,7 @@ async def on_message(message):
             await message.add_reaction('✅')  # Add a reaction to the message
     else:
         await message.channel.send(result)
+
 
 @bot1.command()
 async def highscore(ctx):
