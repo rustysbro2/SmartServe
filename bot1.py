@@ -128,7 +128,7 @@ async def increment(ctx, num: int):
     await ctx.send(f"Increment changed to {num}")
     save_data()
 
-
+@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
