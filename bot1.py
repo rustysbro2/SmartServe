@@ -120,6 +120,7 @@ async def on_message(message):
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
+    last_counter_user = count_data.get('last_counter_user')
 
     if increment is None:
         await bot1.process_commands(message)
@@ -143,7 +144,7 @@ async def on_message(message):
     # Check if the counting message is valid
     is_valid, failure_reason = check_counting_message(content, increment, last_counter)
 
-    if not is_valid:
+    if not is_valid or last_counter_user == message.author.id:
         # Send failure message and reset counting channel
         embed = discord.Embed(title="Counting Failure", color=0xFF0000)
         embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
