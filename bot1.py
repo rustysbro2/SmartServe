@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 
 intents = discord.Intents.default()
-intents.messages = True
+intents.message_content = True
 bot1 = commands.Bot(command_prefix="!", intents=intents)
 bot1.remove_command('help')
 
