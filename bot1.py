@@ -70,6 +70,7 @@ def check_counting_message(content, increment, last_counter):
 
 async def handle_invalid_count(message, increment, last_counter):
     if isinstance(last_counter, str):
+        print("Adding cross reaction")
         await message.add_reaction("❌")
         await message.channel.send(last_counter)
     else:
@@ -77,6 +78,7 @@ async def handle_invalid_count(message, increment, last_counter):
             next_number = increment
         else:
             next_number = int(last_counter) + increment
+        print("Adding cross reaction")
         await message.add_reaction("❌")
         await message.channel.send(f"Invalid count. The next number should be {next_number}.")
 
@@ -127,6 +129,7 @@ async def on_message(message):
         if last_counter is not None and message.author.id == last_counter_users.get(message.guild.id):
             await handle_invalid_count(message, increment, "You need to wait for someone else to count.")
         else:
+            print("Adding checkmark reaction")
             await message.add_reaction("✅")
             last_counters[message.guild.id] = result
             last_counter_users[message.guild.id] = message.author.id
