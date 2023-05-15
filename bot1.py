@@ -68,6 +68,7 @@ def check_counting_message(message, content, increment, last_counter):
         return False, f"Invalid count. The next number should be {last_counter + increment}."
 
 
+
 async def handle_invalid_count(message, increment, last_counter):
     if isinstance(last_counter, str):
         await message.add_reaction("❌")
