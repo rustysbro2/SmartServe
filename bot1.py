@@ -16,9 +16,40 @@ high_scores = {}
 async def set_channel(ctx, channel: discord.TextChannel):
     counting_channels[ctx.guild.id] = channel.id
     increments[ctx.guild.id] = 1
-    last_counters[ctx.guild.id] = 0
+    last_counters[ctx.guild.id] = None
     high_scores[ctx.guild.id] = 0
+
+    # Save the channel settings
+    counting_channels_settings[ctx.guild.id] = {
+        "name": channel.name,
+        "topic": channel.topic,
+        "position": channel.position,
+        "permissions": {over.id: over for over in channel.overwrites}
+    }
+
     await ctx.send(f"Counting channel set to {channel.mention}")
+
+async def handle_invalid_count(message, increment, result):
+    await message.add_reaction("❌")
+    await message.channel.send(
+        "Invalid count. The next number should be {}.".format(result + increment)
+    )
+
+    # Delete the channel and create a new one with the same settings
+    settings = counting_channels_settings[message.guild.id]
+    new_channel = await message.guild.create_text_channel(
+        name=settings["name"],
+        overwrites=settings["permissions"],
+        position=settings["position"],
+        topic=settings["topic"],
+    )
+
+    # Update the counting_channels dictionary
+    counting_channels[message.guild.id] = new_channel.id
+
+    # Reset the last counter and high score
+    last_counters[message.guild.id] = None
+    high_scores[message.guild.id] = 0
 
 @bot1.command()
 async def increment(ctx, num: int):
