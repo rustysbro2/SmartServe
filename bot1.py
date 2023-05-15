@@ -1,6 +1,3 @@
-if message.guild.id not in counting_channels:
-    counting_channels[message.guild.id] = str(message.channel.id)
-    save_data()
 import discord
 from discord.ext import commands
 import ast
