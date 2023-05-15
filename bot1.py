@@ -1,8 +1,3 @@
-async def handle_invalid_count(message, increment, result):
-    await message.add_reaction("❌")
-    await message.channel.send(
-        f"Invalid count. The next number should be {result + increment}."
-    )
 import discord
 from discord.ext import commands
 import ast  
@@ -55,8 +50,9 @@ async def check_counting_message(message, content, increment, last_counter):
 async def handle_invalid_count(message, increment, result):
     await message.add_reaction("❌")
     await message.channel.send(
-        f"Invalid count. The next number should be {result + increment}."
+        "Invalid count. The next number should be {}.".format(result + increment)
     )
+
 
 
 
