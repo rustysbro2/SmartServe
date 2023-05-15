@@ -49,15 +49,7 @@ def save_data():
             'high_scores': high_scores,
             'last_counter_users': last_counter_users
         }, f)
-@bot1.command()
-async def set_channel(ctx, channel: discord.TextChannel):
-    counting_channels[ctx.guild.id] = channel.id
-    increments[ctx.guild.id] = 1
-    last_counters[ctx.guild.id] = None
-    high_scores[ctx.guild.id] = 0
-    last_counter_users[ctx.guild.id] = None
-    await ctx.send(f"Counting channel set to {channel.mention}")
-    save_data()
+
 
 
 
@@ -106,8 +98,6 @@ async def handle_invalid_count(message, increment, last_counter):
 
         await counting_channel.send(f"The counting starts at {increment}. Good luck!")
         save_data()
-
-
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
