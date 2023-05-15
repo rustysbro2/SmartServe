@@ -174,43 +174,12 @@ async def on_message(message):
                 failure_reason = result
 
         # Send failure message and reset counting channel
-        failure_message = "You made a mistake in counting. The counting channel will be reset.\n\n" \
-                          "Failure Reason: {}\n" \
-                          "Your Count: {}\n" \
-                          "Increment: {}\n" \
-                          "Increment Changed To: {}".format(failure_reason, content, increment,
-                                                            count_data.get('increment', increment))
-
-        await reset_counting_channel(
-            message.guild,
-            failure_reason,
-            content,
-            increment,
-            changed_increment=count_data.get('increment', increment),
-            failure_message=failure_message
-        )
+        new_channel = await reset_counting_channel(message.guild, failure_reason, content, increment)
+        if new_channel:
+            await new_channel.send(embed=embed)
         return
 
     # Valid counting message
-    if last_counter is None and int(content) != 1:
-        failure_reason = "The first number should be 1."
-        failure_message = "You made a mistake in counting. The counting channel will be reset.\n\n" \
-                          "Failure Reason: {}\n" \
-                          "Your Count: {}\n" \
-                          "Increment: {}\n" \
-                          "Increment Changed To: {}".format(failure_reason, content, increment,
-                                                            count_data.get('increment', increment))
-
-        await reset_counting_channel(
-            message.guild,
-            failure_reason,
-            content,
-            increment,
-            changed_increment=count_data.get('increment', increment),
-            failure_message=failure_message
-        )
-        return
-
     count_data['last_counter'] = int(content)
     count_data['last_counter_user'] = message.author.id
     if int(content) > count_data.get('high_score', 0):
@@ -221,7 +190,8 @@ async def on_message(message):
 
 
 
-async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment, failure_message):
+
+async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
     guild_data = guilds.get(guild.id, {})
     counting_channel = guild_data.get('counting_channel')
 
@@ -230,27 +200,37 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         save_data()
         return
 
-    channel_name = counting_channel['name']
+    old_channel_id = counting_channel['id']
+    old_channel = guild.get_channel(old_channel_id)
     category_id = counting_channel['category_id']
-    category = guild.get_channel(category_id)
+    channel_name = counting_channel['name']
 
-    new_channel = await guild.create_text_channel(name=channel_name, category=category)
+    overwrites = {
+        guild.default_role: discord.PermissionOverwrite(send_messages=False),
+        guild.me: discord.PermissionOverwrite(send_messages=True)
+    }
+
+    topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
+            f"Last Count: {current_count}\n" \
+            f"Increment: {increment}\n" \
+            f"Increment Changed To: {changed_increment}"
+
+    new_channel = await guild.create_text_channel(name=channel_name, category_id=category_id, overwrites=overwrites, topic=topic)
 
     guild_data['counting_channel']['id'] = new_channel.id
-    guild_data['count']['increment'] = changed_increment
-    guild_data['count']['last_counter'] = None
-    guild_data['count']['high_score'] = 0
-    guild_data['count']['last_counter_user'] = None
     save_data()
 
-    await new_channel.send(failure_message)
+    await old_channel.delete()
 
-    # Delete the old channel if it exists
-    old_channel_id = counting_channel.get('id')
-    if old_channel_id:
-        old_channel = guild.get_channel(old_channel_id)
-        if old_channel:
-            await old_channel.delete()
+    embed = discord.Embed(title="Counting Channel Reset", color=0xFF0000)
+    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+    embed.add_field(name="Your Count", value=current_count, inline=False)
+    embed.add_field(name="Increment", value=increment, inline=False)
+    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
+
+    await new_channel.send(embed=embed)
+
+    return new_channel
 
 
 
