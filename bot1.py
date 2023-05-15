@@ -128,15 +128,12 @@ async def on_message(message):
         increment = increments[message.guild.id]
         last_counter = last_counters.get(message.guild.id)
 
-        if last_counter_users.get(message.guild.id) == message.author.id:
-            await handle_invalid_count(message, increment, last_counter)
-            return
+        print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
 
         is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
         if is_valid:
             await message.add_reaction("✅")
             last_counters[message.guild.id] = result
-            last_counter_users[message.guild.id] = message.author.id
             save_data()
 
             if message.guild.id in high_scores:
@@ -144,13 +141,14 @@ async def on_message(message):
                     high_scores[message.guild.id] = result
                     await message.add_reaction("🏆")
             else:
-                high_scores[message.guild.id] = result
+                high_scores[message.guild.id] = result  
                 save_data()
         else:
-            await handle_invalid_count(message, increment, last_counter)
-            await bot1.get_command('reset_channel').callback(message)
+            print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
+            await handle_invalid_count(message, increment, result)
 
     await bot1.process_commands(message)
+
 
 @bot1.command()
 async def help(ctx):
