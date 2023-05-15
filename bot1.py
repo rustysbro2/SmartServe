@@ -23,14 +23,6 @@ allowed_operators = {
     ast.UAdd: operator.pos
 }
 
-guilds = {}
-counting_channels = {}
-increments = {}
-last_counters = {}
-high_scores = {}
-last_counter_users = {}
-
-
 def save_data():
     with open('bot_data.json', 'w') as f:
         json.dump({
@@ -41,7 +33,6 @@ def save_data():
             'high_scores': high_scores,
             'last_counter_users': last_counter_users
         }, f, indent=4)
-
 
 def load_data():
     global guilds, counting_channels, increments, last_counters, high_scores, last_counter_users
@@ -62,14 +53,12 @@ def load_data():
         high_scores = {}
         last_counter_users = {}
 
-
 def evaluate_expression(expression):
     try:
         tree = ast.parse(expression, mode='eval')
         return eval(compile(tree, filename='', mode='eval'), {}, allowed_operators)
     except (SyntaxError, TypeError, ZeroDivisionError):
         return None
-
 
 def check_counting_message(content, increment, last_counter):
     try:
@@ -84,7 +73,6 @@ def check_counting_message(content, increment, last_counter):
             return True, result
         else:
             return False, f"The next number should be {last_counter + increment}."
-
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
@@ -106,7 +94,6 @@ async def set_channel(ctx, channel: discord.TextChannel):
     guilds[guild_id] = guild_data
     await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
-
 
 @bot1.command()
 async def increment(ctx, num: int):
@@ -181,12 +168,13 @@ async def on_message(message):
         return
 
     # Valid counting message
-count_data['last_counter'] = int(content)
-count_data['last_counter_user'] = message.author.id
-if int(content) > count_data.get('high_score', 0):
-    count_data['high_score'] = int(content)
-save_data()
-await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    count_data['last_counter'] = int(content)
+    count_data['last_counter_user'] = message.author.id
+    if int(content) > count_data.get('high_score', 0):
+        count_data['high_score'] = int(content)
+    save_data()
+    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
     guild_data = guilds.get(guild.id, {})
@@ -202,7 +190,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     channel_name = counting_channel['name']
     category_id = counting_channel['category_id']
     overwrites = counting_channel['overwrites']
-    topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
+        topic = f"Counting Channel\nFailure Reason: {failure_reason}\n" \
             f"Last Count: {current_count}\n" \
             f"Increment: {increment}\n" \
             f"Increment Changed To: {changed_increment}"
@@ -217,6 +205,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     }
     save_data()
 
+
 @bot1.command()
 async def highscore(ctx):
     guild_data = guilds.get(ctx.guild.id, {})
@@ -226,6 +215,7 @@ async def highscore(ctx):
     else:
         await ctx.send("No high score recorded yet.")
 
+
 @bot1.command()
 async def help(ctx):
     embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=0x00FF00)
@@ -233,11 +223,12 @@ async def help(ctx):
     embed.add_field(name="!increment [number]", value="Changes the counting increment.", inline=False)
     await ctx.send(embed=embed)
 
+
 @bot1.event
 async def on_ready():
     print(f'{bot1.user} has connected to Discord!')
 
-bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.Gc2MCb.LXE8ptGi_uQqn0FBzvF461pMBAZUCzyP4nMRtY')
 
+bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
 
 
