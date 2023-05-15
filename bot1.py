@@ -199,15 +199,8 @@ async def on_message(message):
     save_data()
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
-async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
-    guild_data = guilds.get(guild.id, {})
-    counting_channel = guild_data.get('counting_channel')
 
-    if counting_channel is None:
-        await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
-        save_data()
-        return
-
+async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment, failure_embed=None):
     old_channel_id = counting_channel['id']
     channel_name = counting_channel['name']
     category = guild.get_channel(counting_channel['category_id'])  # Get category object
@@ -218,30 +211,31 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
 
     new_channel = await guild.create_text_channel(name=channel_name, category=category, topic=topic)
 
-    guild_data['counting_channel']['id'] = new_channel.id  # Update the counting channel ID in guild data
-    guild_data['count']['increment'] = changed_increment  # Update the increment in guild data
-    guild_data['count']['last_counter'] = None  # Reset the last counter in guild data
-    guild_data['count']['high_score'] = 0  # Reset the high score in guild data
-    guild_data['count']['last_counter_user'] = None  # Reset the last counter user in guild data
+    counting_channel['id'] = new_channel.id  # Update the counting channel ID in guild data
     save_data()
 
     # Delete the old counting channel
     old_channel = guild.get_channel(old_channel_id)
     if old_channel:
-        await old_channel.delete()
+       try:
+    await old_channel.delete()
+except discord.HTTPException:
+    print(f"Failed to delete the old counting channel: {old_channel.id}")
 
-    # Update the counting channel ID in the guild data
-    counting_channel['id'] = new_channel.id
-    save_data()
+# Send the embed in the new counting channel
+if failure_embed:
+    await new_channel.send(embed=failure_embed)
 
-    # Send the failure message to the new counting channel
-    embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-    embed.add_field(name="Your Count", value=current_count, inline=False)
-    embed.add_field(name="Increment", value=increment, inline=False)
-    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
+# Update the count data in guilds
+guild_data = guilds.get(guild.id, {})
+count_data = guild_data.get('count', {})
+count_data['last_counter'] = None
+count_data['high_score'] = 0
+count_data['last_counter_user'] = None
+count_data['increment'] = changed_increment
+save_data()
 
-    await new_channel.send("You made a mistake in counting. The counting channel will be reset.", embed=embed)
+
 
 
 
