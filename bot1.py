@@ -82,7 +82,9 @@ async def set_channel(ctx, channel: discord.TextChannel):
     high_scores[ctx.guild.id] = 0
     last_counter_users[ctx.guild.id] = None
     await ctx.send(f"Counting channel set to {channel.mention}")
+    print(f"Counting channel ID stored: {channel.id}")
     save_data()
+
 
 
 @bot1.command()
