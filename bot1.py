@@ -92,7 +92,7 @@ def check_counting_message(content, increment, last_counter):
             return False, f"The next number should be {last_counter + increment}."
 
 
-@bot1@bot1.command()
+@bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     guild_id = ctx.guild.id
     print(f"Before update: {guilds}")  # Print guilds before update
