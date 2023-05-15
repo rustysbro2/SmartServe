@@ -100,8 +100,6 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
-    print("Message received")
-    
     if message.author == bot1.user:
         return
 
@@ -111,21 +109,19 @@ async def on_message(message):
         return
 
     if message.guild.id not in counting_channels:
-        counting_channels[message.guild.id] = str(message.channel.id)
-        increments[message.guild.id] = 1
-        last_counters[message.guild.id] = None
-        high_scores[message.guild.id] = 0
-        last_counter_users[message.guild.id] = None
-        save_data()
+        print("Guild ID not in counting_channels")
+        return
 
-
-
-    if message.channel.id != counting_channels[message.guild.id]:
-        print("Channel ID does not match")  # Add this line
+    channel_id = counting_channels[message.guild.id]
+    if message.channel.id != int(channel_id):
+        print("Channel ID does not match")
         return
 
     if message.guild.id not in increments:
-        print("Guild ID not in increments")  # Add this line
+        print("Guild ID not in increments")
+
+    # Rest of the code...
+
 
     # Rest of the code...
 
