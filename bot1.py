@@ -26,8 +26,12 @@ guilds = {}  # Declare guilds as a global variable
 
 
 def save_data():
-    with open('bot_data.json', 'w') as f:
-        json.dump(guilds, f, indent=4)
+    try:
+        with open('bot_data.json', 'w') as f:
+            json.dump(guilds, f, indent=4)
+        print("Data saved successfully.")  # Print message when data is saved
+    except Exception as e:
+        print(f"Error when saving data: {e}")
 
 
 def load_data():
@@ -37,6 +41,7 @@ def load_data():
             guilds = json.load(f)
     else:
         guilds = {}
+
 @bot1.event
 async def on_ready():
     load_data()
@@ -64,9 +69,9 @@ def check_counting_message(content, increment, last_counter):
         else:
             return False, f"The next number should be {last_counter + increment}."
 
-@bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     guild_id = ctx.guild.id
+    print(f"Before update: {guilds}")  # Print guilds before update
     guild_data = guilds.get(guild_id, {})
     guild_data['counting_channel'] = {
         'id': channel.id,
@@ -82,6 +87,7 @@ async def set_channel(ctx, channel: discord.TextChannel):
         'last_counter_user': None
     }
     guilds[guild_id] = guild_data
+    print(f"After update: {guilds}")  # Print guilds after update
     await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
 
@@ -214,11 +220,6 @@ async def help(ctx):
     embed.add_field(name="!increment [number]", value="Changes the counting increment.", inline=False)
     await ctx.send(embed=embed)
 
-
-@bot1.event
-async def on_ready():
-    load_data()
-    print(f'{bot1.user} has connected to Discord!')
 
 
 
