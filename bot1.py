@@ -137,27 +137,23 @@ async def on_message(message):
     if not isinstance(message.channel, discord.TextChannel):
         return
 
-    if message.content.startswith(bot1.command_prefix):
-        await bot1.process_commands(message)  # Process commands even if it's not a counting message
-        return
-
     guild_id = message.guild.id
     guild_data = guilds.get(guild_id, {})
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count', {})
 
     if counting_channel is None or counting_channel['id'] != message.channel.id:
+        await bot1.process_commands(message)
         return
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
 
     if increment is None:
+        await bot1.process_commands(message)
         return
 
     content = message.content.strip()
-
-
 
     # Check for failure scenarios
     if last_counter is not None:
@@ -184,13 +180,14 @@ async def on_message(message):
         embed.add_field(name="Increment", value=increment, inline=False)
         embed.add_field(name="Increment Changed To", value=count_data.get('increment', increment), inline=False)
 
-        await message.channel.send("You made a mistake in counting. The counting channel will be reset.", embed=embed)
         await reset_counting_channel(
             message.guild,
+            counting_channel,
             failure_reason,
             content,
             increment,
-            changed_increment=count_data.get('increment', increment)
+            changed_increment=count_data.get('increment', increment),
+            failure_embed=embed
         )
         return
 
@@ -201,7 +198,6 @@ async def on_message(message):
         count_data['high_score'] = int(content)
     save_data()
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
-
 
 async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
     guild_data = guilds.get(guild.id, {})
