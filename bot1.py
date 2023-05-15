@@ -48,9 +48,16 @@ def load_data():
     global guilds
     if os.path.isfile('bot_data.json'):
         with open('bot_data.json') as f:
-            guilds = json.load(f)
+            data = json.load(f)
+            for guild_id, guild_data in data.items():
+                counting_channel = guild_data.get('counting_channel')
+                if counting_channel is not None:
+                    overwrites = counting_channel.get('overwrites', {})
+                    counting_channel['overwrites'] = {bot1.get_user(int(k)): discord.PermissionOverwrite.from_pair(int(v)) for k, v in overwrites.items()}
+            guilds = data
     else:
         guilds = {}
+
 
 @bot1.event
 async def on_ready():
@@ -115,10 +122,8 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
-    if message.author == bot1.user or message.content.startswith('!'):
+    if message.author == bot1.user:
         return
-
-    await bot1.process_commands(message)
 
     if not isinstance(message.channel, discord.TextChannel):
         return
@@ -129,15 +134,18 @@ async def on_message(message):
     count_data = guild_data.get('count', {})
 
     if counting_channel is None or counting_channel['id'] != message.channel.id:
+        await bot1.process_commands(message)
         return
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
 
     if increment is None:
+        await bot1.process_commands(message)
         return
 
     content = message.content.strip()
+
 
     # Check for failure scenarios
     if last_counter is not None:
