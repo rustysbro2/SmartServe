@@ -100,7 +100,10 @@ async def on_message(message):
 @bot1.command()
 async def highscore(ctx):
     if ctx.guild.id in high_scores:
-        await ctx.send(f"The high score is {high_scores[ctx.guild.id]}
+        await ctx.send(f"The high score is {high_scores[ctx.guild.id]}")
+    else:
+        await ctx.send("No high score recorded yet.")
+
 
 
 
