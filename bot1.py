@@ -120,29 +120,32 @@ async def on_message(message):
 
     if message.guild.id in increments:
         increment = increments[message.guild.id]
+        last_counter = last_counters.get(message.guild.id)  # Get the last counter for the guild, or None if not found
     else:
         increment = 1 
+        last_counter = None  # Initialize last_counter to None if the guild id is not found
 
-        print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
+    print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
 
-        is_valid, result = await check_counting_message(message, message.content, increment, last_counters)
-        if is_valid:
-            await message.add_reaction("✅")
-            last_counters[message.guild.id] = result
-            save_data()
+    is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
+    if is_valid:
+        await message.add_reaction("✅")
+        last_counters[message.guild.id] = result
+        save_data()
 
-            if message.guild.id in high_scores:
-                if result > high_scores[message.guild.id]:
-                    high_scores[message.guild.id] = result
-                    await message.add_reaction("🏆")
-            else:
-                high_scores[message.guild.id] = result  
-                save_data()
+        if message.guild.id in high_scores:
+            if result > high_scores[message.guild.id]:
+                high_scores[message.guild.id] = result
+                await message.add_reaction("🏆")
         else:
-            print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
-            await handle_invalid_count(message, increment, result)
+            high_scores[message.guild.id] = result  
+            save_data()
+    else:
+        print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
+        await handle_invalid_count(message, increment, result)
 
     await bot1.process_commands(message)
+
 
 
 @bot1.command()
