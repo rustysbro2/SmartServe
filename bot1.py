@@ -94,6 +94,7 @@ async def on_message(message):
             if result > high_scores[message.guild.id]:
                 high_scores[message.guild.id] = result
             save_data()
+            await message.add_reaction('✅')  # Add a reaction to the message
     else:
         await message.channel.send(result)
 
