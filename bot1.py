@@ -121,14 +121,19 @@ async def on_message(message):
     if message.author == bot1.user:
         return
 
+    await bot1.process_commands(message)  # Process commands first
+
+    if not isinstance(message.channel, discord.TextChannel):
+        return
+
     if message.guild.id in increments:
         increment = increments[message.guild.id]
         last_counter = last_counters.get(message.guild.id)  # Get the last counter for the guild, or None if not found
     else:
         return  # Return if counting channel is not set for the guild
 
-    counting_channel_id = counting_channels[message.guild.id]
-    if message.channel.id != counting_channel_id:
+    counting_channel_id = counting_channels.get(message.guild.id)
+    if counting_channel_id != message.channel.id:
         return  # Return if the message is not in the counting channel
 
     print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
@@ -150,7 +155,6 @@ async def on_message(message):
         print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
         await handle_invalid_count(message, increment, result)
 
-    await bot1.process_commands(message)
 
 
 
