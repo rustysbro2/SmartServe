@@ -34,13 +34,12 @@ def save_data():
                 for key, value in data.items():
                     if key == 'counting_channel':
                         channel_data = value.copy()
-                        # Remove the line below that handles overwrites
-                        # channel_data['overwrites'] = {str(k.id): str(v) for k, v in value['overwrites'].items()}
                         to_save[guild_id][key] = channel_data
+                        to_save[guild_id][key]['id'] = value['id']  # Include the counting channel ID in the saved data
                     else:
                         to_save[guild_id][key] = value
             json.dump(to_save, f, indent=4)
-        print("Data saved successfully.")  # Print message when data is saved
+        print("Data saved successfully.")
     except Exception as e:
         print(f"Error when saving data: {e}")
 
