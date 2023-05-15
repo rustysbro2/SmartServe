@@ -34,7 +34,7 @@ def save_data():
                 for key, value in data.items():
                     if key == 'counting_channel':
                         channel_data = value.copy()
-                        channel_data['overwrites'] = {str(k.id): str(v) for k, v in value['overwrites'].items()}
+                        channel_data['overwrites'] = {str(k.id): (v.pair()[0].value, v.pair()[1].value) for k, v in value['overwrites'].items()}
                         to_save[guild_id][key] = channel_data
                     else:
                         to_save[guild_id][key] = value
@@ -53,7 +53,7 @@ def load_data():
                 counting_channel = guild_data.get('counting_channel')
                 if counting_channel is not None:
                     overwrites = counting_channel.get('overwrites', {})
-                    counting_channel['overwrites'] = {bot1.get_user(int(k)): discord.PermissionOverwrite.from_pair(int(v)) for k, v in overwrites.items()}
+                    counting_channel['overwrites'] = {bot1.get_user(int(k)): discord.PermissionOverwrite.from_pair(discord.Permissions(v[0]), discord.Permissions(v[1])) for k, v in overwrites.items()}
             guilds = data
     else:
         guilds = {}
@@ -92,12 +92,14 @@ async def set_channel(ctx, channel: discord.TextChannel):
     print(f"Before update: {guilds}")  # Print guilds before update
     guild_data = guilds.get(guild_id, {})
     guild_data['counting_channel'] = {
-        'id': channel.id,
-        'name': channel.name,
-        'topic': '',
-        'category_id': channel.category_id,
-        'overwrites': channel.overwrites
-    }
+      'id': channel.id,
+      'name': channel.name,
+      'topic': '',
+      'category_id': channel.category_id,
+}
+
+
+
     guild_data['count'] = {
         'increment': 1,
         'last_counter': None,
@@ -196,7 +198,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     counting_channel = guild_data.get('counting_channel')
 
     if counting_channel is None:
-        await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
+        await guild.create_text_channel(name=channel_name, category=category, topic=topic)owner.send("The counting channel no longer exists. Please set a new counting channel.")
         save_data()
         return
 
@@ -212,7 +214,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
         await old_channel.delete()
 
     # Create new channel
-    new_channel = await guild.create_text_channel(name=channel_name, category=category, overwrites=overwrites)
+    await guild.create_text_channel(name=channel_name, category=category, topic=topic)
 
     # Create an embed message
     embed = discord.Embed(title="Counting Channel Reset", color=0xFF0000)
