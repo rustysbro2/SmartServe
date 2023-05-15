@@ -29,10 +29,11 @@ async def set_channel(ctx, channel: discord.TextChannel):
 
     await ctx.send(f"Counting channel set to {channel.mention}")
 
-async def handle_invalid_count(message, increment, result):
+async def handle_invalid_count(message, increment, last_counter):
     await message.add_reaction("❌")
+    next_number = increment if last_counter is None else last_counter + increment
     await message.channel.send(
-        "Invalid count. The next number should be {}.".format(result + increment)
+        f"Invalid count. The next number should be {next_number}."
     )
 
     # Delete the channel and create a new one with the same settings
@@ -51,6 +52,7 @@ async def handle_invalid_count(message, increment, result):
     last_counters[message.guild.id] = None
     high_scores[message.guild.id] = 0
 
+
 @bot1.command()
 async def increment(ctx, num: int):
     increments[ctx.guild.id] = num
@@ -67,29 +69,29 @@ async def on_message(message):
     if message.author == bot1.user:
         return
 
-    if message.channel.id == counting_channels.get(message.guild.id):
-        increment = increments.get(message.guild.id)
+    if message.channel.id in counting_channels.values():
+        increment = increments[message.guild.id]
         last_counter = last_counters.get(message.guild.id)
 
-        try:
-            count = int(message.content)
-        except ValueError:
-            return
+        print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
 
-        if last_counter is not None and count == last_counter + increment:
+        is_valid, result = await check_counting_message(message, message.content, increment, last_counter)
+        if is_valid:
             await message.add_reaction("✅")
-            last_counters[message.guild.id] = count
+            last_counters[message.guild.id] = result
 
-            if count > high_scores.get(message.guild.id, 0):
-                high_scores[message.guild.id] = count
-                await message.add_reaction("🏆")
+            if message.guild.id in high_scores:
+                if result > high_scores[message.guild.id]:
+                    high_scores[message.guild.id] = result
+                    await message.add_reaction("🏆")
+            else:
+                high_scores[message.guild.id] = result
         else:
-            await message.add_reaction("❌")
-            await message.channel.send(
-                f"Invalid count. The next number should be {last_counter + increment}."
-            )
+            print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
+            await handle_invalid_count(message, increment, last_counter)
 
     await bot1.process_commands(message)
+
 
 @bot1.command()
 async def help(ctx):
