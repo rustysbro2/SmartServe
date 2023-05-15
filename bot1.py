@@ -175,7 +175,6 @@ async def on_message(message):
 
 
 async def reset_counting_channel(guild, failure_reason, current_count, increment, changed_increment):
-    print("Resetting counting channel")  # Add this line
     channel_id = counting_channels[guild.id]
     channel = guild.get_channel(int(channel_id))
 
@@ -194,11 +193,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     new_channel = await guild.create_text_channel(
         name=channel.name,
         category=channel.category,
-        overwrites=channel.overwrites,
-        topic=f"Counting Channel\nFailure Reason: {failure_reason}\n"
-              f"Last Count: {current_count}\n"
-              f"Increment: {increment}\n"
-              f"Increment Changed To: {changed_increment}"
+        overwrites=channel.overwrites
     )
 
     counting_channels[guild.id] = str(new_channel.id)
@@ -207,6 +202,16 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
     high_scores[guild.id] = 0
     last_counter_users[guild.id] = None
     save_data()
+
+    embed = discord.Embed(title="Counting Channel Reset",
+                          description="The counting channel has been reset. Here are the details:",
+                          color=0x00FF00)
+    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+    embed.add_field(name="Current Count", value=current_count, inline=False)
+    embed.add_field(name="Increment", value=increment, inline=False)
+    embed.add_field(name="Increment Changed To", value=changed_increment, inline=False)
+
+    await new_channel.send(embed=embed)
 
 
 @bot1.command()
