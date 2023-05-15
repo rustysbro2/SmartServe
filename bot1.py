@@ -120,14 +120,11 @@ async def on_message(message):
     if message.guild.id not in increments:
         print("Guild ID not in increments")
 
-    # Rest of the code...
-
-
-    # Rest of the code...
 
 
 
-    increment = increments[message.guild.id]
+
+    increment = increments.get(message.guild.id, 1)
     last_counter = last_counters.get(message.guild.id)
 
     content = message.content.strip()
