@@ -85,7 +85,7 @@ async def on_message(message):
                 high_scores[message.guild.id] = result
         else:
             print(f"[DEBUG] Invalid count message ({message.content}) in guild ({message.guild.id})")  # Debug message
-            await handle_count_failure(message, increment, result)
+            await handle_failure(message, increment, result)
 
     await bot1.process_commands(message)
 
