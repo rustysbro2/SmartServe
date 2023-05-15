@@ -69,12 +69,33 @@ def check_counting_message(message, content, increment, last_counter):
 
 
 async def handle_invalid_count(message, increment, last_counter):
-    if last_counter is None:
-        next_number = increment
+    if isinstance(last_counter, str):
+        await message.add_reaction("❌")
+        await message.channel.send(last_counter)
     else:
-        next_number = int(last_counter) + increment
-    await message.add_reaction("❌")
-    await message.channel.send(f"Invalid count. The next number should be {next_number}.")
+        if last_counter is None:
+            next_number = increment
+        else:
+            next_number = int(last_counter) + increment
+        await message.add_reaction("❌")
+        await message.channel.send(f"Invalid count. The next number should be {next_number}.")
+
+        counting_channel_id = counting_channels[message.guild.id]
+        counting_channel = bot1.get_channel(counting_channel_id)
+        overwrites = {
+            message.guild.default_role: discord.PermissionOverwrite(send_messages=False),
+            message.guild.me: discord.PermissionOverwrite(send_messages=True)
+        }
+
+        await counting_channel.purge(limit=None)
+        await counting_channel.edit(name="counting", overwrites=overwrites)
+
+        last_counters[message.guild.id] = None
+        high_scores[message.guild.id] = 0
+
+        await counting_channel.send(f"The counting starts at {increment}. Good luck!")
+        save_data()
+
 
 
 @bot1.command()
@@ -127,6 +148,7 @@ async def on_message(message):
         await handle_invalid_count(message, increment, result)
 
     await bot1.process_commands(message)
+
 
 
 @bot1.command()
