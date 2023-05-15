@@ -35,8 +35,10 @@ async def check_counting_message(message, content, increment, last_counter):
         count = eval(content)
         if last_counter is None:
             if count == increment:
+                print(f"[DEBUG] First count ({count}) is correct.")  # Debug message
                 return True, count
             else:
+                print(f"[DEBUG] First count ({count}) is incorrect.")  # Debug message
                 return False, "Invalid count"
         elif count == last_counter + increment:
             return True, count
@@ -44,6 +46,7 @@ async def check_counting_message(message, content, increment, last_counter):
             return False, "Invalid count"
     except Exception as e:
         return False, "Invalid count"
+
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
