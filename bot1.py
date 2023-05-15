@@ -60,13 +60,13 @@ def evaluate_expression(expression):
 def check_counting_message(content, increment, last_counter):
     try:
         number = int(content)
-        if number == last_counter + increment:
+        if last_counter is None or number == last_counter + increment:
             return True, number
         else:
             return False, f"The next number should be {last_counter + increment}."
     except ValueError:
         result = evaluate_expression(content)
-        if result is not None and result == last_counter + increment:
+        if result is not None and (last_counter is None or result == last_counter + increment):
             return True, result
         else:
             return False, f"The next number should be {last_counter + increment}."
