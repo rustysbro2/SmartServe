@@ -209,6 +209,13 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
 
     await guild.create_text_channel(name=channel_name, category=category, topic=topic)
 
+ try:
+        old_channel = guild.get_channel(old_channel_id)
+        if old_channel:
+            await old_channel.delete()
+    except discord.HTTPException as e:
+        print(f"Error when deleting old counting channel: {e}")
+
     guild_data['count'] = {
         'increment': changed_increment,
         'last_counter': None,
