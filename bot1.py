@@ -13,7 +13,7 @@ bot1.remove_command("help")
 if os.path.isfile('bot_data.json'):
     with open('bot_data.json') as f:
         data = json.load(f)
-        counting_channels = {int(guild_id): channel_id for guild_id, channel_id in data['counting_channels'].items()}
+        counting_channels = {int(guild_id): int(channel_id) for guild_id, channel_id in data['counting_channels'].items()}  # change here
         increments = data['increments']
         last_counters = data['last_counters']
         high_scores = data['high_scores']
@@ -26,24 +26,10 @@ else:
     last_counter_users = {}
 
 
-allowed_operators = {
-    ast.Add: operator.add,
-    ast.Sub: operator.sub,
-    ast.Mult: operator.mul,
-    ast.Div: operator.truediv,
-    ast.FloorDiv: operator.floordiv,
-    ast.Mod: operator.mod,
-    ast.Pow: operator.pow,
-    ast.BitXor: operator.xor,
-    ast.USub: operator.neg,
-    ast.UAdd: operator.pos
-}
-
-
 def save_data():
     with open('bot_data.json', 'w') as f:
         json.dump({
-            'counting_channels': {str(guild_id): channel_id for guild_id, channel_id in counting_channels.items()},
+            'counting_channels': {str(guild_id): str(channel_id) for guild_id, channel_id in counting_channels.items()},  # change here
             'increments': increments,
             'last_counters': last_counters,
             'high_scores': high_scores,
@@ -51,41 +37,9 @@ def save_data():
         }, f)
 
 
-def check_counting_message(content, increment, last_counter):
-    try:
-        number = int(content)
-    except ValueError:
-        return False, "Your message should only contain a valid number."
-
-    if last_counter is None:
-        if number == increment:
-            return True, number
-        else:
-            return False, f"Invalid count. The next number should be {increment}."
-    elif number == last_counter + increment:
-        return True, number
-    else:
-        return False, f"Invalid count. The next number should be {last_counter + increment}."
-
-
-async def handle_invalid_count(message, increment, last_counter):
-    if isinstance(last_counter, str):
-        print("Adding cross reaction")
-        await message.add_reaction("❌")
-        await message.channel.send(last_counter)
-    else:
-        if last_counter is None:
-            next_number = increment
-        else:
-            next_number = int(last_counter) + increment
-        print("Adding cross reaction")
-        await message.add_reaction("❌")
-        await message.channel.send(f"Invalid count. The next number should be {next_number}.")
-
-
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
-    counting_channels[ctx.guild.id] = str(channel.id)
+    counting_channels[ctx.guild.id] = channel.id  # change here
     increments[ctx.guild.id] = 1
     last_counters[ctx.guild.id] = None
     high_scores[ctx.guild.id] = 0
@@ -116,12 +70,10 @@ async def on_message(message):
         increment = increments[message.guild.id]
         last_counter = last_counters.get(message.guild.id)  # Get the last counter for the guild, or None if not found
     else:
-        print(f"[DEBUG] Guild ID {message.guild.id} not in increments.")
         return  # Return if counting channel is not set for the guild
 
-    counting_channel_id = counting_channels.get(str(message.guild.id))
-    if counting_channel_id != str(message.channel.id):
-        print(f"[DEBUG] Channel ID {message.channel.id} not equal to counting_channel_id {counting_channel_id}")
+    counting_channel_id = counting_channels.get(message.guild.id)  # change here
+    if counting_channel_id != message.channel.id:  # change here
         return  # Return if the message is not in the counting channel
 
     print(f"[DEBUG] Checking count message ({message.content}) in guild ({message.guild.id})")  # Debug message
