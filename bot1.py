@@ -184,7 +184,7 @@ async def reset_counting_channel(guild, failure_reason, current_count, increment
 
     await guild.create_text_channel(name=channel_name, category_id=category_id, overwrites=overwrites, topic=topic)
 
-        guild_data['count'] = {
+    guild_data['count'] = {
         'increment': changed_increment,
         'last_counter': None,
         'high_score': 0,
