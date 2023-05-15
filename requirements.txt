@@ -1,4 +1,4 @@
 asyncio
 discord.pi
 ast
-openstor
+operator
