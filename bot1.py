@@ -11,11 +11,13 @@ bot1.remove_command("help")
 if os.path.isfile('bot_data.json'):
     with open('bot_data.json') as f:
         data = json.load(f)
+        print("Loaded data:", data)  # Add this line
         counting_channels = {int(guild_id): channel_id for guild_id, channel_id in data['counting_channels'].items()}
         increments = data['increments']
         last_counters = data['last_counters']
         high_scores = data['high_scores']
         last_counter_users = data['last_counter_users']
+
 else:
     counting_channels = {}
     increments = {}
