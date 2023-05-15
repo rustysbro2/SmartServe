@@ -49,9 +49,20 @@ def load_data():
     global guilds
     if os.path.isfile('bot_data.json'):
         with open('bot_data.json') as f:
-            guilds = json.load(f)
+            data = json.load(f)
+            guilds = {
+                int(guild_id): {
+                    key: value if key != 'counting_channel' else {
+                        k: v if k != 'id' else int(v)
+                        for k, v in value.items()
+                    }
+                    for key, value in data.get(str(guild_id), {}).items()
+                }
+                for guild_id in data
+            }
     else:
         guilds = {}
+
 
 
 
