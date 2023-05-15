@@ -4,7 +4,7 @@ import os
 
 intents = discord.Intents.default()
 intents.messages = True
-bot1 = commands.Bot(command_prefix="!"
+bot1 = commands.Bot(command_prefix="!", intents=intents)
 
 counting_channels = {}
 increments = {}
