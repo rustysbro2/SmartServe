@@ -166,9 +166,12 @@ async def on_message(message):
             await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
         return
 
-    # Check if the current user has counted twice in a row within the same game
-    if last_counter_user == message.author.id:
-        await message.channel.send("You cannot count twice in a row within the same game.")
+    # Check if the current user has counted twice in a row
+    if last_counter == int(content) and last_counter_user == message.author.id:
+        await message.channel.send("You cannot count twice in a row. The game failed.")
+        count_data['last_counter'] = None
+        count_data['last_counter_user'] = None
+        save_data()
         return
 
     # Check for failure scenarios
