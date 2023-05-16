@@ -55,6 +55,7 @@ async def set_channel(ctx, channel: discord.TextChannel):
 
 
 
+
 @bot.command()
 async def increment(ctx, incr: int):
     guild_id = ctx.guild.id
@@ -175,36 +176,30 @@ async def on_message(message):
 
 
 
-async def fail_game(reason, message, channel_id, increment):
-    guild_id = message.guild.id
+async def fail_game(reason, message, guild_id, increment):
     mycursor = get_cursor(guild_id)
 
     # Retrieve the cursor object using get_cursor()
     mycursor = get_cursor(guild_id)
 
     # Reset channel, count, last_user in the database
-    mycursor.execute("REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)", ('channel', str(channel_id), str(guild_id)))
+    mycursor.execute("REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)", ('channel', str(mydb[guild_id]['channel_id']), str(guild_id)))
     mycursor.execute("REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)", ('count', '0', str(guild_id)))
     mycursor.execute("REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)", ('last_user', '0', str(guild_id)))
     mydb[guild_id].commit()
 
-    print(f"Creating channel with id: {channel_id}")  # Debug statement
-
     # Create a new channel and send the failure message
-    channel = bot.get_channel(channel_id)
+    channel = bot.get_channel(mydb[guild_id]['channel_id'])
     if channel is not None:
         category = channel.category
-        overwrites = channel.overwrites
-        print(f"Category: {category}")  # Debug statement
-        print(f"Overwrites: {overwrites}")  # Debug statement
-
-        new_channel = await message.guild.create_text_channel(channel.name, category=category, overwrites=overwrites)
+        new_channel = await message.guild.create_text_channel(channel.name, category=category, overwrites=channel.overwrites)
         await channel.delete()  # Delete the old channel
         await new_channel.send(
             f'Game ended! Reason: {reason}\nFailed message: {message.content}\nIncrement was: {increment}'
         )
     else:
         logging.error(f"Failed to create a new channel. Channel is None.")
+
 
 
 
