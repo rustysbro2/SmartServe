@@ -176,7 +176,9 @@ async def fail_game(reason, message, channel):
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
     channel_id = int(mycursor.fetchone()[0])
+    print("Fetched channel_id:", channel_id)  # Add this line for debugging
     channel = bot.get_channel(channel_id)
+    print("Fetched channel:", channel)  # Add this line for debugging
 
     # Check if the channel is not None before accessing its attributes
     if channel is not None:
@@ -194,6 +196,7 @@ async def fail_game(reason, message, channel):
         mydb[guild_id].commit()
     else:
         logging.error(f"Failed to create a new channel. Channel is None.")
+
 
 
 bot.run(bot_token)
