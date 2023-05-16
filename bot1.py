@@ -141,13 +141,14 @@ async def on_message(message):
             save_data()  # Save the data after updating the values
         else:
             await reset_counting_channel(
-                message.guild,
+                message.guild,  # pass the guild object here
                 counting_channel,
                 f"The first number should be {increment}.",
                 content,
                 increment,
                 changed_increment=count_data.get('increment', increment),
             )
+
         return
 
     # Check if the counting message is valid
@@ -156,14 +157,13 @@ async def on_message(message):
     if not is_valid or message.author.id == last_counter_user:
         # Send failure message and reset counting channel
         if message.author.id == last_counter_user:
-            mention = guild.get_member(last_counter_user).mention
+            mention = message.guild.get_member(last_counter_user).mention
             failure_reason = f"{mention} failed. You cannot count twice in a row."
         else:
             failure_reason = f"The first number should be {increment}."
 
         new_channel = await reset_counting_channel(
-            message.guild,
-            guild,
+            message.guild,  # pass the guild object here
             counting_channel,
             failure_reason,
             content,
