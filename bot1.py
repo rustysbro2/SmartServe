@@ -40,8 +40,8 @@ async def increment(ctx, incr: int):
 
 
 @bot.event
-async def on_message(message):  
-    await bot.process_commands(message) 
+async def on_message(message):
+    await bot.process_commands(message)
     if message.author == bot.user:
         return
 
@@ -49,6 +49,8 @@ async def on_message(message):
     channel_id = mycursor.fetchone()
     if channel_id is None or message.channel.id != int(channel_id[0]):
         return
+
+    mycursor.fetchall()  # Discard any pending results
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
     result = mycursor.fetchone()
@@ -77,6 +79,7 @@ async def on_message(message):
         high_score = int(result[0])
     else:
         high_score = 0  # default value, adjust as needed
+
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
             if message.author.id == last_user:
@@ -96,6 +99,7 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
 async def fail_game(reason, message):
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
