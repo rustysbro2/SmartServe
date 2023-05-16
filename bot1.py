@@ -152,7 +152,7 @@ async def on_message(message):
     # Check if the counting message is valid
     is_valid, failure_reason = check_counting_message(content, increment, last_counter)
 
-    if not is_valid or message.author.id == last_counter_user:
+    if not is_valid or int(content) == last_counter:
         # Send failure message and reset counting channel
         if message.author.id == last_counter_user:
             failure_reason = "You cannot count twice in a row."
@@ -207,12 +207,15 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
     new_channel = await old_channel.clone(reason="Counting channel reset")
     await old_channel.delete(reason="Counting channel reset")
 
-    guild_data = guilds.get(guild.id)
+    guild_data = guilds.get(str(guild.id))
     guild_data['counting_channel']['id'] = new_channel.id
     guild_data['count']['increment'] = changed_increment
     guild_data['count']['last_counter'] = None
+    guild_data['count']['last_counter_user'] = None  # Reset the last_counter_user as well
     save_data()
+
     return new_channel
+
 
 
 @bot1.command()
