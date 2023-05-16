@@ -1,4 +1,28 @@
-import discord
+@bot.event
+async def on_ready():
+    print('Bot is ready.')
+
+    # Connect to the database
+    connection = mysql.connector.connect(
+        host="na03-sql.pebblehost.com",
+        user="customer_491521_counting",
+        password="-se$R-7q9x$O-a5UMA#A",
+        database="customer_491521_counting"
+    )
+
+    # Store the connection using the bot instance as the key
+    mydb[bot] = connection
+
+    # Create the GameData table if it doesn't exist
+    create_game_data_table(connection)def get_cursor(guild_id):
+    if guild_id not in mydb:
+        # Get the connection using the bot instance as the key
+        connection = mydb[bot]
+
+        # Store the connection using the guild ID as the key
+        mydb[guild_id] = connection
+
+    return mydb[guild_id].cursor()import discord
 from discord.ext import commands
 import mysql.connector
 import logging
@@ -44,15 +68,26 @@ async def on_ready():
     print('Bot is ready.')
 
     # Connect to the database
-    mydb[bot] = mysql.connector.connect(
+    connection = mysql.connector.connect(
         host="na03-sql.pebblehost.com",
         user="customer_491521_counting",
         password="-se$R-7q9x$O-a5UMA#A",
         database="customer_491521_counting"
     )
 
+    # Store the connection using the bot instance as the key
+    mydb[bot] = connection
+
     # Create the GameData table if it doesn't exist
-    create_game_data_table(mydb[bot])  # Use bot as the key
+    create_game_data_table(connection)def get_cursor(guild_id):
+    if guild_id not in mydb:
+        # Get the connection using the bot instance as the key
+        connection = mydb[bot]
+
+        # Store the connection using the guild ID as the key
+        mydb[guild_id] = connection
+
+    return mydb[guild_id].cursor()
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
@@ -145,12 +180,12 @@ async def on_message(message):
 
 def get_cursor(guild_id):
     if guild_id not in mydb:
-        mydb[guild_id] = mysql.connector.connect(
-            host="na03-sql.pebblehost.com",
-            user="customer_491521_counting",
-            password="-se$R-7q9x$O-a5UMA#A",
-            database="customer_491521_counting"
-        )
+        # Get the connection using the bot instance as the key
+        connection = mydb[bot]
+
+        # Store the connection using the guild ID as the key
+        mydb[guild_id] = connection
+
     return mydb[guild_id].cursor()
 
 
