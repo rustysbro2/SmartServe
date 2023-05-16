@@ -102,8 +102,6 @@ def get_cursor(guild_id):
 
 @bot.event
 async def on_message(message):
-    await bot.process_commands(message)
-
     if message.author == bot.user:
         return
 
@@ -113,6 +111,7 @@ async def on_message(message):
     mycursor.execute("SELECT value FROM GameData WHERE name = 'channel' AND guild = %s", (guild_id,))
     channel_id = mycursor.fetchone()
     if channel_id is None or message.channel.id != int(channel_id[0]):
+        print(f"Invalid channel. Expected: {channel_id[0]}. Actual: {message.channel.id}")
         return
 
     mycursor.fetchall()  # Consume unread results
@@ -144,36 +143,26 @@ async def on_message(message):
         high_score = int(high_score_result[0])
     else:
         high_score = 0  # default value, adjust as needed
+
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
             if message.author.id == last_user:
-                await fail_game('You cannot post twice in a row!', message)
+                await fail_game('You cannot post twice in a row!', message, message.channel)
                 return
 
-            try:
-                await message.add_reaction('✅')
-            except Exception as e:
-                logging.error(f"Failed to add reaction: {e}")
-
+            await message.add_reaction('✅')
             count += increment
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
-
             if count > high_score:
-                try:
-                    await message.add_reaction('🏆')
-                except Exception as e:
-                    logging.error(f"Failed to add reaction: {e}")
-
                 high_score = count
                 mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
-
+                await message.add_reaction('🏆')
             mydb[guild_id].commit()
         else:
-            await fail_game('Invalid number!', message)
+            await fail_game('Invalid number!', message, message.channel)
     except Exception as e:
-        print(f"Error: {e}")
-        await fail_game(f'Unexpected error: {e}', message)
+        await fail_game(f'Unexpected error: {e}', message, message.channel
 
 
 
@@ -191,7 +180,9 @@ async def on_message(message):
 
 
 
-async def fail_game(reason, message):
+async def fail_game(reason, message, channel):
+    # Rest of the code
+
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
 
