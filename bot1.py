@@ -6,7 +6,24 @@ import math
 
 bot_token = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY'
 intents = discord.Intents.default()
-intents.message_content = True
+intents.typing = False
+intents.presences = False
+intents.messages = True
+intents.guilds = True
+intents.reactions = True
+intents.bans = False
+intents.emojis = False
+intents.integrations = False
+intents.webhooks = False
+intents.invites = False
+intents.voice_states = False
+intents.presences = False
+intents.guild_messages = True
+intents.dm_messages = False
+intents.guild_reactions = True
+intents.dm_reactions = False
+intents.guild_typing = False
+intents.dm_typing = False
 bot = commands.Bot(command_prefix='$', intents=intents)
 
 
