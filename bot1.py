@@ -91,6 +91,19 @@ async def set_channel(ctx, channel: discord.TextChannel):
     await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
 
+@bot1.command()
+async def increment(ctx, value: int):
+    guild_id = str(ctx.guild.id)
+    guild_data = guilds.get(guild_id)
+    if guild_data is not None:
+        count_data = guild_data.get('count')
+        if count_data is not None:
+            old_increment = count_data.get('increment')
+            count_data['increment'] = value
+            save_data()
+            await ctx.send(f"The counting increment has been changed from {old_increment} to {value}.")
+        else:
+            await ctx.send("The counting channel has not been set. Use the `set_channel` command first.")
 
 @bot1.event
 async def on_message(message):
@@ -152,7 +165,7 @@ async def on_message(message):
             mention = message.guild.get_member(last_counter_user).mention if last_counter_user else "Unknown User"
             failure_reason = f"{mention} failed. {failure_reason}"
         else:
-            failure_reason = f"The next number should be {increment}."
+            failure_reason = f"The next number should be {last_counter + increment}."
 
         new_channel = await reset_counting_channel(
             message.guild,
@@ -168,64 +181,38 @@ async def on_message(message):
                 embed = discord.Embed(title="Counting Failure", color=0xFF0000)
                 embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
                 embed.add_field(name="Your Count", value=content, inline=False)
-                embed.add_field(name="Old Increment", value=increment, inline=False)
-                embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
-                if last_counter_user:
-                    last_counter_user = message.guild.get_member(last_counter_user)
-                    mention = last_counter_user.mention if last_counter_user else "Unknown User"
-                    embed.add_field(name="Failed By", value=mention, inline=False)
+                embed.add_field(name="Increment", value=f"Increment: {count_data.get('increment', increment)}", inline=False)
                 await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
             count_data['last_counter'] = None
             count_data['last_counter_user'] = None
             save_data()  # Save the data after resetting the counting channel
 
-        return
-    
-    # Valid counting message
-    count_data['last_counter'] = int(content)
-    count_data['last_counter_user'] = message.author.id
-    if int(content) > count_data.get('high_score', 0):
-        count_data['high_score'] = int(content)
-    save_data()  # Save the data after updating the values
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    else:
+        # Valid counting message
+        count_data['last_counter'] = int(content)
+        count_data['last_counter_user'] = message.author.id
+        if int(content) > count_data.get('high_score', 0):
+            count_data['high_score'] = int(content)
+        save_data()  # Save the data after updating the values
+        await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
-    # Valid counting message
-    count_data['last_counter'] = int(content)
-    count_data['last_counter_user'] = message.author.id
-    if int(content) > count_data.get('high_score', 0):
-        count_data['high_score'] = int(content)
-    save_data()  # Save the data after updating the values
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
-
-    # Get the member object of the last counter user
-    last_counter_user_id = count_data.get('last_counter_user')
-    if last_counter_user_id is not None:
-        last_counter_user = message.guild.get_member(int(last_counter_user_id))
-        if last_counter_user is not None:
-            mention = last_counter_user.mention
+        # Get the member object of the last counter user
+        last_counter_user_id = count_data.get('last_counter_user')
+        if last_counter_user_id is not None:
+            last_counter_user = message.guild.get_member(int(last_counter_user_id))
+            if last_counter_user is not None:
+                mention = last_counter_user.mention
+                embed.add_field(name="Failed By", value=f"{mention} ({last_counter_user})", inline=False)
+            else:
+                mention = "Unknown User"
+                embed.add_field(name="Failed By", value=mention, inline=False)
         else:
             mention = "Unknown User"
-    else:
-        mention = "Unknown User"
-
-    # Send success message and update high score
-    if int(content) > count_data.get('high_score', 0):
-        count_data['high_score'] = int(content)
-        await message.channel.send(f"New high score! {trophy_emoji}\nCongratulations, {mention}! You have set a new high score of {content} in the counting game.")
-
-    # Check if the counting channel should be reset
-    if (int(content) + 1) % 1000 == 0:
-        new_channel = await reset_counting_channel(
-            message.guild,
-            counting_channel,
-            "The counting channel has reached a milestone. Resetting...",
-            content,
-            increment,
-            changed_increment=count_data.get('increment', increment),
-        )
-        if new_channel is not None:
-            await new_channel.send(f"The counting channel has reached a milestone. Starting again from {content + increment}. Good luck!")
+            embed.add_field(name="Failed By", value=mention, inline=False)
+        
+        # Send the failure message as an embed in the new channel
+        await new_channel.send(embed=embed)
 
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
     old_channel = guild.get_channel(counting_channel['id'])
@@ -278,4 +265,4 @@ async def highscore(ctx):
         await ctx.send(f"The high score is {high_score}")
 
 
-bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
+bot1.run('MTEwNTU5ODczNjUwMjM0Mzc5.DsD-rw.zyBtOMUhP9lIK50toeR53EgTRK4')
