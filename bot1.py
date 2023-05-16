@@ -101,8 +101,6 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
-    await bot1.process_commands(message)  # Process commands first
-
     if message.author == bot1.user:
         return
 
@@ -151,42 +149,52 @@ async def on_message(message):
 
         return
 
-   # Check if the counting message is valid
-is_valid, failure_reason = check_counting_message(content, increment, last_counter)
+    # Check if the counting message is valid
+    is_valid, failure_reason = check_counting_message(content, increment, last_counter)
 
-if not is_valid or message.author.id == last_counter_user:
-    # Send failure message and reset counting channel
-    if message.author.id == last_counter_user:
-        failed_by_user = message.guild.get_member(last_counter_user)
-        failure_reason = f"{failed_by_user.mention} failed. You cannot count twice in a row."
+    if not is_valid or message.author.id == last_counter_user:
+        # Send failure message and reset counting channel
+        if message.author.id == last_counter_user:
+            failed_by_user = message.guild.get_member(last_counter_user)
+            failure_reason = f"{failed_by_user.mention} failed. You cannot count twice in a row."
+        else:
+            failure_reason = f"The first number should be {increment}."
+
+        new_channel = await reset_counting_channel(
+            message.guild,  # pass the guild object here
+            counting_channel,
+            failure_reason,
+            content,
+            increment,
+            changed_increment=count_data.get('increment', increment),
+        )
+
+        if new_channel is not None:
+            if last_counter is None:
+                embed = discord.Embed(title="Counting Failure", color=discord.Color.red())
+                embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+                embed.add_field(name="Your Count", value=content, inline=False)
+                embed.add_field(name="Old Increment", value=increment, inline=False)
+                embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
+                failed_by_user = message.guild.get_member(count_data.get('last_counter_user'))
+                failed_by = f"{failed_by_user.mention} ({failed_by_user})" if failed_by_user else "Unknown User"
+                embed.add_field(name="Failed By", value=failed_by, inline=False)
+                await new_channel.send(content=f"{failed_by_user.mention} Counting Failure", embed=embed)
+
+            count_data['last_counter'] = None
+            count_data['last_counter_user'] = None
+            save_data()  # Save the data after resetting the counting channel
+
     else:
-        failure_reason = f"The first number should be {increment}."
-
-    new_channel = await reset_counting_channel(
-        message.guild,  # pass the guild object here
-        counting_channel,
-        failure_reason,
-        content,
-        increment,
-        changed_increment=count_data.get('increment', increment),
-    )
+        # Valid counting message
+        count_data['last_counter'] = int(content)
+        count_data['last_counter_user'] = message.author.id
+        if int(content) > count_data.get('high_score',0):
+        count_data['high_score'] = int(content)
+        save_data() # Save the data after updating the values
+        await message.add_reaction('✅') # Add a reaction to the valid counting message
 
 
-    if new_channel is not None:
-        if last_counter is None:
-            embed = discord.Embed(title="Counting Failure", color=discord.Color.red())
-            embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-            embed.add_field(name="Your Count", value=content, inline=False)
-            embed.add_field(name="Old Increment", value=increment, inline=False)
-            embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
-            failed_by_user = message.guild.get_member(count_data.get('last_counter_user'))
-            failed_by = f"{failed_by_user.mention} ({failed_by_user})" if failed_by_user else "Unknown User"
-            embed.add_field(name="Failed By", value=failed_by, inline=False)
-            await new_channel.send(content=f"{failed_by_user.mention} Counting Failure", embed=embed)
-
-        count_data['last_counter'] = None
-        count_data['last_counter_user'] = None
-        save_data()  # Save the data after resetting the counting channel
 
 
 
