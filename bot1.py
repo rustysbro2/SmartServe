@@ -36,7 +36,7 @@ async def increment(ctx, incr: int):
     mydb.commit()
     await ctx.send(f'Increment set to: {incr}')
 
-@bot.event
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
