@@ -42,7 +42,7 @@ async def set_channel(ctx, channel: discord.TextChannel):
     channel_id = channel.id
     mycursor = get_cursor(guild_id)
     mycursor.execute(
-        f"INSERT INTO GameData (name, value, guild) VALUES ('channel', {channel_id}, {guild_id}) ON DUPLICATE KEY UPDATE value={channel_id}")
+        f"INSERT INTO GameData (name, value, guild) VALUES ('channel', {channel_id}, {guild_id}) ON DUPLICATE KEY UPDATE value={channel_id}, guild={guild_id}")
     mydb[guild_id].commit()
     logging.info(f'Successfully set channel id {channel_id} for guild {guild_id}')
     await ctx.send(f'Successfully set channel to {channel.mention}')
