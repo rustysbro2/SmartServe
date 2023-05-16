@@ -6,7 +6,9 @@ import math
 
 bot_token = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY'
 intents = discord.Intents.default()
+intents.message_content = True
 bot = commands.Bot(command_prefix='$', intents=intents)
+
 
 mydb = mysql.connector.connect(
   host="na03-sql.pebblehost.com",
