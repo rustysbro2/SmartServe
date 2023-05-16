@@ -151,7 +151,8 @@ def get_cursor(guild_id):
         # Store the connection using the guild ID as the key
         mydb[guild_id] = connection
 
-    return mydb[guild_id].cursor()
+    return mydb[guild_id].cursor(buffered=True)
+
 
 
 async def fail_game(reason, message):
