@@ -72,7 +72,7 @@ async def increment(ctx, incr: int):
     mydb.commit()
     await ctx.send(f'Increment set to: {incr}')
 
-@bo1.event
+@bot.event
 async def on_message(message):
     await bot.process_commands(message)
 
