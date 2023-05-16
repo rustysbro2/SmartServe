@@ -177,11 +177,15 @@ async def on_message(message):
                 embed.add_field(name="Your Count", value=content, inline=False)
                 embed.add_field(name="Old Increment", value=increment, inline=False)
                 embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
-                await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
+                last_counter_user = guild.get_member(count_data['last_counter_user'])
+                if last_counter_user is not None:
+                    embed.add_field(name="Failed By", value=last_counter_user.mention, inline=False)
+                await new_channel.send(content="Counting Failure", embed=embed)  # Send the failure message as an embed in the new channel
 
             count_data['last_counter'] = None
             count_data['last_counter_user'] = None
             save_data()  # Save the data after resetting the counting channel
+
 
 
         return
