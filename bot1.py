@@ -45,6 +45,15 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
+    mydb.close()
+    mydb = mysql.connector.connect(
+        host="na03-sql.pebblehost.com",
+        user="customer_491521_counting",
+        password="-se$R-7q9x$O-a5UMA#A",
+        database="customer_491521_counting"
+    )
+    mycursor = mydb.cursor()
+
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
     channel_id = mycursor.fetchone()
     if channel_id is None or message.channel.id != int(channel_id[0]):
@@ -97,6 +106,8 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
+    mydb.close()
 
 
 
