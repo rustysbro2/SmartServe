@@ -104,6 +104,10 @@ async def on_message(message):
 
     guild_id = message.guild.id
     guild_data = guilds.get(guild_id)
+
+    if guild_data is None:
+        guild_data = {}  # Initialize with an empty dictionary if guild_data is None
+
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
 
@@ -111,12 +115,8 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    increment = count_data.get('increment')
-    last_counter = count_data.get('last_counter')
+    # Rest of your code...
 
-    if increment is None:
-        await bot1.process_commands(message)
-        return
 
     content = message.content.strip()
 
