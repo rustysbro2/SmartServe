@@ -8,17 +8,10 @@ logging.basicConfig(level=logging.DEBUG)
 bot_token = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY'
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
-mydb = None
+mydb = {}
 
 @bot.event
 async def on_ready():
-    global mydb  # Access the global mydb variable
-    mydb = mysql.connector.connect(
-        host="na03-sql.pebblehost.com",
-        user="customer_491521_counting",
-        password="-se$R-7q9x$O-a5UMA#A",
-        database="customer_491521_counting"
-    )
     print('Bot is ready.')
 
 @bot.command()
@@ -37,15 +30,15 @@ async def increment(ctx, incr: int):
     mydb.commit()
     await ctx.send(f'Increment set to: {incr}')
 
-@bot.event
 async def on_message(message):
     await bot.process_commands(message)
     if message.author == bot.user:
         return
 
-    mycursor = mydb.cursor()
+    guild_id = message.guild.id
+    mycursor = get_cursor(guild_id)
 
-    mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
+    mycursor.execute("SELECT value FROM GameData WHERE name = 'channel' AND guild = %s", (guild_id,))
     channel_id = mycursor.fetchone()
     if channel_id is None or message.channel.id != int(channel_id[0]):
         mycursor.fetchall()  # ensure all results are fetched
@@ -98,6 +91,16 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
+def get_cursor(guild_id):
+    if guild_id not in mydb:
+        mydb[guild_id] = mysql.connector.connect(
+            host="na03-sql.pebblehost.com",
+            user="customer_491521_counting",
+            password="-se$R-7q9x$O-a5UMA#A",
+            database="customer_491521_counting"
+        )
+    return mydb[guild_id].cursor()
 
 
 async def fail_game(reason, message):
