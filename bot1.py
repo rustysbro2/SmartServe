@@ -172,7 +172,11 @@ async def fail_game(reason, message):
         mycursor.fetchall()
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
-    increment = int(mycursor.fetchone()[0])
+    increment_result = mycursor.fetchone()
+    if increment_result is not None:
+        increment = int(increment_result[0])
+    else:
+        increment = 1  # default value if increment is not found
 
     await channel.delete(reason='Game ended.')
     new_channel = await channel.category.create_text_channel(channel.name)
@@ -181,6 +185,7 @@ async def fail_game(reason, message):
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', '0'))
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', '0'))
     mydb[guild_id].commit()
+
 
 
 
