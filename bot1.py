@@ -140,19 +140,28 @@ async def on_message(message):
                 await fail_game('You cannot post twice in a row!', message)
                 return
 
-            await message.add_reaction('✅')
+            # Fetch the message object using its ID
+            channel = message.channel
+            fetched_message = await channel.fetch_message(message.id)
+
+            # Add the reactions to the fetched message
+            await fetched_message.add_reaction('✅')
+            if count > high_score:
+                high_score = count
+                await fetched_message.add_reaction('🏆')
+
             count += increment
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
             if count > high_score:
                 high_score = count
                 mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
-                await message.add_reaction('🏆')
             mydb[guild_id].commit()
         else:
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
  
 
