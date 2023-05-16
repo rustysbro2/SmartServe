@@ -106,6 +106,8 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
+    await bot1.process_commands(message)  # Process commands first
+
     if message.author == bot1.user:
         return
 
@@ -122,7 +124,6 @@ async def on_message(message):
     count_data = guild_data.get('count')
 
     if counting_channel is None or counting_channel['id'] != message.channel.id:
-        await bot1.process_commands(message)
         return
 
     increment = count_data.get('increment')
@@ -130,7 +131,6 @@ async def on_message(message):
     last_counter_user = count_data.get('last_counter_user')
 
     if increment is None:
-        await bot1.process_commands(message)
         return
 
     content = message.content.strip()
