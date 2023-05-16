@@ -38,7 +38,8 @@ async def increment(ctx, incr: int):
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message):  
+    await bot.process_commands(message) 
     if message.author == bot.user:
         return
 
@@ -78,8 +79,7 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
-        
-    await bot.process_commands(message)
+       
 
 
 
