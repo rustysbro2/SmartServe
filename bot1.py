@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import mysql.connector
 import logging
+import asyncio
+
 
 logging.basicConfig(level=logging.DEBUG)
 
