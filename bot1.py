@@ -123,8 +123,9 @@ async def on_message(message):
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
 
-    if counting_channel is None or counting_channel['id'] != message.channel.id:
+    if counting_channel is None or counting_channel.get('id') != message.channel.id:
         return
+
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
