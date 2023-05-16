@@ -160,7 +160,7 @@ async def fail_game(reason, message):
 
     # Consume unread results
     while mycursor.nextset():
-        pass
+        mycursor.fetchall()
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
     channel_id = int(mycursor.fetchone()[0])
@@ -168,7 +168,7 @@ async def fail_game(reason, message):
 
     # Consume unread results
     while mycursor.nextset():
-        pass
+        mycursor.fetchall()
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
     increment = int(mycursor.fetchone()[0])
