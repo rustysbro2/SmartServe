@@ -47,13 +47,17 @@ def create_game_data_table(connection):
 async def set_channel(ctx, channel: discord.TextChannel):
     guild_id = ctx.guild.id
     channel_id = channel.id
-    mycursor = get_cursor(guild_id)
+    connection = mydb[guild_id]  # Get the connection object
+    mycursor = get_cursor(connection)
     mycursor.execute(
-        f"REPLACE INTO GameData (name, value, guild) VALUES ('channel', {channel_id}, '{guild_id}')")
-    mydb[guild_id].commit()
-    logging.info(f'Successfully set channel id {channel_id} for guild {guild_id}')
+        "REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)",
+        ('channel', str(channel_id), str(guild_id))
+    )
+    connection.commit()
+    logging.info(f"Successfully set channel id {channel_id} for guild {guild_id}")
     mydb[guild_id]['channel_id'] = channel_id  # Update the channel_id in mydb
-    await ctx.send(f'Successfully set channel to {channel.mention}')
+    await ctx.send(f"Successfully set channel to {channel.mention}")
+
 
 
 
