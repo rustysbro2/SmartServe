@@ -36,24 +36,6 @@ def create_game_data_table(connection):
 
     cursor.close()
 
-
-
-
-@bot.event
-async def on_ready():
-    print('Bot is ready.')
-
-    # Connect to the database
-    mydb[bot] = mysql.connector.connect(
-        host="na03-sql.pebblehost.com",
-        user="customer_491521_counting",
-        password="-se$R-7q9x$O-a5UMA#A",
-        database="customer_491521_counting"
-    )
-
-    # Create the GameData table if it doesn't exist
-    create_game_data_table(mydb[bot])  # Use bot as the key
-
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     guild_id = ctx.guild.id
