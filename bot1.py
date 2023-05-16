@@ -89,19 +89,15 @@ async def on_ready():
 
 def get_cursor(guild_id):
     if guild_id not in mydb:
-        # Get the connection using the guild ID as the key
-        if guild_id in bot.guilds:
-            mydb[guild_id] = mysql.connector.connect(
-                host="na03-sql.pebblehost.com",
-                user="customer_491521_counting",
-                password="-se$R-7q9x$O-a5UMA#A",
-                database="customer_491521_counting",
-            )
-            mydb[guild_id].cursor(buffered=True)  # Create and return a cursor object
-        else:
-            return None
+        return None
 
-    return mydb[guild_id].cursor(buffered=True)
+    connection = mydb[guild_id]
+    if connection is None:
+        return None
+
+    cursor = connection.cursor(buffered=True)
+    return cursor
+
 
 
 
