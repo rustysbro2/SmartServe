@@ -1,3 +1,8 @@
+@bot1.event
+async def on_ready():
+    load_data()
+    print(f'{bot1.user} has connected to Discord!')
+    save_data()  # Save the data when the bot is ready
 import discord
 from discord.ext import commands
 import ast
@@ -45,6 +50,8 @@ def load_data():
 async def on_ready():
     load_data()
     print(f'{bot1.user} has connected to Discord!')
+    save_data()  # Save the data when the bot is ready
+
 
 def evaluate_expression(expression):
     try:
@@ -177,6 +184,7 @@ async def on_message(message):
         count_data['high_score'] = int(content)
     save_data()  # Save the data after updating the values
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 
