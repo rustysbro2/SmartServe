@@ -117,6 +117,7 @@ async def on_message(message):
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
+    last_counter_user = count_data.get('last_counter_user')
 
     if increment is None:
         await bot1.process_commands(message)
@@ -166,13 +167,19 @@ async def on_message(message):
 
         return
 
+    # Check if the same user is counting twice in a row
+    if message.author.id == last_counter_user:
+        await message.channel.send("You cannot count twice in a row.")  # Inform the user they can't count twice in a row
+        return
+
     # Valid counting message
     count_data['last_counter'] = int(content)
     count_data['last_counter_user'] = message.author.id
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()  # Save the data after updating the values
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    await message.add_reaction('✅') # Add a reaction to the valid counting message
+
 
 
 
