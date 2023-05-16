@@ -143,6 +143,9 @@ async def on_message(message):
 
     if not is_valid or message.author.id == last_counter_user:
         # Send failure message and reset counting channel
+        if message.author.id == last_counter_user:
+            failure_reason = "You cannot count twice in a row."
+
         embed = discord.Embed(title="Counting Failure", color=0xFF0000)
         embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
         embed.add_field(name="Your Count", value=content, inline=False)
@@ -174,6 +177,7 @@ async def on_message(message):
         count_data['high_score'] = int(content)
     save_data()  # Save the data after updating the values
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 
