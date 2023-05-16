@@ -146,7 +146,20 @@ async def on_message(message):
             save_data()  # Save the data after updating the values
         else:
             await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
-        return
+            new_channel = await reset_counting_channel(
+                message.guild,
+                counting_channel,
+                "Invalid starting number",
+                content,
+                increment,
+                changed_increment=count_data.get('increment', increment)
+            )
+
+            if new_channel is not None:
+                count_data['last_counter'] = None
+                count_data['last_counter_user'] = None
+                save_data()  # Save the data after resetting the counting channel
+                return
 
     # Check if the counting message is valid
     is_valid, failure_reason = check_counting_message(content, increment, last_counter)
@@ -180,13 +193,17 @@ async def on_message(message):
 
         return
 
-    # Valid counting message
-    count_data['last_counter'] = int(content)
-    count_data['last_counter_user'] = message.author.id
-    if int(content) > count_data.get('high_score', 0):
-        count_data['high_score'] = int(content)
-    save_data()  # Save the data after updating the values
-    await message.add_reaction('✅')  # Add a reaction to
+# Valid counting message
+count_data['last_counter'] = int(content)
+count_data['last_counter_user'] = message.author.id
+if int(content) > count_data.get('high_score', 0):
+    count_data['high_score'] = int(content)
+save_data()  # Save the data after updating the values
+await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
+
+
+
 
        
 
