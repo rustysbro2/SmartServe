@@ -84,6 +84,7 @@ def get_cursor(guild_id):
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
+     await bot.process_commands(message) 
         return
 
     guild_id = message.guild.id
