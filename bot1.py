@@ -89,6 +89,8 @@ def get_cursor(guild_id):
 
 @bot.event
 async def on_message(message):
+    await bot.process_commands(message)
+
     if message.author == bot.user:
         return
 
@@ -150,8 +152,7 @@ async def on_message(message):
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
 
-    # Process commands inside the on_message event
-    await bot.process_commands(message)
+ 
 
 
 
