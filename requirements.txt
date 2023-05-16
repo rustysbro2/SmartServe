@@ -1,4 +1,3 @@
-asyncio
-discord.py
-ast
-operator
+discord
+mysql.connector
+asyncio math
