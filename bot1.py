@@ -1,17 +1,14 @@
 import discord
 from discord.ext import commands
 import mysql.connector
-import asyncio
-import math
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-
 bot_token = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY'
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
-mydb= None
+mydb = None
 
 @bot.event
 async def on_ready():
@@ -24,24 +21,21 @@ async def on_ready():
     )
     print('Bot is ready.')
 
-
-
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     channel_id = channel.id
+    mycursor = mydb.cursor()
     mycursor.execute(f"INSERT INTO GameData (name, value) VALUES ('channel', {channel_id})")
     mydb.commit()
     logging.info(f'Successfully set channel id {channel_id}')
     await ctx.send(f'Successfully set channel to {channel.mention}')
 
-
 @bot.command()
 async def increment(ctx, incr: int):
+    mycursor = mydb.cursor()
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('increment', str(incr)))
     mydb.commit()
     await ctx.send(f'Increment set to: {incr}')
-
-
 
 @bot.event
 async def on_message(message):
@@ -105,10 +99,8 @@ async def on_message(message):
         await fail_game(f'Unexpected error: {e}', message)
 
 
-
-
-
 async def fail_game(reason, message):
+    mycursor = mydb.cursor()
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
     channel_id = int(mycursor.fetchone()[0])
     channel = bot.get_channel(channel_id)
@@ -125,9 +117,6 @@ async def fail_game(reason, message):
     mydb.commit()
 
 bot.run(bot_token)
-
-
-
 
 
 
