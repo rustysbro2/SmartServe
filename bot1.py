@@ -145,6 +145,7 @@ async def on_message(message):
                 f"The first number should be {increment}.",
                 content,
                 increment,
+                changed_increment=count_data.get('increment', increment),
             )
         return
 
@@ -156,13 +157,29 @@ async def on_message(message):
         if message.author.id == last_counter_user:
             failure_reason = "You cannot count twice in a row."
 
-        await reset_counting_channel(
+        new_channel = await reset_counting_channel(
             message.guild,
             counting_channel,
             failure_reason,
             content,
             increment,
+            changed_increment=count_data.get('increment', increment),
         )
+
+        if new_channel is not None:
+            if last_counter is None:
+                embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+                embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+                embed.add_field(name="Your Count", value=content, inline=False)
+                embed.add_field(name="Old Increment", value=increment, inline=False)
+                embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
+                embed.add_field(name="Failed By", value=message.author.mention, inline=False)
+                await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
+
+            count_data['last_counter'] = None
+            count_data['last_counter_user'] = None
+            save_data()  # Save the data after resetting the counting channel
+
         return
 
     # Valid counting message
@@ -171,7 +188,8 @@ async def on_message(message):
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()  # Save the data after updating the values
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    await message.add_reaction('✅') 
+
 
 
    
