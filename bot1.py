@@ -1,4 +1,12 @@
-import discord
+def get_cursor(guild_id):
+    if guild_id not in mydb:
+        # Get the connection using the guild ID as the key
+        connection = mydb[guild_id]
+
+        # Store the connection using the guild ID as the key
+        mydb[guild_id] = connection
+
+    return mydb[guild_id].cursor()import discord
 from discord.ext import commands
 import mysql.connector
 import logging
@@ -145,8 +153,8 @@ async def on_ready():
 
 def get_cursor(guild_id):
     if guild_id not in mydb:
-        # Get the connection using the bot instance as the key
-        connection = mydb[bot]
+        # Get the connection using the guild ID as the key
+        connection = mydb[guild_id]
 
         # Store the connection using the guild ID as the key
         mydb[guild_id] = connection
