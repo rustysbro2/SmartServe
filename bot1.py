@@ -94,7 +94,7 @@ def get_cursor(connection):
 
 
 
-@bot.event
+bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -103,7 +103,9 @@ async def on_message(message):
     await bot.process_commands(message)
 
     guild_id = message.guild.id
-    mycursor = get_cursor(guild_id)
+    connection = mydb[guild_id]  # Get the connection object
+
+    mycursor = get_cursor(connection) 
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
     channel_id_result = mycursor.fetchone()
