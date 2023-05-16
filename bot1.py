@@ -92,27 +92,21 @@ async def set_channel(ctx, channel: discord.TextChannel):
     save_data()
 
 
-@bot1.command()
-async def increment(ctx, num: int):
-    guild_id = ctx.guild.id
-    guilds[guild_id]['count']['increment'] = num
-    await ctx.send(f"Increment changed to {num}")
-    save_data()
-
 @bot1.event
 async def on_message(message):
+    await bot1.process_commands(message)  # Process commands first
+
     if message.author == bot1.user:
         return
 
-    if message.content.startswith('!'):  # Process command invocations
-        await bot1.process_commands(message)
+    if not isinstance(message.channel, discord.TextChannel):
         return
 
     guild_id = str(message.guild.id)
     guild_data = guilds.get(guild_id)
 
     if guild_data is None:
-        return
+        guild_data = {}  # Initialize with an empty dictionary if guild_data is None
 
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
@@ -129,10 +123,9 @@ async def on_message(message):
 
     content = message.content.strip()
 
-
     # Check for failure scenarios
     if last_counter is None:
-        if int(content) == increment:  # Check if the first number equals the increment
+        if content.isdigit() and int(content) == increment:  # Check if the first number equals the increment
             count_data['last_counter'] = int(content)
             count_data['last_counter_user'] = message.author.id
             if int(content) > count_data.get('high_score', 0):
@@ -156,11 +149,11 @@ async def on_message(message):
     if not is_valid or message.author.id == last_counter_user:
         # Send failure message and reset counting channel
         if message.author.id == last_counter_user:
-            mention = message.guild.get_member(last_counter_user).mention
+            mention = message.guild.get_member(last_counter_user).mention if last_counter_user else "Unknown User"
             failure_reason = f"{mention} failed. {failure_reason}"
         else:
             failure_reason = f"The first number should be {increment}."
-        
+
         new_channel = await reset_counting_channel(
             message.guild,
             counting_channel,
@@ -177,11 +170,10 @@ async def on_message(message):
                 embed.add_field(name="Your Count", value=content, inline=False)
                 embed.add_field(name="Old Increment", value=increment, inline=False)
                 embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
-                last_counter_user = count_data['last_counter_user']
-                if last_counter_user is not None:
-                    member = message.guild.get_member(last_counter_user)
-                    if member is not None:
-                        embed.add_field(name="Failed By", value=member.mention, inline=False)
+                if last_counter_user:
+                    last_counter_user = message.guild.get_member(last_counter_user)
+                    mention = last_counter_user.mention if last_counter_user else "Unknown User"
+                    embed.add_field(name="Failed By", value=mention, inline=False)
                 await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
             count_data['last_counter'] = None
