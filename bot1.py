@@ -156,7 +156,10 @@ async def on_message(message):
     if not is_valid or message.author.id == last_counter_user:
         # Send failure message and reset counting channel
         if message.author.id == last_counter_user:
-            failure_reason = "You cannot count twice in a row."
+            mention = guild.get_member(last_counter_user).mention
+            failure_reason = f"{mention} failed. You cannot count twice in a row."
+        else:
+            failure_reason = f"The first number should be {increment}."
 
         new_channel = await reset_counting_channel(
             message.guild,
@@ -174,16 +177,12 @@ async def on_message(message):
                 embed.add_field(name="Your Count", value=content, inline=False)
                 embed.add_field(name="Old Increment", value=increment, inline=False)
                 embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
-                last_counter_user = count_data['last_counter_user']
-                if last_counter_user is not None:
-                    member = message.guild.get_member(last_counter_user)
-                    if member is not None:
-                        embed.add_field(name="Failed By", value=member.mention, inline=False)
                 await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
             count_data['last_counter'] = None
             count_data['last_counter_user'] = None
             save_data()  # Save the data after resetting the counting channel
+
 
         return
 
