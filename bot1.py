@@ -71,7 +71,6 @@ async def on_message(message):
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
     increment_result = mycursor.fetchone()
-    mycursor.fetchall()  # Consume unread results
     if increment_result is not None:
         increment = int(increment_result[0])
     else:
@@ -79,7 +78,6 @@ async def on_message(message):
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('count',))
     count_result = mycursor.fetchone()
-    mycursor.fetchall()  # Consume unread results
     if count_result is not None:
         count = int(count_result[0])
     else:
@@ -87,7 +85,6 @@ async def on_message(message):
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('last_user',))
     last_user_result = mycursor.fetchone()
-    mycursor.fetchall()  # Consume unread results
     if last_user_result is not None:
         last_user = int(last_user_result[0])
     else:
@@ -95,7 +92,6 @@ async def on_message(message):
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('high_score',))
     high_score_result = mycursor.fetchone()
-    mycursor.fetchall()  # Consume unread results
     if high_score_result is not None:
         high_score = int(high_score_result[0])
     else:
@@ -120,6 +116,7 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
 
 
