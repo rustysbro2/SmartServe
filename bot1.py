@@ -78,7 +78,27 @@ def check_counting_message(content, increment, last_counter):
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
-    guild_id = ctx.guild.id
+    guild_id = str(ctx.guild.id)  # Convert guild ID to a string
+    guilds[guild_id] = {
+        'counting_channel': {
+            'id': channel.id,
+            'name': channel.name,
+            'topic': '',
+            'category_id': channel.category_id,
+        },
+        'count': {
+            'increment': 1,
+            'last_counter': None,
+            'high_score': 0,
+            'last_counter_user': None
+        }
+    }
+    await ctx.send(f"Counting channel set to {channel.mention}")
+    save_data()
+
+@bot1.command()
+async def set_channel(ctx, channel: discord.TextChannel):
+    guild_id = str(ctx.guild.id)  # Convert guild ID to a string
     guilds[guild_id] = {
         'counting_channel': {
             'id': channel.id,
