@@ -206,7 +206,7 @@ async def fail_game(reason, message):
     # Check if the channel is not None before accessing its attributes
     if channel is not None:
         category = channel.category
-        new_channel = await category.create_text_channel(channel.name)
+        new_channel = await message.guild.create_text_channel(channel.name, category=category)
         await new_channel.send(
             f'Game ended! Reason: {reason}\nFailed message: {message.content}\nIncrement was: {increment}'
         )
