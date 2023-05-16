@@ -164,22 +164,6 @@ async def on_message(message):
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message, message.channel
 
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
 async def fail_game(reason, message, channel):
     # Rest of the code
 
