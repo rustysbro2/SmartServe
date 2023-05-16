@@ -5,6 +5,7 @@ import asyncio
 import math
 
 bot_token = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY'
+intents = discord.Intents.default()
 bot = commands.Bot(command_prefix='!')
 
 mydb = mysql.connector.connect(
