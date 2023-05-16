@@ -191,11 +191,13 @@ async def fail_game(reason, message, channel_id, increment):
     if channel is not None:
         category = channel.category
         new_channel = await message.guild.create_text_channel(channel.name, category=category, overwrites=channel.overwrites)
+        await channel.delete()  # Delete the old channel
         await new_channel.send(
             f'Game ended! Reason: {reason}\nFailed message: {message.content}\nIncrement was: {increment}'
         )
     else:
         logging.error(f"Failed to create a new channel. Channel is None.")
+
 
 
 
