@@ -180,10 +180,13 @@ async def fail_game(reason, message, channel_id):
     while mycursor.nextset():
         mycursor.fetchall()
 
-    mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
-    current_channel_id = int(mycursor.fetchone()[0])
+    # Reset channel, count, last_user in the database
+    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('channel', str(channel_id)))
+    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', '0'))
+    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', '0'))
+    mydb[guild_id].commit()
 
-    # Check if the channel is not None before accessing its attributes
+    # Create a new channel and send the failure message
     channel = bot.get_channel(channel_id)
     if channel is not None:
         category = channel.category
@@ -191,15 +194,10 @@ async def fail_game(reason, message, channel_id):
         await new_channel.send(
             f'Game ended! Reason: {reason}\nFailed message: {message.content}\nIncrement was: {increment}'
         )
-        mycursor.execute(
-            "REPLACE INTO GameData (name, value) VALUES (%s, %s)",
-            ('channel', str(new_channel.id))
-        )
-        mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', '0'))
-        mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', '0'))
-        mydb[guild_id].commit()
     else:
         logging.error(f"Failed to create a new channel. Channel is None.")
+
+
 
 
 
