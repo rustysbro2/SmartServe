@@ -129,16 +129,18 @@ async def on_message(message):
 async def on_ready():
     print('Bot is ready.')
 
-    # Connect to the database
-    mydb[bot.user.id] = mysql.connector.connect(
-        host="na03-sql.pebblehost.com",
-        user="customer_491521_counting",
-        password="-se$R-7q9x$O-a5UMA#A",
-        database="customer_491521_counting"
-    )
+    # Connect to the database for each guild
+    for guild in bot.guilds:
+        mydb[guild.id] = mysql.connector.connect(
+            host="na03-sql.pebblehost.com",
+            user="customer_491521_counting",
+            password="-se$R-7q9x$O-a5UMA#A",
+            database="customer_491521_counting"
+        )
 
-    # Create the GameData table if it doesn't exist
-    create_game_data_table(mydb[bot.user.id])  # Use bot.user.id as the key
+        # Create the GameData table if it doesn't exist
+        create_game_data_table(mydb[guild.id])  # Use guild.id as the key
+
 
 
 
