@@ -92,8 +92,6 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    await bot.process_commands(message) 
-
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
 
@@ -151,6 +149,7 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
 
 async def fail_game(reason, message):
