@@ -181,7 +181,6 @@ async def on_message(message):
     await message.add_reaction('✅')  # Add a reaction to
 
 
-
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
     old_channel = guild.get_channel(counting_channel['id'])
 
@@ -192,31 +191,35 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
 
     new_channel = await old_channel.clone(reason="Counting channel reset")
 
-    guild_data = guilds.get(guild.id)
-    if guild_data is not None:
+    guild_id = str(guild.id)
+    if guild_id in guilds:
+        guild_data = guilds[guild_id]
         counting_channel_data = guild_data.get('counting_channel')
         if counting_channel_data is not None:
             counting_channel_data['id'] = new_channel.id
+        count_data = guild_data.get('count')
+        if count_data is not None:
+            count_data['increment'] = changed_increment
+            count_data['last_counter'] = None
+        save_data()
 
-    guild_data['count']['increment'] = changed_increment
-    guild_data['count']['last_counter'] = None
-    save_data()
-
-    if current_count != increment:
-        embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-        embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-        embed.add_field(name="Your Count", value=current_count, inline=False)
-        embed.add_field(name="Old Increment", value=increment, inline=False)
-        embed.add_field(name="New Increment", value=changed_increment, inline=False)
-        last_counter_user = guild_data['count']['last_counter_user']
-        if last_counter_user is not None:
-            member = guild.get_member(last_counter_user)
-            if member is not None:
-                embed.add_field(name="Failed By", value=member.mention, inline=False)
-        await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
+        if current_count != increment:
+            embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+            embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+            embed.add_field(name="Your Count", value=current_count, inline=False)
+            embed.add_field(name="Old Increment", value=increment, inline=False)
+            embed.add_field(name="New Increment", value=changed_increment, inline=False)
+            last_counter_user = count_data['last_counter_user']
+            if last_counter_user is not None:
+                member = guild.get_member(last_counter_user)
+                if member is not None:
+                    embed.add_field(name="Failed By", value=member.mention, inline=False)
+            await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
     await old_channel.delete(reason="Counting channel reset")
     return new_channel
+
+
 
 
 
