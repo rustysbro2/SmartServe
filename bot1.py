@@ -39,6 +39,7 @@ mycursor.execute("CREATE TABLE IF NOT EXISTS GameData (name VARCHAR(255), value 
 
 @bot.command()
 async def set_channel(ctx, channel_id: int):
+    print(f"set_channel was called with {channel_id}")  # Debugging output
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('channel', str(channel_id)))
     mydb.commit()
     await ctx.send(f'Counting channel set to: {channel_id}')
