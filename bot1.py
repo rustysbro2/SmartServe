@@ -1,8 +1,3 @@
-@bot1.event
-async def on_ready():
-    load_data()
-    print(f'{bot1.user} has connected to Discord!')
-    save_data()  # Save the data when the bot is ready
 import discord
 from discord.ext import commands
 import ast
