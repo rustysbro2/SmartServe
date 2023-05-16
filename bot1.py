@@ -26,9 +26,6 @@ async def on_ready():
 
 
 
-mycursor = mydb.cursor()
-mycursor.execute("CREATE TABLE IF NOT EXISTS GameData (name VARCHAR(255), value VARCHAR(255))")
-
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     channel_id = channel.id
