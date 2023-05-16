@@ -142,5 +142,16 @@ async def fail_game(reason, message):
     else:
         increment = 1  # default value if increment is not found
 
-    if
+    if channel is not None:
+    await channel.delete(reason='Game ended.')
+
+new_channel = await channel.category.create_text_channel(channel.name)
+await new_channel.send(f'Game ended! Reason: {reason}\nFailed message: {message.content}\nIncrement was: {increment}')
+mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('channel', str(new_channel.id)))
+mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', '0'))
+mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', '0'))
+mydb[guild_id].commit()
+
+
+bot.run(TOKEN)
 
