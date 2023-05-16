@@ -159,14 +159,16 @@ async def fail_game(reason, message):
     mycursor = get_cursor(guild_id)
 
     # Consume unread results
-    mycursor.fetchall()
+    while mycursor.nextset():
+        pass
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
     channel_id = int(mycursor.fetchone()[0])
     channel = bot.get_channel(channel_id)
 
     # Consume unread results
-    mycursor.fetchall()
+    while mycursor.nextset():
+        pass
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
     increment = int(mycursor.fetchone()[0])
@@ -178,6 +180,7 @@ async def fail_game(reason, message):
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', '0'))
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', '0'))
     mydb[guild_id].commit()
+
 
 
 
