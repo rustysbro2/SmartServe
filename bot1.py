@@ -11,14 +11,20 @@ logging.basicConfig(level=logging.DEBUG)
 bot_token = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY'
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
+mydb= None
+
+@bot.event
+async def on_ready():
+    global mydb  # Access the global mydb variable
+    mydb = mysql.connector.connect(
+        host="na03-sql.pebblehost.com",
+        user="customer_491521_counting",
+        password="-se$R-7q9x$O-a5UMA#A",
+        database="customer_491521_counting"
+    )
+    print('Bot is ready.')
 
 
-mydb = mysql.connector.connect(
-  host="na03-sql.pebblehost.com",
-  user="customer_491521_counting",
-  password="-se$R-7q9x$O-a5UMA#A",
-  database="customer_491521_counting"
-)
 
 mycursor = mydb.cursor()
 mycursor.execute("CREATE TABLE IF NOT EXISTS GameData (name VARCHAR(255), value VARCHAR(255))")
