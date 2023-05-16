@@ -45,19 +45,13 @@ async def increment(ctx, incr: int):
     await ctx.send(f'Increment set to: {incr}')
 
 
+
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
     if message.author == bot.user:
         return
 
-    mydb.close()
-    mydb = mysql.connector.connect(
-        host="na03-sql.pebblehost.com",
-        user="customer_491521_counting",
-        password="-se$R-7q9x$O-a5UMA#A",
-        database="customer_491521_counting"
-    )
     mycursor = mydb.cursor()
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
@@ -112,9 +106,6 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
-
-    mydb.close()
-
 
 
 
