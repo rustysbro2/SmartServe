@@ -55,8 +55,8 @@ async def set_channel(ctx, channel: discord.TextChannel):
     )
     connection.commit()
     logging.info(f"Successfully set channel id {channel_id} for guild {guild_id}")
-    mydb[guild_id]['channel_id'] = channel_id  # Update the channel_id in mydb
     await ctx.send(f"Successfully set channel to {channel.mention}")
+
 
 
 
