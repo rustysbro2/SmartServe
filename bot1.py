@@ -103,12 +103,12 @@ def get_cursor(guild_id):
 
 
 
-@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
-await bot.process_commands(message)
+    # Process commands
+    await bot.process_commands(message)
 
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
