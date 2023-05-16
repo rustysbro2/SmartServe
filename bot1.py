@@ -83,7 +83,6 @@ async def on_message(message):
     mycursor.execute("SELECT value FROM GameData WHERE name = 'channel' AND guild = %s", (guild_id,))
     channel_id = mycursor.fetchone()
     if channel_id is None or message.channel.id != int(channel_id[0]):
-        mycursor.fetchall()  # consume unread results
         return
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
@@ -113,8 +112,6 @@ async def on_message(message):
         high_score = int(result[0])
     else:
         high_score = 0  # default value, adjust as needed
-
-    mycursor.fetchall()  # consume unread results
 
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
