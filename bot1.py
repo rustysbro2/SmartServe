@@ -94,6 +94,7 @@ async def increment(ctx, num: int):
     await ctx.send(f"Increment changed to {num}")
     save_data()
 
+@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -103,18 +104,12 @@ async def on_message(message):
 
     guild_id = message.guild.id
     guild_data = guilds.get(guild_id)
-
-    if guild_data is None:
-        return
-
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
 
     if counting_channel is None or counting_channel['id'] != message.channel.id:
         await bot1.process_commands(message)
         return
-    # Rest of your code...
-
 
     increment = count_data.get('increment')
     last_counter = count_data.get('last_counter')
@@ -174,6 +169,7 @@ async def on_message(message):
         count_data['high_score'] = int(content)
     save_data()
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
