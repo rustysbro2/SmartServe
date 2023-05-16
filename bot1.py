@@ -1,4 +1,22 @@
-import discord
+async def on_message(message):
+    if message.author == bot1.user:
+        return
+
+    if not isinstance(message.channel, discord.TextChannel):
+        return
+
+    guild_id = message.guild.id
+    guild_data = guilds.get(guild_id)
+
+    if guild_data is None:
+        return
+
+    counting_channel = guild_data.get('counting_channel')
+    count_data = guild_data.get('count')
+
+    if counting_channel is None or counting_channel['id'] != message.channel.id:
+        await bot1.process_commands(message)
+        returnimport discord
 from discord.ext import commands
 import ast
 import operator
@@ -94,7 +112,6 @@ async def increment(ctx, num: int):
     await ctx.send(f"Increment changed to {num}")
     save_data()
 
-@bot1.event
 async def on_message(message):
     if message.author == bot1.user:
         return
@@ -104,13 +121,16 @@ async def on_message(message):
 
     guild_id = message.guild.id
     guild_data = guilds.get(guild_id)
+
+    if guild_data is None:
+        return
+
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
 
     if counting_channel is None or counting_channel['id'] != message.channel.id:
         await bot1.process_commands(message)
         return
-
     # Rest of your code...
 
 
