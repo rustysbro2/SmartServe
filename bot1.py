@@ -50,10 +50,12 @@ async def set_channel(ctx, channel: discord.TextChannel):
 
 @bot.command()
 async def increment(ctx, incr: int):
-    mycursor = mydb.cursor()
+    guild_id = ctx.guild.id
+    mycursor = get_cursor(guild_id)
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('increment', str(incr)))
-    mydb.commit()
+    mydb[guild_id].commit()
     await ctx.send(f'Increment set to: {incr}')
+
 
 @bot.event
 async def on_ready():
