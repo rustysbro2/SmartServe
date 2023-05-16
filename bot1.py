@@ -183,6 +183,5 @@ async def fail_game(reason, message):
 bot.run(bot_token)
 
 
-bot.run(bot_token)
 
 
