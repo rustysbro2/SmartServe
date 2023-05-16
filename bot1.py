@@ -108,7 +108,7 @@ async def on_message(message):
     if not isinstance(message.channel, discord.TextChannel):
         return
 
-    guild_id = message.guild.id
+    guild_id = str(message.guild.id)
     guild_data = guilds.get(guild_id)
 
     if guild_data is None:
@@ -173,7 +173,11 @@ async def on_message(message):
                 embed.add_field(name="Your Count", value=content, inline=False)
                 embed.add_field(name="Old Increment", value=increment, inline=False)
                 embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
-                embed.add_field(name="Failed By", value=message.author.mention, inline=False)
+                last_counter_user = count_data['last_counter_user']
+                if last_counter_user is not None:
+                    member = message.guild.get_member(last_counter_user)
+                    if member is not None:
+                        embed.add_field(name="Failed By", value=member.mention, inline=False)
                 await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
             count_data['last_counter'] = None
@@ -188,7 +192,8 @@ async def on_message(message):
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()  # Save the data after updating the values
-    await message.add_reaction('✅') 
+    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 
