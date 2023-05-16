@@ -37,6 +37,7 @@ async def increment(ctx, incr: int):
     await ctx.send(f'Increment set to: {incr}')
 
 @bot.event
+@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -77,6 +78,10 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+        
+    await bot.process_commands(message)
+
+
 
 async def fail_game(reason, message):
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
