@@ -1,30 +1,3 @@
-async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
-    old_channel = guild.get_channel(counting_channel['id'])
-
-    if old_channel is None:
-        await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
-        save_data()
-        return None
-
-    new_channel = await old_channel.clone(reason="Counting channel reset")
-    guild_data = guilds.get(guild.id)
-    guild_data['counting_channel']['id'] = new_channel.id
-    guild_data['count']['increment'] = changed_increment
-    guild_data['count']['last_counter'] = None
-    save_data()
-
-    if current_count != increment:
-        embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-        embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-        embed.add_field(name="Your Count", value=current_count, inline=False)
-        embed.add_field(name="Old Increment", value=increment, inline=False)
-        embed.add_field(name="New Increment", value=changed_increment, inline=False)
-        embed.add_field(name="Failed By", value=message.author.mention, inline=False)
-        await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
-
-    await old_channel.delete(reason="Counting channel reset")
-
-    return new_channel
 import discord
 from discord.ext import commands
 import ast
