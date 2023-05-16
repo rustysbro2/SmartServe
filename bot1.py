@@ -265,4 +265,4 @@ async def highscore(ctx):
         await ctx.send(f"The high score is {high_score}")
 
 
-bot1.run('MTEwNTU5ODczNjUwMjM0Mzc5.DsD-rw.zyBtOMUhP9lIK50toeR53EgTRK4')
+bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
