@@ -16,12 +16,14 @@ async def on_ready():
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
+    guild_id = ctx.guild.id
     channel_id = channel.id
-    mycursor = mydb.cursor()
-    mycursor.execute(f"INSERT INTO GameData (name, value) VALUES ('channel', {channel_id})")
-    mydb.commit()
-    logging.info(f'Successfully set channel id {channel_id}')
+    mycursor = get_cursor(guild_id)
+    mycursor.execute(f"INSERT INTO GameData (name, value, guild) VALUES ('channel', {channel_id}, {guild_id}) ON DUPLICATE KEY UPDATE value={channel_id}")
+    mydb[guild_id].commit()
+    logging.info(f'Successfully set channel id {channel_id} for guild {guild_id}')
     await ctx.send(f'Successfully set channel to {channel.mention}')
+
 
 @bot.command()
 async def increment(ctx, incr: int):
