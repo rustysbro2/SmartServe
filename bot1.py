@@ -108,14 +108,11 @@ async def on_message(message):
     if not isinstance(message.channel, discord.TextChannel):
         return
 
-    guild_id = message.guild.id
-    guild_data = guilds.get(guild_id)
-
-    if guild_data is None:
-        guild_data = {}  # Initialize with an empty dictionary if guild_data is None
+    guild_id = str(message.guild.id)
+    guild_data = guilds.get(guild_id, {})
 
     counting_channel = guild_data.get('counting_channel')
-    count_data = guild_data.get('count')
+    count_data = guild_data.get('count', {})
 
     if counting_channel is None or counting_channel['id'] != message.channel.id:
         return
@@ -139,7 +136,7 @@ async def on_message(message):
             await message.add_reaction('✅')  # Add a reaction to the valid counting message
             save_data()  # Save the data after updating the values
         else:
-            await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
+            await message.channel.send(f"The first number should be {increment}.")  # Inform the user if they start with a different number
         return
 
     # Check if the counting message is valid
@@ -181,7 +178,9 @@ async def on_message(message):
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()  # Save the data after updating the values
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    await message.add_reaction('✅')  # Add a reaction to
+
+
 
 
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
