@@ -145,21 +145,27 @@ async def on_message(message):
         high_score = int(high_score_result[0])
     else:
         high_score = 0  # default value, adjust as needed
-
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
             if message.author.id == last_user:
                 await fail_game('You cannot post twice in a row!', message)
                 return
 
-            await message.add_reaction('✅')
+            try:
+                await message.add_reaction('✅')
+            except Exception as e:
+                logging.error(f"Failed to add reaction: {e}")
 
             count += increment
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
 
             if count > high_score:
-                await message.add_reaction('🏆')
+                try:
+                    await message.add_reaction('🏆')
+                except Exception as e:
+                    logging.error(f"Failed to add reaction: {e}")
+
                 high_score = count
                 mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
 
@@ -169,7 +175,6 @@ async def on_message(message):
     except Exception as e:
         print(f"Error: {e}")
         await fail_game(f'Unexpected error: {e}', message)
-
 
 
 
