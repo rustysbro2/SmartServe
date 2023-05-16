@@ -32,10 +32,12 @@ def create_game_data_table(connection):
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 value VARCHAR(255) NOT NULL,
-                guild VARCHAR(255) NOT NULL DEFAULT '0'
+                guild VARCHAR(255) NOT NULL,
+                UNIQUE KEY (name, guild)
             )
         """)
         connection.commit()
+
 
     cursor.close()
 
