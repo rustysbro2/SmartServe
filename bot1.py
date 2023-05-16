@@ -193,13 +193,13 @@ async def on_message(message):
 
         return
 
-# Valid counting message
-count_data['last_counter'] = int(content)
-count_data['last_counter_user'] = message.author.id
-if int(content) > count_data.get('high_score', 0):
-    count_data['high_score'] = int(content)
-save_data()  # Save the data after updating the values
-await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    # Valid counting message
+    count_data['last_counter'] = int(content)
+    count_data['last_counter_user'] = message.author.id
+    if int(content) > count_data.get('high_score', 0):
+        count_data['high_score'] = int(content)
+    save_data()  # Save the data after updating the values
+    await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
 
 
