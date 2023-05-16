@@ -187,12 +187,16 @@ async def fail_game(reason, message, channel_id, increment):
     mydb[guild_id].commit()
 
     print(f"Creating channel with id: {channel_id}")  # Debug statement
-    
+
     # Create a new channel and send the failure message
     channel = bot.get_channel(channel_id)
     if channel is not None:
         category = channel.category
-        new_channel = await message.guild.create_text_channel(channel.name, category=category, overwrites=channel.overwrites)
+        overwrites = channel.overwrites
+        print(f"Category: {category}")  # Debug statement
+        print(f"Overwrites: {overwrites}")  # Debug statement
+
+        new_channel = await message.guild.create_text_channel(channel.name, category=category, overwrites=overwrites)
         await channel.delete()  # Delete the old channel
         await new_channel.send(
             f'Game ended! Reason: {reason}\nFailed message: {message.content}\nIncrement was: {increment}'
