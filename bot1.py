@@ -27,11 +27,18 @@ trophy_emoji = "🏆"  # Define the trophy emoji
 
 def save_data():
     try:
+        data = {}
+        if os.path.isfile('bot_data.json'):
+            with open('bot_data.json', 'r') as f:
+                data = json.load(f)
+        
         with open('bot_data.json', 'w') as f:
-            json.dump(guilds, f, indent=4)
+            data.update(guilds)
+            json.dump(data, f, indent=4)
         print("Data saved successfully.")
     except Exception as e:
         print(f"Error when saving data: {e}")
+
 
 def load_data():
     global guilds
