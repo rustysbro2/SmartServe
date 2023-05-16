@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 bot_token = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY'
-discord.Intents.all()
-bot = commands.Bot(command_prefix='$', intents=intents)
+intents = discord.Intents.all()
+bot = commands.Bot(command_prefix='!', intents=intents)
 
 
 mydb = mysql.connector.connect(
