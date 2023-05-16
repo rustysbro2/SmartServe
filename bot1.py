@@ -205,6 +205,13 @@ async def on_message(message):
         if last_counter_user is not None:
             mention = last_counter_user.mention
             embed.add_field(name="Failed By", value=f"{mention} ({last_counter_user})", inline=False)
+        else:
+            mention = "Unknown User"
+            embed.add_field(name="Failed By", value=mention, inline=False)
+    else:
+        mention = "Unknown User"
+        embed.add_field(name="Failed By", value=mention, inline=False)
+
 
     
 
