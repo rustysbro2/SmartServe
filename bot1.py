@@ -156,37 +156,56 @@ async def on_message(message):
             )
         return
 
-    # Check if the counting message is valid
-    is_valid, failure_reason = check_counting_message(content, increment, last_counter)
+   # Check if the counting message is valid
+is_valid, failure_reason = check_counting_message(content, increment, last_counter)
 
-    if not is_valid or message.author.id == last_counter_user:
-        # Send failure message and reset counting channel
-        if message.author.id == last_counter_user:
-            mention = message.guild.get_member(last_counter_user).mention if last_counter_user else "Unknown User"
-            failure_reason = f"{mention} failed. {failure_reason}"
+if not is_valid or message.author.id == last_counter_user:
+    # Send failure message and reset counting channel
+    if message.author.id == last_counter_user:
+        if last_counter_user_id is not None:
+            last_counter_user = message.guild.get_member(int(last_counter_user_id))
+            if last_counter_user is not None:
+                mention = last_counter_user.mention
+            else:
+                mention = "Unknown User"
         else:
-            failure_reason = f"The next number should be {last_counter + increment}."
+            mention = "Unknown User"
+        
+        failure_reason = f"{mention} failed. {failure_reason}"
+    else:
+        failure_reason = f"The first number should be {increment}."
 
-        new_channel = await reset_counting_channel(
-            message.guild,
-            counting_channel,
-            failure_reason,
-            content,
-            increment,
-            changed_increment=count_data.get('increment', increment),
-        )
+    new_channel = await reset_counting_channel(
+        message.guild,
+        counting_channel,
+        failure_reason,
+        content,
+        increment,
+        changed_increment=count_data.get('increment', increment),
+    )
 
-        if new_channel is not None:
-            if last_counter is None:
-                embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-                embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-                embed.add_field(name="Your Count", value=content, inline=False)
-                embed.add_field(name="Increment", value=f"Increment: {count_data.get('increment', increment)}", inline=False)
-                await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
+    if new_channel is not None:
+        if last_counter is None:
+            embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+            embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+            embed.add_field(name="Your Count", value=content, inline=False)
+            embed.add_field(name="Increment", value=f"{increment} → {count_data.get('increment', increment)}", inline=False)
+        else:
+            embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+            embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+            embed.add_field(name="Your Count", value=content, inline=False)
+            embed.add_field(name="Last Counter", value=last_counter, inline=False)
+            embed.add_field(name="Last Counter User", value=mention, inline=False)
+            embed.add_field(name="Increment", value=f"{increment} → {count_data.get('increment', increment)}", inline=False)
+        
+        await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
-            count_data['last_counter'] = None
-            count_data['last_counter_user'] = None
-            save_data()  # Save the data after resetting the counting channel
+    count_data['last_counter'] = None
+    count_data['last_counter_user'] = None
+    save_data()  # Save the data after resetting the counting channel
+
+    return
+
 
     else:
         # Valid counting message
