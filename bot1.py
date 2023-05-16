@@ -71,6 +71,16 @@ async def on_ready():
         # Create the GameData table if it doesn't exist
         create_game_data_table(mydb[guild.id])  # Use guild.id as the ke
 
+def get_cursor(guild_id):
+    if guild_id not in mydb:
+        # Get the connection using the guild ID as the key
+        connection = mydb[guild_id]
+
+        # Store the connection using the guild ID as the key
+        mydb[guild_id] = connection
+
+    return mydb[guild_id].cursor(buffered=True)
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
