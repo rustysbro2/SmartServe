@@ -198,6 +198,14 @@ async def on_message(message):
     save_data()  # Save the data after updating the values
     await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
+  # Get the member object of the last counter user
+  last_counter_user_id = count_data.get('last_counter_user')
+  if last_counter_user_id is not None:
+      last_counter_user = message.guild.get_member(last_counter_user_id)
+      if last_counter_user is not None:
+          mention = last_counter_user.mention
+          embed.add_field(name="Failed By", value=f"{mention} ({last_counter_user})", inline=False)
+
     
 
 
