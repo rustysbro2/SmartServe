@@ -48,7 +48,6 @@ async def set_channel(ctx, channel: discord.TextChannel):
     await ctx.send(f'Successfully set channel to {channel.mention}')
 
 
-
 @bot.command()
 async def increment(ctx, incr: int):
     guild_id = ctx.guild.id
@@ -58,13 +57,6 @@ async def increment(ctx, incr: int):
     await ctx.send(f'Increment set to: {incr}')
 
 
-@bot.command()
-async def increment(ctx, incr: int):
-    guild_id = ctx.guild.id
-    mycursor = get_cursor(guild_id)
-    mycursor.execute("REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)", ('increment', str(incr), str(guild_id)))
-    mydb[guild_id].commit()
-    await ctx.send(f'Increment set to: {incr}')
 
 
 @bot.event
