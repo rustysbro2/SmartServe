@@ -244,11 +244,14 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
                     last_counter_user = get(guild.members, id=int(last_counter_user_id))
                     if last_counter_user is not None:
                         mention = last_counter_user.mention
-                        embed.add_field(name="Failed By", value=f"{mention} ({last_counter_user})", inline=False)
-                await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
+                        await new_channel.send(f"{mention} Counting Failure", embed=embed)
+                else:
+                    await new_channel.send("Counting Failure", embed=embed)
 
     await old_channel.delete(reason="Counting channel reset")
     return new_channel
+
+
 
 
 
