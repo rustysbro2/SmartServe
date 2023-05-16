@@ -56,6 +56,22 @@ async def increment(ctx, incr: int):
     await ctx.send(f'Increment set to: {incr}')
 
 @bot.event
+async def on_ready():
+    print('Bot is ready.')
+
+    # Connect to the database for each guild
+    for guild in bot.guilds:
+        mydb[guild.id] = mysql.connector.connect(
+            host="na03-sql.pebblehost.com",
+            user="customer_491521_counting",
+            password="-se$R-7q9x$O-a5UMA#A",
+            database="customer_491521_counting",
+        )
+
+        # Create the GameData table if it doesn't exist
+        create_game_data_table(mydb[guild.id])  # Use guild.id as the ke
+
+@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
