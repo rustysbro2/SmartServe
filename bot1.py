@@ -140,6 +140,7 @@ async def on_message(message):
 
 
 
+
 def get_cursor(guild_id):
     if guild_id not in mydb:
         mydb[guild_id] = mysql.connector.connect(
