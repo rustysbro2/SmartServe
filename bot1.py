@@ -24,11 +24,13 @@ mycursor = mydb.cursor()
 mycursor.execute("CREATE TABLE IF NOT EXISTS GameData (name VARCHAR(255), value VARCHAR(255))")
 
 @bot.command()
-async def set_channel(ctx, channel_id: int):
-    print(f"set_channel was called with {channel_id}")  # Debugging output
-    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('channel', str(channel_id)))
+async def set_channel(ctx, channel: discord.TextChannel):
+    channel_id = channel.id
+    mycursor.execute(f"INSERT INTO GameData (name, value) VALUES ('channel', {channel_id})")
     mydb.commit()
-    await ctx.send(f'Counting channel set to: {channel_id}')
+    logging.info(f'Successfully set channel id {channel_id}')
+    await ctx.send(f'Successfully set channel to {channel.mention}')
+
 
 @bot.command()
 async def increment(ctx, incr: int):
@@ -49,17 +51,32 @@ async def on_message(message):
         return
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
-    increment = int(mycursor.fetchone()[0])
+    result = mycursor.fetchone()
+    if result is not None:
+        increment = int(result[0])
+    else:
+        increment = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('count',))
-    count = int(mycursor.fetchone()[0])
+    result = mycursor.fetchone()
+    if result is not None:
+        count = int(result[0])
+    else:
+        count = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('last_user',))
-    last_user = mycursor.fetchone()[0]
+    result = mycursor.fetchone()
+    if result is not None:
+        last_user = result[0]
+    else:
+        last_user = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('high_score',))
-    high_score = int(mycursor.fetchone()[0])
-
+    result = mycursor.fetchone()
+    if result is not None:
+        high_score = int(result[0])
+    else:
+        high_score = 0  # default value, adjust as needed
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
             if message.author.id == last_user:
@@ -79,9 +96,6 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
-       
-
-
 
 async def fail_game(reason, message):
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
