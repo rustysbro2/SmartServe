@@ -108,8 +108,9 @@ async def on_message(message):
     if not isinstance(message.channel, discord.TextChannel):
         return
 
-    guild_id = message.guild.id
-    guild_data = guilds.get(guild_id)
+guild_id = message.guild.id
+guild_data = guilds.get(guild_id)
+
 if guild_data is None:
     guild_data = {}  # Initialize with an empty dictionary if guild_data is None
 
