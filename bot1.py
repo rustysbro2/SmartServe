@@ -74,8 +74,6 @@ async def increment(ctx, incr: int):
 
 @bot.event
 async def on_message(message):
-    await bot.process_commands(message)
-
     if message.author == bot.user:
         return
 
@@ -85,7 +83,7 @@ async def on_message(message):
     mycursor.execute("SELECT value FROM GameData WHERE name = 'channel' AND guild = %s", (guild_id,))
     channel_id = mycursor.fetchone()
     if channel_id is None or message.channel.id != int(channel_id[0]):
-        mycursor.fetchall()  # ensure all results are fetched
+        mycursor.fetchall()  # consume unread results
         return
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
@@ -116,26 +114,29 @@ async def on_message(message):
     else:
         high_score = 0  # default value, adjust as needed
 
+    mycursor.fetchall()  # consume unread results
+
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
             if message.author.id == last_user:
                 await fail_game('You cannot post twice in a row!', message)
                 return
 
-            if message.guild.me.guild_permissions.add_reactions:
-                await message.add_reaction('✅')
-                count += increment
-                mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
-                mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
-                if count > high_score:
-                    high_score = count
-                    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
-                    await message.add_reaction('🏆')
-                mydb[guild_id].commit()
+            await message.add_reaction('✅')
+            count += increment
+            mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
+            mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
+            if count > high_score:
+                high_score = count
+                mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
+                await message.add_reaction('🏆')
+            mydb.commit()
         else:
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
+
 
 
 
