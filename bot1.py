@@ -101,6 +101,7 @@ def get_cursor(guild_id):
 
 
 
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
