@@ -101,13 +101,13 @@ async def increment(ctx, num: int):
 
 @bot1.event
 async def on_message(message):
-    await bot1.process_commands(message)  # Process commands first
-
     if message.author == bot1.user:
         return
 
-    if not isinstance(message.channel, discord.TextChannel):
+    if not message.content.startswith('!'):  # Ignore command invocations
         return
+
+    await bot1.process_commands(message)  # Process commands first
 
     guild_id = str(message.guild.id)
     guild_data = guilds.get(guild_id)
