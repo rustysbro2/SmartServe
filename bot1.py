@@ -202,6 +202,7 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
     count_data = guild_data.get('count', {})
     count_data['increment'] = changed_increment
     count_data['last_counter'] = None
+    count_data['last_counter_user'] = None
 
     save_data()
 
@@ -211,11 +212,11 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
         embed.add_field(name="Your Count", value=current_count, inline=False)
         embed.add_field(name="Old Increment", value=increment, inline=False)
         embed.add_field(name="New Increment", value=changed_increment, inline=False)
-        embed.add_field(name="Failed By", value=guild.get_member(count_data['last_counter_user']).mention, inline=False)
         await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
     await old_channel.delete(reason="Counting channel reset")
     return new_channel
+
 
 
 
