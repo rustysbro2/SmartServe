@@ -102,7 +102,7 @@ def get_cursor(guild_id):
 
 
 
-@bot.event
+bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -154,7 +154,7 @@ async def on_message(message):
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
             if message.author.id == last_user:
-                await fail_game('You cannot post twice in a row!', message, message.channel)
+                await fail_game('You cannot post twice in a row!', message, message.channel, mycursor)
                 return
 
             await message.add_reaction('✅')
@@ -167,9 +167,9 @@ async def on_message(message):
                 await message.add_reaction('🏆')
             mydb[guild_id].commit()
         else:
-            await fail_game('Invalid number!', message, message.channel)
+            await fail_game('Invalid number!', message, message.channel, mycursor)
     except Exception as e:
-        await fail_game(f'Unexpected error: {e}', message, message.channel)
+        await fail_game(f'Unexpected error: {e}', message, message.channel, mycursor)
 
 
 async def fail_game(reason, message, channel):
