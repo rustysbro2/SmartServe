@@ -115,8 +115,12 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    # Rest of your code...
+    increment = count_data.get('increment')
+    last_counter = count_data.get('last_counter')
 
+    if increment is None:
+        await bot1.process_commands(message)
+        return
 
     content = message.content.strip()
 
@@ -127,8 +131,8 @@ async def on_message(message):
             count_data['last_counter_user'] = message.author.id
             if int(content) > count_data.get('high_score', 0):
                 count_data['high_score'] = int(content)
-            save_data()
             await message.add_reaction('✅')  # Add a reaction to the valid counting message
+            save_data()  # Save the data after updating the values
         else:
             await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
         return
@@ -158,7 +162,7 @@ async def on_message(message):
             await new_channel.send(embed=embed)
             count_data['last_counter'] = None
             count_data['last_counter_user'] = None
-            save_data()
+            save_data()  # Save the data after resetting the counting channel
 
         return
 
@@ -167,8 +171,9 @@ async def on_message(message):
     count_data['last_counter_user'] = message.author.id
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
-    save_data()
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    save_data()  # Save the data after updating the values
+await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 
 
