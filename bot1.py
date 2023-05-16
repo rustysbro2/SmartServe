@@ -23,7 +23,7 @@ allowed_operators = {
     ast.UAdd: operator.pos
 }
 guilds = {}  # Declare guilds as a global variable
-
+trophy_emoji = "🏆"  # Define the trophy emoji
 
 def save_data():
     try:
@@ -33,32 +33,18 @@ def save_data():
     except Exception as e:
         print(f"Error when saving data: {e}")
 
-
 def load_data():
     global guilds
     if os.path.isfile('bot_data.json'):
         with open('bot_data.json') as f:
-            data = json.load(f)
-            guilds = {
-                int(guild_id): {
-                    key: value if key != 'counting_channel' else {
-                        k: v if k != 'id' else int(v)
-                        for k, v in value.items()
-                    }
-                    for key, value in data.get(str(guild_id), {}).items()
-                }
-                for guild_id in data
-            }
+            guilds = json.load(f)
     else:
         guilds = {}
-
-
 
 @bot1.event
 async def on_ready():
     load_data()
     print(f'{bot1.user} has connected to Discord!')
-
 
 def evaluate_expression(expression):
     try:
@@ -67,21 +53,19 @@ def evaluate_expression(expression):
     except (SyntaxError, TypeError, ZeroDivisionError):
         return None
 
-
 def check_counting_message(content, increment, last_counter):
     try:
         number = int(content)
-        if last_counter is None or number == last_counter + increment:
+        if number == last_counter + increment:
             return True, number
         else:
             return False, f"The next number should be {last_counter + increment}."
     except ValueError:
         result = evaluate_expression(content)
-        if result is not None and (last_counter is None or result == last_counter + increment):
+        if result is not None and result == last_counter + increment:
             return True, result
         else:
             return False, f"The next number should be {last_counter + increment}."
-
 
 @bot1.command()
 async def set_channel(ctx, channel: discord.TextChannel):
@@ -103,14 +87,12 @@ async def set_channel(ctx, channel: discord.TextChannel):
     await ctx.send(f"Counting channel set to {channel.mention}")
     save_data()
 
-
 @bot1.command()
 async def increment(ctx, num: int):
     guild_id = ctx.guild.id
     guilds[guild_id]['count']['increment'] = num
     await ctx.send(f"Increment changed to {num}")
     save_data()
-
 
 @bot1.event
 async def on_message(message):
@@ -121,7 +103,7 @@ async def on_message(message):
         return
 
     guild_id = message.guild.id
-    guild_data = guilds.get(guild_id, {})
+    guild_data = guilds.get(guild_id)
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
 
@@ -129,83 +111,92 @@ async def on_message(message):
         await bot1.process_commands(message)
         return
 
-    increment = count_data.get('increment')
-    last_counter = count_data.get('last_counter')
-    last_counter_user = count_data.get('last_counter_user')
+increment = count_data.get('increment')
+last_counter = count_data.get('last_counter')
 
-    if increment is None:
-        await bot1.process_commands(message)
-        return
+if increment is None:
+    await bot1.process_commands(message)
+    return
 
-    content = message.content.strip()
+content = message.content.strip()
 
-    # Check for failure scenarios
-    if last_counter is None:
-        if int(content) == increment:  # Check if the first number equals the increment
-            count_data['last_counter'] = int(content)
-            count_data['last_counter_user'] = message.author.id
-            if int(content) > count_data.get('high_score', 0):
-                count_data['high_score'] = int(content)
-            save_data()
-            await message.add_reaction('✅')  # Add a reaction to the valid counting message
-        else:
-            await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
-        return
+# Check for failure scenarios
+if last_counter is None:
+    if int(content) == increment:  # Check if the first number equals the increment
+        count_data['last_counter'] = int(content)
+        count_data['last_counter_user'] = message.author.id
+        if int(content) > count_data.get('high_score', 0):
+            count_data['high_score'] = int(content)
+        save_data()
+        await message.add_reaction('✅')  # Add a check mark reaction to the valid counting message
+    else:
+        await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
+        await reset_counting_channel(message.guild, counting_channel, "Invalid First Number")  # Reset counting channel
+    return
 
-    # Check if the counting message is valid
-    is_valid, failure_reason = check_counting_message(content, increment, last_counter)
+# Check if the counting message is valid
+is_valid, failure_reason = check_counting_message(content, increment, last_counter)
 
-    if not is_valid or last_counter_user == message.author.id:
-        # Send failure message and reset counting channel
-        embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-        embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-        embed.add_field(name="Your Count", value=content, inline=False)
-        embed.add_field(name="Increment", value=increment, inline=False)
-        embed.add_field(name="Increment Changed To", value=count_data.get('increment', increment), inline=False)
+if not is_valid:
+    # Send failure message and reset counting channel
+    embed = discord.Embed(title="Counting Failure", color=discord.Color.red())
+    embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+    embed.add_field(name="Your Count", value=content, inline=False)
+    embed.add_field(name="Old Increment", value=f"Current: {increment}", inline=False)
+    embed.add_field(name="New Increment", value=f"Updated: {count_data.get('increment', increment)}", inline=False)
+    embed.add_field(name="High Score", value=f"Current: {count_data.get('high_score')}", inline=False)
+    embed.add_field(name="Last Counter", value=f"Current: {last_counter}", inline=False)
+    embed.add_field(name="Last Counter User", value=f"Current: {count_data.get('last_counter_user')}", inline=False)
 
-        new_channel = await reset_counting_channel(
-            message.guild,
-            counting_channel,
-            failure_reason,
-            content,
-            increment,
-            changed_increment=count_data.get('increment', increment)
-        )
+    await reset_counting_channel(message.guild, counting_channel, failure_reason)  # Reset counting channel
 
-        if new_channel is not None:
-            await new_channel.send(embed=embed)
-            count_data['last_counter'] = None
-            count_data['last_counter_user'] = None
-            save_data()
+    # Mention the user who failed in the failure message
+    failure_user = bot1.get_user(count_data.get('last_counter_user'))
+    if failure_user:
+        embed.set_footer(text=f"Failed by {failure_user.display_name}")
+    else:
+        embed.set_footer(text="Failed by an unknown user")
 
-        return
+    # Send the failure message to the new channel
+    new_channel = await get_new_counting_channel(message.guild, counting_channel)
+    if new_channel:
+        await new_channel.send(embed=embed)
+    
+    return
 
-    # Valid counting message
-    count_data['last_counter'] = int(content)
-    count_data['last_counter_user'] = message.author.id
-    if int(content) > count_data.get('high_score', 0):
-        count_data['high_score'] = int(content)
-    save_data()
-    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+# Valid counting message
+count_data['last_counter'] = int(content)
+count_data['last_counter_user'] = message.author.id
+if int(content) > count_data.get('high_score', 0):
+    count_data['high_score'] = int(content)
+save_data()
+if int(content) == count_data.get('high_score', 0):
+    await message.add_reaction(trophy_emoji)  # Add a trophy reaction if high score is reached
+else:
+    await message.add_reaction('✅')  # Add a check mark reaction to the valid counting message
 
-
-
-async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
+async def reset_counting_channel(guild, counting_channel, failure_reason):
     old_channel = guild.get_channel(counting_channel['id'])
 
     if old_channel is None:
         await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
         save_data()
-        return None
+        return
 
     new_channel = await old_channel.clone(reason="Counting channel reset")
     await old_channel.delete(reason="Counting channel reset")
 
     guild_data = guilds.get(guild.id)
     guild_data['counting_channel']['id'] = new_channel.id
-    guild_data['count']['increment'] = changed_increment
-    guild_data['count']['last_counter'] = None
+    count_data = guild_data['count']
+    count_data['last_counter'] = None
+    count_data['last_counter_user'] = None
     save_data()
+    return new_channel
+
+
+async def get_new_counting_channel(guild, counting_channel):
+    new_channel = guild.get_channel(counting_channel['id'])
     return new_channel
 
 
@@ -221,11 +212,11 @@ async def highscore(ctx):
 
 @bot1.command()
 async def help(ctx):
-    embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=0x00FF00)
-    embed.add_field(name="!set_channel [channel]", value=    "Sets the channel for counting.", inline=False)
+    embed = discord.Embed(title="Counting Bot Help", description="List of commands for the counting bot:", color=discord.Color.green())
+    embed.add_field(name="!set_channel [channel]", value="Sets the channel for counting.", inline=False)
     embed.add_field(name="!increment [number]", value="Changes the counting increment.", inline=False)
+    embed.add_field(name="!highscore", value="Displays the current high score.", inline=False)
     await ctx.send(embed=embed)
-
 
 
 
