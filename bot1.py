@@ -69,7 +69,11 @@ async def on_ready():
         )
 
         # Create the GameData table if it doesn't exist
-        create_game_data_table(mydb[guild.id])  # Use guild.id as the ke
+        create_game_data_table(mydb[guild.id])  # Use guild.id as the key
+
+        # Add the following line to ensure the guild ID is added to mydb
+        mydb[guild.id] = mydb[guild.id]
+
 
 def get_cursor(guild_id):
     if guild_id not in mydb:
