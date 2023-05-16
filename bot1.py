@@ -113,10 +113,10 @@ def get_cursor(guild_id):
 
 @bot.event
 async def on_message(message):
-    await bot.process_commands(message)
-
     if message.author == bot.user:
         return
+
+    await bot.process_commands(message)
 
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
@@ -162,26 +162,22 @@ async def on_message(message):
                 await fail_game('You cannot post twice in a row!', message)
                 return
 
+            await message.add_reaction('✅')
             count += increment
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
             if count > high_score:
                 high_score = count
                 mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
+                await message.add_reaction('🏆')
             mydb[guild_id].commit()
-
-            # Run the add_reactions_to_message function in a separate task
-            asyncio.create_task(add_reactions_to_message(message))
         else:
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
 
-# Function to add reactions to the message
-async def add_reactions_to_message(message):
-    await message.add_reaction('✅')
-    await asyncio.sleep(0.5)
-    await message.add_reaction('🏆')
+
+
 
 
  
