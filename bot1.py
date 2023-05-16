@@ -104,16 +104,15 @@ async def on_message(message):
     if message.author == bot1.user:
         return
 
-    if not message.content.startswith('!'):  # Ignore command invocations
+    if message.content.startswith('!'):  # Process command invocations
+        await bot1.process_commands(message)
         return
-
-    await bot1.process_commands(message)  # Process commands first
 
     guild_id = str(message.guild.id)
     guild_data = guilds.get(guild_id)
 
     if guild_data is None:
-        guild_data = {}  # Initialize with an empty dictionary if guild_data is None
+        return
 
     counting_channel = guild_data.get('counting_channel')
     count_data = guild_data.get('count')
@@ -129,6 +128,7 @@ async def on_message(message):
         return
 
     content = message.content.strip()
+
 
     # Check for failure scenarios
     if last_counter is None:
