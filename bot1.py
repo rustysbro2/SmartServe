@@ -150,8 +150,8 @@ async def on_message(message):
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
 
-# Process commands outside the on_message event
-await bot.process_commands(message)
+    # Process commands inside the on_message event
+    await bot.process_commands(message)
 
 
 
