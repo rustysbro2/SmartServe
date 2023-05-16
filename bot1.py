@@ -167,8 +167,6 @@ async def on_message(message):
         await fail_game(f'Unexpected error: {e}', message, message.channel)
 
 async def fail_game(reason, message, channel):
-    # Rest of the code
-
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
 
@@ -180,8 +178,6 @@ async def fail_game(reason, message, channel):
     channel_id = int(mycursor.fetchone()[0])
     print("Guild ID:", guild_id)  # Add this line for debugging
     print("Channel ID:", channel_id)  # Add this line for debugging
-    channel = bot.get_channel(channel_id)
-    print("Fetched channel:", channel)  # Add this line for debugging
 
     # Check if the channel is not None before accessing its attributes
     if channel is not None:
@@ -199,6 +195,8 @@ async def fail_game(reason, message, channel):
         mydb[guild_id].commit()
     else:
         logging.error(f"Failed to create a new channel. Channel is None.")
+
+
 
 
 
