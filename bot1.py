@@ -67,8 +67,10 @@ async def on_message(message):
     if channel_id is None or message.channel.id != int(channel_id[0]):
         return
 
+    # Consume unread results from previous queries
+    mycursor.fetchall()
+
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
-    mycursor.fetchall()  # consume unread results
     result = mycursor.fetchone()
     if result is not None:
         increment = int(result[0])
@@ -76,7 +78,6 @@ async def on_message(message):
         increment = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('count',))
-    mycursor.fetchall()  # consume unread results
     result = mycursor.fetchone()
     if result is not None:
         count = int(result[0])
@@ -84,7 +85,6 @@ async def on_message(message):
         count = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('last_user',))
-    mycursor.fetchall()  # consume unread results
     result = mycursor.fetchone()
     if result is not None:
         last_user = int(result[0])
@@ -92,7 +92,6 @@ async def on_message(message):
         last_user = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('high_score',))
-    mycursor.fetchall()  # consume unread results
     result = mycursor.fetchone()
     if result is not None:
         high_score = int(result[0])
@@ -118,6 +117,7 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
 
 @bot.event
