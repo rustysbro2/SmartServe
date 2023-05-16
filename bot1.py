@@ -10,7 +10,6 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 mydb = {}
 
-import mysql.connector
 
 def create_game_data_table(connection):
     cursor = connection.cursor()
@@ -36,12 +35,14 @@ def create_game_data_table(connection):
 
     cursor.close()
 
+
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     guild_id = ctx.guild.id
     channel_id = channel.id
     mycursor = get_cursor(guild_id)
-    mycursor.execute(f"INSERT INTO GameData (name, value, guild) VALUES ('channel', {channel_id}, {guild_id}) ON DUPLICATE KEY UPDATE value={channel_id}")
+    mycursor.execute(
+        f"INSERT INTO GameData (name, value, guild) VALUES ('channel', {channel_id}, {guild_id}) ON DUPLICATE KEY UPDATE value={channel_id}")
     mydb[guild_id].commit()
     logging.info(f'Successfully set channel id {channel_id} for guild {guild_id}')
     await ctx.send(f'Successfully set channel to {channel.mention}')
@@ -118,43 +119,6 @@ async def on_message(message):
         await fail_game(f'Unexpected error: {e}', message)
 
 
-
-
-
-
-@bot.event
-async def on_ready():
-    print('Bot is ready.')
-
-    # Connect to the database for each guild
-    for guild in bot.guilds:
-        mydb[guild.id] = mysql.connector.connect(
-            host="na03-sql.pebblehost.com",
-            user="customer_491521_counting",
-            password="-se$R-7q9x$O-a5UMA#A",
-            database="customer_491521_counting"
-        )
-
-        # Create the GameData table if it doesn't exist
-        create_game_data_table(mydb[guild.id])  # Use guild.id as the key
-
-
-
-
-
-
-def get_cursor(guild_id):
-    if guild_id not in mydb:
-        # Get the connection using the guild ID as the key
-        connection = mydb[guild_id]
-
-        # Store the connection using the guild ID as the key
-        mydb[guild_id] = connection
-
-    return mydb[guild_id].cursor(buffered=True)
-
-
-
 async def fail_game(reason, message):
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
@@ -178,22 +142,5 @@ async def fail_game(reason, message):
     else:
         increment = 1  # default value if increment is not found
 
-    if channel is not None:
-        await channel.delete(reason='Game ended.')
-
-    new_channel = await channel.category.create_text_channel(channel.name)
-    await new_channel.send(f'Game ended! Reason: {reason}\nFailed message: {message.content}\nIncrement was: {increment}')
-    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('channel', str(new_channel.id)))
-    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', '0'))
-    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', '0'))
-    mydb[guild_id].commit()
-
-
-
-
-
-
-bot.run(bot_token)
-
-
+    if
 
