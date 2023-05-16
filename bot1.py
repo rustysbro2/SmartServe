@@ -85,16 +85,9 @@ async def on_ready():
 
 
 
-def get_cursor(guild_id):
-    if guild_id not in mydb:
-        return None
+def get_cursor(connection):
+    return connection.cursor()
 
-    connection = mydb[guild_id]
-    if connection is None:
-        return None
-
-    cursor = connection.cursor(buffered=True)
-    return cursor
 
 
 
