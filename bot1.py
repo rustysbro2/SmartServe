@@ -1,9 +1,10 @@
 import discord
-from discord.ext import commands
+from discord.ext.commands import Bot
 import ast
 import operator
 import os
 import json
+from discord.utils import get
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -240,7 +241,7 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
                 embed.add_field(name="New Increment", value=changed_increment, inline=False)
                 last_counter_user_id = count_data['last_counter_user']
                 if last_counter_user_id is not None:
-                    last_counter_user = guild.get_member(int(last_counter_user_id))
+                    last_counter_user = get(guild.members, id=int(last_counter_user_id))
                     if last_counter_user is not None:
                         mention = last_counter_user.mention
                         embed.add_field(name="Failed By", value=f"{mention} ({last_counter_user})", inline=False)
