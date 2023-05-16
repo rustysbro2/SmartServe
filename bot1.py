@@ -208,7 +208,6 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
         await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
     await old_channel.delete(reason="Counting channel reset")
-
     return new_channel
 
 
@@ -221,5 +220,6 @@ async def highscore(ctx):
 
 
 bot1.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
+
 
 
