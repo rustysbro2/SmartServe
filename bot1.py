@@ -93,10 +93,12 @@ def get_cursor(guild_id):
                 password="-se$R-7q9x$O-a5UMA#A",
                 database="customer_491521_counting",
             )
+            mydb[guild_id].cursor(buffered=True)  # Create and return a cursor object
         else:
             return None
 
     return mydb[guild_id].cursor(buffered=True)
+
 
 
 
