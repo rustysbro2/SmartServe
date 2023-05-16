@@ -181,12 +181,7 @@ async def fail_game(reason, message, channel_id):
         mycursor.fetchall()
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
-    current_channel_id_result = mycursor.fetchone()
-    if current_channel_id_result is not None:
-        current_channel_id = int(current_channel_id_result[0])
-    else:
-        print("Current channel ID not found in database.")
-        return
+    current_channel_id = int(mycursor.fetchone()[0])
 
     # Check if the channel is not None before accessing its attributes
     channel = bot.get_channel(channel_id)
