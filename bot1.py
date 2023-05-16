@@ -111,10 +111,12 @@ async def on_message(message):
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
 
-    mycursor.execute("SELECT value FROM GameData WHERE name = 'channel' AND guild = %s", (guild_id,))
-    channel_id = mycursor.fetchone()
-    if channel_id is None or message.channel.id != int(channel_id[0]):
-        print(f"Invalid channel. Expected: {channel_id[0]}. Actual: {message.channel.id}")
+    mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
+    channel_id_result = mycursor.fetchone()
+    if channel_id_result is not None:
+        channel_id = int(channel_id_result[0])
+    else:
+        print("Channel ID not found in database.")
         return
 
     mycursor.fetchall()  # Consume unread results
@@ -166,6 +168,7 @@ async def on_message(message):
             await fail_game('Invalid number!', message, message.channel)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message, message.channel)
+
 
 async def fail_game(reason, message, channel):
     guild_id = message.guild.id
