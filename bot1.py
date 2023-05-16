@@ -145,10 +145,13 @@ async def on_message(message):
 
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
+            print(f"Count: {count}, Increment: {increment}")
             if message.author.id == last_user:
+                print("Twice in a row!")
                 await fail_game('You cannot post twice in a row!', message)
                 return
 
+            print("Adding reaction...")
             await message.add_reaction('✅')
 
             count += increment
@@ -156,15 +159,19 @@ async def on_message(message):
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
 
             if count > high_score:
+                print("New high score!")
                 high_score = count
                 mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
                 await message.add_reaction('🏆')
 
             mydb[guild_id].commit()
         else:
+            print("Invalid number!")
             await fail_game('Invalid number!', message)
     except Exception as e:
+        print(f"Error: {e}")
         await fail_game(f'Unexpected error: {e}', message)
+
 
 
 
