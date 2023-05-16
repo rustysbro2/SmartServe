@@ -113,10 +113,10 @@ def get_cursor(guild_id):
 
 @bot.event
 async def on_message(message):
+    await bot.process_commands(message)
+
     if message.author == bot.user:
         return
-
-    await bot.process_commands(message)
 
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
@@ -175,6 +175,7 @@ async def on_message(message):
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
 
 
