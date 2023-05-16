@@ -72,6 +72,7 @@ async def increment(ctx, incr: int):
     mydb.commit()
     await ctx.send(f'Increment set to: {incr}')
 
+@bo1.event
 async def on_message(message):
     await bot.process_commands(message)
 
@@ -123,20 +124,19 @@ async def on_message(message):
 
             if message.guild.me.guild_permissions.add_reactions:
                 await message.add_reaction('✅')
-
-            count += increment
-            mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
-            mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
-            if count > high_score:
-                high_score = count
-                mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
-                if message.guild.me.guild_permissions.add_reactions:
+                count += increment
+                mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
+                mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
+                if count > high_score:
+                    high_score = count
+                    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
                     await message.add_reaction('🏆')
-            mydb[guild_id].commit()
+                mydb[guild_id].commit()
         else:
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
 
 def get_cursor(guild_id):
