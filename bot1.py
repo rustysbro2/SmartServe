@@ -199,6 +199,9 @@ async def on_message(message):
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
     old_channel = guild.get_channel(counting_channel['id'])
 
+async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
+    old_channel = guild.get_channel(counting_channel['id'])
+
     if old_channel is None:
         await guild.owner.send("The counting channel no longer exists. Please set a new counting channel.")
         save_data()
@@ -233,6 +236,8 @@ async def reset_counting_channel(guild, counting_channel, failure_reason, curren
 
     await old_channel.delete(reason="Counting channel reset")
     return new_channel
+
+
 
 
 
