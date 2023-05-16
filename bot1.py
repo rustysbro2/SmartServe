@@ -10,6 +10,45 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 mydb = {}
 
+import mysql.connector
+
+def create_game_data_table(connection):
+    cursor = connection.cursor()
+    table_exists = False
+
+    # Check if the table exists
+    cursor.execute("SHOW TABLES LIKE 'GameData'")
+    result = cursor.fetchone()
+    if result:
+        table_exists = True
+
+    if not table_exists:
+        # Create the GameData table
+        cursor.execute("""
+            CREATE TABLE GameData (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                value VARCHAR(255) NOT NULL,
+                guild VARCHAR(255) NOT NULL
+            )
+        """)
+        connection.commit()
+
+    cursor.close()
+
+# Connect to the database
+mydb = mysql.connector.connect(
+    host="na03-sql.pebblehost.com",
+    user="customer_491521_counting",
+    password="-se$R-7q9x$O-a5UMA#A",
+    database="customer_491521_counting"
+)
+
+# Create the GameData table if it doesn't exist
+create_game_data_table(mydb)
+
+
+
 @bot.event
 async def on_ready():
     print('Bot is ready.')
