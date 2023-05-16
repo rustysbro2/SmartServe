@@ -1,17 +1,3 @@
-def get_cursor(guild_id):
-    if guild_id not in mydb:
-        # Get the connection using the guild ID as the key
-        if guild_id in bot.guilds:
-            mydb[guild_id] = mysql.connector.connect(
-                host="na03-sql.pebblehost.com",
-                user="customer_491521_counting",
-                password="-se$R-7q9x$O-a5UMA#A",
-                database="customer_491521_counting",
-            )
-        else:
-            return None
-
-    return mydb[guild_id].cursor(buffered=True)
 import discord
 from discord.ext import commands
 import mysql.connector
@@ -109,6 +95,7 @@ def get_cursor(guild_id):
             return None
 
     return mydb[guild_id].cursor(buffered=True)
+
 
 
 @bot.event
