@@ -172,19 +172,20 @@ async def on_message(message):
         await fail_game(f'Unexpected error: {e}', message, message.channel)
 
 
-async def fail_game(reason, message, channel_id):
+async def fail_game(reason, message, channel):
     guild_id = message.guild.id
-    mycursor = get_cursor(guild_id)
+    channel_id = channel.id
 
     # Consume unread results
     while mycursor.nextset():
         mycursor.fetchall()
 
     # Reset channel, count, last_user in the database
-    mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('channel', str(channel_id)))
+     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('channel', str(channel_id)))
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', '0'))
     mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', '0'))
     mydb[guild_id].commit()
+
 
     # Create a new channel and send the failure message
     channel = bot.get_channel(channel_id)
