@@ -172,7 +172,7 @@ async def on_message(message):
     if int(content) > count_data.get('high_score', 0):
         count_data['high_score'] = int(content)
     save_data()  # Save the data after updating the values
-await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    await message.add_reaction('✅')  # Add a reaction to the valid counting message
 
 
 
