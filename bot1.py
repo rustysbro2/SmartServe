@@ -102,7 +102,7 @@ def get_cursor(guild_id):
 
 
 
-bot.event
+@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
@@ -154,25 +154,26 @@ async def on_message(message):
     try:
         if message.content.isdigit() and int(message.content) == count + increment:
             if message.author.id == last_user:
-                await fail_game('You cannot post twice in a row!', message, message.channel, mycursor)
+                await fail_game('You cannot post twice in a row!', message, channel_id, increment)
                 return
 
             await message.add_reaction('✅')
             count += increment
-            mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
-            mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
+            mycursor.execute("REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)", ('count', str(count), str(guild_id)))
+            mycursor.execute("REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)", ('last_user', str(message.author.id), str(guild_id)))
             if count > high_score:
                 high_score = count
-                mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
+                mycursor.execute("REPLACE INTO GameData (name, value, guild) VALUES (%s, %s, %s)", ('high_score', str(high_score), str(guild_id)))
                 await message.add_reaction('🏆')
             mydb[guild_id].commit()
         else:
-            await fail_game('Invalid number!', message, message.channel, mycursor)
+            await fail_game('Invalid number!', message, channel_id, increment)
     except Exception as e:
-        await fail_game(f'Unexpected error: {e}', message, message.channel, mycursor)
+        await fail_game(f'Unexpected error: {e}', message, channel_id, increment)
 
 
-async def fail_game(reason, message, channel_id):
+
+async def fail_game(reason, message, channel_id, increment):
     guild_id = message.guild.id
     mycursor = get_cursor(guild_id)
 
@@ -195,6 +196,7 @@ async def fail_game(reason, message, channel_id):
         )
     else:
         logging.error(f"Failed to create a new channel. Channel is None.")
+
 
 
 
