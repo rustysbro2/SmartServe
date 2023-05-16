@@ -74,6 +74,7 @@ async def increment(ctx, incr: int):
 
 async def on_message(message):
     await bot.process_commands(message)
+
     if message.author == bot.user:
         return
 
@@ -103,7 +104,7 @@ async def on_message(message):
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('last_user',))
     result = mycursor.fetchone()
     if result is not None:
-        last_user = result[0]
+        last_user = int(result[0])
     else:
         last_user = 0  # default value, adjust as needed
 
@@ -120,19 +121,23 @@ async def on_message(message):
                 await fail_game('You cannot post twice in a row!', message)
                 return
 
-            await message.add_reaction('✅')
+            if message.guild.me.guild_permissions.add_reactions:
+                await message.add_reaction('✅')
+
             count += increment
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('count', str(count)))
             mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('last_user', str(message.author.id)))
             if count > high_score:
                 high_score = count
                 mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
-                await message.add_reaction('🏆')
-            mydb.commit()
+                if message.guild.me.guild_permissions.add_reactions:
+                    await message.add_reaction('🏆')
+            mydb[guild_id].commit()
         else:
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
 def get_cursor(guild_id):
     if guild_id not in mydb:
