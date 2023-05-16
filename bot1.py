@@ -109,6 +109,7 @@ async def on_message(message):
 
 
 
+
 async def fail_game(reason, message):
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
     channel_id = int(mycursor.fetchone()[0])
