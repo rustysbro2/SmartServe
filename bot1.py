@@ -194,6 +194,7 @@ async def on_message(message):
 
 
 
+
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
     old_channel = guild.get_channel(counting_channel['id'])
 
