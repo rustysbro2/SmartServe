@@ -108,80 +108,81 @@ async def on_message(message):
     if not isinstance(message.channel, discord.TextChannel):
         return
 
-guild_id = message.guild.id
-guild_data = guilds.get(guild_id)
+    guild_id = message.guild.id
+    guild_data = guilds.get(guild_id)
 
-if guild_data is None:
-    guild_data = {}  # Initialize with an empty dictionary if guild_data is None
+    if guild_data is None:
+        guild_data = {}  # Initialize with an empty dictionary if guild_data is None
 
-counting_channel = guild_data.get('counting_channel')
-count_data = guild_data.get('count')
+    counting_channel = guild_data.get('counting_channel')
+    count_data = guild_data.get('count')
 
-if counting_channel is None or counting_channel['id'] != message.channel.id:
-    return
+    if counting_channel is None or counting_channel['id'] != message.channel.id:
+        return
 
-increment = count_data.get('increment')
-last_counter = count_data.get('last_counter')
-last_counter_user = count_data.get('last_counter_user')
+    increment = count_data.get('increment')
+    last_counter = count_data.get('last_counter')
+    last_counter_user = count_data.get('last_counter_user')
 
-if increment is None:
-    return
+    if increment is None:
+        return
 
-content = message.content.strip()
+    content = message.content.strip()
 
-# Check for failure scenarios
-if last_counter is None:
-    if int(content) == increment:  # Check if the first number equals the increment
-        count_data['last_counter'] = int(content)
-        count_data['last_counter_user'] = message.author.id
-        if int(content) > count_data.get('high_score', 0):
-            count_data['high_score'] = int(content)
-        await message.add_reaction('✅')  # Add a reaction to the valid counting message
-        save_data()  # Save the data after updating the values
-    else:
-        await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
-    return
+    # Check for failure scenarios
+    if last_counter is None:
+        if int(content) == increment:  # Check if the first number equals the increment
+            count_data['last_counter'] = int(content)
+            count_data['last_counter_user'] = message.author.id
+            if int(content) > count_data.get('high_score', 0):
+                count_data['high_score'] = int(content)
+            await message.add_reaction('✅')  # Add a reaction to the valid counting message
+            save_data()  # Save the data after updating the values
+        else:
+            await message.channel.send(f"The first number should be {increment}.")  # Inform user if they start with a different number
+        return
 
-# Check if the counting message is valid
-is_valid, failure_reason = check_counting_message(content, increment, last_counter)
+    # Check if the counting message is valid
+    is_valid, failure_reason = check_counting_message(content, increment, last_counter)
 
-if not is_valid or message.author.id == last_counter_user:
-    # Send failure message and reset counting channel
-    if message.author.id == last_counter_user:
-        failure_reason = "You cannot count twice in a row."
+    if not is_valid or message.author.id == last_counter_user:
+        # Send failure message and reset counting channel
+        if message.author.id == last_counter_user:
+            failure_reason = "You cannot count twice in a row."
 
-    new_channel = await reset_counting_channel(
-        message.guild,
-        counting_channel,
-        failure_reason,
-        content,
-        increment,
-        changed_increment=count_data.get('increment', increment)
-    )
+        new_channel = await reset_counting_channel(
+            message.guild,
+            counting_channel,
+            failure_reason,
+            content,
+            increment,
+            changed_increment=count_data.get('increment', increment)
+        )
 
-    if new_channel is not None:
-        if last_counter is None:
-            embed = discord.Embed(title="Counting Failure", color=0xFF0000)
-            embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
-            embed.add_field(name="Your Count", value=content, inline=False)
-            embed.add_field(name="Old Increment", value=increment, inline=False)
-            embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
-            embed.add_field(name="Failed By", value=message.author.mention, inline=False)
-            await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
+        if new_channel is not None:
+            if last_counter is None:
+                embed = discord.Embed(title="Counting Failure", color=0xFF0000)
+                embed.add_field(name="Failure Reason", value=failure_reason, inline=False)
+                embed.add_field(name="Your Count", value=content, inline=False)
+                embed.add_field(name="Old Increment", value=increment, inline=False)
+                embed.add_field(name="New Increment", value=count_data.get('increment', increment), inline=False)
+                embed.add_field(name="Failed By", value=message.author.mention, inline=False)
+                await new_channel.send(embed=embed)  # Send the failure message as an embed in the new channel
 
-        count_data['last_counter'] = None
-        count_data['last_counter_user'] = None
-        save_data()  # Save the data after resetting the counting channel
+            count_data['last_counter'] = None
+            count_data['last_counter_user'] = None
+            save_data()  # Save the data after resetting the counting channel
 
-    return
+        return
 
-# Valid counting message
-count_data['last_counter'] = int(content)
-count_data['last_counter_user'] = message.author.id
-if int(content) > count_data.get('high_score', 0):
-    count_data['high_score'] = int(content)
-save_data()  # Save the data after updating the values
-await message.add_reaction('✅')  # Add a reaction to the valid counting message
+    # Valid counting message
+    count_data['last_counter'] = int(content)
+    count_data['last_counter_user'] = message.author.id
+    if int(content) > count_data.get('high_score', 0):
+        count_data['high_score'] = int(content)
+    save_data()  # Save the data after updating the values
+    await message.add_reaction('✅')  # Add a reaction to the valid counting message
+
 
 async def reset_counting_channel(guild, counting_channel, failure_reason, current_count, increment, changed_increment):
     old_channel = guild.get_channel(counting_channel['id'])
