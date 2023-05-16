@@ -67,10 +67,10 @@ async def on_message(message):
     if channel_id is None or message.channel.id != int(channel_id[0]):
         return
 
-    # Consume unread results from previous queries
-    mycursor.fetchall()
+    mycursor.fetchall()  # Consume unread results
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('increment',))
+    mycursor.fetchall()  # Consume unread results
     result = mycursor.fetchone()
     if result is not None:
         increment = int(result[0])
@@ -78,6 +78,7 @@ async def on_message(message):
         increment = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('count',))
+    mycursor.fetchall()  # Consume unread results
     result = mycursor.fetchone()
     if result is not None:
         count = int(result[0])
@@ -85,6 +86,7 @@ async def on_message(message):
         count = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('last_user',))
+    mycursor.fetchall()  # Consume unread results
     result = mycursor.fetchone()
     if result is not None:
         last_user = int(result[0])
@@ -92,6 +94,7 @@ async def on_message(message):
         last_user = 0  # default value, adjust as needed
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('high_score',))
+    mycursor.fetchall()  # Consume unread results
     result = mycursor.fetchone()
     if result is not None:
         high_score = int(result[0])
@@ -112,11 +115,12 @@ async def on_message(message):
                 high_score = count
                 mycursor.execute("REPLACE INTO GameData (name, value) VALUES (%s, %s)", ('high_score', str(high_score)))
                 await message.add_reaction('🏆')
-            mydb.commit()
+            mydb[guild_id].commit()
         else:
             await fail_game('Invalid number!', message)
     except Exception as e:
         await fail_game(f'Unexpected error: {e}', message)
+
 
 
 
