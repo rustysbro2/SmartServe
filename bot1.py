@@ -40,6 +40,7 @@ def create_game_data_table(connection):
     cursor.close()
 
 
+
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     guild_id = ctx.guild.id
