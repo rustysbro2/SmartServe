@@ -86,6 +86,7 @@ def get_cursor(guild_id):
         mydb[guild_id] = connection
 
     return mydb[guild_id].cursor(buffered=True)
+
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
