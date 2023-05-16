@@ -176,7 +176,8 @@ async def fail_game(reason, message, channel):
 
     mycursor.execute("SELECT value FROM GameData WHERE name = %s", ('channel',))
     channel_id = int(mycursor.fetchone()[0])
-    print("Fetched channel_id:", channel_id)  # Add this line for debugging
+    print("Guild ID:", guild_id)  # Add this line for debugging
+    print("Channel ID:", channel_id)  # Add this line for debugging
     channel = bot.get_channel(channel_id)
     print("Fetched channel:", channel)  # Add this line for debugging
 
