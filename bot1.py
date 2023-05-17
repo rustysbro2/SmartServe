@@ -21,6 +21,14 @@ def ensure_data_file_exists():
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
             json.dump(default_data, f)
+    else:
+        with open(data_file, 'r') as f:
+            existing_data = json.load(f)
+        merged_data = default_data.copy()
+        merged_data.update(existing_data)
+        with open(data_file, 'w') as f:
+            json.dump(merged_data, f)
+
 
 @bot.event
 async def on_ready():
