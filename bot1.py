@@ -9,10 +9,18 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # the file where we will save our channel id and count
 data_file = 'count_data.json'
 
+# the expected keys and their default values
+default_data = {
+    'channel_id': None,
+    'count': 0,
+    'last_counter_id': None,
+    'high_score': 0,
+}
+
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
-            json.dump({}, f)
+            json.dump(default_data, f)
 
 @bot.event
 async def on_ready():
@@ -21,13 +29,12 @@ async def on_ready():
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
-    data = {
-        'channel_id': channel.id,
-        'count': 0,
-        'last_counter_id': None,  # id of the last user who counted
-        'high_score': 0,  # the highest score achieved
-        'high_scorer_id': None  # id of the user who has the high score
-    }
+    data = default_data.copy()
+    data['channel_id'] = channel.id
+    if os.path.exists(data_file):
+        with open(data_file, 'r') as f:
+            existing_data = json.load(f)
+        data.update(existing_data)
     with open(data_file, 'w') as f:
         json.dump(data, f)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
@@ -49,8 +56,7 @@ async def on_message(message):
                 data['last_counter_id'] = message.author.id
                 if data['count'] > data['high_score']:
                     data['high_score'] = data['count']
-                    data['high_scorer_id'] = message.author.id
-                    await message.add_reaction('🏆')  # react with a trophy if a new high score is achieved
+                    await message.add_reaction('🏆')
                 else:
                     await message.add_reaction('✅')
             else:
