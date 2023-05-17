@@ -91,10 +91,8 @@ async def set_increment(ctx, increment: int):
     await ctx.send(f'Increment has been set to {increment}')
 
 
-@bot.event
+@@bot.event
 async def on_message(message):
-    await bot.process_commands(message)
-
     if message.author == bot.user:
         return
 
@@ -189,18 +187,13 @@ async def on_message(message):
         with open(data_file, 'w') as f:
             json.dump(all_data, f, indent=4)
 
-    bot.all_data = all_data  # Save the updated data in bot.all_data
+        if new_game_started:
+            old_channel_id = data['channel_id']
+            old_channel = bot.get_channel(old_channel_id)
+            await old_channel.delete()
 
-    # Create a new channel and delete the old one if necessary
-    if 'new_channel' in all_data[str(message.guild.id)]:
-        old_channel_id = data['channel_id']
-        old_channel = bot.get_channel(old_channel_id)
-        new_channel = await old_channel.clone(name=old_channel.name)
-        data['channel_id'] = new_channel.id
-        del all_data[str(message.guild.id)]['new_channel']
+    await bot.process_commands(message)
 
-        # Delete the old counting channel
-        await old_channel.delete()
 
      
 
