@@ -168,22 +168,8 @@ async def on_message(message):
                 )
                 await message.channel.send(embed=embed)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    all_data[str(message.guild.id)] = data
-    with open(data_file, 'w') as f:
-        json.dump(all_data, f, indent=4)
+            all_data[str(message.guild.id)] = data
+            with open(data_file, 'w') as f:
+                json.dump(all_data, f, indent=4)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
