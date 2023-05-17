@@ -146,12 +146,15 @@ async def on_message(message):
             increment_text = f"{old_increment} ➡️ {data['increment']}"
             embed = discord.Embed(
                 title="Counting Failure",
-                description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}\n\n"
-                            f"The expected number was: {expected_number}",
+                description=f"**Failure Reason:** The number doesn't follow the counting sequence.\n"
+                            f"**Message:** {message.content}\n"
+                            f"**Failed by:** {message.author.mention}\n"
+                            f"**Expected Number:** {expected_number}",
                 color=discord.Color.red()
             )
             embed.add_field(name="Increment Information", value=increment_text, inline=False)
             await new_channel.send(embed=embed)
+
 
 
 
