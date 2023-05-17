@@ -132,7 +132,7 @@ async def on_message(message):
             expected_number = data['count'] + data['increment']  # Calculate the expected number
 
             # Check if a new game should start
-            if message.author.id == data['last_counter_id']:
+            if message.author.id == data['last_counter_id'] or data['last_counter_id'] is None:
                 # Reset the count and last counter ID
                 data['count'] = 0
                 data['last_counter_id'] = None
@@ -157,9 +157,6 @@ async def on_message(message):
                 )
                 await new_channel.send(embed=embed)
             else:
-                # Increment remains the same until a new game starts
-                data['increment'] = data['increment']
-
                 # Create the failure embed without increment information
                 embed = discord.Embed(
                     title="Counting Failure",
@@ -170,6 +167,7 @@ async def on_message(message):
                     color=discord.Color.red()
                 )
                 await message.channel.send(embed=embed)
+
 
 
 
