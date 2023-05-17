@@ -64,8 +64,6 @@ async def on_ready():
         json.dump(all_data, f, indent=4)
 
 
-
-
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     ensure_data_file_exists()
@@ -78,27 +76,18 @@ async def set_channel(ctx, channel: discord.TextChannel):
         json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
 
+
 @bot.command()
 async def set_increment(ctx, increment: int):
     ensure_data_file_exists()
     with open(data_file, 'r') as f:
         all_data = json.load(f)
     data = all_data.get(str(ctx.guild.id), default_data.copy())
-
-    # Check if a new game is currently in progress
-    new_game_started = data.get('new_game_started', False)
-    if not new_game_started:
-        # Update the increment value only if a new game hasn't started yet
-        data['increment'] = increment
-
+    data['new_increment'] = increment  # Store the new increment temporarily
     all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
-
-    if new_game_started:
-        await ctx.send("The increment value will take effect at the start of a new game.")
-    else:
-        await ctx.send(f'Increment has been set to {increment}')
+    await ctx.send(f'Increment has been set to {increment}')
 
 
 @bot.event
@@ -119,6 +108,8 @@ async def on_message(message):
 
     if message.channel.id == data.get('channel_id'):
         fail_reason = ""
+        new_game_started = False  # Initialize new game started flag
+
         try:
             result = safe_eval(message.content)
             if result == data['count'] + data['increment']:
@@ -144,18 +135,10 @@ async def on_message(message):
 
             # Check if a new game should start
             if message.author.id == data['last_counter_id'] or data['last_counter_id'] is None:
+                new_game_started = True  # Set new game started flag to True
                 # Reset the count and last counter ID
                 data['count'] = 0
                 data['last_counter_id'] = None
-
-                # Delete and recreate the channel
-                channel_name = message.channel.name
-                position = message.channel.position
-                overwrites = message.channel.overwrites
-                category = message.channel.category
-                await message.channel.delete()
-                new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
-                data['channel_id'] = new_channel.id
 
                 # Check if a new increment value is set
                 new_increment = all_data[str(message.guild.id)].get('new_increment')
@@ -163,56 +146,32 @@ async def on_message(message):
                     old_increment = data['increment']
                     data['increment'] = new_increment
                     del all_data[str(message.guild.id)]['new_increment']
-                    data['new_game_started'] = True  # Set new game started flag to True
 
-                    # Create the failure embed with new game information and old/new increment
-                    embed = discord.Embed(
-                        title="Counting Failure",
-                        description=f"**Failure Reason:** {fail_reason}\n"
-                                    f"**You typed:** {message.content}\n"
-                                    f"**Failed by:** {message.author.mention}\n"
-                                    f"**Expected Number:** {expected_number}\n"
-                                    f"**Old Increment:** {old_increment}\n"
-                                    f"**New Increment:** {new_increment}",
-                        color=discord.Color.red()
-                    )
-                    await new_channel.send(embed=embed)
+            # Send the failure embed with the appropriate information
+            embed = discord.Embed(
+                title="Counting Failure",
+                description=f"**Failure Reason:** {fail_reason}\n"
+                            f"**You typed:** {message.content}\n"
+                            f"**Failed by:** {message.author.mention}\n"
+                            f"**Expected Number:** {expected_number}\n"
+                            f"**Old Increment:** {old_increment}\n"
+                            f"**New Increment:** {new_increment}",
+                color=discord.Color.red()
+            )
+            new_channel = message.channel if not new_game_started else await message.guild.create_text_channel(
+                message.channel.name,
+                position=message.channel.position,
+                overwrites=message.channel.overwrites,
+                category=message.channel.category
+            )
+            await new_channel.send(embed=embed)
 
-                    # Save the updated data to the data file
-                    all_data[str(message.guild.id)] = data
-                    with open(data_file, 'w') as f:
-                        json.dump(all_data, f, indent=4)
-                    return
+        all_data[str(message.guild.id)] = data
+        with open(data_file, 'w') as f:
+            json.dump(all_data, f, indent=4)
 
-                # Create the failure embed with new game information
-                embed = discord.Embed(
-                    title="Counting Failure",
-                    description=f"**Failure Reason:** {fail_reason}\n"
-                                f"**You typed:** {message.content}\n"
-                                f"**Failed by:** {message.author.mention}\n"
-                                f"**Expected Number:** {expected_number}",
-                    color=discord.Color.red()
-                )
-                await new_channel.send(embed=embed)
-                data['new_game_started'] = True  # Set new game started flag to True
-
-            else:
-                # Create the failure embed without increment information
-                embed = discord.Embed(
-                    title="Counting Failure",
-                    description=f"**Failure Reason:** {fail_reason}\n"
-                                f"**You typed:** {message.content}\n"
-                                f"**Failed by:** {message.author.mention}\n"
-                                f"**Expected Number:** {expected_number}",
-                    color=discord.Color.red()
-                )
-                await message.channel.send(embed=embed)
-
-    # Save the updated data to the data file
-    all_data[str(message.guild.id)] = data
-    with open(data_file, 'w') as f:
-        json.dump(all_data, f, indent=4)
-
+        if new_game_started:
+            await message.channel.delete()
 
 
 
