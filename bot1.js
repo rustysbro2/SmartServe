@@ -13,10 +13,8 @@ const commands = [
   }
 ];
 
-const intents = new Intents([
-  Intents.FLAGS.GUILDS,
-  Intents.FLAGS.GUILD_MESSAGES
-]);
+const intents = new Intents();
+intents.add(Intents.FLAGS.GUILDS);
 
 const client = new Client({ intents });
 
