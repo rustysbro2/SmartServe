@@ -66,14 +66,17 @@ async def set_increment(ctx, increment: int):
         all_data = json.load(f)
     data = all_data.get(str(ctx.guild.id))
     if data:
+        old_increment = data['increment']
         data['increment'] = increment
         with open(data_file, 'w') as f:
             json.dump(all_data, f, indent=4)
-        await ctx.send(f'Increment has been set to {increment}')
+        await ctx.send(f'Increment has been changed from {old_increment} to {increment}')
+    else:
+        await ctx.send('Please set the counting channel first using the `set_channel` command.')
 
 @bot.event
 async def on_message(message):
-    await bot.process_commands(message)  # Moved this line here
+    await bot.process_commands(message)
 
     if message.author == bot.user:
         return
