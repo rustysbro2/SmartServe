@@ -5,7 +5,8 @@ import threading;
 # Edit this to add each python file you wish to use
 
 start_files = [
-    "./bot1.py",
+    "./bot1.py"
+    "./bot2.py",
 ];
 
 # Do not edit below this line
