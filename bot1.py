@@ -156,10 +156,10 @@ async def on_message(message):
 
             # Check if a new game should start
             if message.author.id == data['last_counter_id'] or data['last_counter_id'] is None:
-                new_game_started = True  # Set new game started flag to True
                 # Reset the count and last counter ID
                 data['count'] = 0
                 data['last_counter_id'] = None
+                new_game_started = True  # Set new game started flag to True
 
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
@@ -237,5 +237,3 @@ async def on_message(message):
                     await message.channel.send(embed=embed)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
-
-
