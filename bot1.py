@@ -120,6 +120,7 @@ async def on_message(message):
         return
 
     if message.channel.id == data.get('channel_id'):
+        print('Counting channel')
         fail_reason = ""
         new_game_started = False  # Initialize new game started flag
         old_increment = data['old_increment']  # Get the old increment from data
@@ -143,6 +144,7 @@ async def on_message(message):
             fail_reason = "The text you entered is not a valid mathematical expression."
 
         if fail_reason:
+            print('Fail reason:', fail_reason)
             await message.add_reaction('❌')
             await message.delete()
             expected_number = data['count'] + data['increment']  # Calculate the expected number
@@ -159,8 +161,10 @@ async def on_message(message):
                 json.dump(all_data, f, indent=4)
 
             if new_game_started:
+                print('New game started')
                 # Check if a new counting channel should be created
                 if 'new_channel' in all_data[str(message.guild.id)]:
+                    print('New channel flag found')
                     old_channel_id = data['channel_id']
                     old_channel = bot.get_channel(old_channel_id)
                     new_channel = await old_channel.clone(name=old_channel.name)
@@ -174,6 +178,7 @@ async def on_message(message):
 
                     # Send the appropriate embed based on increment change
                     if old_increment != data['increment']:
+                        print('Increment changed')
                         # Create embed with increment change information
                         embed = discord.Embed(
                             title="Counting Failure",
@@ -185,6 +190,7 @@ async def on_message(message):
                             color=discord.Color.red()
                         )
                     else:
+                        print('Increment not changed')
                         # Create embed without increment change information
                         embed = discord.Embed(
                             title="Counting Failure",
@@ -197,8 +203,10 @@ async def on_message(message):
 
                     await new_channel.send(embed=embed)
                 else:
+                    print('No new channel flag')
                     # Send the failure embed in the current channel
                     if old_increment != data['increment']:
+                        print('Increment changed')
                         # Create embed with increment change information
                         embed = discord.Embed(
                             title="Counting Failure",
@@ -210,6 +218,7 @@ async def on_message(message):
                             color=discord.Color.red()
                         )
                     else:
+                        print('Increment not changed')
                         # Create embed without increment change information
                         embed = discord.Embed(
                             title="Counting Failure",
