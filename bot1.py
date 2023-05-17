@@ -150,8 +150,13 @@ async def on_message(message):
                     del all_data[str(message.guild.id)]['new_increment']
 
                 # Check if a new counting channel is created
-                new_channel = all_data[str(message.guild.id)].get('new_channel')
-                if new_channel is not None:
+                if 'new_channel' in all_data[str(message.guild.id)]:
+                    new_channel = await message.guild.create_text_channel(
+                        message.channel.name,
+                        position=message.channel.position,
+                        overwrites=message.channel.overwrites,
+                        category=message.channel.category
+                    )
                     data['channel_id'] = new_channel.id
                     del all_data[str(message.guild.id)]['new_channel']
 
@@ -178,13 +183,7 @@ async def on_message(message):
                     color=discord.Color.red()
                 )
 
-            new_channel = message.channel if not new_game_started else await message.guild.create_text_channel(
-                message.channel.name,
-                position=message.channel.position,
-                overwrites=message.channel.overwrites,
-                category=message.channel.category
-            )
-            await new_channel.send(embed=embed)
+            await message.channel.send(embed=embed)
 
         all_data[str(message.guild.id)] = data
         with open(data_file, 'w') as f:
@@ -192,6 +191,7 @@ async def on_message(message):
 
         if new_game_started:
             await message.channel.delete()
+
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
