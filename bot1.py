@@ -157,6 +157,10 @@ async def on_message(message):
                     data['channel_id'] = new_channel.id
                     del all_data[str(message.guild.id)]['new_channel']
 
+                    # Delete the old counting channel
+                    await old_channel.delete()
+
+
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
                 # Create embed with increment change information
@@ -186,10 +190,7 @@ async def on_message(message):
         with open(data_file, 'w') as f:
             json.dump(all_data, f, indent=4)
 
-        if new_game_started:
-            old_channel_id = data['channel_id']
-            old_channel = bot.get_channel(old_channel_id)
-            await old_channel.delete()
+     
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
