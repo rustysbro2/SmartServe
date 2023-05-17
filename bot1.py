@@ -157,7 +157,7 @@ async def on_message(message):
             with open(data_file, 'w') as f:
                 json.dump(all_data, f, indent=4)
 
-            # Create embed without increment change information
+            # Create embed
             embed = discord.Embed(
                 title="Counting Failure",
                 description=f"**Failure Reason:** {fail_reason}\n"
@@ -166,6 +166,12 @@ async def on_message(message):
                             f"**Expected Number:** {expected_number}",
                 color=discord.Color.red()
             )
+            if increment_changed:  # If the increment has changed
+                embed.add_field(
+                    name="**Increment Changed**",
+                    value=f"The increment has changed from {old_increment} ➡️ {data['increment']}."
+                )
+
 
             await new_channel.send(embed=embed)
             new_game_started = False  # Reset new_game_started to False after sending the embed
