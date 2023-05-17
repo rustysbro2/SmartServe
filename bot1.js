@@ -13,7 +13,7 @@ const commands = [
   }
 ];
 
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const client = new Client();
 
 client.once('ready', async () => {
   console.log(`Bot is online: ${client.user.tag}`);
@@ -43,4 +43,3 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.login(token);
-
