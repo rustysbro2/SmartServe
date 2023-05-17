@@ -68,6 +68,22 @@ async def on_ready():
         json.dump(all_data, f, indent=4)
 
 @bot.command()
+async def help(ctx):
+    embed = discord.Embed(
+        title="Bot Commands",
+        description="List of available commands:",
+        color=discord.Color.blue()
+    )
+
+    embed.add_field(name="!set_channel <channel>", value="Set the counting channel.", inline=False)
+    embed.add_field(name="!set_increment <increment>", value="Set the counting increment.", inline=False)
+
+    await ctx.send(embed=embed)
+
+# Disable the default help command
+bot.help_command = None
+
+@bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     ensure_data_file_exists()
     with open(data_file, 'r') as f:
