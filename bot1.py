@@ -6,7 +6,7 @@ import json
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
- the file where we will save our channel id and count
+# the file where we will save our channel id and count
 data_file = 'count_data.json'
 
 def ensure_data_file_exists():
