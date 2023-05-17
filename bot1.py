@@ -1,9 +1,10 @@
 import discord
 from discord.ext import commands
-from discord_interactions import InteractionsBot
+from discord_slash import SlashCommand
 
 
-bot = InteractionsBot(command_prefix='!')
+bot = commands.Bot(command_prefix='!')
+slash = SlashCommand(bot)
 
 
 @bot.event
@@ -11,7 +12,7 @@ async def on_ready():
     print(f'Logged in as {bot.user.name}')
 
 
-@bot.slash_command(
+@slash.slash(
     name='count',
     description='Start the counting game.'
 )
@@ -20,7 +21,7 @@ async def count(ctx):
     await ctx.send('Please start counting from 1.')
 
 
-@bot.slash_command(
+@slash.slash(
     name='stop',
     description='Stop the counting game.'
 )
@@ -41,5 +42,8 @@ async def on_message(message):
         pass
 
     await bot.process_commands(message)
+
+
+
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
