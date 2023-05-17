@@ -107,7 +107,7 @@ async def on_message(message):
     if message.channel.id == data.get('channel_id'):
         print('Counting channel')
         fail_reason = ""
-        new_game_started = message.author.id != data['last_counter_id'] or data['last_counter_id'] is None  # Set new game started flag
+        new_game_started = message.author.id != data['last_counter_id'] or data['last_counter_id'] is None or 'new_channel' in data
         old_increment = data['old_increment']  # Get the old increment from data
 
         try:
