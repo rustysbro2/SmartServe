@@ -147,9 +147,12 @@ async def on_message(message):
                     data['increment'] = new_increment
                     del all_data[str(message.guild.id)]['new_increment']
 
-            # Send the failure embed with the appropriate information
                 if fail_reason:
-                    await message.add_reaction('❌')
+                    try:
+                        await message.add_reaction('❌')
+                    except discord.errors.NotFound:
+                        # Message not found, skip adding the reaction
+                        pass
                     await message.delete()
                     expected_number = data['count'] + data['increment']  # Calculate the expected number
 
@@ -167,7 +170,7 @@ async def on_message(message):
                             data['increment'] = new_increment
                             del all_data[str(message.guild.id)]['new_increment']
 
-                            # Send the first embed with the failure information and old/new increment
+                            # Create the embed with increment change information
                             embed = discord.Embed(
                                 title="Counting Failure",
                                 description=f"**Failure Reason:** {fail_reason}\n"
@@ -177,9 +180,8 @@ async def on_message(message):
                                             f"**Increment:** {old_increment} :arrow: {new_increment}",
                                 color=discord.Color.red()
                             )
-                            await message.channel.send(embed=embed)
                         else:
-                            # Send the first embed with the failure information (no increment change)
+                            # Create the embed without increment change information
                             embed = discord.Embed(
                                 title="Counting Failure",
                                 description=f"**Failure Reason:** {fail_reason}\n"
@@ -188,26 +190,13 @@ async def on_message(message):
                                             f"**Expected Number:** {expected_number}",
                                 color=discord.Color.red()
                             )
-                            await message.channel.send(embed=embed)
-                    else:
-                        # Send the second embed without the increment information
-                        embed = discord.Embed(
-                            title="Counting Failure",
-                            description=f"**Failure Reason:** {fail_reason}\n"
-                                        f"**You typed:** {message.content}\n"
-                                        f"**Failed by:** {message.author.mention}\n"
-                                        f"**Expected Number:** {expected_number}",
-                            color=discord.Color.red()
-                        )
+
+                        # Send the embed
                         await message.channel.send(embed=embed)
 
-                # Update the data dictionary with the changes
-                all_data[str(message.guild.id)] = data
-                with open(data_file, 'w') as f:
-                    json.dump(all_data, f, indent=4)
+                        if new_game_started:
+                            await message.channel.delete()
 
-                if new_game_started:
-                    await message.channel.delete()
 
 
 
