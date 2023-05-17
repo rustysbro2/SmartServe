@@ -19,8 +19,10 @@ default_data = {
     'high_score': 0,
     'increment': 1,
     'pending_increment': None,
-    'old_increment': 1
+    'old_increment': 1,
+    'successful_counts': 0  # add this line
 }
+
 
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
@@ -115,8 +117,9 @@ async def on_message(message):
                 if message.author.id != data['last_counter_id']:
                     data['count'] += data['increment']
                     data['last_counter_id'] = message.author.id
-                    if data['count'] > data['high_score']:
-                        data['high_score'] = data['count']
+                    data['successful_counts'] += 1  # increase the number of successful counts
+                    if data['successful_counts'] > data['high_score']:  # compare successful counts to high score
+                        data['high_score'] = data['successful_counts']  # update high score based on successful counts
                         await message.add_reaction('🏆')
                     else:
                         await message.add_reaction('✅')
@@ -141,6 +144,7 @@ async def on_message(message):
             # Reset the count and last counter ID
             data['count'] = 0
             data['last_counter_id'] = None
+            data['successful_counts'] = 0  # reset successful counts
             if data['pending_increment'] is not None:  # If there's a pending increment
                 data['old_increment'] = data['increment']  # Save the old increment
                 data['increment'] = data['pending_increment']  # Apply the pending increment
