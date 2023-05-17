@@ -50,13 +50,15 @@ async def on_ready():
     with open(data_file, 'r') as f:
         all_data = json.load(f)
 
-    for guild in bot.guilds:
-        guild_id = str(guild.id)
+    guild_ids = [str(guild.id) for guild in bot.guilds]
+
+    for guild_id in guild_ids:
         if guild_id not in all_data:
             all_data[guild_id] = default_data.copy()
 
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
+
 
 
 @bot.command()
