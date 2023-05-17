@@ -108,7 +108,7 @@ async def on_message(message):
     if message.channel.id == data.get('channel_id'):
         print('Counting channel')
         fail_reason = ""
-        new_game_started = False  # Initialize new game started flag
+        new_game_started = message.author.id != data['last_counter_id'] or data['last_counter_id'] is None  # Set new game started flag
         old_increment = data['old_increment']  # Get the old increment from data
 
         try:
@@ -136,11 +136,10 @@ async def on_message(message):
             expected_number = data['count'] + data['increment']  # Calculate the expected number
 
             # Check if a new game should start
-            if message.author.id == data['last_counter_id'] or data['last_counter_id'] is None:
+            if new_game_started:
                 # Reset the count and last counter ID
                 data['count'] = 0
                 data['last_counter_id'] = None
-                new_game_started = True  # Set new game started flag to True
 
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
