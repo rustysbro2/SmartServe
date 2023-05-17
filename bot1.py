@@ -51,11 +51,12 @@ async def on_message(message):
                 data['last_counter_id'] = None
                 await message.add_reaction('❌')
                 # delete and recreate the channel
+                channel_name = message.channel.name
                 position = message.channel.position
                 overwrites = message.channel.overwrites
                 category = message.channel.category
                 await message.channel.delete()
-                new_channel = await message.guild.create_text_channel('counting', position=position, overwrites=overwrites, category=category)
+                new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
                 data['channel_id'] = new_channel.id
         else:
             await message.delete()
