@@ -106,6 +106,9 @@ async def on_message(message):
     if not data:
         return
 
+    # Set new_game_started to False when no message is sent in counting channel
+    data['new_game_started'] = False
+
     if message.channel.id == data.get('channel_id'):
         fail_reason = ""
         try:
@@ -168,11 +171,11 @@ async def on_message(message):
             # Update the increment values in the data dictionary
             data['old_increment'] = old_increment
             data['new_game_started'] = new_game_started
-            data['new_game_started'] = False  # Set new_game_started to False after sending the embed
 
-            all_data[str(message.guild.id)] = data
-            with open(data_file, 'w') as f:
-                json.dump(all_data, f, indent=4)
+        all_data[str(message.guild.id)] = data
+        with open(data_file, 'w') as f:
+            json.dump(all_data, f, indent=4)
+
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
