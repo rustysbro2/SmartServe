@@ -93,6 +93,8 @@ async def set_increment(ctx, increment: int):
 
 @bot.event
 async def on_message(message):
+    await bot.process_commands(message)
+
     if message.author == bot.user:
         return
 
@@ -143,7 +145,7 @@ async def on_message(message):
                 # Check if a new increment value is set
                 new_increment = all_data[str(message.guild.id)].get('new_increment')
                 if new_increment is not None:
-                    data['old_increment'] = old_increment  # Store the old increment
+                    data['old_increment'] = data['increment']  # Store the old increment
                     data['increment'] = new_increment
                     del all_data[str(message.guild.id)]['new_increment']
 
@@ -157,6 +159,7 @@ async def on_message(message):
 
                     # Delete the old counting channel
                     await old_channel.delete()
+
 
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
@@ -191,11 +194,6 @@ async def on_message(message):
             old_channel_id = data['channel_id']
             old_channel = bot.get_channel(old_channel_id)
             await old_channel.delete()
-
-    await bot.process_commands(message)
-
-
-     
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
