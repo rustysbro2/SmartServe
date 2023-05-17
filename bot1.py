@@ -1,47 +1,30 @@
 import discord
-from discord.ext import commands
 from discord_slash import SlashCommand
+from discord_slash.utils.manage_commands import create_option
+
+bot = discord.Bot(intents=discord.Intents.default())
+slash = SlashCommand(bot, sync_commands=True)  # Declares slash commands through the bot.
+
+guild_ids = [1100765844776173670]  # Put your server IDs in this array.
+
+count = 0
+
+@slash.slash(name="count",
+             description="Increases the count by 1",
+             options=[
+               create_option(
+                 name="user",
+                 description="Who is counting?",
+                 option_type=6,
+                 required=True
+               )],
+             guild_ids=guild_ids)
+async def _count(ctx, user: discord.Member):  # Defines a new "context" (ctx) command called "count".
+    global count
+    count += 1
+    await ctx.send(f"{user.mention} increased the count to {count}!", hidden=False)
 
 
-bot = commands.Bot(command_prefix='!')
-slash = SlashCommand(bot)
-
-
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user.name}')
-
-
-@slash.slash(
-    name='count',
-    description='Start the counting game.'
-)
-async def count(ctx):
-    await ctx.send('Starting the counting game!')
-    await ctx.send('Please start counting from 1.')
-
-
-@slash.slash(
-    name='stop',
-    description='Stop the counting game.'
-)
-async def stop(ctx):
-    await ctx.send('Stopping the counting game.')
-    # Add logic to stop the counting game
-
-
-@bot.event
-async def on_slash_command_error(ctx, error):
-    await ctx.send(f'Error: {str(error)}')
-
-
-@bot.event
-async def on_message(message):
-    if not message.author.bot:
-        # Add logic to handle counting and validate the next number
-        pass
-
-    await bot.process_commands(message)
 
 
 
