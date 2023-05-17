@@ -3,6 +3,10 @@ from discord.ext import commands
 import requests
 from flask import Flask, redirect, request, session, url_for
 import secrets
+import logging
+
+app.logger.setLevel(logging.DEBUG)
+
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(24)
