@@ -130,69 +130,66 @@ async def on_message(message):
         except Exception:
             fail_reason = "The text you entered is not a valid mathematical expression."
 
-       if fail_reason:
-          await message.add_reaction('❌')
-          await message.delete()
-          expected_number = data['count'] + data['increment']  # Calculate the expected number
+        if fail_reason:
+            await message.add_reaction('❌')
+            await message.delete()
+            expected_number = data['count'] + data['increment']  # Calculate the expected number
 
-          # Check if a new game should start
-          if message.author.id == data['last_counter_id'] or data['last_counter_id'] is None:
-              new_game_started = True  # Set new game started flag to True
-              # Reset the count and last counter ID
-              data['count'] = 0
-              data['last_counter_id'] = None
+            # Check if a new game should start
+            if message.author.id == data['last_counter_id'] or data['last_counter_id'] is None:
+                new_game_started = True  # Set new game started flag to True
+                # Reset the count and last counter ID
+                data['count'] = 0
+                data['last_counter_id'] = None
 
-              # Check if a new increment value is set
-              new_increment = all_data[str(message.guild.id)].get('new_increment')
-              if new_increment is not None:
-                  data['old_increment'] = old_increment  # Store the old increment
-                  data['increment'] = new_increment
-                  del all_data[str(message.guild.id)]['new_increment']
+                # Check if a new increment value is set
+                new_increment = all_data[str(message.guild.id)].get('new_increment')
+                if new_increment is not None:
+                    data['old_increment'] = old_increment  # Store the old increment
+                    data['increment'] = new_increment
+                    del all_data[str(message.guild.id)]['new_increment']
 
-              # Check if a new counting channel is created
-              if 'new_channel' in all_data[str(message.guild.id)]:
-                  old_channel_id = data['channel_id']
-                  old_channel = bot.get_channel(old_channel_id)
-                  new_channel = await old_channel.clone(name=old_channel.name)
-                  data['channel_id'] = new_channel.id
-                  del all_data[str(message.guild.id)]['new_channel']
+                # Check if a new counting channel is created
+                if 'new_channel' in all_data[str(message.guild.id)]:
+                    old_channel_id = data['channel_id']
+                    old_channel = bot.get_channel(old_channel_id)
+                    new_channel = await old_channel.clone(name=old_channel.name)
+                    data['channel_id'] = new_channel.id
+                    del all_data[str(message.guild.id)]['new_channel']
 
-          # Send the appropriate embed based on increment change
-          if old_increment != data['increment']:
-              # Create embed with increment change information
-              embed = discord.Embed(
-                  title="Counting Failure",
-                  description=f"**Failure Reason:** {fail_reason}\n"
-                              f"**You typed:** {message.content}\n"
-                              f"**Failed by:** {message.author.mention}\n"
-                              f"**Expected Number:** {expected_number}\n"
-                              f"**Increment:** {old_increment} :arrow: {data['increment']}",
-                  color=discord.Color.red()
-              )
-          else:
-              # Create embed without increment change information
-              embed = discord.Embed(
-                  title="Counting Failure",
-                  description=f"**Failure Reason:** {fail_reason}\n"
-                              f"**You typed:** {message.content}\n"
-                              f"**Failed by:** {message.author.mention}\n"
-                              f"**Expected Number:** {expected_number}",
-                  color=discord.Color.red()
-              )
+            # Send the appropriate embed based on increment change
+            if old_increment != data['increment']:
+                # Create embed with increment change information
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** {fail_reason}\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}\n"
+                                f"**Increment:** {old_increment} :arrow: {data['increment']}",
+                    color=discord.Color.red()
+                )
+            else:
+                # Create embed without increment change information
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** {fail_reason}\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}",
+                    color=discord.Color.red()
+                )
 
-          await message.channel.send(embed=embed)
+            await message.channel.send(embed=embed)
 
-      all_data[str(message.guild.id)] = data
-      with open(data_file, 'w') as f:
-          json.dump(all_data, f, indent=4)
+        all_data[str(message.guild.id)] = data
+        with open(data_file, 'w') as f:
+            json.dump(all_data, f, indent=4)
 
-      if new_game_started:
-          old_channel_id = data['channel_id']
-          old_channel = bot.get_channel(old_channel_id)
-          await old_channel.delete()
-
-
-
+        if new_game_started:
+            old_channel_id = data['channel_id']
+            old_channel = bot.get_channel(old_channel_id)
+            await old_channel.delete()
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
