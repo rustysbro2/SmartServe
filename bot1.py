@@ -118,8 +118,13 @@ async def on_message(message):
                     data['count'] += data['increment']
                     data['last_counter_id'] = message.author.id
                     data['successful_counts'] += 1  # increase the number of successful counts
+                    print(f"Message: {message.content}")  # Log the message content
+                    print(f"Current count: {data['count']}")  # Log the current count
+                    print(f"Current increment: {data['increment']}")  # Log the current increment
+                    print(f"Successful counts: {data['successful_counts']}")  # Log the successful counts
                     if data['successful_counts'] > data['high_score']:  # compare successful counts to high score
                         data['high_score'] = data['successful_counts']  # update high score based on successful counts
+                        print(f"New high score: {data['high_score']}")  # Log the new high score
                         await message.add_reaction('🏆')
                     else:
                         await message.add_reaction('✅')
