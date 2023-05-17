@@ -3,7 +3,8 @@ from discord.ext import commands
 import os
 import json
 
-bot = commands.Bot(command_prefix='!')
+intents = discord.Intents().all()
+client = commands.Bot(command_prefix='!', intents=intents)
 
 # the file where we will save our channel id and count
 data_file = 'count_data.json'
