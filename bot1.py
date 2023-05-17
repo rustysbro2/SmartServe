@@ -150,10 +150,10 @@ async def on_message(message):
                     del all_data[str(message.guild.id)]['new_increment']
 
                 # Check if a new counting channel is created
-                new_channel_id = all_data[str(message.guild.id)].get('new_channel')
-                if new_channel_id is not None:
-                    data['channel_id'] = new_channel_id  # Update the channel ID in data
-                    del all_data[str(message.guild.id)]['new_channel']  # Remove the new channel entry
+                new_channel = all_data[str(message.guild.id)].get('new_channel')
+                if new_channel is not None:
+                    data['channel_id'] = new_channel.id
+                    del all_data[str(message.guild.id)]['new_channel']
 
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
@@ -192,7 +192,6 @@ async def on_message(message):
 
         if new_game_started:
             await message.channel.delete()
-
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
