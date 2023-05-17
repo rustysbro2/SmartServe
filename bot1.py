@@ -154,7 +154,7 @@ async def on_message(message):
                     old_channel = bot.get_channel(old_channel_id)
                     new_channel = await old_channel.clone(name=old_channel.name)
                     data['channel_id'] = new_channel.id
-                    del all_data[str(message.guild.id)]['new_channel']
+                    del data['new_channel']
                     print('Data before update:', data)  # Debug statement
                     with open(data_file, 'w') as f:
                         json.dump(all_data, f, indent=4)  # Save the updated data
