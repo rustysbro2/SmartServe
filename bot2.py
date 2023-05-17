@@ -5,14 +5,15 @@ from flask import Flask, redirect, request, session, url_for
 
 app = Flask(__name__)
 app.secret_key = 'YOUR_SECRET_KEY'
-client_id = 'YOUR_CLIENT_ID'
-client_secret = 'YOUR_CLIENT_SECRET'
-redirect_uri = 'YOUR_REDIRECT_URI'
+client_id = '1107025578047058030'
+client_secret = 'jmK_Ac2yVyNwcV-oNGJUiCeejliCQ64d'
+redirect_uri = 'http://51.222.117.191:8000/callback'  # Adjusted Redirect URI
 discord_api_url = 'https://discord.com/api/v10'
 
 # Discord bot setup
 intents = discord.Intents.default()
-intents.messages = True
+intents.messages = True  # Updated attribute
+
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
@@ -116,4 +117,4 @@ def get_user_info():
 
 if __name__ == '__main__':
     bot.run('YOUR_BOT_TOKEN')
-    app.run()
+    app.run(host='51.222.117.191', port=8000)  # Adjusted IP and port
