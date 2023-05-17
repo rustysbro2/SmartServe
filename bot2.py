@@ -12,7 +12,7 @@ discord_api_url = 'https://discord.com/api/v10'
 
 # Discord bot setup
 intents = discord.Intents.default()
-intents.message_content = True
+intents.messages = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 @bot.event
