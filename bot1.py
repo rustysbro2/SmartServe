@@ -109,8 +109,14 @@ async def on_message(message):
         fail_reason = ""
         increment_changed = False  # Initialize increment_changed as False
 
+        # Debug: print out values for troubleshooting
+        print(f"Message: {message.content}")
+        print(f"Current count: {data['count']}")
+        print(f"Current increment: {data['increment']}")
+
         try:
-            result = safe_eval(message.content.strip())
+            result = safe_eval(message.content)
+            print(f"Evaluated result: {result}")  # Debug: print out the evaluated result
             if result == data['count'] + data['increment']:
                 if message.author.id != data['last_counter_id']:
                     data['count'] += data['increment']
@@ -126,6 +132,7 @@ async def on_message(message):
                 fail_reason = "The number doesn't follow the counting sequence."
         except Exception:
             fail_reason = "The text you entered is not a valid mathematical expression."
+
 
         if fail_reason:
             print('Fail reason:', fail_reason)
