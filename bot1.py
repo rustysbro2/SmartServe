@@ -1,31 +1,60 @@
 import discord
 from discord.ext import commands
-from discord_slash import SlashCommand
+import os
+import json
 
-intents = discord.Intents.default()
-intents.typing = False
-intents.presences = False
+bot = commands.Bot(command_prefix='!')
 
-bot = commands.Bot(command_prefix="!", intents=intents)
-slash = SlashCommand(bot)
+# the file where we will save our channel id and count
+data_file = 'count_data.json'
 
 @bot.event
 async def on_ready():
-    print(f"Bot is ready. Logged in as {bot.user}")
+    print(f'We have logged in as {bot.user}')
 
-@slash.slash(name="hello", description="Say hello to the bot")
-async def hello(ctx: discord.SlashContext):
-    await ctx.send("Hello, world!")
+@bot.command()
+async def set_channel(ctx, channel: discord.TextChannel):
+    data = {
+        'channel_id': channel.id,
+        'count': 0,
+        'last_counter_id': None  # id of the last user who counted
+    }
+    with open(data_file, 'w') as f:
+        json.dump(data, f)
+    await ctx.send(f'Counting channel has been set to {channel.mention}')
 
-@slash.slash(name="echo", description="Echoes a message")
-async def echo(ctx: discord.SlashContext, message: str):
-    await ctx.send(message)
+@bot.event
+async def on_message(message):
+    if message.author == bot.user:
+        return
 
-@slash.slash(name="add", description="Adds two numbers")
-async def add_numbers(ctx: discord.SlashContext, number1: int, number2: int):
-    result = number1 + number2
-    await ctx.send(f"The sum of {number1} and {number2} is {result}")
+    with open(data_file, 'r') as f:
+        data = json.load(f)
 
+    if message.channel.id == data['channel_id']:
+        if message.content.isdigit():
+            if int(message.content) == data['count'] + 1 and message.author.id != data['last_counter_id']:
+                data['count'] += 1
+                data['last_counter_id'] = message.author.id
+                await message.add_reaction('✅')
+            else:
+                data['count'] = 0
+                data['last_counter_id'] = None
+                await message.add_reaction('❌')
+                # delete and recreate the channel
+                position = message.channel.position
+                overwrites = message.channel.overwrites
+                category = message.channel.category
+                await message.channel.delete()
+                new_channel = await message.guild.create_text_channel('counting', position=position, overwrites=overwrites, category=category)
+                data['channel_id'] = new_channel.id
+        else:
+            await message.delete()
+
+    with open(data_file, 'w') as f:
+        json.dump(data, f)
+
+    await bot.process_commands(message)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
 
