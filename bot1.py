@@ -183,7 +183,7 @@ async def on_message(message):
                             color=discord.Color.red()
                         )
 
-                    await new_channel.send(embed=embed)
+                    await message.channel.send(embed=embed)
             else:
                 # Send the failure embed in the current channel
                 await message.channel.send(embed=embed)
