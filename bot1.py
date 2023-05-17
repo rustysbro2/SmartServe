@@ -79,16 +79,19 @@ async def set_channel(ctx, channel: discord.TextChannel):
 
 
 @bot.command()
-async def set_increment(ctx, increment: int):
+async def set_channel(ctx, channel: discord.TextChannel):
     ensure_data_file_exists()
     with open(data_file, 'r') as f:
         all_data = json.load(f)
     data = all_data.get(str(ctx.guild.id), default_data.copy())
-    data['new_increment'] = increment  # Store the new increment temporarily
+    data['channel_id'] = channel.id
+    data['last_counter_id'] = None  # Reset the last counter ID
+    new_game_started = False  # Set new game started flag to False
     all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
-    await ctx.send(f'Increment has been set to {increment}')
+    await ctx.send(f'Counting channel has been set to {channel.mention}')
+
 
 
 @bot.event
@@ -137,7 +140,20 @@ async def on_message(message):
 
             # Check if a new game should start
             if message.author.id == data['last_counter_id'] or data['last_counter_id'] is None:
-                new_game_started = True  # Set new game started flag to True
+                new_game_started = @bot.command()
+async def set_channel(ctx, channel: discord.TextChannel):
+    ensure_data_file_exists()
+    with open(data_file, 'r') as f:
+        all_data = json.load(f)
+    data = all_data.get(str(ctx.guild.id), default_data.copy())
+    data['channel_id'] = channel.id
+    data['last_counter_id'] = None  # Reset the last counter ID
+    new_game_started = False  # Set new game started flag to False
+    all_data[str(ctx.guild.id)] = data
+    with open(data_file, 'w') as f:
+        json.dump(all_data, f, indent=4)
+    await ctx.send(f'Counting channel has been set to {channel.mention}')
+  # Set new game started flag to True
                 # Reset the count and last counter ID
                 data['count'] = 0
                 data['last_counter_id'] = None
@@ -150,7 +166,7 @@ async def on_message(message):
                     del all_data[str(message.guild.id)]['new_increment']
 
                 # Check if a new counting channel should be created
-                if 'new_channel' in all_data[str(message.guild.id)]:
+                if all_data[str(message.guild.id)].get('new_channel'):
                     old_channel_id = data['channel_id']
                     old_channel = bot.get_channel(old_channel_id)
                     new_channel = await old_channel.clone(name=old_channel.name)
@@ -159,6 +175,7 @@ async def on_message(message):
 
                     # Delete the old counting channel
                     await old_channel.delete()
+
 
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
