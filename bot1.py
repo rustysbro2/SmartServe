@@ -173,7 +173,13 @@ async def on_message(message):
                     value=f"The increment has changed from {data['old_increment']} ➡️ {data['increment']}."
                 )
 
+            # Send the embed
             await new_channel.send(embed=embed)
+
+            # Ping the user and then delete the message
+            ping_msg = await new_channel.send(message.author.mention)
+            await ping_msg.delete()
+
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
