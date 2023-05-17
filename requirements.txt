@@ -1,3 +1,2 @@
 discord.py
-discord-py-slash-command
-discord-py-interactions
+discord_slash.utils.manage_commands
