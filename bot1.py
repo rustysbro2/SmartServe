@@ -80,7 +80,6 @@ async def set_channel(ctx, channel: discord.TextChannel):
     await ctx.send(f'Counting channel has been set to {channel.mention}')
 
 
-
 @bot.command()
 async def set_increment(ctx, increment: int):
     ensure_data_file_exists()
@@ -223,7 +222,4 @@ async def on_message(message):
 
                     await message.channel.send(embed=embed)
 
-
-
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
-
