@@ -99,10 +99,8 @@ async def on_message(message):
         return
 
     if message.channel.id == data.get('channel_id'):
-        print('Counting channel')
         fail_reason = ""
-        new_game_started = message.author.id != data['last_counter_id'] or data['last_counter_id'] is None or 'new_channel' in data
-        old_increment = data['old_increment']  # Get the old increment from data
+        new_game_started = False  # Initialize new_game_started as False
 
         try:
             result = safe_eval(message.content)
@@ -123,69 +121,43 @@ async def on_message(message):
             fail_reason = "The text you entered is not a valid mathematical expression."
 
         if fail_reason:
+            new_game_started = True  # Set new_game_started to True upon a failure
             print('Fail reason:', fail_reason)
             await message.add_reaction('❌')
             await message.delete()
             expected_number = data['count'] + data['increment']  # Calculate the expected number
 
-            # Check if a new game should start
-            if new_game_started:
-                # Reset the count and last counter ID
-                data['count'] = 0
-                data['last_counter_id'] = None
-                print('New game started')
+            # Reset the count and last counter ID
+            data['count'] = 0
+            data['last_counter_id'] = None
+            print('New game started')
 
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
                 json.dump(all_data, f, indent=4)
 
-            if new_game_started:
-                # Check if a new counting channel should be created
-                if 'new_channel' in data:
-                    print('New channel flag found')
-                    old_channel_id = data['channel_id']
-                    old_channel = bot.get_channel(old_channel_id)
-                    new_channel = await old_channel.clone(name=old_channel.name)
-                    data['channel_id'] = new_channel.id
-                    del data['new_channel']
-                    print('Data before update:', data)  # Debug statement
-                    with open(data_file, 'w') as f:
-                        json.dump(all_data, f, indent=4)  # Save the updated data
-                    print('Data after update:', data)  # Debug statement
-                    await old_channel.delete()
+            # Check if a new counting channel should be created
+            old_channel_id = data['channel_id']
+            old_channel = bot.get_channel(old_channel_id)
+            new_channel = await old_channel.clone(name=old_channel.name)
+            data['channel_id'] = new_channel.id
+            await old_channel.delete()
 
-                    # Update the data file with the new channel ID
-                    with open(data_file, 'w') as f:
-                        json.dump(all_data, f, indent=4)
+            # Update the data file with the new channel ID
+            with open(data_file, 'w') as f:
+                json.dump(all_data, f, indent=4)
 
-                    # Send the appropriate embed based on increment change
-                    if old_increment != data['increment']:
-                        print('Increment changed')
-                        # Create embed with increment change information
-                        embed = discord.Embed(
-                            title="Counting Failure",
-                            description=f"**Failure Reason:** {fail_reason}\n"
-                                        f"**You typed:** {message.content}\n"
-                                        f"**Failed by:** {message.author.mention}\n"
-                                        f"**Expected Number:** {expected_number}\n"
-                                        f"**Increment:** {old_increment} :arrow: {data['increment']}",
-                            color=discord.Color.red()
-                        )
-                    else:
-                        print('Increment not changed')
-                        # Create embed without increment change information
-                        embed = discord.Embed(
-                            title="Counting Failure",
-                            description=f"**Failure Reason:** {fail_reason}\n"
-                                        f"**You typed:** {message.content}\n"
-                                        f"**Failed by:** {message.author.mention}\n"
-                                        f"**Expected Number:** {expected_number}",
-                            color=discord.Color.red()
-                        )
+            # Create embed without increment change information
+            embed = discord.Embed(
+                title="Counting Failure",
+                description=f"**Failure Reason:** {fail_reason}\n"
+                            f"**You typed:** {message.content}\n"
+                            f"**Failed by:** {message.author.mention}\n"
+                            f"**Expected Number:** {expected_number}",
+                color=discord.Color.red()
+            )
 
-                    await message.channel.send(embed=embed)
-            else:
-                # Send the failure embed in the current channel
-                await message.channel.send(embed=embed)
+            await message.channel.send(embed=embed)
+
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
