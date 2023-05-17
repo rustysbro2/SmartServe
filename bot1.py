@@ -133,6 +133,15 @@ async def on_message(message):
             expected_number = data['count'] + old_increment  # Calculate the expected number
             data['count'] = 0
             data['last_counter_id'] = None
+
+            # Check if the current count is greater than the previous high score
+            if data['count'] > data['high_score']:
+                data['high_score'] = data['count']
+
+            # Check if the current author is the last counter
+            if message.author.id != data['last_counter_id']:
+                data['increment'] = old_increment
+
             # delete and recreate the channel
             channel_name = message.channel.name
             position = message.channel.position
@@ -144,7 +153,7 @@ async def on_message(message):
 
             # create the failure embed with increment information if values are different
             if old_increment != data['increment']:
-                increment_text = f"{old_increment} ➡️ {data['increment']}"
+                increment_text = f"Increment Info: Old {old_increment} ➡️ New {data['increment']}"
                 embed = discord.Embed(
                     title="Counting Failure",
                     description=f"**Failure Reason:** The number doesn't follow the counting sequence.\n"
@@ -165,6 +174,7 @@ async def on_message(message):
                     color=discord.Color.red()
                 )
                 await new_channel.send(embed=embed)
+
 
 
 
