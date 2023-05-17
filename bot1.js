@@ -3,7 +3,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 
 const token = '1105598736551387247'; 
-const clientId = 'YOUR_CLI'; // Replace with your bot's client ID
+const clientId = '1105598736551387247'; // Replace with your bot's client ID
 const guildId = '1100765844776173670'; // Replace with your guild ID
 
 const commands = [
