@@ -13,7 +13,9 @@ const commands = [
   }
 ];
 
-const client = new Client();
+const intents = new Intents([Intents.FLAGS.GUILDS]);
+
+const client = new Client({ intents });
 
 client.once('ready', async () => {
   console.log(`Bot is online: ${client.user.tag}`);
