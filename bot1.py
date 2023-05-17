@@ -6,7 +6,6 @@ import json
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# the file where we will save our channel id and count
 data_file = 'count_data.json'
 
 # the expected keys and their default values
@@ -20,15 +19,7 @@ default_data = {
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
-            json.dump(default_data, f)
-    else:
-        with open(data_file, 'r') as f:
-            existing_data = json.load(f)
-        merged_data = default_data.copy()
-        merged_data.update(existing_data)
-        with open(data_file, 'w') as f:
-            json.dump(merged_data, f)
-
+            json.dump({}, f)
 
 @bot.event
 async def on_ready():
@@ -39,12 +30,12 @@ async def on_ready():
 async def set_channel(ctx, channel: discord.TextChannel):
     data = default_data.copy()
     data['channel_id'] = channel.id
-    if os.path.exists(data_file):
-        with open(data_file, 'r') as f:
-            existing_data = json.load(f)
-        data.update(existing_data)
+    ensure_data_file_exists()
+    with open(data_file, 'r') as f:
+        all_data = json.load(f)
+    all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
-        json.dump(data, f)
+        json.dump(all_data, f)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
 
 @bot.event
@@ -55,7 +46,11 @@ async def on_message(message):
     ensure_data_file_exists()
 
     with open(data_file, 'r') as f:
-        data = json.load(f)
+        all_data = json.load(f)
+
+    data = all_data.get(str(message.guild.id))
+    if not data:
+        return
 
     if message.channel.id == data.get('channel_id'):
         if message.content.isdigit():
@@ -82,8 +77,9 @@ async def on_message(message):
         else:
             await message.delete()
 
+    all_data[str(message.guild.id)] = data
     with open(data_file, 'w') as f:
-        json.dump(data, f)
+        json.dump(all_data, f)
 
     await bot.process_commands(message)
 
