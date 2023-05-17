@@ -50,14 +50,19 @@ async def on_ready():
     with open(data_file, 'r') as f:
         all_data = json.load(f)
 
-    guild_ids = [str(guild.id) for guild in bot.guilds]
-
-    for guild_id in guild_ids:
+    for guild in bot.guilds:
+        guild_id = str(guild.id)
         if guild_id not in all_data:
             all_data[guild_id] = default_data.copy()
+        else:
+            existing_data = all_data[guild_id]
+            for key, value in default_data.items():
+                if key not in existing_data:
+                    existing_data[key] = value
 
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
+
 
 
 
