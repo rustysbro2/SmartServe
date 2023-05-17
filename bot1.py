@@ -162,11 +162,6 @@ async def on_message(message):
                 data['last_counter_id'] = None
 
             all_data[str(message.guild.id)] = data
-
-            if new_game_started:
-                print('New game started')
-                all_data[str(message.guild.id)]['new_channel'] = True  # Set new_channel flag
-
             with open(data_file, 'w') as f:
                 json.dump(all_data, f, indent=4)
 
@@ -212,6 +207,7 @@ async def on_message(message):
                         )
 
                     await new_channel.send(embed=embed)
+                    new_game_started = False  # Set new game started flag to False
                 else:
                     print('No new channel flag')
                     # Send the failure embed in the current channel
@@ -242,4 +238,5 @@ async def on_message(message):
                     await message.channel.send(embed=embed)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
+
 
