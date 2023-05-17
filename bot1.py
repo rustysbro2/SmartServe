@@ -103,7 +103,11 @@ async def set_increment(ctx, increment: int):
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
+    if new_game_started:
+        all_data[str(ctx.guild.id)]['new_channel'] = True  # Set new_channel flag
+
     await ctx.send(f'Increment has been set to {increment}')
+
 
 
 @bot.event
