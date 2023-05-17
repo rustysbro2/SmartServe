@@ -110,7 +110,7 @@ async def on_message(message):
         increment_changed = False  # Initialize increment_changed as False
 
         try:
-            result = safe_eval(message.content)
+            result = safe_eval(message.content.strip())
             if result == data['count'] + data['increment']:
                 if message.author.id != data['last_counter_id']:
                     data['count'] += data['increment']
