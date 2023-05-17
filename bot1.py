@@ -8,6 +8,9 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 data_file = 'count_data.json'
 
+# the file where we will save our data
+data_file = 'count_data.json'
+
 # the expected keys and their default values
 default_data = {
     'channel_id': None,
@@ -40,6 +43,8 @@ async def set_channel(ctx, channel: discord.TextChannel):
 
 @bot.event
 async def on_message(message):
+    await bot.process_commands(message)  # Moved this line here
+
     if message.author == bot.user:
         return
 
@@ -80,8 +85,6 @@ async def on_message(message):
     all_data[str(message.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f)
-
-    await bot.process_commands(message)
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
