@@ -1,4 +1,2 @@
-discord.py
-discord_slash.utils.manage_commands
-discord_slash
-discord-py-slash-command
+discord.py==1.7.3
+
