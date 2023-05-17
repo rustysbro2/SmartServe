@@ -82,6 +82,19 @@ async def set_channel(ctx, channel: discord.TextChannel):
         json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
 
+@bot.command()
+async def set_increment(ctx, increment: int):
+    ensure_data_file_exists()
+    with open(data_file, 'r') as f:
+        all_data = json.load(f)
+    data = all_data.get(str(ctx.guild.id), default_data.copy())
+    data['increment'] = increment
+    data['old_increment'] = increment
+    all_data[str(ctx.guild.id)] = data
+    with open(data_file, 'w') as f:
+        json.dump(all_data, f, indent=4)
+    await ctx.send(f'Increment value has been set to {increment}')
+
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
@@ -130,48 +143,63 @@ async def on_message(message):
 
             # Check if a new game should start
             if new_game_started:
+                # Reset the count and last counter ID
+                data['count'] = 0
+                data['last_counter_id'] = None
                 print('New game started')
-                old_channel_id = data['channel_id']
-                old_channel = bot.get_channel(old_channel_id)
-                new_channel = await old_channel.clone(name=old_channel.name)
-                data['channel_id'] = new_channel.id
-                data['count'] = 0  # Reset the count
-                data['last_counter_id'] = None  # Reset the last counter ID
-                all_data[str(message.guild.id)] = data
 
-                # Save the updated data and update the data file with the new channel ID
-                with open(data_file, 'w') as f:
-                    json.dump(all_data, f, indent=4)
-
-                await old_channel.delete()
-
-            if old_increment != data['increment']:
-                print('Increment changed')
-                # Create embed with increment change information
-                embed = discord.Embed(
-                    title="Counting Failure",
-                    description=f"**Failure Reason:** {fail_reason}\n"
-                                f"**You typed:** {message.content}\n"
-                                f"**Failed by:** {message.author.mention}\n"
-                                f"**Expected Number:** {expected_number}\n"
-                                f"**Increment:** {old_increment} :arrow: {data['increment']}",
-                    color=discord.Color.red()
-                )
-            else:
-                print('Increment not changed')
-                # Create embed without increment change information
-                embed = discord.Embed(
-                    title="Counting Failure",
-                    description=f"**Failure Reason:** {fail_reason}\n"
-                                f"**You typed:** {message.content}\n"
-                                f"**Failed by:** {message.author.mention}\n"
-                                f"**Expected Number:** {expected_number}",
-                    color=discord.Color.red()
-                )
+            all_data[str(message.guild.id)] = data
+            with open(data_file, 'w') as f:
+                json.dump(all_data, f, indent=4)
 
             if new_game_started:
-                await new_channel.send(embed=embed)
+                # Check if a new counting channel should be created
+                if 'new_channel' in data:
+                    print('New channel flag found')
+                    old_channel_id = data['channel_id']
+                    old_channel = bot.get_channel(old_channel_id)
+                    new_channel = await old_channel.clone(name=old_channel.name)
+                    data['channel_id'] = new_channel.id
+                    del data['new_channel']
+                    print('Data before update:', data)  # Debug statement
+                    with open(data_file, 'w') as f:
+                        json.dump(all_data, f, indent=4)  # Save the updated data
+                    print('Data after update:', data)  # Debug statement
+                    await old_channel.delete()
+
+                    # Update the data file with the new channel ID
+                    with open(data_file, 'w') as f:
+                        json.dump(all_data, f, indent=4)
+
+                    # Send the appropriate embed based on increment change
+                    if old_increment != data['increment']:
+                        print('Increment changed')
+                        # Create embed with increment change information
+                        embed = discord.Embed(
+                            title="Counting Failure",
+                            description=f"**Failure Reason:** {fail_reason}\n"
+                                        f"**You typed:** {message.content}\n"
+                                        f"**Failed by:** {message.author.mention}\n"
+                                        f"**Expected Number:** {expected_number}\n"
+                                        f"**Increment:** {old_increment} :arrow: {data['increment']}",
+                            color=discord.Color.red()
+                        )
+                    else:
+                        print('Increment not changed')
+                        # Create embed without increment change information
+                        embed = discord.Embed(
+                            title="Counting Failure",
+                            description=f"**Failure Reason:** {fail_reason}\n"
+                                        f"**You typed:** {message.content}\n"
+                                        f"**Failed by:** {message.author.mention}\n"
+                                        f"**Expected Number:** {expected_number}",
+                            color=discord.Color.red()
+                        )
+
+                    await new_channel.send(embed=embed)
             else:
+                # Send the failure embed in the current channel
                 await message.channel.send(embed=embed)
+
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
