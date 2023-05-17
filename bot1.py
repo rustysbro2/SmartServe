@@ -108,6 +108,23 @@ async def set_increment(ctx, increment: int):
 
 
 
+@bot.command()
+async def set_channel(ctx, channel: discord.TextChannel):
+    ensure_data_file_exists()
+    with open(data_file, 'r') as f:
+        all_data = json.load(f)
+    data = all_data.get(str(ctx.guild.id), default_data.copy())
+    data['channel_id'] = channel.id
+    if 'new_channel' in data:
+        del data['new_channel']  # Remove new_channel flag
+        with open(data_file, 'w') as f:
+            json.dump(all_data, f, indent=4)  # Save the updated data
+    all_data[str(ctx.guild.id)] = data
+    with open(data_file, 'w') as f:
+        json.dump(all_data, f, indent=4)
+    await ctx.send(f'Counting channel has been set to {channel.mention}')
+
+
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
@@ -168,12 +185,13 @@ async def on_message(message):
             if new_game_started:
                 print('New game started')
                 # Check if a new counting channel should be created
-                if 'new_channel' in all_data[str(message.guild.id)]:
+                if 'new_channel' in data:
                     print('New channel flag found')
                     old_channel_id = data['channel_id']
                     old_channel = bot.get_channel(old_channel_id)
                     new_channel = await old_channel.clone(name=old_channel.name)
                     data['channel_id'] = new_channel.id
+                    del data['new_channel']
                     await old_channel.delete()
 
                     # Update the data file with the new channel ID
@@ -237,4 +255,5 @@ async def on_message(message):
                     await message.channel.send(embed=embed)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
+
 
