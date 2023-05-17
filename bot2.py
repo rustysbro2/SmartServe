@@ -5,7 +5,6 @@ from flask import Flask, redirect, request, session, url_for
 import secrets
 import logging
 
-app.logger.setLevel(logging.DEBUG)
 
 
 app = Flask(__name__)
@@ -14,6 +13,9 @@ client_id = '1107025578047058030'
 client_secret = 'jmK_Ac2yVyNwcV-oNGJUiCeejliCQ64d'
 redirect_uri = 'http://51.222.117.191:8000/callback'  # Adjusted Redirect URI
 discord_api_url = 'https://discord.com/api/v10'
+
+app.logger.setLevel(logging.DEBUG)
+
 
 # Discord bot setup
 intents = discord.Intents.default()
