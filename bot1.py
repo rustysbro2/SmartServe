@@ -1,11 +1,9 @@
 import discord
 from discord.ext import commands
+from discord_interactions import InteractionsBot
 
-intents = discord.Intents.default()
-intents.typing = False
-intents.presences = False
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = InteractionsBot(command_prefix='!')
 
 
 @bot.event
@@ -43,6 +41,5 @@ async def on_message(message):
         pass
 
     await bot.process_commands(message)
-
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
