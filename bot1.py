@@ -76,9 +76,8 @@ async def set_channel(ctx, channel: discord.TextChannel):
         all_data = json.load(f)
     data = all_data.get(str(ctx.guild.id), default_data.copy())
     data['channel_id'] = channel.id
-    if 'new_channel' in data:
-        print('New channel flag found')  # Debug statement
-        del data['new_channel']  # Remove new_channel flag
+    if 'new_channel' in all_data[str(ctx.guild.id)]:
+        del all_data[str(ctx.guild.id)]['new_channel']  # Remove new_channel flag
         print('Data before update:', data)  # Debug statement
         with open(data_file, 'w') as f:
             json.dump(all_data, f, indent=4)  # Save the updated data
