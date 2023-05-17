@@ -12,7 +12,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 data_file = 'count_data.json'
 
 # the expected keys and their default values
-# the expected keys and their default values
 default_data = {
     'channel_id': None,
     'count': 0,
@@ -22,9 +21,6 @@ default_data = {
     'pending_increment': None,  # New key
     'old_increment': 1
 }
-
-
-
 
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
@@ -76,12 +72,6 @@ async def set_channel(ctx, channel: discord.TextChannel):
         all_data = json.load(f)
     data = all_data.get(str(ctx.guild.id), default_data.copy())
     data['channel_id'] = channel.id
-    if 'new_channel' in all_data[str(ctx.guild.id)]:
-        del all_data[str(ctx.guild.id)]['new_channel']  # Remove new_channel flag
-        print('Data before update:', data)  # Debug statement
-        with open(data_file, 'w') as f:
-            json.dump(all_data, f, indent=4)  # Save the updated data
-        print('Data after update:', data)  # Debug statement
     all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
@@ -98,7 +88,6 @@ async def set_increment(ctx, new_increment: int):
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting increment will be set to {new_increment} after next failure.')
-
 
 @bot.event
 async def on_message(message):
@@ -146,12 +135,12 @@ async def on_message(message):
             expected_number = data['count'] + data['increment']  # Calculate the expected number
 
             # Reset the count and last counter ID
-             data['count'] = 0
-             data['last_counter_id'] = None
-             if data['pending_increment'] is not None:  # If there's a pending increment
-                 data['increment'] = data['pending_increment']  # Apply the pending increment
-                 data['pending_increment'] = None  # Reset the pending increment
-             print('New game started')
+            data['count'] = 0
+            data['last_counter_id'] = None
+            if data['pending_increment'] is not None:  # If there's a pending increment
+                data['increment'] = data['pending_increment']  # Apply the pending increment
+                data['pending_increment'] = None  # Reset the pending increment
+            print('New game started')
 
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
@@ -180,7 +169,6 @@ async def on_message(message):
 
             await new_channel.send(embed=embed)
             new_game_started = False  # Reset new_game_started to False after sending the embed
-
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
