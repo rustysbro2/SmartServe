@@ -1,28 +1,35 @@
 import discord
-from discord_slash import SlashCommand
+from discord.ext import commands
+from discord_slash import SlashContext
+from discord_slash import cog_ext
 from discord_slash.utils.manage_commands import create_option
 
-bot = discord.Bot(intents=discord.Intents.default())
-slash = SlashCommand(bot, sync_commands=True)  # Declares slash commands through the bot.
-
-guild_ids = [1100765844776173670]  # Put your server IDs in this array.
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
+guild_ids = [1100765844776173670]
 
 count = 0
 
-@slash.slash(name="count",
-             description="Increases the count by 1",
-             options=[
-               create_option(
-                 name="user",
-                 description="Who is counting?",
-                 option_type=6,
-                 required=True
-               )],
-             guild_ids=guild_ids)
-async def _count(ctx, user: discord.Member):  # Defines a new "context" (ctx) command called "count".
-    global count
-    count += 1
-    await ctx.send(f"{user.mention} increased the count to {count}!", hidden=False)
+class Counting(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+
+    @cog_ext.cog_slash(name="count", 
+                       description="Increases the count by 1", 
+                       options=[
+                           create_option(
+                               name="user",
+                               description="Who is counting?",
+                               option_type=6,
+                               required=True
+                           )],
+                       guild_ids=guild_ids)
+    async def _count(self, ctx: SlashContext, user: discord.Member):  
+        global count
+        count += 1
+        await ctx.send(f"{user.mention} increased the count to {count}!", hidden=False)
+
+bot.add_cog(Counting(bot))
+
 
 
 
