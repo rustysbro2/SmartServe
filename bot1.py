@@ -174,7 +174,6 @@ async def on_message(message):
                     old_channel = bot.get_channel(old_channel_id)
                     new_channel = await old_channel.clone(name=old_channel.name)
                     data['channel_id'] = new_channel.id
-                    del all_data[str(message.guild.id)]['new_channel']
                     await old_channel.delete()
 
                     # Update the data file with the new channel ID
@@ -183,6 +182,7 @@ async def on_message(message):
 
                     # Set new_channel flag for next game
                     all_data[str(message.guild.id)]['new_channel'] = True
+                    new_game_started = False  # Set new game started flag to False
 
                     # Send the appropriate embed based on increment change
                     if old_increment != data['increment']:
@@ -240,5 +240,4 @@ async def on_message(message):
                     await message.channel.send(embed=embed)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
-
 
