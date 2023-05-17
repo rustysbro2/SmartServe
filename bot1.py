@@ -158,6 +158,7 @@ async def on_message(message):
             )
 
             await new_channel.send(embed=embed)
+            new_game_started = False  # Reset new_game_started to False after sending the embed
 
 
 
