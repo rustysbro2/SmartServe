@@ -1,4 +1,4 @@
-const { Client, GatewayIntentBits } = require('discord.js');
+const { Client, Intents } = require('discord.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 
@@ -13,11 +13,9 @@ const commands = [
   }
 ];
 
-const intents = [
-  GatewayIntentBits.Guilds,
-  GatewayIntentBits.MessageContent,
-  GatewayIntentBits.MessageCreate
-];
+const intents = new Intents();
+intents.add(Intents.FLAGS.GUILDS);
+intents.add(Intents.FLAGS.GUILD_MESSAGES);
 
 const client = new Client({ intents });
 
