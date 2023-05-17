@@ -58,22 +58,24 @@ async def on_message(message):
     if message.channel.id == data.get('channel_id'):
         fail_reason = ""
         if message.content.isdigit():
-            if int(message.content) == data['count'] + 1 and message.author.id != data['last_counter_id']:
-                data['count'] += 1
-                data['last_counter_id'] = message.author.id
-                if data['count'] > data['high_score']:
-                    data['high_score'] = data['count']
-                    await message.add_reaction('🏆')
+            if int(message.content) == data['count'] + 1:
+                if message.author.id != data['last_counter_id']:
+                    data['count'] += 1
+                    data['last_counter_id'] = message.author.id
+                    if data['count'] > data['high_score']:
+                        data['high_score'] = data['count']
+                        await message.add_reaction('🏆')
+                    else:
+                        await message.add_reaction('✅')
                 else:
-                    await message.add_reaction('✅')
+                    fail_reason = "Counted twice in a row"
             else:
-                fail_reason = "Wrong number or counted twice in a row"
-                await message.add_reaction('❌')
+                fail_reason = "Wrong number"
         else:
             fail_reason = "Non-numeric character"
-            await message.add_reaction('❌')
 
         if fail_reason:
+            await message.add_reaction('❌')
             await message.delete()
             data['count'] = 0
             data['last_counter_id'] = None
@@ -97,7 +99,6 @@ async def on_message(message):
     all_data[str(message.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
-
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
 
