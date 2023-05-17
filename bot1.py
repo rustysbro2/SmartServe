@@ -74,10 +74,13 @@ async def set_channel(ctx, channel: discord.TextChannel):
     data['channel_id'] = channel.id
     if 'new_channel' in all_data[str(ctx.guild.id)]:
         del all_data[str(ctx.guild.id)]['new_channel']  # Remove new_channel flag
+        with open(data_file, 'w') as f:
+            json.dump(all_data, f, indent=4)  # Save the updated data
     all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
+
 
 
 @bot.command()
