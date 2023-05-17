@@ -187,8 +187,13 @@ async def on_message(message):
             json.dump(all_data, f, indent=4)
 
         if new_game_started:
-            old_channel_id = data['channel_id']
-            old_channel = bot.get_channel(old_channel_id)
-            await old_channel.delete()
+    old_channel_id = data['channel_id']
+    old_channel = bot.get_channel(old_channel_id)
+    await old_channel.delete()
+
+    # create new channel
+    new_channel = await message.guild.create_text_channel("New Counting Channel")
+    data['channel_id'] = new_channel.id
+
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
