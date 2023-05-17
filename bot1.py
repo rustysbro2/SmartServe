@@ -1,46 +1,35 @@
-const { Client } = require('discord.js');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v10');
-const { GatewayIntentBits } = require('discord-api-types/v10');
+import discord
+from discord.ext import commands
 
-const token = 'MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY'; 
-const clientId = '1105598736551387247'; // Replace with your bot's client ID
-const guildId = '1100765844776173670'; // Replace with your guild ID
+intents = discord.Intents.default()
+intents.typing = False
+intents.presences = False
 
-const commands = [
-  {
-    name: 'hello',
-    description: 'Says hello!'
-  }
-];
+bot = commands.Bot(command_prefix="!", intents=intents)
 
-const client = new Client({ intents: GatewayIntentBits.All });
 
-client.once('ready', async () => {
-  console.log(`Bot is online: ${client.user.tag}`);
+@bot.event
+async def on_ready():
+    print(f"Bot is ready. Logged in as {bot.user}")
 
-  try {
-    const rest = new REST({ version: '10' }).setToken(token);
 
-    await rest.put(
-      Routes.applicationGuildCommands(clientId, guildId),
-      { body: commands }
-    );
+@bot.slash_command()
+async def hello(ctx: discord.SlashContext):
+    await ctx.send("Hello, world!")
 
-    console.log('Slash commands registered.');
-  } catch (error) {
-    console.error('Error registering slash commands:', error);
-  }
-});
 
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isCommand()) return;
+@bot.slash_command()
+async def echo(ctx: discord.SlashContext, message: str):
+    await ctx.send(message)
 
-  const { commandName } = interaction;
 
-  if (commandName === 'hello') {
-    await interaction.reply('Hello!');
-  }
-});
+@bot.slash_command(name="add")
+async def add_numbers(ctx: discord.SlashContext, number1: int, number2: int):
+    result = number1 + number2
+    await ctx.send(f"The sum of {number1} and {number2} is {result}")
 
-client.login(token);
+
+bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
+
+
+
