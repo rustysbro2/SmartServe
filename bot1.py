@@ -126,45 +126,46 @@ async def on_message(message):
         except Exception:
             fail_reason = "The text you entered is not a valid mathematical expression."
 
-if fail_reason:
-    await message.add_reaction('❌')
-    await message.delete()
-    old_increment = data['increment']  # Store the old increment value
-    expected_number = data['count'] + old_increment  # Calculate the expected number
-    data['count'] = 0
-    data['last_counter_id'] = None
-    # delete and recreate the channel
-    channel_name = message.channel.name
-    position = message.channel.position
-    overwrites = message.channel.overwrites
-    category = message.channel.category
-    await message.channel.delete()
-    new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
-    data['channel_id'] = new_channel.id
+        if fail_reason:
+            await message.add_reaction('❌')
+            await message.delete()
+            old_increment = data['increment']  # Store the old increment value
+            expected_number = data['count'] + old_increment  # Calculate the expected number
+            data['count'] = 0
+            data['last_counter_id'] = None
+            # delete and recreate the channel
+            channel_name = message.channel.name
+            position = message.channel.position
+            overwrites = message.channel.overwrites
+            category = message.channel.category
+            await message.channel.delete()
+            new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
+            data['channel_id'] = new_channel.id
 
-    # create the failure embed with increment information if values are different
-    if old_increment != data['increment']:
-        increment_text = f"{old_increment} ➡️ {data['increment']}"
-        embed = discord.Embed(
-            title="Counting Failure",
-            description=f"**Failure Reason:** The number doesn't follow the counting sequence.\n"
-                        f"**You typed:** {message.content}\n"
-                        f"**Failed by:** {message.author.mention}\n"
-                        f"**Expected Number:** {expected_number}",
-            color=discord.Color.red()
-        )
-        embed.add_field(name="Increment Information", value=increment_text, inline=False)
-        await new_channel.send(embed=embed)
-    else:
-        embed = discord.Embed(
-            title="Counting Failure",
-            description=f"**Failure Reason:** The number doesn't follow the counting sequence.\n"
-                        f"**You typed:** {message.content}\n"
-                        f"**Failed by:** {message.author.mention}\n"
-                        f"**Expected Number:** {expected_number}",
-            color=discord.Color.red()
-        )
-        await new_channel.send(embed=embed)
+            # create the failure embed with increment information if values are different
+            if old_increment != data['increment']:
+                increment_text = f"{old_increment} ➡️ {data['increment']}"
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** The number doesn't follow the counting sequence.\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}",
+                    color=discord.Color.red()
+                )
+                embed.add_field(name="Increment Information", value=increment_text, inline=False)
+                await new_channel.send(embed=embed)
+            else:
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** The number doesn't follow the counting sequence.\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}",
+                    color=discord.Color.red()
+                )
+                await new_channel.send(embed=embed)
+
 
 
 
