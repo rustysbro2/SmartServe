@@ -79,18 +79,28 @@ async def set_channel(ctx, channel: discord.TextChannel):
 
 
 @bot.command()
-async def set_channel(ctx, channel: discord.TextChannel):
+async def set_increment(ctx, increment: int):
     ensure_data_file_exists()
     with open(data_file, 'r') as f:
         all_data = json.load(f)
     data = all_data.get(str(ctx.guild.id), default_data.copy())
-    data['channel_id'] = channel.id
-    data['last_counter_id'] = None  # Reset the last counter ID
-    new_game_started = False  # Set new game started flag to False
+    data['new_increment'] = increment  # Store the new increment temporarily
+
+    if data['last_counter_id'] is None:
+        data['increment'] = increment  # Update the current increment
+
+    new_game_started = data['last_counter_id'] is None  # Set new game started flag
+
+    if new_game_started:
+        data['old_increment'] = data['increment']  # Store the old increment
+
     all_data[str(ctx.guild.id)] = data
+
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
-    await ctx.send(f'Counting channel has been set to {channel.mention}')
+
+    await ctx.send(f'Increment has been set to {increment}')
+
 
 
 
@@ -141,19 +151,6 @@ async def on_message(message):
             # Check if a new game should start
             if message.author.id == data['last_counter_id'] or data['last_counter_id'] is None:
                 new_game_started = @bot.command()
-async def set_channel(ctx, channel: discord.TextChannel):
-    ensure_data_file_exists()
-    with open(data_file, 'r') as f:
-        all_data = json.load(f)
-    data = all_data.get(str(ctx.guild.id), default_data.copy())
-    data['channel_id'] = channel.id
-    data['last_counter_id'] = None  # Reset the last counter ID
-    new_game_started = False  # Set new game started flag to False
-    all_data[str(ctx.guild.id)] = data
-    with open(data_file, 'w') as f:
-        json.dump(all_data, f, indent=4)
-    await ctx.send(f'Counting channel has been set to {channel.mention}')
-  # Set new game started flag to True
                 # Reset the count and last counter ID
                 data['count'] = 0
                 data['last_counter_id'] = None
