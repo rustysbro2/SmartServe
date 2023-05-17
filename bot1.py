@@ -67,6 +67,8 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
+
+bot.remove_command('help')
 @bot.command()
 async def help(ctx):
     embed = discord.Embed(
@@ -80,8 +82,7 @@ async def help(ctx):
 
     await ctx.send(embed=embed)
 
-# Disable the default help command
-bot.help_command = None
+
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
