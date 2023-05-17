@@ -64,11 +64,6 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
-
-
-
-
-
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
     ensure_data_file_exists()
@@ -86,7 +81,6 @@ async def set_channel(ctx, channel: discord.TextChannel):
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
-
 
 @bot.event
 async def on_message(message):
@@ -136,16 +130,6 @@ async def on_message(message):
 
             # Check if a new game should start
             if new_game_started:
-                # Reset the count and last counter ID
-                data['count'] = 0
-                data['last_counter_id'] = None
-                print('New game started')
-
-            all_data[str(message.guild.id)] = data
-            with open(data_file, 'w') as f:
-                json.dump(all_data, f, indent=4)
-
-            if new_game_started:
                 print('New game started')
                 old_channel_id = data['channel_id']
                 old_channel = bot.get_channel(old_channel_id)
@@ -159,36 +143,33 @@ async def on_message(message):
 
                 await old_channel.delete()
 
-
-
-                    # Send the appropriate embed based on increment change
-                    if old_increment != data['increment']:
-                        print('Increment changed')
-                        # Create embed with increment change information
-                        embed = discord.Embed(
-                            title="Counting Failure",
-                            description=f"**Failure Reason:** {fail_reason}\n"
-                                        f"**You typed:** {message.content}\n"
-                                        f"**Failed by:** {message.author.mention}\n"
-                                        f"**Expected Number:** {expected_number}\n"
-                                        f"**Increment:** {old_increment} :arrow: {data['increment']}",
-                            color=discord.Color.red()
-                        )
-                    else:
-                        print('Increment not changed')
-                        # Create embed without increment change information
-                        embed = discord.Embed(
-                            title="Counting Failure",
-                            description=f"**Failure Reason:** {fail_reason}\n"
-                                        f"**You typed:** {message.content}\n"
-                                        f"**Failed by:** {message.author.mention}\n"
-                                        f"**Expected Number:** {expected_number}",
-                            color=discord.Color.red()
-                        )
-
-                    await new_channel.send(embed=embed)
+            if old_increment != data['increment']:
+                print('Increment changed')
+                # Create embed with increment change information
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** {fail_reason}\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}\n"
+                                f"**Increment:** {old_increment} :arrow: {data['increment']}",
+                    color=discord.Color.red()
+                )
             else:
-                # Send the failure embed in the current channel
+                print('Increment not changed')
+                # Create embed without increment change information
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** {fail_reason}\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}",
+                    color=discord.Color.red()
+                )
+
+            if new_game_started:
+                await new_channel.send(embed=embed)
+            else:
                 await message.channel.send(embed=embed)
 
 
