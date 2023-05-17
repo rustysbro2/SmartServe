@@ -145,21 +145,24 @@ async def on_message(message):
                 # Check if a new increment value is set
                 new_increment = all_data[str(message.guild.id)].get('new_increment')
                 if new_increment is not None:
-                    data['old_increment'] = data['increment']  # Store the old increment
+                    data['old_increment'] = data['increment']  # Set the old increment to the current increment
                     data['increment'] = new_increment
                     del all_data[str(message.guild.id)]['new_increment']
 
-                # Check if a new counting channel is created
+            all_data[str(message.guild.id)] = data
+            with open(data_file, 'w') as f:
+                json.dump(all_data, f, indent=4)
+
+            if new_game_started:
+                old_channel_id = data['channel_id']
+                old_channel = bot.get_channel(old_channel_id)
+                await old_channel.delete()
+
+                # Check if a new counting channel should be created
                 if 'new_channel' in all_data[str(message.guild.id)]:
-                    old_channel_id = data['channel_id']
-                    old_channel = bot.get_channel(old_channel_id)
                     new_channel = await old_channel.clone(name=old_channel.name)
                     data['channel_id'] = new_channel.id
                     del all_data[str(message.guild.id)]['new_channel']
-
-                    # Delete the old counting channel
-                    await old_channel.delete()
-
 
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
@@ -185,15 +188,6 @@ async def on_message(message):
                 )
 
             await message.channel.send(embed=embed)
-
-        all_data[str(message.guild.id)] = data
-        with open(data_file, 'w') as f:
-            json.dump(all_data, f, indent=4)
-
-        if new_game_started:
-            old_channel_id = data['channel_id']
-            old_channel = bot.get_channel(old_channel_id)
-            await old_channel.delete()
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
