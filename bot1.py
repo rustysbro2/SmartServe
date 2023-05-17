@@ -91,7 +91,7 @@ async def set_increment(ctx, increment: int):
     await ctx.send(f'Increment has been set to {increment}')
 
 
-@@bot.event
+@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
