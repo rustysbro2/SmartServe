@@ -129,6 +129,7 @@ async def on_message(message):
         if fail_reason:
             await message.add_reaction('❌')
             await message.delete()
+            old_increment = data['increment']  # Store the old increment value
             data['count'] = 0
             data['last_counter_id'] = None
             # delete and recreate the channel
@@ -140,13 +141,15 @@ async def on_message(message):
             new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
             data['channel_id'] = new_channel.id
 
-            # create the failure embed
+            # create the failure embed with increment information
             embed = discord.Embed(
                 title="Counting Failure",
-                description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}",
+                description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}\n\n"
+                            f"The increment was {old_increment} and has been changed to {data['increment']}.",
                 color=discord.Color.red()
             )
             await new_channel.send(embed=embed)
+
 
     all_data[str(message.guild.id)] = data
     with open(data_file, 'w') as f:
