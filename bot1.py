@@ -180,10 +180,6 @@ async def on_message(message):
                     with open(data_file, 'w') as f:
                         json.dump(all_data, f, indent=4)
 
-                    # Set new_channel flag for next game
-                    all_data[str(message.guild.id)]['new_channel'] = True
-                    new_game_started = False  # Set new game started flag to False
-
                     # Send the appropriate embed based on increment change
                     if old_increment != data['increment']:
                         print('Increment changed')
@@ -210,6 +206,7 @@ async def on_message(message):
                         )
 
                     await new_channel.send(embed=embed)
+                    new_game_started = False  # Set new game started flag to False
                 else:
                     print('No new channel flag')
                     # Send the failure embed in the current channel
@@ -240,4 +237,5 @@ async def on_message(message):
                     await message.channel.send(embed=embed)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
+
 
