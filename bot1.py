@@ -165,11 +165,14 @@ async def on_message(message):
                 if 'new_channel' in all_data[str(message.guild.id)]:
                     old_channel_id = data['channel_id']
                     old_channel = bot.get_channel(old_channel_id)
-                    await old_channel.delete()
-                    new_channel = await message.guild.create_text_channel(name=old_channel.name)
+                    new_channel = await old_channel.clone(name=old_channel.name)
                     data['channel_id'] = new_channel.id
                     del all_data[str(message.guild.id)]['new_channel']
-                    await new_channel.send("A new counting game has started!")  # Notify about new game
+                    await old_channel.delete()
+
+                    # Update the data file with the new channel ID
+                    with open(data_file, 'w') as f:
+                        json.dump(all_data, f, indent=4)
 
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
@@ -194,8 +197,8 @@ async def on_message(message):
                     color=discord.Color.red()
                 )
 
-            counting_channel = bot.get_channel(data['channel_id'])  # Get the counting channel
-            await counting_channel.send(embed=embed)
+            await new_channel.send(embed=embed)
+
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
