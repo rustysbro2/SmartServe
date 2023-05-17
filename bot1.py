@@ -82,6 +82,19 @@ async def set_channel(ctx, channel: discord.TextChannel):
         json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
 
+@bot.command()
+async def set_increment(ctx, new_increment: int):
+    ensure_data_file_exists()
+    with open(data_file, 'r') as f:
+        all_data = json.load(f)
+    data = all_data.get(str(ctx.guild.id), default_data.copy())
+    data['increment'] = new_increment
+    all_data[str(ctx.guild.id)] = data
+    with open(data_file, 'w') as f:
+        json.dump(all_data, f, indent=4)
+    await ctx.send(f'Counting increment has been set to {new_increment}')
+
+
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
