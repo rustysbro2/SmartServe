@@ -84,11 +84,22 @@ async def set_increment(ctx, increment: int):
     with open(data_file, 'r') as f:
         all_data = json.load(f)
     data = all_data.get(str(ctx.guild.id), default_data.copy())
-    data['increment'] = increment
+
+    # Check if a new game is currently in progress
+    new_game_started = data.get('new_game_started', False)
+    if not new_game_started:
+        # Update the increment value only if a new game hasn't started yet
+        data['increment'] = increment
+
     all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
-    await ctx.send(f'Increment has been set to {increment}')
+
+    if new_game_started:
+        await ctx.send("The increment value will take effect at the start of a new game.")
+    else:
+        await ctx.send(f'Increment has been set to {increment}')
+
 
 @bot.event
 async def on_message(message):
