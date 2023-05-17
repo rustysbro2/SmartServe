@@ -178,7 +178,12 @@ async def on_message(message):
                 overwrites=message.channel.overwrites,
                 category=message.channel.category
             )
-            await new_channel.send(embed=embed)
+
+            try:
+                await new_channel.send(embed=embed)
+            except discord.errors.HTTPException:
+                await new_channel.send(
+                    "An error occurred while sending the failure message. Please check the bot's permissions.")
 
         all_data[str(message.guild.id)] = data
         with open(data_file, 'w') as f:
