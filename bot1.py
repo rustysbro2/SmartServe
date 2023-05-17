@@ -140,13 +140,13 @@ async def on_message(message):
                 # Reset the count and last counter ID
                 data['count'] = 0
                 data['last_counter_id'] = None
+                print('New game started')
 
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
                 json.dump(all_data, f, indent=4)
 
             if new_game_started:
-                print('New game started')
                 # Check if a new counting channel should be created
                 if 'new_channel' in all_data[str(message.guild.id)]:
                     print('New channel flag found')
