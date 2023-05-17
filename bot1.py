@@ -66,9 +66,10 @@ async def on_message(message):
                 else:
                     await message.add_reaction('✅')
             else:
+                await message.add_reaction('❌')
+                await message.delete()
                 data['count'] = 0
                 data['last_counter_id'] = None
-                await message.add_reaction('❌')
                 # delete and recreate the channel
                 channel_name = message.channel.name
                 position = message.channel.position
@@ -78,7 +79,18 @@ async def on_message(message):
                 new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
                 data['channel_id'] = new_channel.id
         else:
+            await message.add_reaction('❌')
             await message.delete()
+            data['count'] = 0
+            data['last_counter_id'] = None
+            # delete and recreate the channel
+            channel_name = message.channel.name
+            position = message.channel.position
+            overwrites = message.channel.overwrites
+            category = message.channel.category
+            await message.channel.delete()
+            new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
+            data['channel_id'] = new_channel.id
 
     all_data[str(message.guild.id)] = data
     with open(data_file, 'w') as f:
