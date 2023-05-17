@@ -6,8 +6,6 @@ import json
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-data_file = 'count_data.json'
-
 # the file where we will save our data
 data_file = 'count_data.json'
 
@@ -22,7 +20,7 @@ default_data = {
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
-            json.dump({}, f)
+            json.dump({}, f, indent=4)
 
 @bot.event
 async def on_ready():
@@ -38,7 +36,7 @@ async def set_channel(ctx, channel: discord.TextChannel):
         all_data = json.load(f)
     all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
-        json.dump(all_data, f)
+        json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
 
 @bot.event
@@ -84,7 +82,7 @@ async def on_message(message):
 
     all_data[str(message.guild.id)] = data
     with open(data_file, 'w') as f:
-        json.dump(all_data, f)
+        json.dump(all_data, f, indent=4)
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
