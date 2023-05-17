@@ -1,3 +1,4 @@
 discord.py
 discord_slash.utils.manage_commands
 discord_slash
+discord-py-slash-command
