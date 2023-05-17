@@ -18,7 +18,7 @@ default_data = {
     'last_counter_id': None,
     'high_score': 0,
     'increment': 1,
-    'pending_increment': None,  # New key
+    'pending_increment': None,
     'old_increment': 1
 }
 
@@ -107,7 +107,7 @@ async def on_message(message):
 
     if message.channel.id == data.get('channel_id'):
         fail_reason = ""
-        new_game_started = False  # Initialize new_game_started as False
+        increment_changed = False  # Initialize increment_changed as False
 
         try:
             result = safe_eval(message.content)
@@ -128,7 +128,6 @@ async def on_message(message):
             fail_reason = "The text you entered is not a valid mathematical expression."
 
         if fail_reason:
-            new_game_started = True  # Set new_game_started to True upon a failure
             print('Fail reason:', fail_reason)
             await message.add_reaction('❌')
             await message.delete()
@@ -138,7 +137,9 @@ async def on_message(message):
             data['count'] = 0
             data['last_counter_id'] = None
             if data['pending_increment'] is not None:  # If there's a pending increment
+                data['old_increment'] = data['increment']  # Save the old increment
                 data['increment'] = data['pending_increment']  # Apply the pending increment
+                increment_changed = True  # Set increment_changed to True if there's a pending increment
                 data['pending_increment'] = None  # Reset the pending increment
             print('New game started')
 
@@ -169,12 +170,10 @@ async def on_message(message):
             if increment_changed:  # If the increment has changed
                 embed.add_field(
                     name="**Increment Changed**",
-                    value=f"The increment has changed from {old_increment} ➡️ {data['increment']}."
+                    value=f"The increment has changed from {data['old_increment']} ➡️ {data['increment']}."
                 )
 
-
             await new_channel.send(embed=embed)
-            new_game_started = False  # Reset new_game_started to False after sending the embed
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
