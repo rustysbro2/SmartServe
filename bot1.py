@@ -84,7 +84,6 @@ async def set_increment(ctx, increment: int):
     with open(data_file, 'r') as f:
         all_data = json.load(f)
     data = all_data.get(str(ctx.guild.id), default_data.copy())
-    data['new_increment'] = increment  # Store the new increment temporarily
 
     if data['last_counter_id'] is None:
         data['increment'] = increment  # Update the current increment
@@ -100,6 +99,7 @@ async def set_increment(ctx, increment: int):
         json.dump(all_data, f, indent=4)
 
     await ctx.send(f'Increment has been set to {increment}')
+
 
 
 @bot.event
