@@ -104,7 +104,6 @@ async def set_increment(ctx, increment: int):
     await ctx.send(f'Increment has been set to {increment}')
 
 
-
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)
@@ -174,30 +173,55 @@ async def on_message(message):
                     with open(data_file, 'w') as f:
                         json.dump(all_data, f, indent=4)
 
-            # Send the appropriate embed based on increment change
-            if old_increment != data['increment']:
-                # Create embed with increment change information
-                embed = discord.Embed(
-                    title="Counting Failure",
-                    description=f"**Failure Reason:** {fail_reason}\n"
-                                f"**You typed:** {message.content}\n"
-                                f"**Failed by:** {message.author.mention}\n"
-                                f"**Expected Number:** {expected_number}\n"
-                                f"**Increment:** {old_increment} :arrow: {data['increment']}",
-                    color=discord.Color.red()
-                )
-            else:
-                # Create embed without increment change information
-                embed = discord.Embed(
-                    title="Counting Failure",
-                    description=f"**Failure Reason:** {fail_reason}\n"
-                                f"**You typed:** {message.content}\n"
-                                f"**Failed by:** {message.author.mention}\n"
-                                f"**Expected Number:** {expected_number}",
-                    color=discord.Color.red()
-                )
+                    # Send the appropriate embed based on increment change
+                    if old_increment != data['increment']:
+                        # Create embed with increment change information
+                        embed = discord.Embed(
+                            title="Counting Failure",
+                            description=f"**Failure Reason:** {fail_reason}\n"
+                                        f"**You typed:** {message.content}\n"
+                                        f"**Failed by:** {message.author.mention}\n"
+                                        f"**Expected Number:** {expected_number}\n"
+                                        f"**Increment:** {old_increment} :arrow: {data['increment']}",
+                            color=discord.Color.red()
+                        )
+                    else:
+                        # Create embed without increment change information
+                        embed = discord.Embed(
+                            title="Counting Failure",
+                            description=f"**Failure Reason:** {fail_reason}\n"
+                                        f"**You typed:** {message.content}\n"
+                                        f"**Failed by:** {message.author.mention}\n"
+                                        f"**Expected Number:** {expected_number}",
+                            color=discord.Color.red()
+                        )
 
-            await new_channel.send(embed=embed)
+                    await new_channel.send(embed=embed)
+                else:
+                    # Send the failure embed in the current channel
+                    if old_increment != data['increment']:
+                        # Create embed with increment change information
+                        embed = discord.Embed(
+                            title="Counting Failure",
+                            description=f"**Failure Reason:** {fail_reason}\n"
+                                        f"**You typed:** {message.content}\n"
+                                        f"**Failed by:** {message.author.mention}\n"
+                                        f"**Expected Number:** {expected_number}\n"
+                                        f"**Increment:** {old_increment} :arrow: {data['increment']}",
+                            color=discord.Color.red()
+                        )
+                    else:
+                        # Create embed without increment change information
+                        embed = discord.Embed(
+                            title="Counting Failure",
+                            description=f"**Failure Reason:** {fail_reason}\n"
+                                        f"**You typed:** {message.content}\n"
+                                        f"**Failed by:** {message.author.mention}\n"
+                                        f"**Expected Number:** {expected_number}",
+                            color=discord.Color.red()
+                        )
+
+                    await message.channel.send(embed=embed)
 
 
 
