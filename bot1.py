@@ -130,6 +130,7 @@ async def on_message(message):
             await message.add_reaction('❌')
             await message.delete()
             old_increment = data['increment']  # Store the old increment value
+            expected_number = data['count'] + old_increment  # Calculate the expected number
             data['count'] = 0
             data['last_counter_id'] = None
             # delete and recreate the channel
@@ -145,11 +146,13 @@ async def on_message(message):
             increment_text = f"{old_increment} ➡️ {data['increment']}"
             embed = discord.Embed(
                 title="Counting Failure",
-                description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}",
+                description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}\n\n"
+                            f"The expected number was: {expected_number}",
                 color=discord.Color.red()
             )
             embed.add_field(name="Increment Information", value=increment_text, inline=False)
             await new_channel.send(embed=embed)
+
 
 
 
