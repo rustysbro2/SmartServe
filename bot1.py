@@ -147,8 +147,11 @@ async def on_message(message):
                 description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}",
                 color=discord.Color.red()
             )
-            embed.add_field(name="Increment Information", value=f"Old Increment: {old_increment}\nNew Increment: {data['increment']}", inline=False)
+            increment_value = f"{data['increment']}"
+            increment_text = f"Increment: {old_increment} ➡️ {increment_value}"
+            embed.add_field(name="Increment Information", value=increment_text, inline=False)
             await new_channel.send(embed=embed)
+
 
 
 
