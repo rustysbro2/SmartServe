@@ -56,6 +56,7 @@ async def on_message(message):
         return
 
     if message.channel.id == data.get('channel_id'):
+        fail_reason = ""
         if message.content.isdigit():
             if int(message.content) == data['count'] + 1 and message.author.id != data['last_counter_id']:
                 data['count'] += 1
@@ -66,20 +67,13 @@ async def on_message(message):
                 else:
                     await message.add_reaction('✅')
             else:
+                fail_reason = "Wrong number or counted twice in a row"
                 await message.add_reaction('❌')
-                await message.delete()
-                data['count'] = 0
-                data['last_counter_id'] = None
-                # delete and recreate the channel
-                channel_name = message.channel.name
-                position = message.channel.position
-                overwrites = message.channel.overwrites
-                category = message.channel.category
-                await message.channel.delete()
-                new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
-                data['channel_id'] = new_channel.id
         else:
+            fail_reason = "Non-numeric character"
             await message.add_reaction('❌')
+
+        if fail_reason:
             await message.delete()
             data['count'] = 0
             data['last_counter_id'] = None
@@ -91,6 +85,14 @@ async def on_message(message):
             await message.channel.delete()
             new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
             data['channel_id'] = new_channel.id
+
+            # create the failure embed
+            embed = discord.Embed(
+                title="Counting Failure",
+                description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}",
+                color=discord.Color.red()
+            )
+            await new_channel.send(embed=embed)
 
     all_data[str(message.guild.id)] = data
     with open(data_file, 'w') as f:
