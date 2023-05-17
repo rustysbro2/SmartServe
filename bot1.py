@@ -90,12 +90,10 @@ async def set_increment(ctx, increment: int):
     data = all_data.get(str(ctx.guild.id), default_data.copy())
 
     if data['last_counter_id'] is None:
-        data['increment'] = increment  # Update the current increment
-
-    new_game_started = data['last_counter_id'] is None  # Set new game started flag
-
-    if new_game_started:
+        new_game_started = True  # Set new game started flag
         data['old_increment'] = data['increment']  # Store the old increment
+
+    data['increment'] = increment  # Update the current increment
 
     all_data[str(ctx.guild.id)] = data
 
@@ -106,6 +104,7 @@ async def set_increment(ctx, increment: int):
         all_data[str(ctx.guild.id)]['new_channel'] = True  # Set new_channel flag
 
     await ctx.send(f'Increment has been set to {increment}')
+
 
 
 
