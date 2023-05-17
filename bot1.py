@@ -151,9 +151,13 @@ async def on_message(message):
 
                 # Check if a new counting channel is created
                 if 'new_channel' in all_data[str(message.guild.id)]:
-                    old_channel_id = data['channel_id']
-                    old_channel = message.guild.get_channel(old_channel_id)
-                    new_channel = await old_channel.clone()
+                    overwrites = message.channel.overwrites
+                    category = message.channel.category
+                    new_channel = await message.guild.create_text_channel(
+                        name=message.channel.name,
+                        overwrites=overwrites,
+                        category=category
+                    )
                     data['channel_id'] = new_channel.id
                     del all_data[str(message.guild.id)]['new_channel']
 
@@ -187,8 +191,6 @@ async def on_message(message):
             json.dump(all_data, f, indent=4)
 
         if new_game_started:
-            old_channel_id = data['channel_id']
-            old_channel = message.guild.get_channel(old_channel_id)
-            await old_channel.delete()
+            await message.channel.delete()
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
