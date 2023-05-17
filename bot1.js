@@ -14,9 +14,7 @@ const commands = [
   }
 ];
 
-const intents = new Intents(32767);
-
-const client = new Client({ intents });
+const client = new Client({ intents: GatewayIntentBits.All });
 
 client.once('ready', async () => {
   console.log(`Bot is online: ${client.user.tag}`);
