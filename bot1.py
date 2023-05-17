@@ -149,6 +149,12 @@ async def on_message(message):
                     data['increment'] = new_increment
                     del all_data[str(message.guild.id)]['new_increment']
 
+                # Check if a new counting channel is created
+                new_channel = all_data[str(message.guild.id)].get('new_channel')
+                if new_channel is not None:
+                    data['channel_id'] = new_channel
+                    del all_data[str(message.guild.id)]['new_channel']
+
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
                 # Create embed with increment change information
@@ -178,12 +184,7 @@ async def on_message(message):
                 overwrites=message.channel.overwrites,
                 category=message.channel.category
             )
-
-            try:
-                await new_channel.send(embed=embed)
-            except discord.errors.HTTPException:
-                await new_channel.send(
-                    "An error occurred while sending the failure message. Please check the bot's permissions.")
+            await new_channel.send(embed=embed)
 
         all_data[str(message.guild.id)] = data
         with open(data_file, 'w') as f:
@@ -191,5 +192,6 @@ async def on_message(message):
 
         if new_game_started:
             await message.channel.delete()
+
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
