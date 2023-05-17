@@ -148,16 +148,28 @@ async def on_message(message):
                     del all_data[str(message.guild.id)]['new_increment']
 
             # Send the failure embed with the appropriate information
-            embed = discord.Embed(
-                title="Counting Failure",
-                description=f"**Failure Reason:** {fail_reason}\n"
-                            f"**You typed:** {message.content}\n"
-                            f"**Failed by:** {message.author.mention}\n"
-                            f"**Expected Number:** {expected_number}\n"
-                            f"**Old Increment:** {old_increment}\n"
-                            f"**New Increment:** {new_increment}",
-                color=discord.Color.red()
-            )
+            if new_game_started:
+                old_increment = data['increment']
+                new_increment = new_increment if new_increment is not None else old_increment
+                increment_description = f"**Old Increment:** {old_increment}\n**New Increment:** {new_increment}"
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** {fail_reason}\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}\n"
+                                f"{increment_description}",
+                    color=discord.Color.red()
+                )
+            else:
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** {fail_reason}\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}",
+                    color=discord.Color.red()
+                )
             new_channel = message.channel if not new_game_started else await message.guild.create_text_channel(
                 message.channel.name,
                 position=message.channel.position,
@@ -172,7 +184,6 @@ async def on_message(message):
 
         if new_game_started:
             await message.channel.delete()
-
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
