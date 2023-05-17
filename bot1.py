@@ -187,14 +187,14 @@ async def on_message(message):
             json.dump(all_data, f, indent=4)
 
        if new_game_started:
-    old_channel_id = data['channel_id']
-    old_channel = bot.get_channel(old_channel_id)
+            old_channel_id = data['channel_id']
+            old_channel = bot.get_channel(old_channel_id)
 
-    # create new channel with the same name, position, topic, and permissions
-    new_channel = await old_channel.clone(name=old_channel.name)
-    data['channel_id'] = new_channel.id
+            # create new channel with the same name, position, topic, and permissions
+            new_channel = await old_channel.clone(name=old_channel.name)
+            data['channel_id'] = new_channel.id
 
-    await old_channel.delete()
+            await old_channel.delete()
 
 
 
