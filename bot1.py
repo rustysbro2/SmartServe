@@ -147,7 +147,7 @@ async def on_message(message):
 
             if new_game_started:
                 # Check if a new counting channel should be created
-                if 'new_channel' in data:
+                if new_game_started and 'new_channel' in data:
                     print('New channel flag found')
                     old_channel_id = data['channel_id']
                     old_channel = bot.get_channel(old_channel_id)
@@ -159,6 +159,12 @@ async def on_message(message):
                         json.dump(all_data, f, indent=4)  # Save the updated data
                     print('Data after update:', data)  # Debug statement
                     await old_channel.delete()
+
+                    # Update the data file with the new channel ID
+                    with open(data_file, 'w') as f:
+                        json.dump(all_data, f, indent=4)
+
+
 
                     # Update the data file with the new channel ID
                     with open(data_file, 'w') as f:
