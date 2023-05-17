@@ -151,14 +151,11 @@ async def on_message(message):
 
                 # Check if a new counting channel is created
                 if 'new_channel' in all_data[str(message.guild.id)]:
-                    new_channel = await message.guild.create_text_channel(
-                        message.channel.name,
-                        position=message.channel.position,
-                        overwrites=message.channel.overwrites,
-                        category=message.channel.category
-                    )
+                    old_channel = message.channel
+                    new_channel = await old_channel.clone()
                     data['channel_id'] = new_channel.id
                     del all_data[str(message.guild.id)]['new_channel']
+                    await old_channel.delete()
 
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
@@ -191,7 +188,5 @@ async def on_message(message):
 
         if new_game_started:
             await message.channel.delete()
-
-
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
