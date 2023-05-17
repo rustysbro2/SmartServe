@@ -144,11 +144,12 @@ async def on_message(message):
             # create the failure embed with increment information
             embed = discord.Embed(
                 title="Counting Failure",
-                description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}\n\n"
-                            f"The increment was {old_increment} and has been changed to {data['increment']}.",
+                description=f"**Failure Reason:** {fail_reason}\n**Message:** {message.content}\n**Failed by:** {message.author.mention}",
                 color=discord.Color.red()
             )
+            embed.add_field(name="Increment Information", value=f"Old Increment: {old_increment}\nNew Increment: {data['increment']}", inline=False)
             await new_channel.send(embed=embed)
+
 
 
     all_data[str(message.guild.id)] = data
