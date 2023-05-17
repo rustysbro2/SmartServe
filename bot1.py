@@ -129,44 +129,48 @@ async def on_message(message):
         if fail_reason:
             await message.add_reaction('❌')
             await message.delete()
-            old_increment = data['increment']  # Store the old increment value
-            expected_number = data['count'] + old_increment  # Calculate the expected number
-            data['count'] = 0
-            data['last_counter_id'] = None
+            expected_number = data['count'] + data['increment']  # Calculate the expected number
 
-            # Check if the current count is greater than the previous high score
-            if data['count'] > data['high_score']:
-                data['high_score'] = data['count']
+            # Check if a new game should start
+            if message.author.id == data['last_counter_id']:
+                # Reset the count and last counter ID
+                data['count'] = 0
+                data['last_counter_id'] = None
 
-            # Check if the current author is the last counter or no one has started counting yet
-            if message.author.id != data['last_counter_id'] or data['last_counter_id'] is None:
-                data['increment'] = old_increment
+                # Delete and recreate the channel
+                channel_name = message.channel.name
+                position = message.channel.position
+                overwrites = message.channel.overwrites
+                category = message.channel.category
+                await message.channel.delete()
+                new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
+                data['channel_id'] = new_channel.id
 
-            # delete and recreate the channel
-            channel_name = message.channel.name
-            position = message.channel.position
-            overwrites = message.channel.overwrites
-            category = message.channel.category
-            await message.channel.delete()
-            new_channel = await message.guild.create_text_channel(channel_name, position=position, overwrites=overwrites, category=category)
-            data['channel_id'] = new_channel.id
+                # Create the failure embed with new game information
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** {fail_reason}\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}",
+                    color=discord.Color.red()
+                )
+                await new_channel.send(embed=embed)
+            else:
+                # Increment remains the same until a new game starts
+                data['increment'] = data['increment']
 
-            # create the failure embed
-            embed = discord.Embed(
-                title="Counting Failure",
-                description=f"**Failure Reason:** {fail_reason}\n"
-                            f"**You typed:** {message.content}\n"
-                            f"**Failed by:** {message.author.mention}\n"
-                            f"**Expected Number:** {expected_number}",
-                color=discord.Color.red()
-            )
+                # Create the failure embed without increment information
+                embed = discord.Embed(
+                    title="Counting Failure",
+                    description=f"**Failure Reason:** {fail_reason}\n"
+                                f"**You typed:** {message.content}\n"
+                                f"**Failed by:** {message.author.mention}\n"
+                                f"**Expected Number:** {expected_number}",
+                    color=discord.Color.red()
+                )
+                await message.channel.send(embed=embed)
 
-            # Add increment information if values are different
-            if old_increment != data['increment']:
-                increment_text = f"Increment Info: Old {old_increment} ➡️ New {data['increment']}"
-                embed.add_field(name="Increment Information", value=increment_text, inline=False)
-
-            await new_channel.send(embed=embed)
 
 
 
