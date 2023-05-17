@@ -117,5 +117,5 @@ def get_user_info():
         return 'Unknown User'
 
 if __name__ == '__main__':
-    bot.run('YOUR_BOT_TOKEN')
+    bot.run('MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM')
     app.run(host='51.222.117.191', port=8000)  # Adjusted IP and port
