@@ -12,14 +12,20 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 data_file = 'count_data.json'
 
 # the expected keys and their default values
+# the expected keys and their default values
 default_data = {
     'channel_id': None,
     'count': 0,
     'last_counter_id': None,
     'high_score': 0,
     'increment': 1,
+    'pending_increment': None,  # New key
     'old_increment': 1
 }
+
+@bot.command()
+async def set_increment(ctx,
+
 
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
@@ -141,9 +147,12 @@ async def on_message(message):
             expected_number = data['count'] + data['increment']  # Calculate the expected number
 
             # Reset the count and last counter ID
-            data['count'] = 0
-            data['last_counter_id'] = None
-            print('New game started')
+             data['count'] = 0
+             data['last_counter_id'] = None
+             if data['pending_increment'] is not None:  # If there's a pending increment
+                 data['increment'] = data['pending_increment']  # Apply the pending increment
+                 data['pending_increment'] = None  # Reset the pending increment
+             print('New game started')
 
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
