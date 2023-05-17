@@ -148,7 +148,7 @@ async def on_message(message):
 
             if new_game_started:
                 # Check if a new counting channel should be created
-                if 'new_channel' in all_data[str(message.guild.id)]:
+                if 'new_channel' in data:
                     print('New channel flag found')
                     old_channel_id = data['channel_id']
                     old_channel = bot.get_channel(old_channel_id)
