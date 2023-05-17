@@ -161,12 +161,6 @@ async def on_message(message):
 
 
 
-
-
-                    # Update the data file with the new channel ID
-                    with open(data_file, 'w') as f:
-                        json.dump(all_data, f, indent=4)
-
                     # Send the appropriate embed based on increment change
                     if old_increment != data['increment']:
                         print('Increment changed')
