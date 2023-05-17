@@ -141,6 +141,9 @@ async def on_message(message):
                 data['count'] = 0
                 data['last_counter_id'] = None
 
+                # Set the new game flag
+                new_game_started = True
+
                 # Delete and recreate the channel
                 channel_name = message.channel.name
                 position = message.channel.position
@@ -193,9 +196,13 @@ async def on_message(message):
             data['old_increment'] = old_increment
             data['new_increment'] = new_increment
 
+            # Update the new game flag in the data dictionary
+            data['new_game_started'] = new_game_started if new_game_started else data.get('new_game_started', False)
+
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
                 json.dump(all_data, f, indent=4)
+
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
