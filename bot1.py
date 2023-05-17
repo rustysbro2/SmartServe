@@ -49,11 +49,11 @@ async def on_ready():
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
-    data = default_data.copy()
-    data['channel_id'] = channel.id
     ensure_data_file_exists()
     with open(data_file, 'r') as f:
         all_data = json.load(f)
+    data = all_data.get(str(ctx.guild.id), default_data.copy())
+    data['channel_id'] = channel.id
     all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
@@ -64,15 +64,12 @@ async def set_increment(ctx, increment: int):
     ensure_data_file_exists()
     with open(data_file, 'r') as f:
         all_data = json.load(f)
-    data = all_data.get(str(ctx.guild.id))
-    if data:
-        old_increment = data['increment']
-        data['increment'] = increment
-        with open(data_file, 'w') as f:
-            json.dump(all_data, f, indent=4)
-        await ctx.send(f'Increment has been changed from {old_increment} to {increment}')
-    else:
-        await ctx.send('Please set the counting channel first using the `set_channel` command.')
+    data = all_data.get(str(ctx.guild.id), default_data.copy())
+    data['increment'] = increment
+    all_data[str(ctx.guild.id)] = data
+    with open(data_file, 'w') as f:
+        json.dump(all_data, f, indent=4)
+    await ctx.send(f'Increment has been set to {increment}')
 
 @bot.event
 async def on_message(message):
