@@ -242,5 +242,3 @@ async def on_message(message):
                     await message.channel.send(embed=embed)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
-
-
