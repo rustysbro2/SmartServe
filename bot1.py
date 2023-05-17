@@ -17,6 +17,7 @@ default_data = {
     'count': 0,
     'last_counter_id': None,
     'high_score': 0,
+    'increment': 1
 }
 
 def ensure_data_file_exists():
@@ -27,6 +28,7 @@ def ensure_data_file_exists():
 # supported operators
 operators = {ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv, ast.USub: op.neg}
 
+# evaluate expressions safely
 def eval_expr(node):
     if isinstance(node, ast.Num):  # <number>
         return node.n
@@ -57,6 +59,18 @@ async def set_channel(ctx, channel: discord.TextChannel):
         json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
 
+@bot.command()
+async def set_increment(ctx, increment: int):
+    ensure_data_file_exists()
+    with open(data_file, 'r') as f:
+        all_data = json.load(f)
+    data = all_data.get(str(ctx.guild.id))
+    if data:
+        data['increment'] = increment
+        with open(data_file, 'w') as f:
+            json.dump(all_data, f, indent=4)
+        await ctx.send(f'Increment has been set to {increment}')
+
 @bot.event
 async def on_message(message):
     await bot.process_commands(message)  # Moved this line here
@@ -77,9 +91,9 @@ async def on_message(message):
         fail_reason = ""
         try:
             result = safe_eval(message.content)
-            if result == data['count'] + 1:
+            if result == data['count'] + data['increment']:
                 if message.author.id != data['last_counter_id']:
-                    data['count'] += 1
+                    data['count'] += data['increment']
                     data['last_counter_id'] = message.author.id
                     if data['count'] > data['high_score']:
                         data['high_score'] = data['count']
@@ -120,6 +134,3 @@ async def on_message(message):
         json.dump(all_data, f, indent=4)
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
-
-
-
