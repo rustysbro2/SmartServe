@@ -149,22 +149,23 @@ async def on_message(message):
                     data['increment'] = new_increment
                     del all_data[str(message.guild.id)]['new_increment']
 
+                # Check if a new counting channel should be created
+                if 'new_channel' in all_data[str(message.guild.id)]:
+                    old_channel_id = data['channel_id']
+                    old_channel = bot.get_channel(old_channel_id)
+                    new_channel = await old_channel.clone(name=old_channel.name)
+                    data['channel_id'] = new_channel.id
+                    del all_data[str(message.guild.id)]['new_channel']
+
+                    # Delete the old counting channel
+                    await old_channel.delete()
+
             all_data[str(message.guild.id)] = data
             with open(data_file, 'w') as f:
                 json.dump(all_data, f, indent=4)
 
             if new_game_started:
-                old_channel_id = data['channel_id']
-                old_channel = bot.get_channel(old_channel_id)
-                await old_channel.delete()
-                print('Old channel deleted.')
-
-                # Check if a new counting channel should be created
-                if 'new_channel' in all_data[str(message.guild.id)]:
-                    new_channel = await old_channel.clone(name=old_channel.name)
-                    data['channel_id'] = new_channel.id
-                    del all_data[str(message.guild.id)]['new_channel']
-                    print('New channel created.')
+                print("New channel created.")  # Debug: Print message when new channel is created
 
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
