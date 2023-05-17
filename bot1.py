@@ -9,9 +9,15 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # the file where we will save our channel id and count
 data_file = 'count_data.json'
 
+def ensure_data_file_exists():
+    if not os.path.exists(data_file):
+        with open(data_file, 'w') as f:
+            json.dump({}, f)
+
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
+    ensure_data_file_exists()
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
@@ -29,10 +35,12 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
+    ensure_data_file_exists()
+
     with open(data_file, 'r') as f:
         data = json.load(f)
 
-    if message.channel.id == data['channel_id']:
+    if message.channel.id == data.get('channel_id'):
         if message.content.isdigit():
             if int(message.content) == data['count'] + 1 and message.author.id != data['last_counter_id']:
                 data['count'] += 1
