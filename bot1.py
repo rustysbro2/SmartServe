@@ -146,18 +146,19 @@ async def on_message(message):
                 json.dump(all_data, f, indent=4)
 
             if new_game_started:
-               print('New game started')
-               old_channel_id = data['channel_id']
-               old_channel = bot.get_channel(old_channel_id)
-               new_channel = await old_channel.clone(name=old_channel.name)
-               data['channel_id'] = new_channel.id
-               all_data[str(message.guild.id)] = data
+                print('New game started')
+                old_channel_id = data['channel_id']
+                old_channel = bot.get_channel(old_channel_id)
+                new_channel = await old_channel.clone(name=old_channel.name)
+                data['channel_id'] = new_channel.id
+                all_data[str(message.guild.id)] = data
 
                 # Save the updated data and update the data file with the new channel ID
-               with open(data_file, 'w') as f:
-                   json.dump(all_data, f, indent=4)
+                with open(data_file, 'w') as f:
+                    json.dump(all_data, f, indent=4)
 
-               await old_channel.delete()
+                await old_channel.delete()
+
 
 
 
