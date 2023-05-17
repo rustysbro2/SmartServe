@@ -109,14 +109,8 @@ async def on_message(message):
         fail_reason = ""
         increment_changed = False  # Initialize increment_changed as False
 
-        # Debug: print out values for troubleshooting
-        print(f"Message: {message.content}")
-        print(f"Current count: {data['count']}")
-        print(f"Current increment: {data['increment']}")
-
         try:
             result = safe_eval(message.content)
-            print(f"Evaluated result: {result}")  # Debug: print out the evaluated result
             if result == data['count'] + data['increment']:
                 if message.author.id != data['last_counter_id']:
                     data['count'] += data['increment']
@@ -126,13 +120,17 @@ async def on_message(message):
                         await message.add_reaction('🏆')
                     else:
                         await message.add_reaction('✅')
+
+                    # Save the updated data to the JSON file
+                    all_data[str(message.guild.id)] = data
+                    with open(data_file, 'w') as f:
+                        json.dump(all_data, f, indent=4)
                 else:
                     fail_reason = "You can't count two numbers in a row. Let others participate!"
             else:
                 fail_reason = "The number doesn't follow the counting sequence."
         except Exception:
             fail_reason = "The text you entered is not a valid mathematical expression."
-
 
         if fail_reason:
             print('Fail reason:', fail_reason)
@@ -186,6 +184,7 @@ async def on_message(message):
             # Ping the user and then delete the message
             ping_msg = await new_channel.send(message.author.mention)
             await ping_msg.delete()
+
 
 
 
