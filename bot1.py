@@ -44,8 +44,20 @@ def safe_eval(expr):
 
 @bot.event
 async def on_ready():
-    print(f'We have logged in as {bot.user}')
+    print(f"We have logged in as {bot.user}")
     ensure_data_file_exists()
+
+    with open(data_file, 'r') as f:
+        all_data = json.load(f)
+
+    for guild in bot.guilds:
+        guild_id = str(guild.id)
+        if guild_id not in all_data:
+            all_data[guild_id] = default_data.copy()
+
+    with open(data_file, 'w') as f:
+        json.dump(all_data, f, indent=4)
+
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
