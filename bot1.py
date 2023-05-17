@@ -77,9 +77,8 @@ async def set_channel(ctx, channel: discord.TextChannel):
         with open(data_file, 'w') as f:
             json.dump(all_data, f, indent=4)  # Save the updated data
     all_data[str(ctx.guild.id)] = data
-    with open(data_file, 'w') as f:
-        json.dump(all_data, f, indent=4)
     await ctx.send(f'Counting channel has been set to {channel.mention}')
+
 
 
 
