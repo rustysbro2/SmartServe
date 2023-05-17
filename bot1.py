@@ -79,8 +79,10 @@ async def set_channel(ctx, channel: discord.TextChannel):
     if 'new_channel' in data:
         print('New channel flag found')  # Debug statement
         del data['new_channel']  # Remove new_channel flag
+        print('Data before update:', data)  # Debug statement
         with open(data_file, 'w') as f:
             json.dump(all_data, f, indent=4)  # Save the updated data
+        print('Data after update:', data)  # Debug statement
     all_data[str(ctx.guild.id)] = data
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
@@ -154,6 +156,10 @@ async def on_message(message):
                     new_channel = await old_channel.clone(name=old_channel.name)
                     data['channel_id'] = new_channel.id
                     del data['new_channel']
+                    print('Data before update:', data)  # Debug statement
+                    with open(data_file, 'w') as f:
+                        json.dump(all_data, f, indent=4)  # Save the updated data
+                    print('Data after update:', data)  # Debug statement
                     await old_channel.delete()
 
                     # Update the data file with the new channel ID
