@@ -22,6 +22,22 @@ def ensure_data_file_exists():
         with open(data_file, 'w') as f:
             json.dump({}, f, indent=4)
 
+# supported operators
+operators = {ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv, ast.USub: op.neg}
+
+def eval_expr(node):
+    if isinstance(node, ast.Num):  # <number>
+        return node.n
+    elif isinstance(node, ast.BinOp):  # <left> <operator> <right>
+        return operators[type(node.op)](eval_expr(node.left), eval_expr(node.right))
+    elif isinstance(node, ast.UnaryOp):  # <operator> <operand> e.g., -1
+        return operators[type(node.op)](eval_expr(node.operand))
+    else:
+        raise TypeError(node)
+
+def safe_eval(expr):
+    return eval_expr(ast.parse(expr, mode='eval').body)
+
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
@@ -57,8 +73,9 @@ async def on_message(message):
 
     if message.channel.id == data.get('channel_id'):
         fail_reason = ""
-        if message.content.isdigit():
-            if int(message.content) == data['count'] + 1:
+        try:
+            result = safe_eval(message.content)
+            if result == data['count'] + 1:
                 if message.author.id != data['last_counter_id']:
                     data['count'] += 1
                     data['last_counter_id'] = message.author.id
@@ -68,11 +85,11 @@ async def on_message(message):
                     else:
                         await message.add_reaction('✅')
                 else:
-                    fail_reason = "Counted twice in a row"
+                    fail_reason = "You can't count two numbers in a row. Let others participate!"
             else:
-                fail_reason = "Wrong number"
-        else:
-            fail_reason = "Non-numeric character"
+                fail_reason = "The number doesn't follow the counting sequence."
+        except Exception:
+            fail_reason = "The text you entered is not a valid mathematical expression."
 
         if fail_reason:
             await message.add_reaction('❌')
