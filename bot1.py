@@ -158,15 +158,14 @@ async def on_message(message):
                 json.dump(all_data, f, indent=4)
 
             if new_game_started:
-                old_channel_id = data['channel_id']
-                old_channel = bot.get_channel(old_channel_id)
-                await old_channel.delete()
-
                 # Check if a new counting channel should be created
                 if 'new_channel' in all_data[str(message.guild.id)]:
+                    old_channel_id = data['channel_id']
+                    old_channel = bot.get_channel(old_channel_id)
                     new_channel = await old_channel.clone(name=old_channel.name)
                     data['channel_id'] = new_channel.id
                     del all_data[str(message.guild.id)]['new_channel']
+                    await old_channel.delete()
 
             # Send the appropriate embed based on increment change
             if old_increment != data['increment']:
