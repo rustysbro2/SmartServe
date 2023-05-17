@@ -135,6 +135,8 @@ async def on_message(message):
                 old_channel = bot.get_channel(old_channel_id)
                 new_channel = await old_channel.clone(name=old_channel.name)
                 data['channel_id'] = new_channel.id
+                data['count'] = 0  # Reset the count
+                data['last_counter_id'] = None  # Reset the last counter ID
                 all_data[str(message.guild.id)] = data
 
                 # Save the updated data and update the data file with the new channel ID
@@ -171,6 +173,5 @@ async def on_message(message):
                 await new_channel.send(embed=embed)
             else:
                 await message.channel.send(embed=embed)
-
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
