@@ -122,10 +122,14 @@ async def help(ctx):
     except FileNotFoundError:
         help_data = {}
 
-    embed = discord.Embed(title="Available commands", color=discord.Color.green())
+    embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
+    embed.set_thumbnail(url=bot.user.avatar_url)
+    embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     for cmd, usage in help_data.items():
-        embed.add_field(name=f"**{cmd}**", value=usage, inline=False)
+        embed.add_field(name=f"**{cmd}**", value=f"`{usage}`", inline=False)
+
+    embed.set_footer(text="For more information, contact the bot owner.")
 
     await ctx.send(embed=embed)
 
