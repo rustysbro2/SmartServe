@@ -24,7 +24,7 @@ class Tracking(commands.Cog):
             channel = self.bot.get_channel(channel_id)
             if channel:
                 message = f"{member.mention} has joined the server!"
-                
+
                 # Retrieve the inviter's information
                 inviter_id = await self.get_inviter_id(member)
                 if inviter_id:
@@ -33,9 +33,8 @@ class Tracking(commands.Cog):
                         message += f" Invited by {inviter.mention}"
 
                 sent_message = await channel.send(message)
-                reactions = ['👍', '🎉', '🔥', '😄', '👏']
-                for reaction in reactions:
-                    await sent_message.add_reaction(reaction)
+                emoji = random.choice(self.get_positive_emojis())
+                await sent_message.add_reaction(emoji)
 
     async def get_inviter_id(self, member):
         invites = await member.guild.invites()
@@ -46,6 +45,16 @@ class Tracking(commands.Cog):
                 if member.created_at < invite.created_at:
                     return invite.inviter.id
         return None
+
+    def get_positive_emojis(self):
+        positive_emojis = [
+            "😊", "😄", "🌟", "🎉", "👍", "🌞", "💖", "🌈", "🤗", "🥳",
+            "👏", "🥰", "✨", "😁", "🌻", "🥇", "🌺", "💯", "🙌", "🔥",
+            "💪", "🎊", "🌼", "🎈", "🍀", "🎇", "👌", "💃", "🌹", "🌞",
+            "🥇", "🌠", "💥", "🎁", "🎶", "🚀", "🍾", "🌄", "🎆", "🌻",
+            "🎨", "💓", "💫", "🍻", "🍬", "🌿", "💐", "🔆", "🌸", "🌺"
+        ]
+        return positive_emojis
 
     @commands.command()
     @commands.has_permissions(administrator=True)
