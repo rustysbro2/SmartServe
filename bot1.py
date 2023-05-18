@@ -76,19 +76,18 @@ for extension in extensions:
 async def generate_help_data():
     help_data = {}
 
-    for ext in bot.extensions.values():
-        for cmd in ext.get_commands():
-            if not cmd.hidden:
-                command_name = cmd.qualified_name
-                command_usage = cmd.help
-                extension_name = ext.__class__.__name__
-                help_data[command_name] = {
-                    'usage': command_usage,
-                    'extension': extension_name
-                }
+    for command in bot.commands:
+        if not command.hidden:
+            usage = command.help or "No description provided."
+            extension_name = command.cog.__class__.__name__ if command.cog else "No Extension"
+            help_data[command.name] = {
+                'usage': usage,
+                'extension': extension_name
+            }
 
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
+
 
 
 
