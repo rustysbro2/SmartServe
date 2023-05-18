@@ -68,7 +68,9 @@ async def on_ready():
         json.dump(all_data, f, indent=4)
         
 # Load giveaway extension
-bot.load_extension('giveaway')  # Replace 'giveaway' with the actual file name
+bot.extensions = ['giveaway', 'tracking']
+bot.load_extensions(extensions)
+
 
         
 
