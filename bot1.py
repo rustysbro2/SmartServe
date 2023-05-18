@@ -120,11 +120,13 @@ async def help(ctx):
     except FileNotFoundError:
         help_data = {}
 
-    help_message = "Available commands:\n\n"
-    for cmd, usage in help_data.items():
-        help_message += f"**{cmd}**: {usage}\n"
+    embed = discord.Embed(title="Available commands", color=discord.Color.green())
 
-    await ctx.send(help_message)
+    for cmd, usage in help_data.items():
+        embed.add_field(name=f"**{cmd}**", value=usage, inline=False)
+
+    await ctx.send(embed=embed)
+
 
 
 
