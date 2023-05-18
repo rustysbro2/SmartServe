@@ -127,12 +127,9 @@ async def help(ctx):
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     for cmd, usage in help_data.items():
-        embed.add_field(name=f"**{cmd}**", value=f"`{usage}`", inline=False)
-
-        # Examples for each command
         example = get_command_example(cmd)
-        if example:
-            embed.add_field(name="Example:", value=example, inline=False)
+        value = f"`{usage}`\nExample: {example}" if example else f"`{usage}`"
+        embed.add_field(name=f"**{cmd}**", value=value, inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
 
@@ -147,6 +144,7 @@ def get_command_example(command):
         # Add more commands and examples here
     }
     return examples.get(command)
+
 
 
 
