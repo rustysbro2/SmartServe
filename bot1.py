@@ -5,6 +5,7 @@ import json
 import ast
 import operator as op
 import inspect
+import random
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -26,6 +27,10 @@ default_data = {
 
 # Add your extension names here
 extensions = ['giveaway', 'tracking']
+
+# emojis lists
+check_mark_emojis = ['✅', '☑️', '✔️']
+trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
 
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
@@ -210,9 +215,11 @@ async def on_message(message):
                     if data['successful_counts'] > data['high_score']:  # compare successful counts to high score
                         data['high_score'] = data['successful_counts']  # update high score based on successful counts
                         print(f"New high score: {data['high_score']}")  # Log the new high score
-                        await message.add_reaction('🏆')
+                        random_trophy = random.choice(trophy_emojis)
+                        await message.add_reaction(random_trophy)
                     else:
-                        await message.add_reaction('✅')
+                        random_check_mark = random.choice(check_mark_emojis)
+                        await message.add_reaction(random_check_mark)
 
                     # Save the updated data to the JSON file
                     all_data[str(message.guild.id)] = data
