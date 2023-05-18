@@ -86,8 +86,13 @@ async def help(ctx):
         color=discord.Color.blue()
     )
 
-    embed.add_field(name="!set_channel <channel>", value="Set the counting channel.", inline=False)
-    embed.add_field(name="!set_increment <increment>", value="Set the counting increment.", inline=False)
+    # Loop through loaded extensions and add their commands to the help message
+    for extension in bot.extensions:
+        commands_list = bot.get_cog(extension).get_commands()
+        if commands_list:
+            command_names = [command.name for command in commands_list]
+            commands_str = ', '.join(command_names)
+            embed.add_field(name=f"{extension} Commands:", value=commands_str, inline=False)
 
     await ctx.send(embed=embed)
 
