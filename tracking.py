@@ -64,7 +64,8 @@ class Tracking(commands.Cog):
         # Select a random reaction
         reaction = random.choice(reactions)
 
-        await ctx.send(f"The join channel has been set to {channel.mention} {reaction}.")
+        message = await ctx.send(f"The join channel has been set to {channel.mention}")
+        await message.add_reaction(reaction)
 
     def load_data(self):
         try:
