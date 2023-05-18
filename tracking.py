@@ -7,36 +7,35 @@ class Tracking(commands.Cog):
         self.bot = bot
 
     @commands.Cog.listener()
-    async def on_invite_create(self, invite):
-        guild_id = str(invite.guild.id)
+    async def on_member_join(self, member):
+        guild = member.guild
 
-        # Load existing data from the JSON file
+        # Load existing invite data from the JSON file
         with open('invite_data.json', 'r') as f:
             all_data = json.load(f)
 
-        # Update the invite data for the guild
-        all_data[guild_id] = invite.code
+        # Retrieve the invites for the guild
+        invites = await guild.invites()
 
-        # Save the updated data back to the JSON file
-        with open('invite_data.json', 'w') as f:
-            json.dump(all_data, f, indent=4)
+        # Find the invite that matches the member's join
+        for invite in invites:
+            if invite.inviter == member:
+                inviter = invite.inviter
+                invite_code = invite.code
+                invite_type = self.get_invite_type(invite)
 
-    @commands.command()
-    async def tracking(self, ctx):
-        guild_id = str(ctx.guild.id)
+                print(f"{member.name}#{member.discriminator} has joined the server {guild.name} and was invited by {inviter.name}#{inviter.discriminator} (Invite Type: {invite_type}, Invite Code: {invite_code})")
+                break
 
-        # Load existing data from the JSON file
-        with open('invite_data.json', 'r') as f:
-            all_data = json.load(f)
-
-        # Retrieve the current tracking invite for the guild
-        invite_code = all_data.get(guild_id)
-
-        if invite_code:
-            invite_url = f"https://discord.gg/{invite_code}"
-            await ctx.send(f"The current tracking invite is: {invite_url}.")
+    def get_invite_type(self, invite):
+        if invite.max_uses == 0 and invite.max_age == 0 and invite.temporary:
+            return "Vanity"
+        elif invite.max_uses == 0 and invite.max_age == 0 and not invite.temporary:
+            return "Permanent Instant Invite"
+        elif invite.max_uses > 0 and invite.max_age == 0 and not invite.temporary:
+            return "Permanent Invite"
         else:
-            await ctx.send("No tracking invite is currently set.")
+            return "Temporary Invite"
 
 def setup(bot):
     bot.add_cog(Tracking(bot))
