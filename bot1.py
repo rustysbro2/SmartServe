@@ -130,34 +130,24 @@ async def help(ctx):
         embed.add_field(name=f"**{cmd}**", value=f"`{usage}`", inline=False)
 
         # Examples for each command
-        if cmd == 'giveaway':
-            embed.add_field(
-                name="Example:",
-                value="!giveaway 3d 2 Awesome Prize",
-                inline=False
-            )
-        elif cmd == 'set_channel':
-            embed.add_field(
-                name="Example:",
-                value="!set_channel #counting-channel",
-                inline=False
-            )
-        elif cmd == 'tracking':
-            embed.add_field(
-                name="Example:",
-                value="!tracking #tracking-channel",
-                inline=False
-            )
-        elif cmd == 'set_increment':
-            embed.add_field(
-                name="Example:",
-                value="!set_increment 5",
-                inline=False
-            )
+        example = get_command_example(cmd)
+        if example:
+            embed.add_field(name="Example:", value=example, inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
 
     await ctx.send(embed=embed)
+
+def get_command_example(command):
+    examples = {
+        'giveaway': '!giveaway 3d 2 Awesome Prize',
+        'set_channel': '!set_channel #counting-channel',
+        'tracking': '!tracking #tracking-channel',
+        'set_increment': '!set_increment 5',
+        # Add more commands and examples here
+    }
+    return examples.get(command)
+
 
 
 
