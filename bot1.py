@@ -23,6 +23,8 @@ default_data = {
     'successful_counts': 0  # add this line
 }
 
+# Add your extension names here
+extensions = ['giveaway', 'tracking']
 
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
@@ -67,9 +69,9 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
         
-# Load giveaway extension
-bot.extensions = ['giveaway', 'tracking']
-bot.load_extensions(extensions)
+# Load extensions
+for extension in extensions:
+    bot.load_extension(extension)
 
 
         
