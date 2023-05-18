@@ -81,7 +81,7 @@ async def generate_help_data():
 
     for command in bot.commands:
         if not command.hidden:
-            usage = command.help or "No description provided."
+            usage = get_command_usage(command)
             extension_name = command.cog.__class__.__name__ if command.cog else "No Extension"
             help_data[command.name] = {
                 'usage': usage,
@@ -90,6 +90,18 @@ async def generate_help_data():
 
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
+
+def get_command_usage(command):
+    signature = f"!{command.name}"
+    params = command.clean_params.items()
+
+    for name, param in params:
+        if param.default is not param.empty:
+            signature += f" [{name}={param.default}]"
+        else:
+            signature += f" <{name}>"
+
+    return signature
 
 
 
