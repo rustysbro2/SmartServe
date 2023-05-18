@@ -86,9 +86,14 @@ async def help(ctx):
         color=discord.Color.blue()
     )
 
-    for command in bot.commands:
-        if command.cog_name in ['Giveaway', 'Tracking']:
-            embed.add_field(name=command.name, value=command.help, inline=False)
+    cog_names = ['Giveaway', 'Tracking']  # Add more cog names if needed
+
+    for cog_name in cog_names:
+        cog = bot.get_cog(cog_name)
+        if cog:
+            commands_list = cog.get_commands()
+            command_info = "\n".join([f"**{command.name}**: {command.help}" for command in commands_list])
+            embed.add_field(name=cog_name, value=command_info, inline=False)
 
     await ctx.send(embed=embed)
 
