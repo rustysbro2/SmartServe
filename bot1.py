@@ -4,6 +4,7 @@ import os
 import json
 import ast
 import operator as op
+import inspect
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -93,13 +94,13 @@ async def generate_help_data():
 
 def get_command_usage(command):
     signature = f"!{command.name}"
-    params = command.clean_params.items()
+    params = inspect.signature(command.callback).parameters.values()
 
-    for name, param in params:
+    for param in params:
         if param.default is not param.empty:
-            signature += f" [{name}={param.default}]"
+            signature += f" [{param.name}={param.default}]"
         else:
-            signature += f" <{name}>"
+            signature += f" <{param.name}>"
 
     return signature
 
