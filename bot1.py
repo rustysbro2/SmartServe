@@ -73,6 +73,15 @@ async def on_ready():
 for extension in extensions:
     bot.load_extension(extension)
 
+async def generate_help_data():
+    help_data = {}
+    for cmd in bot.commands:
+        if cmd.name != "help":
+            help_data[cmd.name] = cmd.help
+
+    with open('help_data.json', 'w') as f:
+        json.dump(help_data, f, indent=4)
+
 
         
 
