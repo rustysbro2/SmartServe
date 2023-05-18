@@ -15,6 +15,7 @@ redirect_uri = 'http://51.222.117.191:8000/callback'  # Adjusted Redirect URI
 discord_api_url = 'https://discord.com/api/v10'
 
 app.logger.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
 
 # Discord bot setup
