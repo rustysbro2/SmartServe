@@ -77,7 +77,7 @@ async def on_ready():
 for extension in extensions:
     bot.load_extension(extension)
 
-aasync def generate_help_data():
+async def generate_help_data():
     help_data = {}
 
     for command in bot.commands:
