@@ -1,6 +1,5 @@
 import discord
 from discord.ext import commands
-import json
 
 class Tracking(commands.Cog):
     def __init__(self, bot):
@@ -22,7 +21,11 @@ class Tracking(commands.Cog):
         if channel_id:
             channel = self.bot.get_channel(channel_id)
             if channel:
-                message = f"{member.mention} has joined the server!"
+                if member.bot:
+                    message = f"**Bot Joined!** {member.name}#{member.discriminator} has joined the server."
+                else:
+                    message = f"{member.mention} has joined the server!"
+                
                 await channel.send(message)
 
     @commands.command()
