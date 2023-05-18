@@ -94,13 +94,15 @@ def get_command_usage(command):
     params_str = []
 
     for param in params:
-        if param.default is not param.empty:
-            params_str.append(f"[{param.name}]")
-        else:
-            params_str.append(f"<{param.name}>")
+        if param.name not in ['self', 'ctx']:
+            if param.default is not param.empty:
+                params_str.append(f"[{param.name}]")
+            else:
+                params_str.append(f"<{param.name}>")
 
     usage = " ".join(params_str)
     return f"{signature} {usage}"
+
 
 
 
