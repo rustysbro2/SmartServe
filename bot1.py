@@ -77,17 +77,13 @@ async def on_ready():
 for extension in extensions:
     bot.load_extension(extension)
 
-async def generate_help_data():
+aasync def generate_help_data():
     help_data = {}
 
     for command in bot.commands:
         if not command.hidden:
             usage = get_command_usage(command)
-            extension_name = command.cog.__class__.__name__ if command.cog else "No Extension"
-            help_data[command.name] = {
-                'usage': usage,
-                'extension': extension_name
-            }
+            help_data[command.name] = usage
 
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
@@ -99,7 +95,7 @@ def get_command_usage(command):
 
     for param in params:
         if param.default is not param.empty:
-            params_str.append(f"[{param.name}={param.default}]")
+            params_str.append(f"[{param.name}]")
         else:
             params_str.append(f"<{param.name}>")
 
