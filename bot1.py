@@ -129,9 +129,36 @@ async def help(ctx):
     for cmd, usage in help_data.items():
         embed.add_field(name=f"**{cmd}**", value=f"`{usage}`", inline=False)
 
+        # Examples for each command
+        if cmd == 'giveaway':
+            embed.add_field(
+                name="Example:",
+                value="!giveaway 3d 2 Awesome Prize",
+                inline=False
+            )
+        elif cmd == 'set_channel':
+            embed.add_field(
+                name="Example:",
+                value="!set_channel #counting-channel",
+                inline=False
+            )
+        elif cmd == 'tracking':
+            embed.add_field(
+                name="Example:",
+                value="!tracking #tracking-channel",
+                inline=False
+            )
+        elif cmd == 'set_increment':
+            embed.add_field(
+                name="Example:",
+                value="!set_increment 5",
+                inline=False
+            )
+
     embed.set_footer(text="For more information, contact the bot owner.")
 
     await ctx.send(embed=embed)
+
 
 
 
