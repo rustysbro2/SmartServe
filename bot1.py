@@ -73,6 +73,14 @@ async def on_ready():
 for extension in extensions:
     bot.load_extension(extension)
 
+
+
+
+
+        
+
+
+bot.remove_command('help')
 @bot.command()
 async def help(ctx):
     try:
@@ -87,22 +95,6 @@ async def help(ctx):
 
     await ctx.send(help_message)
 
-
-
-        
-
-
-bot.remove_command('help')
-@bot.command()
-async def help(ctx):
-    with open('help_data.json', 'r') as f:
-        help_data = json.load(f)
-
-    help_message = "Available commands:\n\n"
-    for cmd, usage in help_data.items():
-        help_message += f"**{cmd}**: {usage}\n"
-
-    await ctx.send(help_message)
 
 
 
