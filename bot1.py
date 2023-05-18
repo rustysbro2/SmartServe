@@ -78,7 +78,7 @@ for extension in extensions:
 
 
 bot.remove_command('help')
-@bot.command()
+@@bot.command()
 async def help(ctx):
     embed = discord.Embed(
         title="Bot Commands",
@@ -86,13 +86,9 @@ async def help(ctx):
         color=discord.Color.blue()
     )
 
-    # Loop through loaded extensions and add their commands to the help message
-    for extension in bot.extensions:
-        commands_list = bot.get_cog(extension).get_commands()
-        if commands_list:
-            command_names = [command.name for command in commands_list]
-            commands_str = ', '.join(command_names)
-            embed.add_field(name=f"{extension} Commands:", value=commands_str, inline=False)
+    for command in bot.commands:
+        if command.cog_name in ['Giveaway', 'Tracking']:
+            embed.add_field(name=command.name, value=command.help, inline=False)
 
     await ctx.send(embed=embed)
 
