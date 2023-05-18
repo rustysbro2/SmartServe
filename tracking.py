@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import json
+import random
 
 class Tracking(commands.Cog):
     def __init__(self, bot):
@@ -57,7 +58,13 @@ class Tracking(commands.Cog):
         }
         self.save_data(all_data)
 
-        await ctx.send(f"The join channel has been set to {channel.mention}.")
+        # List of random emojis or reactions
+        reactions = ['👍', '🎉', '🔥', '😄', '👏']
+
+        # Select a random reaction
+        reaction = random.choice(reactions)
+
+        await ctx.send(f"The join channel has been set to {channel.mention} {reaction}.")
 
     def load_data(self):
         try:
