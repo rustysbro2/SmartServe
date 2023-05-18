@@ -32,7 +32,10 @@ class Tracking(commands.Cog):
                     if inviter:
                         message += f" Invited by {inviter.mention}"
 
-                await channel.send(message)
+                sent_message = await channel.send(message)
+                reactions = ['👍', '🎉', '🔥', '😄', '👏']
+                for reaction in reactions:
+                    await sent_message.add_reaction(reaction)
 
     async def get_inviter_id(self, member):
         invites = await member.guild.invites()
@@ -58,14 +61,7 @@ class Tracking(commands.Cog):
         }
         self.save_data(all_data)
 
-        # List of random emojis or reactions
-        reactions = ['👍', '🎉', '🔥', '😄', '👏']
-
-        # Select a random reaction
-        reaction = random.choice(reactions)
-
-        message = await ctx.send(f"The join channel has been set to {channel.mention}")
-        await message.add_reaction(reaction)
+        await ctx.send(f"The join channel has been set to {channel.mention}")
 
     def load_data(self):
         try:
