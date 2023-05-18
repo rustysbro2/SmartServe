@@ -73,14 +73,20 @@ async def on_ready():
 for extension in extensions:
     bot.load_extension(extension)
 
-async def generate_help_data():
-    help_data = {}
-    for cmd in bot.commands:
-        if cmd.name != "help":
-            help_data[cmd.name] = cmd.help
+@bot.command()
+async def help(ctx):
+    try:
+        with open('help_data.json', 'r') as f:
+            help_data = json.load(f)
+    except FileNotFoundError:
+        help_data = {}
 
-    with open('help_data.json', 'w') as f:
-        json.dump(help_data, f, indent=4)
+    help_message = "Available commands:\n\n"
+    for cmd, usage in help_data.items():
+        help_message += f"**{cmd}**: {usage}\n"
+
+    await ctx.send(help_message)
+
 
 
         
