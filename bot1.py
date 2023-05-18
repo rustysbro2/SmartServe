@@ -68,6 +68,9 @@ async def on_ready():
 
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
+
+
+    await generate_help_data()
         
 # Load extensions
 for extension in extensions:
