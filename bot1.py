@@ -95,14 +95,16 @@ async def generate_help_data():
 def get_command_usage(command):
     signature = f"!{command.name}"
     params = inspect.signature(command.callback).parameters.values()
+    params_str = []
 
     for param in params:
         if param.default is not param.empty:
-            signature += f" [{param.name}={param.default}]"
+            params_str.append(f"[{param.name}={param.default}]")
         else:
-            signature += f" <{param.name}>"
+            params_str.append(f"<{param.name}>")
 
-    return signature
+    usage = " ".join(params_str)
+    return f"{signature} {usage}"
 
 
 
