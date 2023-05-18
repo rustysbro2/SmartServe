@@ -66,6 +66,11 @@ async def on_ready():
 
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
+        
+# Load giveaway extension
+bot.load_extension('giveaway.py')  # Replace 'giveaway' with the actual file name
+
+        
 
 
 bot.remove_command('help')
