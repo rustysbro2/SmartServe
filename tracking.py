@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+import json
 
 class Tracking(commands.Cog):
     def __init__(self, bot):
@@ -21,12 +22,26 @@ class Tracking(commands.Cog):
         if channel_id:
             channel = self.bot.get_channel(channel_id)
             if channel:
-                if member.bot:
-                    message = f"**Bot Joined!** {member.name}#{member.discriminator} has joined the server."
-                else:
-                    message = f"{member.mention} has joined the server!"
+                message = f"{member.mention} has joined the server!"
                 
+                # Retrieve the inviter's information
+                inviter_id = await self.get_inviter_id(member)
+                if inviter_id:
+                    inviter = guild.get_member(inviter_id)
+                    if inviter:
+                        message += f" Invited by {inviter.mention}"
+
                 await channel.send(message)
+
+    async def get_inviter_id(self, member):
+        invites = await member.guild.invites()
+        for invite in invites:
+            if invite.uses > 0 and invite.inviter:
+                if invite.inviter.bot:
+                    return None  # Skip bot invites
+                if member.created_at < invite.created_at:
+                    return invite.inviter.id
+        return None
 
     @commands.command()
     @commands.has_permissions(administrator=True)
