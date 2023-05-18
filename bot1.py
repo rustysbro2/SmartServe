@@ -78,7 +78,7 @@ for extension in extensions:
 
 
 bot.remove_command('help')
-@@bot.command()
+@bot.command()
 async def help(ctx):
     embed = discord.Embed(
         title="Bot Commands",
