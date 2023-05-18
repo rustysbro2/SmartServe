@@ -89,22 +89,14 @@ async def generate_help_data():
 bot.remove_command('help')
 @bot.command()
 async def help(ctx):
-    embed = discord.Embed(
-        title="Bot Commands",
-        description="List of available commands:",
-        color=discord.Color.blue()
-    )
+    with open('help_data.json', 'r') as f:
+        help_data = json.load(f)
 
-    cog_names = ['Giveaway', 'Tracking']  # Add more cog names if needed
+    help_message = "Available commands:\n\n"
+    for cmd, usage in help_data.items():
+        help_message += f"**{cmd}**: {usage}\n"
 
-    for cog_name in cog_names:
-        cog = bot.get_cog(cog_name)
-        if cog:
-            commands_list = cog.get_commands()
-            command_info = "\n".join([f"**{command.name}**: {command.help}" for command in commands_list])
-            embed.add_field(name=cog_name, value=command_info, inline=False)
-
-    await ctx.send(embed=embed)
+    await ctx.send(help_message)
 
 
 
