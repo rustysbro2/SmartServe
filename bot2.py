@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = secrets.token_hex(24)
 client_id = '1107025578047058030'
 client_secret = 'jmK_Ac2yVyNwcV-oNGJUiCeejliCQ64d'
-redirect_uri = 'http://51.222.117.191:8000/callback'  # Adjusted Redirect URI
+redirect_uri = 'http://194.213.3.18:8000/callback'  # Adjusted Redirect URI
 discord_api_url = 'https://discord.com/api/v10'
 
 app.logger.setLevel(logging.DEBUG)
