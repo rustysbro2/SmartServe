@@ -88,3 +88,4 @@ class Tracking(commands.Cog):
 async def on_ready():
     bot.add_cog(Tracking(bot))
 
+
