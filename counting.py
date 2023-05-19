@@ -82,6 +82,7 @@ async def generate_help_data():
 
     for extension in extensions:
         ext = bot.get_cog(extension)
+        print(f"Extension: {extension}, Cog: {ext}")
         if ext:
             for command in ext.get_commands():
                 if not command.hidden:
@@ -93,6 +94,7 @@ async def generate_help_data():
         json.dump(help_data, f, indent=4)
 
     print("Help data generated successfully.")
+)
 
 
 @bot.event
