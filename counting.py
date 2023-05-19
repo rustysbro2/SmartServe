@@ -129,7 +129,7 @@ async def on_ready():
             if extension == 'giveaway':
                 bot.add_cog(Giveaway(bot))  # Create an instance of Giveaway with the bot object
             elif extension == 'tracking':
-                bot.add_cog(tracking(bot))  # Create an instance of Tracking with the bot object
+                bot.add_cog(Tracking(bot))  # Create an instance of Tracking with the bot object
             else:
                 bot.load_extension(extension)  # Load other extensions
             print(f"Extension '{extension}' loaded successfully.")
