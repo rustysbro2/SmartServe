@@ -75,6 +75,8 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
+    for extension in extensions:
+        bot.load_extension(extension)
 
     await generate_help_data()
         
