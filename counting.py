@@ -3,6 +3,9 @@ from discord.ext import commands
 import os
 import json
 import inspect
+import tracemalloc
+tracemalloc.start()
+
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
