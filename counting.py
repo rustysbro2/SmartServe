@@ -55,6 +55,50 @@ def eval_expr(node):
 def safe_eval(expr):
     return eval_expr(ast.parse(expr, mode='eval').body)
 
+def generate_command_example(command):
+    params = inspect.signature(command.callback).parameters.values()
+    args = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is param.empty:
+                args.append(f"<{param.name}>")
+            else:
+                args.append(f"[{param.name}]")
+
+    example = f"!{command.name} {' '.join(args)}"
+    return example
+
+def get_command_usage(command):
+    signature = f"!{command.name}"
+    params = inspect.signature(command.callback).parameters.values()
+    params_str = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is not param.empty:
+                params_str.append(f"[{param.name}]")
+            else:
+                params_str.append(f"<{param.name}>")
+
+    usage = " ".join(params_str)
+    return f"{signature} {usage}"
+
+async def generate_help_data():
+    help_data = {}
+
+    for extension in extensions:
+        ext = bot.get_cog(extension)
+        if ext:
+            for command in ext.get_commands():
+                if not command.hidden:
+                    usage = get_command_usage(command)
+                    example = generate_command_example(command)
+                    help_data[command.name] = {'usage': usage, 'example': example}
+
+    with open('help_data.json', 'w') as f:
+        json.dump(help_data, f, indent=4)
+
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
@@ -85,65 +129,6 @@ async def on_ready():
 
     await generate_help_data()
 
-    help_data = {}
-
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-
-    with open('help_data.json', 'w') as f:
-        json.dump(help_data, f, indent=4)
-
-
-
-
-def generate_command_example(command):
-    params = inspect.signature(command.callback).parameters.values()
-    args = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is param.empty:
-                args.append(f"<{param.name}>")
-            else:
-                args.append(f"[{param.name}]")
-
-    example = f"!{command.name} {' '.join(args)}"
-    return example
-
-
-
-def get_command_usage(command):
-    signature = f"!{command.name}"
-    params = inspect.signature(command.callback).parameters.values()
-    params_str = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is not param.empty:
-                params_str.append(f"[{param.name}]")
-            else:
-                params_str.append(f"<{param.name}>")
-
-    usage = " ".join(params_str)
-    return f"{signature} {usage}"
-
-
-
-
-
-
-
-
-        
-
-
-bot.remove_command('help')
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
@@ -172,9 +157,6 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
-
-
-
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
