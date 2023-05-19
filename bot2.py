@@ -71,20 +71,28 @@ def home():
                     max-width: 600px;
                     padding: 40px;
                 }}
+                
+                .welcome-message {{
+                    margin-bottom: 20px;
+                }}
+                
+                .logout-link {{
+                    color: #333;
+                    text-decoration: none;
+                }}
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>Welcome, {username}!</h1>
-                <p>Thank you for using the web dashboard.</p>
-                <a href="/logout">Logout</a>
+                <p class="welcome-message">Thank you for using the web dashboard.</p>
+                <a class="logout-link" href="/logout">Logout</a>
             </div>
         </body>
         </html>
         '''
     else:
         return '<a href="/login">Login with Discord</a>'
-
 
 
 @app.route('/login')
