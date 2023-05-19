@@ -85,4 +85,4 @@ class Tracking(commands.Cog):
             json.dump(all_data, f, indent=4)
 
 def setup(bot):
-    bot.add_cog(Tracking(bot))
+    await bot.add_cog(Tracking(bot))
