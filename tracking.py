@@ -26,11 +26,14 @@ class Tracking(commands.Cog):
                 message = f"{member.mention} has joined the server!"
 
                 # Retrieve the inviter's information
-                inviter_id = await self.get_inviter_id(member)
-                if inviter_id:
-                    inviter = guild.get_member(inviter_id)
-                    if inviter:
-                        message += f" Invited by {inviter.mention}"
+                try:
+                    inviter_id = await self.get_inviter_id(member)
+                    if inviter_id:
+                        inviter = guild.get_member(inviter_id)
+                        if inviter:
+                            message += f" Invited by {inviter.mention}"
+                except discord.Forbidden:
+                    pass  # Bot lacks 'Manage Server' permission
 
                 sent_message = await channel.send(message)
                 emoji = random.choice(self.get_positive_emojis())
@@ -39,11 +42,8 @@ class Tracking(commands.Cog):
     async def get_inviter_id(self, member):
         invites = await member.guild.invites()
         for invite in invites:
-            if invite.uses > 0 and invite.inviter:
-                if invite.inviter.bot:
-                    return None  # Skip bot invites
-                if member.created_at < invite.created_at:
-                    return invite.inviter.id
+            if invite.uses > 0 and invite.inviter and not invite.inviter.bot:
+                return invite.inviter.id
         return None
 
     def get_positive_emojis(self):
