@@ -98,6 +98,7 @@ async def generate_help_data():
         json.dump(help_data, f, indent=4)
 
 
+
 def generate_command_example(command):
     params = inspect.signature(command.callback).parameters.values()
     args = []
