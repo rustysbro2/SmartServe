@@ -119,14 +119,20 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
+# Inside the on_ready() event function
+
     for extension in extensions:
         try:
-            await bot.load_extension(extension)  # Await the load_extension coroutine
+            if extension == 'giveaway':
+                bot.add_cog(Giveaway(bot))  # Create an instance of Giveaway with the bot object
+            elif extension == 'tracking':
+                bot.add_cog(Tracking(bot))  # Create an instance of Tracking with the bot object
+            else:
+                bot.load_extension(extension)  # Load other extensions
             print(f"Extension '{extension}' loaded successfully.")
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
 
-    await generate_help_data()
 
 
 
