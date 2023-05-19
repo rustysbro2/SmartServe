@@ -75,16 +75,11 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
-# Load extensions
     for extension in extensions:
         await bot.load_extension(extension)
 
-
     await generate_help_data()
-        
-# Load extensions
-for extension in extensions:
-    bot.load_extension(extension)
+
 
 async def generate_help_data():
     help_data = {}
@@ -97,6 +92,7 @@ async def generate_help_data():
 
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
+
 
 def generate_command_example(command):
     params = inspect.signature(command.callback).parameters.values()
@@ -111,6 +107,7 @@ def generate_command_example(command):
 
     example = f"!{command.name} {' '.join(args)}"
     return example
+
 
 
 def get_command_usage(command):
