@@ -3,10 +3,6 @@ from discord.ext import commands
 import json
 import random
 
-
-intents = discord.Intents.default()
-bot = commands.Bot(command_prefix='!', intents=intents)
-
 class Tracking(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -88,9 +84,5 @@ class Tracking(commands.Cog):
         with open(self.data_file, 'w') as f:
             json.dump(all_data, f, indent=4)
 
-@bot.event
-async def on_ready():
-    tracking_cog = Tracking(bot)  # Create an instance of the Tracking cog
-    bot.add_cog(tracking_cog)
-
-
+def setup(bot):
+    bot.add_cog(Tracking(bot))
