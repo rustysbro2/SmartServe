@@ -3,7 +3,6 @@ from discord.ext import commands
 import os
 import json
 import inspect
-import random
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
