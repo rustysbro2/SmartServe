@@ -41,4 +41,4 @@ class Giveaway(commands.Cog):
         await ctx.send(f"🎉 **GIVEAWAY WINNERS** 🎉\n\nPrize: {prize}\nWinners: {winner_mentions}")
 
 def setup(bot):
-   await bot.add_cog(Giveaway(bot))
+    bot.add_cog(Giveaway(bot))
