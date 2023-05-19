@@ -28,6 +28,7 @@ default_data = {
 # Add your extension names here
 extensions = ['MusicBot', 'giveaway', 'tracking']
 
+bot.load_extension('counting')
 
 # emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
