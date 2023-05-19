@@ -287,7 +287,8 @@ async def on_message(message):
             ping_msg = await new_channel.send(message.author.mention)
             await ping_msg.delete()
 
-
+for extension in extensions:
+    bot.load_extension(extension)
 
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
