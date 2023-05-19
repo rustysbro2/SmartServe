@@ -128,7 +128,7 @@ async def help(ctx):
         help_data = {}
 
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
-    embed.set_thumbnail(url=bot.user.avatar_url)  # Update this line
+    embed.set_thumbnail(url=bot.user.avatar.url)  # Update this line
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     for cmd, usage in help_data.items():
