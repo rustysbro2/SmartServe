@@ -47,39 +47,39 @@ async def ping(ctx):
 def home():
     if 'discord_token' in session:
         username = get_user_info()
-        return f'''
+        return '''
         <html>
         <head>
             <style>
-                body {{
+                body {
                     background-color: #f0f0f0;
                     font-family: Arial, sans-serif;
                     margin: 0;
                     padding: 20px;
                     text-align: center;
-                }}
-                
-                h1 {{
-                    color: #333;
-                }}
-                
-                .container {{
+                }
+
+                .container {
                     background-color: #fff;
                     border-radius: 8px;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     margin: 0 auto;
                     max-width: 600px;
                     padding: 40px;
-                }}
+                }
 
-                .welcome-message {{
+                h1 {
+                    color: #333;
+                }
+
+                .welcome-message {
                     margin-bottom: 20px;
-                }}
+                }
 
-                .logout-link {{
+                .logout-link {
                     color: #333;
                     text-decoration: none;
-                }}
+                }
             </style>
         </head>
         <body>
@@ -90,20 +90,95 @@ def home():
             </div>
         </body>
         </html>
-        '''
+        '''.format(username=username)
     else:
         return '<a href="/login">Login with Discord</a>'
 
 
 @app.route('/login')
 def login():
-    params = {
-        'client_id': client_id,
-        'redirect_uri': redirect_uri,
-        'response_type': 'code',
-        'scope': 'identify'
-    }
-    return redirect(f'{discord_api_url}/oauth2/authorize?{"&".join(f"{k}={v}" for k, v in params.items())}')
+    return '''
+    <html>
+    <head>
+        <style>
+            body {
+                background-color: #f0f0f0;
+                font-family: Arial, sans-serif;
+                margin: 0;
+                padding: 20px;
+                text-align: center;
+            }
+
+            .container {
+                background-color: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                margin: 0 auto;
+                max-width: 400px;
+                padding: 40px;
+            }
+
+            h1 {
+                color: #333;
+                margin-top: 0;
+            }
+
+            .login-form {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .form-group {
+                margin-bottom: 20px;
+            }
+
+            .form-group label {
+                color: #555;
+                font-weight: bold;
+                margin-bottom: 5px;
+            }
+
+            .form-group input {
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 8px;
+                width: 100%;
+            }
+
+            .form-group input[type="submit"] {
+                background-color: #4CAF50;
+                border: none;
+                color: white;
+                cursor: pointer;
+                padding: 12px;
+                text-align: center;
+                text-decoration: none;
+                display: inline-block;
+                font-size: 16px;
+                border-radius: 4px;
+            }
+
+            .form-group input[type="submit"]:hover {
+                background-color: #45a049;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Login with Discord</h1>
+            <form class="login-form" action="/callback" method="GET">
+                <div class="form-group">
+                    <label for="code">Authorization Code:</label>
+                    <input type="text" id="code" name="code" placeholder="Enter authorization code" required>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Login">
+                </div>
+            </form>
+        </div>
+    </body>
+    </html>
+    '''
 
 
 @app.route('/logout')
