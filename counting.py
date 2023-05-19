@@ -121,12 +121,13 @@ async def on_ready():
 
     for extension in extensions:
         try:
-            bot.load_extension(extension)  # Load the extension
+            await bot.load_extension(extension)  # Await the load_extension coroutine
             print(f"Extension '{extension}' loaded successfully.")
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
 
     await generate_help_data()
+
 
 
 
