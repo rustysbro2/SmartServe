@@ -94,7 +94,7 @@ async def generate_help_data():
         json.dump(help_data, f, indent=4)
 
     print("Help data generated successfully.")
-)
+
 
 
 @bot.event
