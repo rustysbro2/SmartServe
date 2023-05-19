@@ -27,7 +27,7 @@ default_data = {
 
 # Add your extension names here
 extensions = ['MusicBot', 'giveaway', 'tracking']
-bot.load_extension('music_bot')
+
 
 # emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
@@ -77,7 +77,11 @@ async def on_ready():
         json.dump(all_data, f, indent=4)
 
     for extension in extensions:
-        await bot.load_extension(extension)
+        try:
+            bot.load_extension(extension)
+            print(f"Extension '{extension}' loaded successfully.")
+        except commands.ExtensionError as e:
+            print(f"Failed to load extension '{extension}': {e}")
 
     await generate_help_data()
 
