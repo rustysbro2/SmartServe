@@ -99,6 +99,7 @@ async def generate_help_data():
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
 
+
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
@@ -128,6 +129,7 @@ async def on_ready():
             print(f"Failed to load extension '{extension}': {e}")
 
     await generate_help_data()
+
 
 bot.remove_command('help')
 @bot.command()
