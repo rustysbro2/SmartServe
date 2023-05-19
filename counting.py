@@ -104,11 +104,12 @@ async def on_ready():
         json.dump(all_data, f, indent=4)
 
     for extension in extensions:
-    try:
-        bot.load_extension(f"cogs.{extension}")  # if the extensions are in a folder named cogs
-        print(f"Extension '{extension}' loaded successfully.")
-    except commands.ExtensionError as e:
-        print(f"Failed to load extension '{extension}': {e}")
+        try:
+            bot.load_extension(f"cogs.{extension}")  # if the extensions are in a folder named cogs
+            print(f"Extension '{extension}' loaded successfully.")
+        except commands.ExtensionError as e:
+            print(f"Failed to load extension '{extension}': {e}")
+
 
 
     await generate_help_data()
