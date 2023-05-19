@@ -92,6 +92,9 @@ async def generate_help_data():
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
 
+    print("Help data generated successfully.")
+
+
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
