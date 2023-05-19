@@ -130,7 +130,7 @@ async def on_ready():
     await generate_help_data()
 
 @bot.command()
-async def help_command(ctx, command_name: str = None):
+async def help(ctx, command_name: str = None):
     try:
         with open('help_data.json', 'r') as f:
             help_data = json.load(f)
@@ -157,6 +157,7 @@ async def help_command(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
