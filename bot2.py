@@ -39,10 +39,16 @@ async def on_ready():
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send('Pong!')
+    latency = bot.latency * 1000  # Convert to milliseconds
+    await ctx.send(f'Pong! Latency: {latency:.2f}ms')
 
 
-# Web dashboard setup
+
+# Web dashboard setup@bot.command()
+async def ping(ctx):
+    latency = bot.latency * 1000  # Convert to milliseconds
+    await ctx.send(f'Pong! Latency: {latency:.2f}ms')
+
 @app.route('/')
 def home():
     if 'discord_token' in session:
