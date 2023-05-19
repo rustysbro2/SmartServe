@@ -86,6 +86,7 @@ class Tracking(commands.Cog):
 
 @bot.event
 async def on_ready():
-    bot.add_cog(Tracking(bot))
+    tracking_cog = Tracking(bot)  # Create an instance of the Tracking cog
+    bot.add_cog(tracking_cog)
 
 
