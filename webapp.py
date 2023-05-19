@@ -162,22 +162,23 @@ def get_user_info():
 def send_message():
     recipient = request.form.get('recipient')
     message = request.form.get('message')
-    
+
     headers = {
-        'Authorization': f'Bot YOUR_BOT_TOKEN',
+        'Authorization': 'Bot YOUR_BOT_TOKEN',  # Replace YOUR_BOT_TOKEN with your Discord bot token
         'Content-Type': 'application/json'
     }
     data = {
         'recipient': recipient,
         'message': message
     }
-    
+
     response = requests.post('https://discord.com/api/v10/send-message', headers=headers, json=data)
-    
+
     if response.status_code == 200:
         return 'Message sent successfully!'
     else:
         return 'Failed to send message.'
+
 
 
 if __name__ == '__main__':
