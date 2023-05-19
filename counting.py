@@ -2,116 +2,6 @@ import discord
 from discord.ext import commands
 import os
 import json
-import ast
-import operator as op
-import inspect
-import random
-
-intents = discord.Intents().all()
-bot = commands.Bot(command_prefix='!', intents=intents)
-
-# the file where we will save our data
-data_file = 'count_data.json'
-
-# the expected keys and their default values
-default_data = {
-    'channel_id': None,
-    'count': 0,
-    'last_counter_id': None,
-    'high_score': 0,
-    'increment': 1,
-    'pending_increment': None,
-    'old_increment': 1,
-    'successful_counts': 0  # add this line
-}
-
-# Add your extension names here
-extensions = ['MusicBot', 'giveaway', 'tracking']
-
-
-# emojis lists
-check_mark_emojis = ['✅', '☑️', '✔️']
-trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
-
-def ensure_data_file_exists():
-    if not os.path.exists(data_file):
-        with open(data_file, 'w') as f:
-            json.dump({}, f, indent=4)
-
-# supported operators
-operators = {ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv, ast.USub: op.neg}
-
-# evaluate expressions safely
-def eval_expr(node):
-    if isinstance(node, ast.Num):  # <number>
-        return node.n
-    elif isinstance(node, ast.BinOp):  # <left> <operator> <right>
-        return operators[type(node.op)](eval_expr(node.left), eval_expr(node.right))
-    elif isinstance(node, ast.UnaryOp):  # <operator> <operand> e.g., -1
-        return operators[type(node.op)](eval_expr(node.operand))
-    else:
-        raise TypeError(node)
-
-def safe_eval(expr):
-    return eval_expr(ast.parse(expr, mode='eval').body)
-
-def generate_command_example(command):
-    params = inspect.signature(command.callback).parameters.values()
-    args = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is param.empty:
-                args.append(f"<{param.name}>")
-            else:
-                args.append(f"[{param.name}]")
-
-    example = f"!{command.name} {' '.join(args)}"
-    return example
-
-def get_command_usage(command):
-    signature = f"!{command.name}"
-    params = inspect.signature(command.callback).parameters.values()
-    params_str = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is not param.empty:
-                params_str.append(f"[{param.name}]")
-            else:
-                params_str.append(f"<{param.name}>")
-
-    usage = " ".join(params_str)
-    return f"{signature} {usage}"
-
-async def generate_help_data():
-    help_data = {}
-
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-
-    with open('help_data.json',
-
-
-
-
-User
-NO I only want one help and !help and it should send the embed
-ChatGPT
-I apologize for the confusion. If you want to have only one help command that sends an embed with the command information, you can modify your code as follows:
-
-python
-Copy code
-import discord
-from discord.ext import commands
-import os
-import json
 import inspect
 import random
 
@@ -221,7 +111,6 @@ async def on_ready():
     await generate_help_data()
 
 
-bot.remove_command('help')
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
@@ -249,6 +138,7 @@ async def help(ctx, command_name: str = None):
             embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
+    await ctx.send(embed=embed)
 
 
 
