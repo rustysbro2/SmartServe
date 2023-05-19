@@ -9,32 +9,39 @@ class Giveaway(commands.Cog):
     @commands.command()
     @commands.has_permissions(administrator=True)
     async def giveaway(self, ctx, duration: int, winners: int, *, prize: str):
-        # Send giveaway announcement message
+        print("Giveaway command invoked")
+        print(f"Duration: {duration} minutes")
+        print(f"Winners: {winners}")
+        print(f"Prize: {prize}")
+
         giveaway_message = await ctx.send(f"🎉 **GIVEAWAY** 🎉\n\nPrize: {prize}\nDuration: {duration} minutes\nWinners: {winners}\n\nReact with 🎉 to enter!")
+        print("Giveaway message sent")
+
         await giveaway_message.add_reaction("🎉")
+        print("Giveaway reaction added")
 
-        # Wait for the specified duration
         await discord.utils.sleep_until(giveaway_message.created_at + discord.timedelta(minutes=duration))
+        print("Giveaway duration elapsed")
 
-        # Fetch the updated giveaway message from the server
         giveaway_message = await ctx.channel.fetch_message(giveaway_message.id)
+        print("Giveaway message fetched")
 
-        # Retrieve all the users who reacted to the giveaway message
         reaction = discord.utils.get(giveaway_message.reactions, emoji="🎉")
         participants = await reaction.users().flatten()
         participants.remove(self.bot.user)
+        print("Participants collected")
 
-        # Check if enough participants entered the giveaway
         if len(participants) < winners:
             await ctx.send("Not enough participants entered the giveaway. Giveaway canceled.")
+            print("Giveaway canceled")
             return
 
-        # Randomly select the giveaway winners
         giveaway_winners = random.sample(participants, winners)
+        print("Giveaway winners selected")
 
-        # Announce the winners
         winner_mentions = " ".join([winner.mention for winner in giveaway_winners])
         await ctx.send(f"🎉 **GIVEAWAY WINNERS** 🎉\n\nPrize: {prize}\nWinners: {winner_mentions}")
+        print("Giveaway winners announced")
 
 def setup(bot):
     bot.add_cog(Giveaway(bot))
