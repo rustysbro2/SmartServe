@@ -17,6 +17,11 @@ discord_api_url = 'https://discord.com/api/v10'
 app.logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
 
+def run_flask_app():
+    app.run(host='0.0.0.0', port=8000, debug=True)
+
+def run_discord_bot():
+    bot.run('MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM')
 
 # Discord bot setup
 intents = discord.Intents.default()
@@ -124,8 +129,14 @@ def get_user_info():
         return 'Unknown User'
 
 if __name__ == '__main__':
-    bot.run('MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM')
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    flask_thread = threading.Thread(target=run_flask_app)
+    discord_thread = threading.Thread(target=run_discord_bot)
+
+    flask_thread.start()
+    discord_thread.start()
+
+    flask_thread.join()
+    discord_thread.join()
 
 
 
