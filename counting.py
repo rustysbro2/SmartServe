@@ -85,7 +85,6 @@ async def on_ready():
 
     await generate_help_data()
 
-async def generate_help_data():
     help_data = {}
 
     for extension in extensions:
