@@ -1,4 +1,3 @@
-
 from flask import Flask, redirect, request, session, url_for
 import secrets
 import requests
@@ -18,37 +17,37 @@ def home():
         <html>
         <head>
             <style>
-                body {
+                body {{
                     background-color: #f0f0f0;
                     font-family: Arial, sans-serif;
                     margin: 0;
                     padding: 20px;
                     text-align: center;
-                }
+                }}
 
-                .container {
+                .container {{
                     background-color: #fff;
                     border-radius: 8px;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     margin: 0 auto;
                     max-width: 600px;
                     padding: 40px;
-                }
+                }}
 
-                h1 {
+                h1 {{
                     color: #333;
-                }
+                }}
 
-                .welcome-message {
+                .welcome-message {{
                     margin-bottom: 20px;
-                }
+                }}
 
-                .logout-link {
+                .logout-link {{
                     color: #333;
                     text-decoration: none;
-                }
+                }}
 
-                .button {
+                .button {{
                     display: inline-block;
                     background-color: #4CAF50;
                     border: none;
@@ -61,24 +60,24 @@ def home():
                     margin: 4px 2px;
                     cursor: pointer;
                     border-radius: 4px;
-                }
+                }}
 
-                .input-group {
+                .input-group {{
                     margin-bottom: 10px;
-                }
+                }}
 
-                .input-group label {
+                .input-group label {{
                     display: block;
                     margin-bottom: 5px;
-                }
+                }}
 
-                .input-group input {
+                .input-group input {{
                     width: 100%;
                     padding: 8px;
                     border: 1px solid #ccc;
                     border-radius: 4px;
                     box-sizing: border-box;
-                }
+                }}
             </style>
         </head>
         <body>
@@ -105,6 +104,13 @@ def home():
         '''.format(username=username)
     else:
         return redirect(url_for('login'))  # Redirect to the login page
+
+
+# Rest of the code...
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8000)
+
 
 
 @app.route('/login')
