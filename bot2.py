@@ -6,8 +6,6 @@ import secrets
 import logging
 import threading
 
-
-
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(24)
 client_id = '1107025578047058030'
@@ -18,11 +16,14 @@ discord_api_url = 'https://discord.com/api/v10'
 app.logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
 
+
 def run_flask_app():
     app.run(host='0.0.0.0', port=8000)
 
+
 def run_discord_bot():
     bot.run('MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM')
+
 
 # Discord bot setup
 intents = discord.Intents.default()
@@ -30,56 +31,69 @@ intents.messages = True  # Updated attribute
 
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user.name} ({bot.user.id})')
 
+
 @bot.command()
 async def ping(ctx):
     await ctx.send('Pong!')
+
 
 # Web dashboard setup
 @app.route('/')
 def home():
     if 'discord_token' in session:
         username = get_user_info()
-        return f'''
+        return '''
         <html>
         <head>
             <style>
-                body {{
+                body {
                     background-color: #f0f0f0;
                     font-family: Arial, sans-serif;
                     margin: 0;
                     padding: 20px;
                     text-align: center;
-                }}
+                }
                 
-                h1 {{
+                h1 {
                     color: #333;
-                }}
+                }
                 
-                .container {{
+                .container {
                     background-color: #fff;
                     border-radius: 8px;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     margin: 0 auto;
                     max-width: 600px;
                     padding: 40px;
-                }}
+                }
+
+                .welcome-message {
+                    margin-bottom: 20px;
+                }
+
+                .logout-link {
+                    color: #333;
+                    text-decoration: none;
+                }
             </style>
         </head>
         <body>
             <div class="container">
                 <h1>Welcome, {username}!</h1>
-                <p>Thank you for using the web dashboard.</p>
-                <a href="/logout">Logout</a>
+                <p class="welcome-message">Thank you for using the web dashboard.</p>
+                <a class="logout-link" href="/logout">Logout</a>
             </div>
         </body>
         </html>
-        '''
+        '''.format(username=username)
     else:
         return '<a href="/login">Login with Discord</a>'
+
 
 @app.route('/login')
 def login():
@@ -91,10 +105,12 @@ def login():
     }
     return redirect(f'{discord_api_url}/oauth2/authorize?{"&".join(f"{k}={v}" for k, v in params.items())}')
 
+
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('home'))
+
 
 @app.route('/callback')
 def callback():
@@ -118,6 +134,7 @@ def callback():
     else:
         return 'Failed to login with Discord'
 
+
 def get_user_info():
     headers = {
         'Authorization': f'Bearer {session["discord_token"]}'
@@ -129,6 +146,7 @@ def get_user_info():
     else:
         return 'Unknown User'
 
+
 if __name__ == '__main__':
     flask_thread = threading.Thread(target=run_flask_app)
     discord_thread = threading.Thread(target=run_discord_bot)
@@ -138,6 +156,3 @@ if __name__ == '__main__':
 
     flask_thread.join()
     discord_thread.join()
-
-
-
