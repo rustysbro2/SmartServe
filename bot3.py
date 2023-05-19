@@ -26,7 +26,7 @@ default_data = {
 }
 
 # Add your extension names here
-extensions = ['giveaway', 'tracking']
+
 
 # emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
@@ -273,4 +273,4 @@ async def on_message(message):
             await ping_msg.delete()
 
 
-bot.run('YOUR_BOT_TOKEN')
+bot.run('')
