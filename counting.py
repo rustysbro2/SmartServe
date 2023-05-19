@@ -149,17 +149,18 @@ async def help(ctx):
         help_data = {}
 
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
-    embed.set_thumbnail(url=bot.user.avatar.url)  # Update this line
+    embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     for cmd, usage in help_data.items():
-        example = get_command_example(cmd)
+        example = generate_command_example(cmd)
         value = f"`{usage}`\nExample: {example}" if example else f"`{usage}`"
         embed.add_field(name=f"**{cmd}**", value=value, inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
 
     await ctx.send(embed=embed)
+
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
