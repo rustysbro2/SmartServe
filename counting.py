@@ -115,7 +115,7 @@ async def on_ready():
 
     for extension in extensions:
         try:
-            bot.load_extension(extension)  # if the extensions are in the same folder as this script
+            await bot.load_extension(extension)  # if the extensions are in the same folder as this script
             print(f"Extension '{extension}' loaded successfully.")
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
