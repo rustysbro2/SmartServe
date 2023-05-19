@@ -8,6 +8,6 @@ bot1_process = subprocess.Popen(['python3', 'counting.py'])
 
 # Wait for both processes to complete
 bot1_process.wait()
-bot2_process.wait()
+
 
 print('Both bots have exited.')
