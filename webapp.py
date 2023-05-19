@@ -164,20 +164,20 @@ def send_message():
     message = request.form.get('message')
 
     headers = {
-        'Authorization': 'MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM',  # Replace YOUR_BOT_TOKEN with your Discord bot token
+        'Authorization': 'Bot YOUR_BOT_TOKEN',  # Replace YOUR_BOT_TOKEN with your Discord bot token
         'Content-Type': 'application/json'
     }
     data = {
-        'recipient': recipient,
-        'message': message
+        'content': message  # The message content
     }
 
-    response = requests.post('https://discord.com/api/v10/send-message', headers=headers, json=data)
+    response = requests.post(f'{discord_api_url}/channels/{recipient}/messages', headers=headers, json=data)
 
     if response.status_code == 200:
         return 'Message sent successfully!'
     else:
         return 'Failed to send message.'
+
 
 
 
