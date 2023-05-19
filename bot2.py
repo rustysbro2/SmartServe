@@ -101,7 +101,19 @@ def home():
         </html>
         '''
     else:
-        return '<a href="/login">Login with Discord</a>'
+        return redirect(url_for('login'))
+
+
+@app.route('/login')
+def login():
+    params = {
+        'client_id': client_id,
+        'redirect_uri': redirect_uri,
+        'response_type': 'code',
+        'scope': 'identify'
+    }
+    return redirect(f'{discord_api_url}/oauth2/authorize?{"&".join(f"{k}={v}" for k, v in params.items())}')
+
 
 
 
