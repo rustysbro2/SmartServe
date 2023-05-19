@@ -3,6 +3,10 @@ from discord.ext import commands
 import json
 import random
 
+
+intents = discord.Intents.default()
+bot = commands.Bot(command_prefix='!', intents=intents)
+
 class Tracking(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
