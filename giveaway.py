@@ -7,12 +7,8 @@ class Giveaway(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.has_permissions(administrator=True)
     async def giveaway(self, ctx, duration: int, winners: int, *, prize: str):
-        # Check if the user running the command is an administrator
-        if not ctx.author.guild_permissions.administrator:
-            await ctx.send("You don't have permission to run this command.")
-            return
-
         # Send giveaway announcement message
         giveaway_message = await ctx.send(f"🎉 **GIVEAWAY** 🎉\n\nPrize: {prize}\nDuration: {duration} minutes\nWinners: {winners}\n\nReact with 🎉 to enter!")
         await giveaway_message.add_reaction("🎉")
@@ -29,7 +25,7 @@ class Giveaway(commands.Cog):
         participants.remove(self.bot.user)
 
         # Check if enough participants entered the giveaway
-        if len(participants) <= winners:
+        if len(participants) < winners:
             await ctx.send("Not enough participants entered the giveaway. Giveaway canceled.")
             return
 
