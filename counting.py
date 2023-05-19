@@ -130,7 +130,7 @@ async def on_ready():
     await generate_help_data()
 
 @bot.command()
-async def help(ctx, command_name: str = None):
+async def bot_help(ctx, command_name: str = None):
     try:
         with open('help_data.json', 'r') as f:
             help_data = json.load(f)
