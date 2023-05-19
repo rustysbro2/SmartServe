@@ -124,8 +124,8 @@ def get_user_info():
         return 'Unknown User'
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
     bot.run('MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM')
+    app.run(host='0.0.0.0', port=8000, debug=True)
 
 
 
