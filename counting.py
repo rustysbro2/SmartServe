@@ -26,7 +26,7 @@ default_data = {
 }
 
 # Add your extension names here
-extensions = ['musicbot', 'giveaway', 'tracking']
+extensions = ['MusicBot', 'giveaway', 'tracking']
 
 # emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
