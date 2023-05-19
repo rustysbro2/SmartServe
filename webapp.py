@@ -164,7 +164,7 @@ def send_message():
     message = request.form.get('message')
 
     headers = {
-        'Authorization': 'Bot YOUR_BOT_TOKEN',  # Replace YOUR_BOT_TOKEN with your Discord bot token
+        'Authorization': 'MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM',  # Replace YOUR_BOT_TOKEN with your Discord bot token
         'Content-Type': 'application/json'
     }
     data = {
