@@ -10,6 +10,7 @@ class Giveaway(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def giveaway(self, ctx, duration: int, winners: int, *, prize: str):
         print("Giveaway command invoked")
+        print("Giveaway command invoked")
         print(f"Duration: {duration} minutes")
         print(f"Winners: {winners}")
         print(f"Prize: {prize}")
