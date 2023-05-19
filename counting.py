@@ -90,10 +90,26 @@ async def generate_help_data():
     for command in bot.commands:
         if not command.hidden:
             usage = get_command_usage(command)
-            help_data[command.name] = usage
+            example = generate_command_example(command)
+            help_data[command.name] = {'usage': usage, 'example': example}
 
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
+
+def generate_command_example(command):
+    params = inspect.signature(command.callback).parameters.values()
+    args = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is param.empty:
+                args.append(f"<{param.name}>")
+            else:
+                args.append(f"[{param.name}]")
+
+    example = f"!{command.name} {' '.join(args)}"
+    return example
+
 
 def get_command_usage(command):
     signature = f"!{command.name}"
@@ -141,24 +157,6 @@ async def help(ctx):
     embed.set_footer(text="For more information, contact the bot owner.")
 
     await ctx.send(embed=embed)
-
-
-def get_command_example(command):
-    examples = {
-        'giveaway': '!giveaway 3d 2 Awesome Prize',
-        'set_channel': '!set_channel #counting-channel',
-        'tracking': '!tracking #tracking-channel',
-        'set_increment': '!set_increment 5',
-        # Add more commands and examples here
-    }
-    return examples.get(command)
-
-
-
-
-
-
-
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
