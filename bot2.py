@@ -47,39 +47,39 @@ async def ping(ctx):
 def home():
     if 'discord_token' in session:
         username = get_user_info()
-        return '''
+        return f'''
         <html>
         <head>
             <style>
-                body {
+                body {{
                     background-color: #f0f0f0;
                     font-family: Arial, sans-serif;
                     margin: 0;
                     padding: 20px;
                     text-align: center;
-                }
+                }}
                 
-                h1 {
+                h1 {{
                     color: #333;
-                }
+                }}
                 
-                .container {
+                .container {{
                     background-color: #fff;
                     border-radius: 8px;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     margin: 0 auto;
                     max-width: 600px;
                     padding: 40px;
-                }
+                }}
 
-                .welcome-message {
+                .welcome-message {{
                     margin-bottom: 20px;
-                }
+                }}
 
-                .logout-link {
+                .logout-link {{
                     color: #333;
                     text-decoration: none;
-                }
+                }}
             </style>
         </head>
         <body>
@@ -90,9 +90,10 @@ def home():
             </div>
         </body>
         </html>
-        '''.format(username=username)
+        '''
     else:
         return '<a href="/login">Login with Discord</a>'
+
 
 
 @app.route('/login')
