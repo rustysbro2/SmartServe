@@ -33,6 +33,16 @@ extensions = ['MusicBot', 'giveaway', 'tracking']
 check_mark_emojis = ['✅', '☑️', '✔️']
 trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
 
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send('Invalid command.')
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('You missed some required arguments.')
+    else:
+        raise error
+
+
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
