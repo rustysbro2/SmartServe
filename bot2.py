@@ -54,49 +54,45 @@ def home():
     if 'discord_token' in session:
         username = get_user_info()
         return '''
-        <html>
-        <head>
-            <style>
-                body {{
-                    background-color: #f0f0f0;
-                    font-family: Arial, sans-serif;
-                    margin: 0;
-                    padding: 20px;
-                    text-align: center;
-                }}
-
-                .container {{
-                    background-color: #fff;
-                    border-radius: 8px;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    margin: 0 auto;
-                    max-width: 600px;
-                    padding: 40px;
-                }}
-
-                h1 {{
-                    color: #333;
-                }}
-
-                .welcome-message {{
-                    margin-bottom: 20px;
-                }}
-
-                .logout-link {{
-                    color: #333;
-                    text-decoration: none;
-                }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Welcome, {username}!</h1>
-                <p class="welcome-message">Thank you for using the web dashboard.</p>
-                <a class="logout-link" href="/logout">Logout</a>
-            </div>
-        </body>
-        </html>
-        '''.format(username=username)
+<html>
+<head>
+    <style>
+        body {{
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }}
+        .container {{
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 0 auto;
+            max-width: 600px;
+            padding: 40px;
+        }}
+        h1 {{
+            color: #333;
+        }}
+        .welcome-message {{
+            margin-bottom: 20px;
+        }}
+        .logout-link {{
+            color: #333;
+            text-decoration: none;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome, {username}!</h1>
+        <p class="welcome-message">Thank you for using the web dashboard.</p>
+        <a class="logout-link" href="/logout">Logout</a>
+    </div>
+</body>
+</html>
+'''.format(username=username)
     else:
         return redirect(url_for('login'))  # Redirect to the login page
 
