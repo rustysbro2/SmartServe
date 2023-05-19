@@ -273,4 +273,4 @@ async def on_message(message):
             await ping_msg.delete()
 
 
-bot.run('')
+bot.run('MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM')
