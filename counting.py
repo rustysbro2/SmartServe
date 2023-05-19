@@ -4,6 +4,8 @@ import os
 import json
 import inspect
 import tracemalloc
+from giveaway import Giveaway
+
 tracemalloc.start()
 
 
