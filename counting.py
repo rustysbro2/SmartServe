@@ -148,11 +148,14 @@ async def help(ctx):
     except FileNotFoundError:
         help_data = {}
 
+    print(help_data)  # Add this line to check the contents of help_data
+
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     for cmd, usage in help_data.items():
+        print(cmd, usage)  # Add this line to check the values of cmd and usage
         example = generate_command_example(cmd)
         value = f"`{usage}`\nExample: {example}" if example else f"`{usage}`"
         embed.add_field(name=f"**{cmd}**", value=value, inline=False)
@@ -160,6 +163,7 @@ async def help(ctx):
     embed.set_footer(text="For more information, contact the bot owner.")
 
     await ctx.send(embed=embed)
+
 
 
 @bot.command()
