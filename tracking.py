@@ -84,5 +84,7 @@ class Tracking(commands.Cog):
         with open(self.data_file, 'w') as f:
             json.dump(all_data, f, indent=4)
 
-def setup(bot):
-    await bot.add_cog(Tracking(bot))
+@bot.event
+async def on_ready():
+    bot.add_cog(Tracking(bot))
+
