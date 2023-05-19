@@ -19,7 +19,7 @@ app.logger.setLevel(logging.DEBUG)
 logging.basicConfig(level=logging.DEBUG)
 
 def run_flask_app():
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=8000)
 
 def run_discord_bot():
     bot.run('MTEwNzAyNTU3ODA0NzA1ODAzMA.GQpYS0.fzz9XJcHjDqBJfV0ZF3pohzKxsM1OR6-7ClaCM')
