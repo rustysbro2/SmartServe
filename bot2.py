@@ -56,29 +56,38 @@ def home():
                     font-family: Arial, sans-serif;
                     margin: 0;
                     padding: 20px;
-                    text-align: center;
-                }}
-                
-                h1 {{
-                    color: #333;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
                 }}
                 
                 .container {{
                     background-color: #fff;
                     border-radius: 8px;
                     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                    margin: 0 auto;
-                    max-width: 600px;
                     padding: 40px;
+                    text-align: center;
                 }}
-
-                .welcome-message {{
+                
+                h1 {{
+                    color: #333;
                     margin-bottom: 20px;
                 }}
-
+                
+                .welcome-message {{
+                    color: #555;
+                    font-size: 18px;
+                    margin-bottom: 30px;
+                }}
+                
                 .logout-link {{
                     color: #333;
                     text-decoration: none;
+                }}
+                
+                .logout-link:hover {{
+                    text-decoration: underline;
                 }}
             </style>
         </head>
@@ -94,46 +103,6 @@ def home():
     else:
         return '<a href="/login">Login with Discord</a>'
 
-
-
-@app.route('/login')
-def login():
-    params = {
-        'client_id': client_id,
-        'redirect_uri': redirect_uri,
-        'response_type': 'code',
-        'scope': 'identify'
-    }
-    return redirect(f'{discord_api_url}/oauth2/authorize?{"&".join(f"{k}={v}" for k, v in params.items())}')
-
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('home'))
-
-
-@app.route('/callback')
-def callback():
-    code = request.args.get('code')
-    data = {
-        'client_id': client_id,
-        'client_secret': client_secret,
-        'grant_type': 'authorization_code',
-        'code': code,
-        'redirect_uri': redirect_uri,
-        'scope': 'identify'
-    }
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded'
-    }
-    response = requests.post(f'{discord_api_url}/oauth2/token', data=data, headers=headers)
-    if response.status_code == 200:
-        json_data = response.json()
-        session['discord_token'] = json_data['access_token']
-        return redirect(url_for('home'))
-    else:
-        return 'Failed to login with Discord'
 
 
 def get_user_info():
