@@ -136,7 +136,7 @@ async def on_ready():
     await generate_help_data()
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
-    await bot.add_cog(MusicBot(bot))
+    await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
 
 
