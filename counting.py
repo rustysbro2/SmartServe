@@ -53,6 +53,10 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
+    print(f'We have logged in as {bot.user}')
+    await bot.load_extension('cogs.tracking')
+    await bot.load_extension('cogs.music')
+    await bot.load_extension('cogs.giveaway')
 
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
