@@ -53,8 +53,14 @@ async def on_ready():
         try:
             bot.load_extension(extension)  # Load the extension
             print(f"Extension '{extension}' loaded successfully.")
+            # Retrieve the commands from the loaded extension and add them to the bot's command list
+            ext = bot.get_cog(extension)
+            if ext:
+                for command in ext.get_commands():
+                    bot.add_command(command)
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
+
 
 @bot.command()
 async def help(ctx, command_name: str = None):
