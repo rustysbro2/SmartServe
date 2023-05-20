@@ -20,7 +20,71 @@ bot.remove_command('help')
 data_file = 'count_data.json'
 help_data_file = 'help_data.json'  # File to store the help data
 
-# Rest of your code...
+# the expected keys and their default values
+default_data = {
+    'channel_id': None,
+    'count': 0,
+    'last_counter_id': None,
+    'high_score': 0,
+    'increment': 1,
+    'pending_increment': None,
+    'old_increment': 1,
+    'successful_counts': 0
+}
+
+# Add your extension names here
+extensions = ['musicbot', 'giveaway', 'tracking']
+
+# emojis lists
+check_mark_emojis = ['✅', '☑️', '✔️']
+trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
+
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send('Invalid command.')
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('You missed some required arguments.')
+    else:
+        raise error
+
+
+def ensure_data_file_exists():
+    if not os.path.exists(data_file):
+        with open(data_file, 'w') as f:
+            json.dump({}, f, indent=4)
+
+
+def generate_command_example(command):
+    params = inspect.signature(command.callback).parameters.values()
+    args = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is param.empty:
+                args.append(f"<{param.name}>")
+            else:
+                args.append(f"[{param.name}]")
+
+    example = f"!{command.name} {' '.join(args)}"
+    return example
+
+
+def get_command_usage(command):
+    signature = f"!{command.name}"
+    params = inspect.signature(command.callback).parameters.values()
+    params_str = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is not param.empty:
+                params_str.append(f"[{param.name}]")
+            else:
+                params_str.append(f"<{param.name}>")
+
+    usage = " ".join(params_str)
+    return f"{signature} {usage}"
+
 
 @bot.event
 async def on_ready():
