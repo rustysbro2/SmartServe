@@ -117,21 +117,31 @@ def generate_command_example(command):
     return example
 
 
-def get_command_usage(command):
-    signature = f"!{command.name}"
-    params = inspect.signature(command.callback).parameters.values()
-    params_str = []
+@bot.command()
+async def help(ctx, command_name: str = None):
+    embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
+    embed.set_thumbnail(url=bot.user.avatar.url)
+    embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is not param.empty:
-                params_str.append(f"[{param.name}={param.default}]")
-            else:
-                params_str.append(f"<{param.name}>")
+    for command in bot.commands:
+        if not command.hidden:
+            usage = get_command_usage(command)
+            example = generate_command_example(command)
+            embed.add_field(name=f"**{command.name}**", value=f"```{usage}\n\n{example}```", inline=False)
 
-    usage = " ".join(params_str)
-    example = generate_command_example(command)
-    return f"```{signature} {usage}```\n{example}"
+    if command_name:
+        cmd = bot.get_command(command_name)
+        if cmd:
+            usage = get_command_usage(cmd)
+            example = generate_command_example(cmd)
+            embed.clear_fields()
+            embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}\n\n{example}```", inline=False)
+        else:
+            embed.description = f"No information found for command: `{command_name}`"
+
+    embed.set_footer(text="For more information, contact the bot owner.")
+    await ctx.send(embed=embed)
+
 
 
 
