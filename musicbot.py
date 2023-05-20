@@ -62,11 +62,14 @@ class MusicBot(commands.Cog):
         if queue.empty():
             return
 
+        if voice_channel.guild.voice_client.is_playing() or voice_channel.guild.voice_client.is_paused():
+            return
+
         filename, requester = await queue.get()
         voice_client = voice_channel.guild.voice_client
         try:
             voice_client.play(discord.FFmpegPCMAudio(filename), after=lambda e: self.bot.loop.create_task(self.check_queue(voice_channel)))
-            
+
             queue_size = queue.qsize() + 1  # Add 1 for the current song
             await voice_channel.send(f"Now playing: {filename} (requested by {requester})\nQueue size: {queue_size} song(s)")
 
@@ -79,6 +82,7 @@ class MusicBot(commands.Cog):
 
         except Exception as e:
             print(e)
+
 
     async def check_queue(self, voice_channel):
         queue = self.voice_queues[voice_channel]
