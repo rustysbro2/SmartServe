@@ -150,20 +150,6 @@ async def generate_help_data(help_data_file):
     print(f"File exists: {os.path.exists(help_data_file)}")
     print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
-    # Load and display the help data
-    try:
-        with open(help_data_file, 'r') as f:
-            loaded_data = json.load(f)
-            print("Help data loaded:", loaded_data)
-    except FileNotFoundError:
-        print("Help data file not found.")
-    except Exception as e:
-        print(f"Error loading help data: {e}")
-
-async def main():
-    help_data_file = 'help_data.json'
-    await generate_help_data(help_data_file)
-
 
 
 
