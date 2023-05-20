@@ -33,10 +33,10 @@ default_data = {
     'successful_counts': 0
 }
 
-# List of extensions
+# Add your extension names here
 extensions = ['musicbot', 'giveaway', 'tracking']
 
-# Emojis
+# Emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
 trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
 
@@ -111,7 +111,7 @@ def generate_command_example(command):
             if param.default is param.empty:
                 args.append(f"<{param.name}>")
             else:
-                args.append(f"[{param.name}]")
+                args.append(f"[{param.name}={param.default}]")
 
     example = f"!{command.name} {' '.join(args)}"
     return example
@@ -125,19 +125,20 @@ def get_command_usage(command):
     for param in params:
         if param.name not in ['self', 'ctx']:
             if param.default is not param.empty:
-                params_str.append(f"[{param.name}]")
+                params_str.append(f"[{param.name}={param.default}]")
             else:
                 params_str.append(f"<{param.name}>")
 
     usage = " ".join(params_str)
-    return f"{signature} {usage}"
+    example = generate_command_example(command)
+    return f"```{signature} {usage}```\n{example}"
 
 
 @bot.command()
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
-    embed.description = "Welcome to the Bot Help!\nHere are the available commands:\n"
+    embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     # Get all the cogs and their commands
     cogs = {}
@@ -156,8 +157,8 @@ async def help(ctx, command_name: str = None):
 
     for cog in sorted_cogs:
         if cog:
-            # Add cog name as a section header
-            embed.add_field(name=f"{cog.__class__.__name__}", value="\u200b", inline=False)
+            # Add cog name as a field
+            embed.add_field(name=f"**{cog.__class__.__name__}**", value="\u200b", inline=False)
 
             # Sort commands within the cog alphabetically
             sorted_cmds = sorted(cogs[cog], key=lambda c: c.name)
@@ -165,14 +166,12 @@ async def help(ctx, command_name: str = None):
             # Add commands for the cog
             for cmd in sorted_cmds:
                 usage = get_command_usage(cmd)
-                example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}\n", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=usage, inline=False)
         else:
             # Add commands without a cog
             for cmd in cogs[cog]:
                 usage = get_command_usage(cmd)
-                example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}\n", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=usage, inline=False)
 
     if command_name:
         # Remove cog-specific sorting for specific command search
@@ -180,14 +179,12 @@ async def help(ctx, command_name: str = None):
         cmd = bot.get_command(command_name)
         if cmd:
             usage = get_command_usage(cmd)
-            example = generate_command_example(cmd)
-            embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}\n", inline=False)
+            embed.add_field(name=f"**{cmd.name}**", value=usage, inline=False)
         else:
             embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
-
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
