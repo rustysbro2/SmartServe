@@ -5,6 +5,7 @@ import json
 import inspect
 import tracemalloc
 import random
+import asyncio
 
 tracemalloc.start()
 
