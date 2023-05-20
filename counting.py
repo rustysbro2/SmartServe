@@ -123,6 +123,8 @@ async def help(ctx, command_name: str = None):
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     cogs = {}
+    custom_commands = []
+
     for command in bot.commands:
         if not command.hidden:
             cog = command.cog
@@ -131,9 +133,7 @@ async def help(ctx, command_name: str = None):
                     cogs[cog] = []
                 cogs[cog].append(command)
             else:
-                if 'Custom' not in cogs:
-                    cogs['Custom'] = []
-                cogs['Custom'].append(command)
+                custom_commands.append(command)
 
     sorted_cogs = sorted(cogs.keys(), key=lambda c: str(c))
 
@@ -141,6 +141,12 @@ async def help(ctx, command_name: str = None):
         cog_name = cog.__class__.__name__ if cog else "Custom"
         embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
         for command in cogs[cog]:
+            usage = get_command_usage(command)
+            embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
+
+    if custom_commands:
+        embed.add_field(name="**Custom**", value="\u200b", inline=False)
+        for command in custom_commands:
             usage = get_command_usage(command)
             embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
 
