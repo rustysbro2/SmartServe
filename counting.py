@@ -68,6 +68,35 @@ async def on_ready():
 
 
 
+def generate_command_example(command):
+    params = inspect.signature(command.callback).parameters.values()
+    args = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is param.empty:
+                args.append(f"<{param.name}>")
+            else:
+                args.append(f"[{param.name}]")
+
+    example = f"!{command.name} {' '.join(args)}"
+    return example
+
+
+def get_command_usage(command):
+    signature = f"!{command.name}"
+    params = inspect.signature(command.callback).parameters.values()
+    params_str = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is not param.empty:
+                params_str.append(f"[{param.name}]")
+            else:
+                params_str.append(f"<{param.name}>")
+
+    usage = " ".join(params_str)
+    return f"{signature} {usage}"
 
 # ...
 
@@ -89,18 +118,20 @@ async def help(ctx, command_name: str = None):
     if command_name is None:
         for cmd in bot.commands:
             if not cmd.hidden:
-                usage = f"!{cmd.name}"
-                embed.add_field(name=f"**{cmd.name}**", value=f"```\n{usage}\n```", inline=False)
+                example = generate_command_example(cmd)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```!{cmd.name}```\nExample: {example}", inline=False)
     else:
         cmd = bot.get_command(command_name)
         if cmd and not cmd.hidden:
-            usage = f"!{cmd.name}"
-            embed.add_field(name=f"**{cmd.name}**", value=f"```\n{usage}\n```", inline=False)
+            example = generate_command_example(cmd)
+            embed.add_field(name=f"**{cmd.name}**", value=f"```!{cmd.name}```\nExample: {example}", inline=False)
         else:
             embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
+
 
 
 
