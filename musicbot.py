@@ -108,7 +108,7 @@ class MusicBot(commands.Cog):
         else:
             await voice_client.channel.send("I am not currently connected to a voice channel.")
 
-       @commands.command()
+    @commands.command()
     async def vote_skip(self, ctx):
         if not ctx.voice_client or ctx.voice_client.channel not in self.voice_queues:
             await ctx.send("No song is currently playing.")
