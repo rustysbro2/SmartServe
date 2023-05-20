@@ -80,7 +80,7 @@ async def on_ready():
 
 
 
-@@bot.command()
+@bot.command()
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
