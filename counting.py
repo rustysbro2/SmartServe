@@ -66,6 +66,7 @@ async def on_ready():
             print(f"Failed to load extension '{extension}': {e}")
 
 
+
 @bot.command()
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
