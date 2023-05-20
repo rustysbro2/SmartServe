@@ -134,10 +134,11 @@ def generate_command_example(command):
             if param.default is param.empty:
                 args.append(f"<{param.name}>")
             else:
-                args.append(f"[{param.name}={param.default}]")
+                args.append(f"[{param.name}]")
 
     example = f"!{command.name} {' '.join(args)}"
     return example
+
 
 def get_command_usage(command):
     signature = f"!{command.name}"
@@ -147,13 +148,13 @@ def get_command_usage(command):
     for param in params:
         if param.name not in ['self', 'ctx']:
             if param.default is not param.empty:
-                params_str.append(f"[{param.name}={param.default}]")
+                params_str.append(f"[{param.name}]")
             else:
                 params_str.append(f"<{param.name}>")
 
     usage = " ".join(params_str)
-    example = generate_command_example(command)
-    return f"{signature} {usage}", example
+    return f"{signature} {usage}"
+
 
 @bot.command()
 async def help(ctx, command_name: str = None):
