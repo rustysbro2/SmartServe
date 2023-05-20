@@ -140,51 +140,23 @@ async def help(ctx, command_name: str = None):
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    # Get all the cogs and their commands
-    cogs = {}
-    for cmd in bot.commands:
-        if cmd.cog:
-            if cmd.cog not in cogs:
-                cogs[cmd.cog] = []
-            cogs[cmd.cog].append(cmd)
-        else:
-            if None not in cogs:
-                cogs[None] = []
-            cogs[None].append(cmd)
-
-    # Sort the cogs alphabetically
-    sorted_cogs = sorted(cogs.keys(), key=lambda c: c.__class__.__name__)
-
-    for cog in sorted_cogs:
-        if cog:
-            # Add cog name as a field
-            embed.add_field(name=f"**{cog.__class__.__name__}**", value="\u200b", inline=False)
-
-            # Sort commands within the cog alphabetically
-            sorted_cmds = sorted(cogs[cog], key=lambda c: c.name)
-
-            # Add commands for the cog
-            for cmd in sorted_cmds:
-                usage = get_command_usage(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=usage, inline=False)
-        else:
-            # Add commands without a cog
-            for cmd in cogs[cog]:
-                usage = get_command_usage(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=usage, inline=False)
+    for command in bot.commands:
+        if not command.hidden:
+            usage = get_command_usage(command)
+            embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
 
     if command_name:
-        # Remove cog-specific sorting for specific command search
-        embed.clear_fields()
         cmd = bot.get_command(command_name)
         if cmd:
             usage = get_command_usage(cmd)
-            embed.add_field(name=f"**{cmd.name}**", value=usage, inline=False)
+            embed.clear_fields()
+            embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```", inline=False)
         else:
             embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
