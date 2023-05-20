@@ -151,12 +151,17 @@ async def generate_help_data():
     # Load and display the help data
     try:
         with open(help_data_file, 'r') as f:
-            help_data = json.load(f)
-            print("Help data loaded:", help_data)
+            loaded_data = json.load(f)
+            print("Help data loaded:", loaded_data)
     except FileNotFoundError:
         print("Help data file not found.")
     except Exception as e:
         print(f"Error loading help data: {e}")
+
+    # Update the global help_data variable with the loaded data
+    global help_data
+    help_data = loaded_data
+
 
 
 
