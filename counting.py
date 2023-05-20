@@ -227,10 +227,10 @@ async def on_message(message):
         return
 
     if message.channel.id == data.get('channel_id'):
-        fail_reason = ""
-        increment_changed = False  # Initialize increment_changed as False
+    fail_reason = ""
+    increment_changed = False  # Initialize increment_changed as False
 
-     Try:
+    try:
         number = int(message.content)
         expected_number = data['count'] + data['increment']
         if number == expected_number:
@@ -238,29 +238,33 @@ async def on_message(message):
                 data['count'] += data['increment']
                 data['last_counter_id'] = message.author.id
                 data['successful_counts'] += 1
-                    print(f"Message: {message.content}")  # Log the message content
-                    print(f"Current count: {data['count']}")  # Log the current count
-                    print(f"Current increment: {data['increment']}")  # Log the current increment
-                    print(f"Successful counts: {data['successful_counts']}")  # Log the successful counts
-                    if data['successful_counts'] > data['high_score']:  # compare successful counts to high score
-                        data['high_score'] = data['successful_counts']  # update high score based on successful counts
-                        print(f"New high score: {data['high_score']}")  # Log the new high score
-                        random_trophy = random.choice(trophy_emojis)
-                        await message.add_reaction(random_trophy)
-                    else:
-                        random_check_mark = random.choice(check_mark_emojis)
-                        await message.add_reaction(random_check_mark)
-
-                    # Save the updated data to the JSON file
-                    all_data[str(message.guild.id)] = data
-                    with open(data_file, 'w') as f:
-                        json.dump(all_data, f, indent=4)
+                print(f"Message: {message.content}")  # Log the message content
+                print(f"Current count: {data['count']}")  # Log the current count
+                print(f"Current increment: {data['increment']}")  # Log the current increment
+                print(f"Successful counts: {data['successful_counts']}")  # Log the successful counts
+                if data['successful_counts'] > data['high_score']:  # compare successful counts to high score
+                    data['high_score'] = data['successful_counts']  # update high score based on successful counts
+                    print(f"New high score: {data['high_score']}")  # Log the new high score
+                    random_trophy = random.choice(trophy_emojis)
+                    await message.add_reaction(random_trophy)
                 else:
-                    fail_reason = "You can't count two numbers in a row. Let others participate!"
+                    random_check_mark = random.choice(check_mark_emojis)
+                    await message.add_reaction(random_check_mark)
+
+                # Save the updated data to the JSON file
+                all_data[str(message.guild.id)] = data
+                with open(data_file, 'w') as f:
+                    json.dump(all_data, f, indent=4)
             else:
-                fail_reason = "The number doesn't follow the counting sequence."
-        except Exception:
-            fail_reason = "The text you entered is not a valid mathematical expression."
+                fail_reason = "You can't count two numbers in a row. Let others participate!"
+        else:
+            fail_reason = "The number doesn't follow the counting sequence."
+    except Exception:
+        fail_reason = "The text you entered is not a valid mathematical expression."
+
+    if fail_reason:
+        # Rest of the code
+
 
         if fail_reason:
             print('Fail reason:', fail_reason)
