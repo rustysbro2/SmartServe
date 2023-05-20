@@ -41,26 +41,19 @@ def ensure_data_file_exists():
         with open(data_file, 'w') as f:
             json.dump({}, f, indent=4)
 
-async def generate_help_data():
-    help_data = {}
+def generate_command_example(command):
+    params = inspect.signature(command.callback).parameters.values()
+    args = []
 
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        print(f"Extension: {extension}, Cog: {ext}")
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is param.empty:
+                args.append(f"<{param.name}>")
+            else:
+                args.append(f"[{param.name}]")
 
-    try:
-        with open('help_data.json', 'w') as f:
-            json.dump(help_data, f, indent=4)
-
-        print("Help data generated successfully.")
-    except Exception as e:
-        print(f"Error generating help data: {e}")
+    example = f"!{command.name} {' '.join(args)}"
+    return example
 
 
 def get_command_usage(command):
