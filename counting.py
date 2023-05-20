@@ -230,7 +230,7 @@ async def on_message(message):
         fail_reason = ""
         increment_changed = False  # Initialize increment_changed as False
 
-        Try:
+     Try:
         number = int(message.content)
         expected_number = data['count'] + data['increment']
         if number == expected_number:
