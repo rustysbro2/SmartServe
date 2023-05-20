@@ -80,17 +80,17 @@ class MusicBot(commands.Cog):
 
                 await asyncio.sleep(1)  # Check vote skip status every second
 
+            # Song has finished playing, remove it from the queue
+            if queue.empty():
+                await self.leave(voice_client)
+            else:
+                await self.play_queue(voice_channel)
+
         except Exception as e:
             print(f"Error playing song: {e}")
 
-        # Play the next song in the queue
-        await self.play_queue(voice_channel)
-
     async def check_queue(self, voice_channel):
-        queue = self.voice_queues[voice_channel]
-        if queue.empty():
-            if voice_channel.guild.voice_client:
-                await self.leave(voice_channel.guild.voice_client)
+        if voice_channel.guild.voice_client.is_playing() or voice_channel.guild.voice_client.is_paused():
             return
 
         await self.play_queue(voice_channel)
