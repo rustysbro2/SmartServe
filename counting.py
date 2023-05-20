@@ -230,13 +230,14 @@ async def on_message(message):
         fail_reason = ""
         increment_changed = False  # Initialize increment_changed as False
 
-        try:
-            result = safe_eval(message.content)
-            if result == data['count'] + data['increment']:
-                if message.author.id != data['last_counter_id']:
-                    data['count'] += data['increment']
-                    data['last_counter_id'] = message.author.id
-                    data['successful_counts'] += 1  # increase the number of successful counts
+        Try:
+        number = int(message.content)
+        expected_number = data['count'] + data['increment']
+        if number == expected_number:
+            if message.author.id != data['last_counter_id']:
+                data['count'] += data['increment']
+                data['last_counter_id'] = message.author.id
+                data['successful_counts'] += 1
                     print(f"Message: {message.content}")  # Log the message content
                     print(f"Current count: {data['count']}")  # Log the current count
                     print(f"Current increment: {data['increment']}")  # Log the current increment
