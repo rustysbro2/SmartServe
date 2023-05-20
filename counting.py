@@ -3,9 +3,8 @@ from discord.ext import commands
 import os
 import json
 import inspect
-from cogs.giveaway import GiveawayCog
-from cogs.tracking import TrackingCog
-from cogs.musicbot import MusicBotCog
+from cogs.giveaway import Giveaway
+
 
 extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
 
@@ -13,13 +12,7 @@ intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 
-giveaway_cog = Giveaway(bot)
-tracking_cog = Tracking(bot)
-musicbot_cog = MusicBot(bot)
 
-bot.add_cog(giveaway)
-bot.add_cog(tracking)
-bot.add_cog(musicbot)
 
 
 
@@ -64,10 +57,17 @@ async def on_ready():
             json.dump(default_data, f, indent=4)
 
     # Load the cogs dynamically
-    for filename in os.listdir('./cogs'):
-        if filename.endswith('.py'):
-            bot.load_extension(f'cogs.{filename[:-3]}')
-            print(f"Cog '{filename[:-3]}' loaded successfully.")
+    for extension in extensions:
+        try:
+            bot.load_extension(extension)
+            print(f"Extension '{extension}' loaded successfully.")
+        except commands.ExtensionError as e:
+            print(f"Failed to load extension '{extension}': {e}")
+
+    # Add the Giveaway cog
+    bot.add_cog(Giveaway(bot))
+    print("Giveaway cog loaded successfully.")
+
 
 @bot.command()
 async def help(ctx, command_name: str = None):
