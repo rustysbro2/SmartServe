@@ -151,34 +151,33 @@ async def help(ctx, command_name: str = None):
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    # Check if there are any counting-related commands
-    counting_commands = [command for command in bot.commands if command.cog_name == "Counting"]
+    counting_commands = []
+    cog_commands = {}
+
+    for command in bot.commands:
+        if command.cog_name == "Counting":
+            counting_commands.append(command)
+        else:
+            cog_name = command.cog_name or "General"
+            if cog_name not in cog_commands:
+                cog_commands[cog_name] = []
+            cog_commands[cog_name].append(command)
+
     if counting_commands:
-        embed.add_field(name="**Counting**", value="\u200b", inline=False)  # Add counting header
+        embed.add_field(name="**Counting**", value="\u200b", inline=False)
         for command in counting_commands:
             usage = get_command_usage(command)
             embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
 
-    # Get all the commands sorted by cog name
-    sorted_cogs = sorted(bot.cogs.keys())
-    for cog_name in sorted_cogs:
-        cog = bot.get_cog(cog_name)
-        commands = cog.get_commands() if cog else bot.commands
-
-        if cog and cog_name != "Counting":  # Exclude Counting cog from displaying
-            # Add cog header with a different color and spacing
-            if embed.fields:
-                embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing before the cog header
-            embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
-            embed.color = discord.Color.random()  # Set a random color for cog headers
-
+    for cog_name, commands in cog_commands.items():
+        embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
         for command in commands:
-            if not command.hidden and command.cog_name != "Counting":  # Exclude Counting commands from displaying
-                usage = get_command_usage(command)
-                embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
+            usage = get_command_usage(command)
+            embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
