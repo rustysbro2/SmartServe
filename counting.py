@@ -124,7 +124,6 @@ async def generate_help_data(help_data_file):
 
 
 
-
 def generate_command_example(command):
     params = inspect.signature(command.callback).parameters.values()
     args = []
