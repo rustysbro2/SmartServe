@@ -84,13 +84,17 @@ async def on_ready():
 async def help(ctx, command_name: str = None):
     prefix = '!'  # Change this to your desired command prefix
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
-    embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     if command_name is None:
+        command_list = []
         for cmd in bot.commands:
             if not cmd.hidden:
-                embed.add_field(name=f"{prefix}{cmd.name}", value=cmd.description or "No description provided", inline=False)
+                command_list.append(f"{prefix}{cmd.name}")
+        if command_list:
+            embed.add_field(name="Commands", value="\n".join(command_list), inline=False)
+        else:
+            embed.description = "No commands available."
     else:
         cmd = bot.get_command(command_name)
         if cmd and not cmd.hidden:
@@ -100,6 +104,7 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
     
 
