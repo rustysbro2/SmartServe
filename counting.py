@@ -319,5 +319,5 @@ async def on_message(message):
             await ping_msg.delete()
 
 loop = asyncio.get_event_loop()
-loop.create_task(initialize_bot())
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
+loop.create_task(initialize_bot())
