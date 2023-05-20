@@ -89,20 +89,7 @@ def get_command_usage(command):
 
 
 
-async def generate_help_data():
-    help_data = {}
-for extension in extensions:
-    ext = bot.get_cog(extension)
-    if ext:
-        for command in ext.get_commands():
-            if not command.hidden:
-                usage, example = get_command_usage(command)
-                help_data[command.name] = {'usage': usage, 'example': example}
 
-with open('help_data.json', 'w') as f:
-    json.dump(help_data, f, indent=4)
-
-print("Help data generated successfully.")
 
 
 
@@ -147,6 +134,23 @@ async def on_ready():
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
+
+    # Move the following code inside the on_ready event
+    async def generate_help_data():
+        help_data = {}
+        for extension in extensions:
+            ext = bot.get_cog(extension)
+            if ext:
+                for command in ext.get_commands():
+                    if not command.hidden:
+                        usage, example = get_command_usage(command)
+                        help_data[command.name] = {'usage': usage, 'example': example}
+
+        with open('help_data.json', 'w') as f:
+            json.dump(help_data, f, indent=4)
+
+        print("Help data generated successfully.")
+
 
 
 
