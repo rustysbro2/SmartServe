@@ -1,3 +1,24 @@
+async def generate_help_data():
+    help_data = {}
+
+    for cog_name, cog in bot.cogs.items():
+        commands_list = []
+        for command in cog.get_commands():
+            if not command.hidden:
+                usage, example = get_command_usage(command)
+                commands_list.append({
+                    'name': command.name,
+                    'usage': usage,
+                    'example': example
+                })
+
+        if commands_list:
+            help_data[cog_name] = commands_list
+
+    with open('help_data.json', 'w') as f:
+        json.dump(help_data, f, indent=4)
+
+    print("Help data generated successfully.")
 import discord
 from discord.ext import commands
 import os
@@ -79,16 +100,25 @@ def get_command_usage(command):
 async def generate_help_data():
     help_data = {}
 
-    for cog in bot.cogs.values():
+    for cog_name, cog in bot.cogs.items():
+        commands_list = []
         for command in cog.get_commands():
             if not command.hidden:
                 usage, example = get_command_usage(command)
-                help_data[command.name] = {'usage': usage, 'example': example}
+                commands_list.append({
+                    'name': command.name,
+                    'usage': usage,
+                    'example': example
+                })
+
+        if commands_list:
+            help_data[cog_name] = commands_list
 
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
 
     print("Help data generated successfully.")
+
 
 
 
