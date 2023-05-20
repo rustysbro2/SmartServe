@@ -123,7 +123,7 @@ async def help(ctx, command_name: str = None):
     for cog in sorted_cogs:
         if cog:
             # Add cog name as a field
-            embed.add_field(name=f"**{cog.__class__.__name__}**", value="\u200b", inline=False)
+            embed.add_field(name=f"**{cog.__class__.__name__}**", value="", inline=False)
 
             # Sort commands within the cog alphabetically
             sorted_cmds = sorted(cogs[cog], key=lambda c: c.name)
@@ -132,13 +132,13 @@ async def help(ctx, command_name: str = None):
             for cmd in sorted_cmds:
                 usage = get_command_usage(cmd)
                 example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n```{example}```", inline=False)
         else:
             # Add commands without a cog
             for cmd in cogs[cog]:
                 usage = get_command_usage(cmd)
                 example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n```{example}```", inline=False)
 
     if command_name:
         # Remove cog-specific sorting for specific command search
@@ -146,6 +146,14 @@ async def help(ctx, command_name: str = None):
         cmd = bot.get_command(command_name)
         if cmd:
             usage = get_command_usage(cmd)
+            example = generate_command_example(cmd)
+            embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n```{example}```", inline=False)
+        else:
+            embed.description = f"No information found for command: `{command_name}`"
+
+    embed.set_footer(text="For more information, contact the bot owner.")
+    await ctx.send(embed=embed)
+
             example = generate_command_example(cmd)
             embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
         else:
