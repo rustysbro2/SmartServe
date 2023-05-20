@@ -58,19 +58,27 @@ def ensure_data_file_exists():
         with open(data_file, 'w') as f:
             json.dump({}, f, indent=4)
 
-def generate_command_example(command):
-    params = inspect.signature(command.callback).parameters.values()
-    args = []
+async def generate_help_data():
+    help_data = {}
 
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is param.empty:
-                args.append(f"<{param.name}>")
-            else:
-                args.append(f"[{param.name}]")
+    for extension in extensions:
+        ext = bot.get_cog(extension)
+        print(f"Extension: {extension}, Cog: {ext}")
+        if ext:
+            for command in ext.get_commands():
+                if not command.hidden:
+                    usage = get_command_usage(command)
+                    example = generate_command_example(command)
+                    help_data[command.name] = {'usage': usage, 'example': example}
 
-    example = f"!{command.name} {' '.join(args)}"
-    return example
+    try:
+        async with aiofiles.open('help_data.json', 'w') as f:
+            await f.write(json.dumps(help_data, indent=4))
+
+        print("Help data generated successfully.")
+    except Exception as e:
+        print(f"Error generating help data: {e}")
+
 
 def get_command_usage(command):
     signature = f"!{command.name}"
@@ -132,6 +140,8 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
+    await generate_help_data()  # Generate the help data
+
     for extension in extensions:
         try:
             bot.load_extension(extension)  # Load the extension
@@ -143,7 +153,6 @@ async def on_ready():
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
-    await generate_help_data()  # Generate the help data
 
 
 
