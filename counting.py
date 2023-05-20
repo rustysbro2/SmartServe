@@ -68,35 +68,10 @@ async def on_ready():
 
 
 
-def generate_command_example(command):
-    params = inspect.signature(command.callback).parameters.values()
-    args = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is param.empty:
-                args.append(f"<{param.name}>")
-            else:
-                args.append(f"[{param.name}]")
-
-    example = f"!{command.name} {' '.join(args)}"
-    return example
 
 
-def get_command_usage(command):
-    signature = f"!{command.name}"
-    params = inspect.signature(command.callback).parameters.values()
-    params_str = []
 
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is not param.empty:
-                params_str.append(f"[{param.name}]")
-            else:
-                params_str.append(f"<{param.name}>")
 
-    usage = " ".join(params_str)
-    return f"{signature} {usage}"
 
 async def generate_help_data(help_data_file):
     print("Generating help data...")
@@ -158,19 +133,42 @@ async def help(ctx, command_name: str = None):
         if not command.hidden:
             usage = get_command_usage(command)
             example = generate_command_example(command)
-
-            # Add the command name as a bold header
-            embed.add_field(name=f"**{command.name}**", value="", inline=False)
-
-            # Add the command usage in a code block
-            embed.add_field(name="Usage:", value=f"```\n{usage}\n```", inline=False)
-
-            # Add the example if available
-            if example:
-                embed.add_field(name="Example:", value=f"```\n{example}\n```", inline=False)
+            embed.add_field(name=f"**{command.name}**", value=f"Usage:\n`{usage}`\nExample:\n`{example}`", inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
+
+def generate_command_example(command):
+    params = inspect.signature(command.callback).parameters.values()
+    args = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is param.empty:
+                args.append(f"<{param.name}>")
+            else:
+                args.append(f"[{param.name}={param.default}]")
+
+    example = f"!{command.name} {' '.join(args)}"
+    return example
+
+
+def get_command_usage(command):
+    signature = f"!{command.name}"
+    params = inspect.signature(command.callback).parameters.values()
+    params_str = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is not param.empty:
+                params_str.append(f"[{param.name}={param.default}]")
+            else:
+                params_str.append(f"<{param.name}>")
+
+    usage = " ".join(params_str)
+    return f"{signature} {usage}"
+
 
 
 
