@@ -35,6 +35,8 @@ class MusicBot(commands.Cog):
                     'preferredcodec': 'mp3',
                     'preferredquality': '192',
                 }],
+                'logger': self.debug_logger,
+                'progress_hooks': [self.debug_progress_hook],
             }
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
@@ -47,8 +49,23 @@ class MusicBot(commands.Cog):
             await ctx.send("Now playing: " + info['title'])
         except youtube_dl.DownloadError:
             await ctx.send("Failed to load the video. Please provide a valid YouTube URL.")
+        except youtube_dl.ExtractorError:
+            await ctx.send("Failed to extract the audio from the video. Please try again later.")
+        except discord.errors.ClientException:
+            await ctx.send("Failed to play the audio. Please make sure I have the necessary permissions.")
         except Exception as e:
             await ctx.send(f"An error occurred while playing the video: {e}")
+
+    def debug_logger(self, message):
+        print(message)
+
+    def debug_progress_hook(self, data):
+        if data['status'] == 'downloading':
+            print(f"Downloading: {data['filename']} [{data['_percent_str']}]")
+        elif data['status'] == 'finished':
+            print(f"Download completed: {data['filename']}")
+        elif data['status'] == 'error':
+            print(f"Error while downloading: {data['filename']}")
 
     @commands.command()
     async def pause(self, ctx):
