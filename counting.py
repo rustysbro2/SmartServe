@@ -121,11 +121,11 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
-    bot.loop.create_task(generate_help_data())
+    await generate_help_data()  # Generate help data
 
     for extension in extensions:
         try:
-            await bot.load_extension(extension)  # Load the extension
+            bot.load_extension(extension)  # Load the extension
             print(f"Extension '{extension}' loaded successfully.")
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
@@ -133,6 +133,7 @@ async def on_ready():
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
+
 
 ...
 
