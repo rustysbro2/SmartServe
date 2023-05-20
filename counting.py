@@ -5,6 +5,7 @@ import json
 import inspect
 import tracemalloc
 import random
+import asyncio
 from giveaway import Giveaway
 from tracking import Tracking
 from musicbot import MusicBot
@@ -47,6 +48,7 @@ async def on_command_error(ctx, error):
         await ctx.send('You missed some required arguments.')
     else:
         raise error
+
 
 
 def ensure_data_file_exists():
@@ -158,8 +160,9 @@ async def generate_help_data(help_data_file):
     except Exception as e:
         print(f"Error loading help data: {e}")
 
-help_data_file = 'help_data.json'
-await generate_help_data(help_data_file)
+async def main():
+    help_data_file = 'help_data.json'
+    await generate_help_data(help_data_file)
 
 
 
