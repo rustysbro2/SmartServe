@@ -10,6 +10,15 @@ from cogs.musicbot import MusicBot
 extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
 
 
+giveaway_cog = GiveawayCog(bot)
+tracking_cog = TrackingCog(bot)
+musicbot_cog = MusicBotCog(bot)
+
+bot.add_cog(giveaway_cog)
+bot.add_cog(tracking_cog)
+bot.add_cog(musicbot_cog)
+
+
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
