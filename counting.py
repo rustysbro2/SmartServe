@@ -112,9 +112,11 @@ async def help(ctx, command_name: str = None):
         cog = bot.get_cog(cog_name)
         commands = cog.get_commands() if cog else bot.commands
 
-        # Add cog header
+        # Add cog header with a different color
         if cog:
             embed.add_field(name=f"**{cog_name}**", value="", inline=False)
+            embed.set_field_style(name=f"**{cog_name}**", value=discord.Embed.Empty, inline=False)
+            embed.set_field_color(name=f"**{cog_name}**", value=discord.Color.gold())
 
         for command in commands:
             if not command.hidden:
@@ -125,6 +127,7 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
