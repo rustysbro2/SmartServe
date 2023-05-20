@@ -10,10 +10,7 @@ from tracking import Tracking  # Import the Tracking class
 from musicbot import MusicBot
 
 
-
-
 tracemalloc.start()
-
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -38,11 +35,10 @@ default_data = {
 extensions = ['musicbot', 'giveaway', 'tracking']
 
 
-
-
 # emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
 trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
+
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -59,6 +55,7 @@ def ensure_data_file_exists():
         with open(data_file, 'w') as f:
             json.dump({}, f, indent=4)
 
+
 def generate_command_example(command):
     params = inspect.signature(command.callback).parameters.values()
     args = []
@@ -72,6 +69,7 @@ def generate_command_example(command):
 
     example = f"!{command.name} {' '.join(args)}"
     return example
+
 
 def get_command_usage(command):
     signature = f"!{command.name}"
@@ -87,7 +85,6 @@ def get_command_usage(command):
 
     usage = " ".join(params_str)
     return f"{signature} {usage}"
-
 
 
 @bot.event
@@ -126,6 +123,7 @@ async def on_ready():
 
 
 async def generate_help_data():
+    print("Generating help data...")
     help_data = {}
 
     for extension in extensions:
@@ -146,27 +144,16 @@ async def generate_help_data():
     except Exception as e:
         print(f"Error generating help data: {e}")
 
-    await bot.change_presence(activity=discord.Game(name="!help for commands"))
-
-    # Refresh the command cache
-    bot.command_prefix = '!'  # Set the prefix temporarily
-    await bot.wait_until_ready()  # Wait until the bot is ready
-    bot.command_prefix = '!'  # Set the prefix back to the original value
-
-
-
-
-
-
-
 
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
         with open('help_data.json', 'r') as f:
             help_data = json.load(f)
+            print(f"Help data loaded: {help_data}")
     except FileNotFoundError:
         help_data = {}
+        print("Help data file not found.")
 
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
