@@ -138,6 +138,7 @@ async def help(ctx, command_name: str = None):
         with open('help_data.json', 'r') as f:
             help_data = json.load(f)
         print("Help data loaded successfully")
+        print("Help data content:", help_data)  # Debug: Print the content of help_data
     except FileNotFoundError:
         help_data = {}
         print("Help data file not found")
