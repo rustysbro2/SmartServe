@@ -117,7 +117,6 @@ def generate_command_example(command):
     return example
 
 
-@bot.command()
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
@@ -132,22 +131,17 @@ async def help(ctx, command_name: str = None):
                     cogs[cog] = []
                 cogs[cog].append(command)
             else:
-                if None not in cogs:
-                    cogs[None] = []
-                cogs[None].append(command)
+                if 'Custom' not in cogs:
+                    cogs['Custom'] = []
+                cogs['Custom'].append(command)
 
-    sorted_cogs = sorted(cogs.keys(), key=lambda c: c.__class__.__name__)
+    sorted_cogs = sorted(cogs.keys(), key=lambda c: str(c))
 
     for cog in sorted_cogs:
-        if cog:
-            embed.add_field(name=f"**{cog.__class__.__name__}**", value="\u200b", inline=False)
-            for command in cogs[cog]:
-                usage = get_command_usage(command)
-                embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
-        else:
-            for command in cogs[cog]:
-                usage = get_command_usage(command)
-                embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
+        embed.add_field(name=f"**{cog}**", value="\u200b", inline=False)
+        for command in cogs[cog]:
+            usage = get_command_usage(command)
+            embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
 
     if command_name:
         cmd = bot.get_command(command_name)
