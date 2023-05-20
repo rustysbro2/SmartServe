@@ -72,8 +72,8 @@ async def generate_help_data():
                     help_data[command.name] = {'usage': usage, 'example': example}
 
     try:
-        async with aiofiles.open('help_data.json', 'w') as f:
-            await f.write(json.dumps(help_data, indent=4))
+        with open('help_data.json', 'w') as f:
+            json.dump(help_data, f, indent=4)
 
         print("Help data generated successfully.")
     except Exception as e:
