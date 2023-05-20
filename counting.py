@@ -87,28 +87,6 @@ def get_command_usage(command):
     usage = " ".join(params_str)
     return f"{signature} {usage}"
 
-async def generate_help_data():
-    help_data = {}
-
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        print(f"Extension: {extension}, Cog: {ext}")
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-
-    try:  # Indentation corrected here
-        with open('help_data.json', 'w') as f:
-            json.dump(help_data, f, indent=4)
-
-        print("Help data generated successfully.")
-    except Exception as e:
-        print(f"Error generating help data: {e}")
-
-
 
 
 @bot.event
@@ -146,17 +124,28 @@ async def on_ready():
     await generate_help_data()
 
 
+async def generate_help_data():
+    help_data = {}
+
+    for extension in extensions:
+        ext = bot.get_cog(extension)
+        print(f"Extension: {extension}, Cog: {ext}")
+        if ext:
+            for command in ext.get_commands():
+                if not command.hidden:
+                    usage = get_command_usage(command)
+                    example = generate_command_example(command)
+                    help_data[command.name] = {'usage': usage, 'example': example}
+
+    try:
+        with open('help_data.json', 'w') as f:
+            json.dump(help_data, f, indent=4)
+
+        print("Help data generated successfully.")
+    except Exception as e:
+        print(f"Error generating help data: {e}")
 
 
-
-
-
-
-
-
-
-
-bot.remove_command('help')
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
