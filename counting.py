@@ -138,6 +138,10 @@ async def generate_help_data():
                     example = generate_command_example(command)
                     help_data[command.name] = {'usage': usage, 'example': example}
 
+    if not help_data:
+        print("No commands found.")
+        return
+
     try:
         with open('help_data.json', 'w') as f:
             json.dump(help_data, f, indent=4)
@@ -145,6 +149,7 @@ async def generate_help_data():
         print("Help data generated successfully.")
     except Exception as e:
         print(f"Error generating help data: {e}")
+
 
 
 
