@@ -146,6 +146,9 @@ async def generate_help_data():
     except Exception as e:
         print(f"Error generating help data: {e}")
 
+    await bot.change_presence(activity=discord.Game(name="!help for commands"))
+
+
 
 
 
