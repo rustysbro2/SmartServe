@@ -128,18 +128,18 @@ async def on_ready():
         json.dump(all_data, f, indent=4)
 
     for extension in extensions:
-      try:
-          bot.load_extension(extension)  # Load the extension
-          print(f"Extension '{extension}' loaded successfully.")
-      except commands.ExtensionError as e:
-          print(f"Failed to load extension '{extension}': {e}")
+        try:
+            bot.load_extension(extension)  # Load the extension
+            print(f"Extension '{extension}' loaded successfully.")
+        except commands.ExtensionError as e:
+            print(f"Failed to load extension '{extension}': {e}")
 
-  await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
-  await bot.add_cog(Tracking(bot))  # Add the Tracking cog
-  await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
-
+    await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
+    await bot.add_cog(Tracking(bot))  # Add the Tracking cog
+    await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
     await generate_help_data()
+
 
 
 
