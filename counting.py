@@ -116,6 +116,7 @@ async def generate_help_data(help_data_file):
     print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
 @bot.event
+@bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
     ensure_data_file_exists()
@@ -136,18 +137,12 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
-    for extension in extensions:
-        try:
-            bot.load_extension(extension)  # Load the extension
-            print(f"Extension '{extension}' loaded successfully.")
-        except commands.ExtensionError as e:
-            print(f"Failed to load extension '{extension}': {e}")
-
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
-    await generate_help_data(help_data_file)  # Pass the help_data_file argument
+    await generate_help_data(help_data_file)
+
 
 
 # ...
