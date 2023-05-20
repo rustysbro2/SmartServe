@@ -9,6 +9,9 @@ from cogs.musicbot import MusicBot
 
 extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
 
+intents = discord.Intents().all()
+bot = commands.Bot(command_prefix='!', intents=intents)
+
 
 giveaway_cog = Giveaway(bot)
 tracking_cog = Tracking(bot)
@@ -19,8 +22,7 @@ bot.add_cog(tracking)
 bot.add_cog(musicbot)
 
 
-intents = discord.Intents().all()
-bot = commands.Bot(command_prefix='!', intents=intents)
+
 
 # the file where we will save our data
 data_file = 'count_data.json'
