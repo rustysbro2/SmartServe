@@ -20,27 +20,29 @@ class MusicBot(commands.Cog):
         if ctx.voice_client is not None:
             await ctx.voice_client.disconnect()
 
-   @commands.command()
-async def play(self, ctx, url):
-    if ctx.voice_client is None:
-        await ctx.send("I'm not connected to a voice channel. Use the `join` command first.")
-        return
+    @commands.command()
+    async def play(self, ctx, url):
+        if ctx.voice_client is None:
+            await ctx.send("I'm not connected to a voice channel. Use the `join` command first.")
+            return
 
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
-        'verbose': True  # Add the verbose flag
-    }
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'verbose': True  # Add the verbose flag
+        }
 
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=False)
-        url2 = info['formats'][0]['url']
-        ctx.voice_client.stop()
-        ctx.voice_client.play(discord.FFmpegPCMAudio(url2))
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+            url2 = info['formats'][0]['url']
+            ctx.voice_client.stop()
+            ctx.voice_client.play(discord.FFmpegPCMAudio(url2))
+
+
 
 
     @commands.command()
