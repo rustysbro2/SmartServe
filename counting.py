@@ -121,7 +121,7 @@ async def on_ready():
     await generate_help_data()
 
 
-async def generate_help_data():
+async def generate_help_data(help_data_file):
     print("Generating help data...")
     help_data = {}
 
@@ -158,9 +158,9 @@ async def generate_help_data():
     except Exception as e:
         print(f"Error loading help data: {e}")
 
-    # Update the global help_data variable with the loaded data
-    global help_data
-    help_data = loaded_data
+help_data_file = 'help_data.json'
+await generate_help_data(help_data_file)
+
 
 
 
