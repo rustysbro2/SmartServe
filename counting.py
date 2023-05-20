@@ -52,6 +52,8 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
+    bot.add_cog(Giveaway(bot))
+
 
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
