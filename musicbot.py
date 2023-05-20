@@ -60,7 +60,7 @@ class MusicBot(commands.Cog):
         except Exception as e:
             logging.error(f"Error downloading or adding song to queue: {e}")
 
-    async def play_queue(self, voice_channel):
+   async def play_queue(self, voice_channel):
         queue = self.voice_queues[voice_channel]
         if queue.empty():
             return
@@ -83,11 +83,17 @@ class MusicBot(commands.Cog):
 
                 await asyncio.sleep(1)  # Check vote skip status every second
 
-        except Exception as e:
-            logging.error(f"Error playing song: {e}")
+            # Check if the queue is still empty after stopping the song
+            if not queue.empty():
+                await self.play_queue(voice_channel)  # Play the next song in the queue
 
-        # Play the next song in the queue
-        await self.play_queue(voice_channel)
+        except Exception as e:
+            print(f"Error playing song: {e}")
+
+        # Play the next song in the queue if the queue is not empty
+        if not queue.empty():
+            await self.play_queue(voice_channel)
+
 
     async def check_queue(self, voice_channel):
         queue = self.voice_queues[voice_channel]
