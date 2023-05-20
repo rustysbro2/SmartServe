@@ -33,7 +33,8 @@ default_data = {
 }
 
 # Add your extension names here
-extensions = ['MusicBot', 'giveaway', 'tracking']
+extensions = ['musicbot', 'giveaway', 'tracking']
+
 
 bot.load_extension('counting')
 
