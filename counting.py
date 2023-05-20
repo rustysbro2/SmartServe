@@ -11,7 +11,7 @@ from musicbot import MusicBot
 
 
 
-
+bot.remove_command('help')
 tracemalloc.start()
 
 
