@@ -80,7 +80,7 @@ async def on_ready():
 
 
 
-@bot.command()
+@@bot.command()
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
@@ -89,15 +89,11 @@ async def help(ctx, command_name: str = None):
     if command_name is None:
         for cmd in bot.commands:
             if not cmd.hidden:
-                usage = get_command_usage(cmd)
-                example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"`{usage}`\nExample: {example}", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=f"Usage: !{cmd.name}", inline=False)
     else:
         cmd = bot.get_command(command_name)
         if cmd and not cmd.hidden:
-            usage = get_command_usage(cmd)
-            example = generate_command_example(cmd)
-            embed.add_field(name=f"**{cmd.name}**", value=f"`{usage}`\nExample: {example}", inline=False)
+            embed.add_field(name=f"**{cmd.name}**", value=f"Usage: !{cmd.name}", inline=False)
         else:
             embed.description = f"No information found for command: `{command_name}`"
 
