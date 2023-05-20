@@ -117,6 +117,7 @@ async def help(ctx, command_name: str = None):
             if embed.fields:
                 embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing before the cog header
             embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
+            embed.color = discord.Color.random()  # Set a random color for cog headers
 
         for command in commands:
             if not command.hidden:
