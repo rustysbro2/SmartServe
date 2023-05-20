@@ -1,21 +1,25 @@
 import discord
 from discord.ext import commands
 import youtube_dl
+import youtube_dl.utils
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.voice_client = None
 
+    def debug_logger(self, message):
+        print(message)  # Debug output for youtube_dl
+
+    def debug_progress_hook(self, progress):
+        print(progress)  # Progress updates for youtube_dl
+
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        try:
-            if self.voice_client is not None and self.voice_client.is_connected() and len(self.voice_client.channel.members) == 1:
-                # Only bot remains in the voice channel
-                await self.voice_client.disconnect()
-                self.voice_client = None
-        except Exception as e:
-            print(f"An error occurred in on_voice_state_update: {e}")
+        if self.voice_client is not None and self.voice_client.is_connected() and len(self.voice_client.channel.members) == 1:
+            # Only bot remains in the voice channel
+            await self.voice_client.disconnect()
+            self.voice_client = None
 
     @commands.command()
     async def play(self, ctx, url):
@@ -47,25 +51,14 @@ class MusicBot(commands.Cog):
 
             self.voice_client.play(discord.FFmpegPCMAudio(audio_url))
             await ctx.send("Now playing: " + info['title'])
-        except youtube_dl.DownloadError:
+        except youtube_dl.utils.DownloadError:
             await ctx.send("Failed to load the video. Please provide a valid YouTube URL.")
-        except youtube_dl.ExtractorError:
+        except youtube_dl.utils.ExtractorError:
             await ctx.send("Failed to extract the audio from the video. Please try again later.")
         except discord.errors.ClientException:
             await ctx.send("Failed to play the audio. Please make sure I have the necessary permissions.")
         except Exception as e:
             await ctx.send(f"An error occurred while playing the video: {e}")
-
-    def debug_logger(self, message):
-        print(message)
-
-    def debug_progress_hook(self, data):
-        if data['status'] == 'downloading':
-            print(f"Downloading: {data['filename']} [{data['_percent_str']}]")
-        elif data['status'] == 'finished':
-            print(f"Download completed: {data['filename']}")
-        elif data['status'] == 'error':
-            print(f"Error while downloading: {data['filename']}")
 
     @commands.command()
     async def pause(self, ctx):
