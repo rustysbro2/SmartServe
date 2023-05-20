@@ -88,32 +88,7 @@ def get_command_usage(command):
     return f"{signature} {usage}"
 
 
-async def generate_help_data(help_data_file):
-    print("Generating help data...")
-    help_data = {}
 
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        print(f"Extension: {extension}, Cog: {ext}")
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-
-    try:
-        with open(help_data_file, 'w') as f:
-            json.dump(help_data, f, indent=4)
-
-        print("Help data generated successfully.")
-    except Exception as e:
-        print(f"Error generating help data: {e}")
-
-    # Debug lines to verify file path, existence, and size
-    print(f"Current working directory: {os.getcwd()}")
-    print(f"File exists: {os.path.exists(help_data_file)}")
-    print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
 
 @bot.event
@@ -158,34 +133,61 @@ async def on_ready():
 
 @bot.command()
 async def help(ctx, command_name: str = None):
-    try:
-        with open('help_data.json', 'r') as f:
-            help_data = json.load(f)
-        print(f"Help data loaded: {help_data}")
-    except FileNotFoundError:
-        help_data = {}
-        print("Help data file not found.")
-
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     if command_name is None:
-        for cmd, usage in help_data.items():
-            example = usage['example']
-            value = f"`{usage['usage']}`\nExample: {example}" if example else f"`{usage['usage']}`"
-            embed.add_field(name=f"**{cmd}**", value=value, inline=False)
+        for extension in extensions:
+            ext = bot.get_cog(extension)
+            if ext:
+                for command in ext.get_commands():
+                    if not command.hidden:
+                        usage = get_command_usage(command)
+                        example = generate_command_example(command)
+                        value = f"`{usage}`\nExample: {example}" if example else f"`{usage}`"
+                        embed.add_field(name=f"**{command.name}**", value=value, inline=False)
     else:
-        usage = help_data.get(command_name)
-        if usage:
-            example = usage['example']
-            value = f"`{usage['usage']}`\nExample: {example}" if example else f"`{usage['usage']}`"
-            embed.add_field(name=f"**{command_name}**", value=value, inline=False)
-        else:
-            embed.description = f"No information found for command: `{command_name}`"
+        for extension in extensions:
+            ext = bot.get_cog(extension)
+            if ext:
+                command = ext.get_command(command_name)
+                if command and not command.hidden:
+                    usage = get_command_usage(command)
+                    example = generate_command_example(command)
+                    value = f"`{usage}`\nExample: {example}" if example else f"`{usage}`"
+                    embed.add_field(name=f"**{command.name}**", value=value, inline=False)
+                    break  # Stop searching after finding the command
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
+
+async def generate_help_data(help_data_file):
+    help_data = {}
+
+    for extension in extensions:
+        ext = bot.get_cog(extension)
+        if ext:
+            for command in ext.get_commands():
+                if not command.hidden:
+                    usage = get_command_usage(command)
+                    example = generate_command_example(command)
+                    help_data[command.name] = {'usage': usage, 'example': example}
+
+    try:
+        with open(help_data_file, 'w') as f:
+            json.dump(help_data, f, indent=4)
+
+        print("Help data generated successfully.")
+    except Exception as e:
+        print(f"Error generating help data: {e}")
+
+    # Debug lines to verify file path, existence, and size
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"File exists: {os.path.exists(help_data_file)}")
+    print(f"File size: {os.path.getsize(help_data_file)} bytes")
+
 
 
 
