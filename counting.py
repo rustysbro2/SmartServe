@@ -134,10 +134,13 @@ async def on_ready():
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
+        print("Help command called")
         with open('help_data.json', 'r') as f:
             help_data = json.load(f)
+        print("Help data loaded successfully")
     except FileNotFoundError:
         help_data = {}
+        print("Help data file not found")
 
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
@@ -158,6 +161,7 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+    print("Help command executed successfully")
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
