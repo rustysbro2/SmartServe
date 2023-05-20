@@ -157,20 +157,11 @@ async def help(ctx, command_name: str = None):
     for command in sorted_commands:
         if not command.hidden:
             usage = get_command_usage(command)
-            example = generate_command_example(command)
-
-            # Add the command name as a bold header
-            embed.add_field(name=f"**{command.name}**", value="", inline=False)
-
-            # Add the command usage in a code block
-            embed.add_field(name="Usage:", value=f"```\n{usage}\n```", inline=False)
-
-            # Add the example if available
-            if example:
-                embed.add_field(name="Example:", value=f"```\n{example}\n```", inline=False)
+            embed.add_field(name=f"**{command.name}**", value=f"`{usage}`", inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
