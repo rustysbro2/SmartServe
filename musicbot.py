@@ -2,6 +2,7 @@ import discord
 from discord.ext import commands
 import yt_dlp
 import os
+import unidecode
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
@@ -28,16 +29,16 @@ class MusicBot(commands.Cog):
         if not ctx.voice_client:
             return
 
-        # Specify the `format` parameter to download a lower quality audio format.
-        ydl_opts = {'format': 'bestaudio/best', 'outtmpl': 'downloads/%(title)s.%(ext)s'}
+        ydl_opts = {'format': 'bestaudio/best'}
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
                 filename = ydl.prepare_filename(info)
+                # Sanitize filename by replacing non-ASCII characters
+                filename = unidecode.unidecode(filename)
                 ctx.voice_client.play(discord.FFmpegPCMAudio(filename))
         except Exception as e:
             print(e)
-
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
