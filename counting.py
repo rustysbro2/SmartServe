@@ -36,7 +36,7 @@ default_data = {
 extensions = ['musicbot', 'giveaway', 'tracking']
 
 
-bot.load_extension('counting')
+
 
 # emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
@@ -135,9 +135,7 @@ async def on_ready():
             print(f"Failed to load extension '{extension}': {e}")
 
     await generate_help_data()
-    await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
-    await bot.add_cog(Tracking(bot))  # Add the Tracking cog
-    await bot.add_cog(MusicBot(bot))
+
 
 
 
