@@ -101,8 +101,9 @@ async def load_help_data():
         help_data = {}
     return help_data
 
-help_data = await load_help_data()
-print("Help data content:", help_data)  # Debug: Print the help data outside the function
+async def initialize_bot():
+    help_data = await load_help_data()
+    print("Help data content:", help_data)
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -309,5 +310,6 @@ async def on_message(message):
             ping_msg = await new_channel.send(message.author.mention)
             await ping_msg.delete()
 
+bot.loop.create_task(initialize_bot())
 
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
