@@ -108,7 +108,7 @@ class MusicBot(commands.Cog):
         else:
             await voice_client.channel.send("I am not currently connected to a voice channel.")
 
-    @commands.command()
+       @commands.command()
     async def vote_skip(self, ctx):
         if not ctx.voice_client or ctx.voice_client.channel not in self.voice_queues:
             await ctx.send("No song is currently playing.")
@@ -133,14 +133,16 @@ class MusicBot(commands.Cog):
                 await ctx.send("Vote skip successful. Skipping current song.")
                 ctx.voice_client.stop()
 
-                # Check if the current song is being skipped and remove it from the queue
-                if not self.voice_queues[voice_channel].empty():
-                    filename, _ = self.voice_queues[voice_channel].get_nowait()
+                # Remove the current song from the queue
+                queue = self.voice_queues[voice_channel]
+                if not queue.empty():
+                    filename, _ = await queue.get()
                     if filename == ctx.voice_client.source:
                         await ctx.send("Skipped song removed from the queue.")
             else:
                 votes_remaining = votes_needed - len(vote_skip_set)
                 await ctx.send(f"{votes_remaining} more vote(s) needed to skip the current song.")
+
 
     def delete_file(self, filename):
         try:
