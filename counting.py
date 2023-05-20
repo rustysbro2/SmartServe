@@ -119,11 +119,6 @@ async def generate_help_data(help_data_file):
     print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
 
-
-
-
-
-
 def generate_command_example(command):
     params = inspect.signature(command.callback).parameters.values()
     args = []
@@ -188,13 +183,13 @@ async def help(ctx, command_name: str = None):
             for cmd in sorted_cmds:
                 usage = get_command_usage(cmd)
                 example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}", inline=False)
         else:
             # Add commands without a cog
             for cmd in cogs[cog]:
                 usage = get_command_usage(cmd)
                 example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}", inline=False)
 
     if command_name:
         # Remove cog-specific sorting for specific command search
@@ -203,52 +198,12 @@ async def help(ctx, command_name: str = None):
         if cmd:
             usage = get_command_usage(cmd)
             example = generate_command_example(cmd)
-            embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
+            embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}", inline=False)
         else:
             embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
 
 
 @bot.command()
