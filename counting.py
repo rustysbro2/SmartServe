@@ -105,62 +105,27 @@ async def help(ctx, command_name: str = None):
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    # Get all the cogs and their commands
-    cogs = {}
-    for cmd in bot.commands:
-        if cmd.cog:
-            if cmd.cog not in cogs:
-                cogs[cmd.cog] = []
-            cogs[cmd.cog].append(cmd)
-        else:
-            if None not in cogs:
-                cogs[None] = []
-            cogs[None].append(cmd)
+    # Get all the commands sorted by cog name
+    sorted_commands = sorted(bot.commands, key=lambda c: c.cog_name or "")
 
-    # Sort the cogs alphabetically
-    sorted_cogs = sorted(cogs.keys(), key=lambda c: c.__class__.__name__)
+    for command in sorted_commands:
+        if not command.hidden:
+            usage = get_command_usage(command)
+            example = generate_command_example(command)
 
-    for cog in sorted_cogs:
-        if cog:
-            # Add cog name as a field
-            embed.add_field(name=f"**{cog.__class__.__name__}**", value="", inline=False)
+            # Add the command name as a bold header
+            embed.add_field(name=f"**{command.name}**", value="", inline=False)
 
-            # Sort commands within the cog alphabetically
-            sorted_cmds = sorted(cogs[cog], key=lambda c: c.name)
+            # Add the command usage in a code block
+            embed.add_field(name="Usage:", value=f"```\n{usage}\n```", inline=False)
 
-            # Add commands for the cog
-            for cmd in sorted_cmds:
-                usage = get_command_usage(cmd)
-                example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n```{example}```", inline=False)
-        else:
-            # Add commands without a cog
-            for cmd in cogs[cog]:
-                usage = get_command_usage(cmd)
-                example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n```{example}```", inline=False)
-
-    if command_name:
-        # Remove cog-specific sorting for specific command search
-        embed.clear_fields()
-        cmd = bot.get_command(command_name)
-        if cmd:
-            usage = get_command_usage(cmd)
-            example = generate_command_example(cmd)
-            embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n```{example}```", inline=False)
-        else:
-            embed.description = f"No information found for command: `{command_name}`"
+            # Add the example if available
+            if example:
+                embed.add_field(name="Example:", value=f"```\n{example}\n```", inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
 
-            example = generate_command_example(cmd)
-            embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
-        else:
-            embed.description = f"No information found for command: `{command_name}`"
-
-    embed.set_footer(text="For more information, contact the bot owner.")
-    await ctx.send(embed=embed)
 
 
 
