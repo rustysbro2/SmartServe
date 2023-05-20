@@ -11,6 +11,7 @@ extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+bot.add_cog(Giveaway(bot))
 
 
 
@@ -63,10 +64,6 @@ async def on_ready():
             print(f"Extension '{extension}' loaded successfully.")
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
-
-    # Add the Giveaway cog
-    bot.add_cog(Giveaway(bot))
-    print("Giveaway cog loaded successfully.")
 
 
 @bot.command()
