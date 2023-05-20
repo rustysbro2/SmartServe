@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import pytube
+import youtube_dl
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
@@ -28,19 +28,25 @@ class MusicBot(commands.Cog):
             self.voice_client = await channel.connect()
 
         try:
-            video = pytube.YouTube(url)
-            audio_stream = video.streams.filter(only_audio=True).first()
-            audio_url = audio_stream.url
+            ydl_opts = {
+                'format': 'bestaudio/best',
+                'postprocessors': [{
+                    'key': 'FFmpegExtractAudio',
+                    'preferredcodec': 'mp3',
+                    'preferredquality': '192',
+                }],
+            }
+            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=False)
+                audio_url = info['formats'][0]['url']
 
             if self.voice_client.is_playing():
                 self.voice_client.stop()
 
             self.voice_client.play(discord.FFmpegPCMAudio(audio_url))
-            await ctx.send("Now playing: " + video.title)
-        except pytube.exceptions.VideoUnavailable:
-            await ctx.send("Failed to load the video. The video is unavailable.")
-        except pytube.exceptions.ExtractError:
-            await ctx.send("Failed to load the video. Error occurred during extraction.")
+            await ctx.send("Now playing: " + info['title'])
+        except youtube_dl.DownloadError:
+            await ctx.send("Failed to load the video. Please provide a valid YouTube URL.")
         except Exception as e:
             await ctx.send(f"An error occurred while playing the video: {e}")
 
@@ -64,3 +70,10 @@ class MusicBot(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
+
+# Create a bot instance and add the MusicBot cog
+bot = commands.Bot(command_prefix='!')
+bot.add_cog(MusicBot(bot))
+
+# Run the bot
+
