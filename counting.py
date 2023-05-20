@@ -127,7 +127,7 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
-    await generate_help_data()  # Generate the help data
+    bot.loop.create_task(generate_help_data())
 
     for extension in extensions:
         try:
