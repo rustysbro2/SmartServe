@@ -98,16 +98,6 @@ def get_command_usage(command):
     usage = " ".join(params_str)
     return f"{signature} {usage}"
 
-# ...
-
-
-
-
-
-
-
-
-
 
 @bot.command()
 async def help(ctx, command_name: str = None):
@@ -141,10 +131,29 @@ async def help(ctx, command_name: str = None):
             # Add commands for the cog
             for cmd in sorted_cmds:
                 usage = get_command_usage(cmd)
-                embed.add_field(name=f"**!{cmd.name}**", value=f"```{usage}```", inline=False)
+                example = generate_command_example(cmd)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
         else:
             # Add commands without a cog
             for cmd in cogs[cog]:
+                usage = get_command_usage(cmd)
+                example = generate_command_example(cmd)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
+
+    if command_name:
+        # Remove cog-specific sorting for specific command search
+        embed.clear_fields()
+        cmd = bot.get_command(command_name)
+        if cmd:
+            usage = get_command_usage(cmd)
+            example = generate_command_example(cmd)
+            embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```\n{example}", inline=False)
+        else:
+            embed.description = f"No information found for command: `{command_name}`"
+
+    embed.set_footer(text="For more information, contact the bot owner.")
+    await ctx.send(embed=embed)
+
 
 
 
