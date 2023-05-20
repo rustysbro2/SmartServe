@@ -102,6 +102,7 @@ async def load_help_data():
     return help_data
 
 async def initialize_bot():
+    await bot.wait_until_ready()  # Wait for the bot to be ready
     help_data = await load_help_data()
     print("Help data content:", help_data)
 
@@ -310,6 +311,6 @@ async def on_message(message):
             ping_msg = await new_channel.send(message.author.mention)
             await ping_msg.delete()
 
-bot.loop.create_task(initialize_bot())
-
+loop = asyncio.get_event_loop()
+loop.create_task(initialize_bot())
 bot.run('MTEwNTU5ODczNjU1MTM4NzI0Nw.G-i9vg.q3zXGRKAvdtozwU0JzSpWCSDH1bfLHvGX801RY')
