@@ -2,7 +2,6 @@ const discord = require('discord.js');
 const { Client, Intents } = require('discord.js');
 const fs = require('fs');
 const { promisify } = require('util');
-const tracemalloc = require('tracemalloc');
 const random = require('random');
 const giveaway = require('./giveaway');
 const tracking = require('./tracking');
