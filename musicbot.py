@@ -20,14 +20,15 @@ class MusicBot(commands.Cog):
 
     @commands.command()
     async def leave(self, ctx):
-        if ctx.voice_client and ctx.voice_client.channel:
-            if len(ctx.voice_client.channel.members) > 1:
+        voice_channel = ctx.voice_client.channel
+        if ctx.voice_client and voice_channel:
+            if len(voice_channel.members) > 1:
                 await ctx.send("There are still users in the voice channel. I will not leave.")
             else:
                 await ctx.voice_client.disconnect()
-                if ctx.voice_client.channel in self.voice_queues:
-                    del self.voice_queues[ctx.voice_client.channel]
-                    del self.vote_skip[ctx.voice_client.channel]
+                if voice_channel in self.voice_queues:
+                    del self.voice_queues[voice_channel]
+                    del self.vote_skip[voice_channel]
                 await ctx.send("Leaving voice channel.")
         else:
             await ctx.send("I am not currently connected to a voice channel.")
@@ -66,7 +67,7 @@ class MusicBot(commands.Cog):
         voice_client = voice_channel.guild.voice_client
         try:
             voice_client.play(discord.FFmpegPCMAudio(filename), after=lambda e: self.bot.loop.create_task(self.check_queue(voice_channel, text_channel)))
-            
+
             queue_size = queue.qsize() + 1  # Add 1 for the current song
             await text_channel.send(f"Now playing: {filename} (requested by {requester})\nQueue size: {queue_size} song(s)")
 
@@ -77,14 +78,15 @@ class MusicBot(commands.Cog):
 
                 await asyncio.sleep(1)  # Check vote skip status every second
 
+            await self.check_queue(voice_channel, text_channel)  # Play the next song in the queue
+
         except Exception as e:
             print(e)
 
     async def check_queue(self, voice_channel, text_channel):
         queue = self.voice_queues[voice_channel]
         if queue.empty():
-            if voice_channel.guild.voice_client:
-                await self.leave(voice_channel)
+            await self.leave(voice_channel.guild.voice_client)
             return
 
         await self.play_queue(voice_channel)
@@ -116,12 +118,6 @@ class MusicBot(commands.Cog):
             else:
                 votes_remaining = votes_needed - len(vote_skip_set)
                 await ctx.send(f"{votes_remaining} more vote(s) needed to skip the current song.")
-
-    def delete_file(self, filename):
-        try:
-            os.remove(filename)
-        except Exception as e:
-            print(f"Error deleting file: {e}")
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
