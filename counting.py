@@ -118,7 +118,6 @@ async def generate_help_data():
 
 
 
-
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
@@ -144,7 +143,7 @@ async def on_ready():
 
     for extension in extensions:
         try:
-            bot.load_extension(extension)  # Load the extension
+            await bot.load_extension(extension)  # Load the extension
             print(f"Extension '{extension}' loaded successfully.")
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
@@ -152,6 +151,7 @@ async def on_ready():
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
+
 
 
 
