@@ -70,10 +70,3 @@ class MusicBot(commands.Cog):
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
-
-# Create a bot instance and add the MusicBot cog
-bot = commands.Bot(command_prefix='!')
-bot.add_cog(MusicBot(bot))
-
-# Run the bot
-
