@@ -81,11 +81,11 @@ class MusicBot(commands.Cog):
         except Exception as e:
             print(e)
 
- async def check_queue(self, voice_channel):
+async def check_queue(self, voice_channel):
     queue = self.voice_queues[voice_channel]
     if queue.empty():
-        if self.voice_client is not None:
-            await self.leave()
+        if self.voice_client is None:
+            await self.join(voice_channel)
         return
 
     await self.play_queue(voice_channel)
