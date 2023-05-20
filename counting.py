@@ -106,25 +106,34 @@ async def help(ctx, command_name: str = None):
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     # Get all the commands sorted by cog name
-    sorted_commands = sorted(bot.commands, key=lambda c: c.cog_name or "")
+    sorted_cogs = sorted(bot.cogs.keys())
 
-    for command in sorted_commands:
-        if not command.hidden:
-            usage = get_command_usage(command)
-            example = generate_command_example(command)
+    for cog_name in sorted_cogs:
+        cog = bot.get_cog(cog_name)
+        commands = cog.get_commands() if cog else bot.commands
 
-            # Add the command name as a bold header
-            embed.add_field(name=f"**{command.name}**", value="", inline=False)
+        # Add cog header
+        if cog:
+            embed.add_field(name=f"**{cog_name}**", value="", inline=False)
 
-            # Add the command usage in a code block
-            embed.add_field(name="Usage:", value=f"`{usage}`", inline=False)
+        for command in commands:
+            if not command.hidden:
+                usage = get_command_usage(command)
+                example = generate_command_example(command)
 
-            # Add the example if available
-            if example:
-                embed.add_field(name="Example:", value=f"`{example}`", inline=False)
+                # Add the command name in bold
+                embed.add_field(name=f"**{command.name}**", value="", inline=False)
+
+                # Add the command usage in a code block
+                embed.add_field(name="Usage:", value=f"```{usage}```", inline=False)
+
+                # Add the example if available
+                if example:
+                    embed.add_field(name="Example:", value=f"```{example}```", inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
