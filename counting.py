@@ -78,19 +78,31 @@ async def generate_help_data():
     for extension in extensions:
         ext = bot.get_cog(extension)
         if ext:
-            print(f"Processing extension: {extension}")  # Debug: Print the current extension being processed
             for command in ext.get_commands():
                 if not command.hidden:
                     usage, example = get_command_usage(command)
-                    print(f"Processing command: {command.name}")  # Debug: Print the current command being processed
                     help_data[command.name] = {'usage': usage, 'example': example}
 
-    print("Generated help data:", help_data)  # Debug: Print the generated help_data dictionary
+    print("Generated help data:", help_data)  # Debug: Print the generated help data
 
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
 
     print("Help data generated successfully.")
+
+async def load_help_data():
+    try:
+        with open('help_data.json', 'r') as f:
+            help_data = json.load(f)
+        print("Help data loaded successfully")
+        print("Help data content:", help_data)  # Debug: Print the loaded help data
+    except FileNotFoundError:
+        help_data = {}
+    return help_data
+
+help_data = await load_help_data()
+print("Help data content:", help_data)  # Debug: Print the help data outside the function
+
 
 
 @bot.event
