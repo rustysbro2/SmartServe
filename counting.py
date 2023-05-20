@@ -90,7 +90,7 @@ async def help(ctx, command_name: str = None):
         command_list = []
         for cmd in bot.commands:
             if not cmd.hidden:
-                command_list.append(f"{prefix}{cmd.name}")
+                command_list.append(f"**{prefix}{cmd.name}**")
         if command_list:
             embed.add_field(name="Commands", value="\n".join(command_list), inline=False)
         else:
@@ -98,12 +98,19 @@ async def help(ctx, command_name: str = None):
     else:
         cmd = bot.get_command(command_name)
         if cmd and not cmd.hidden:
-            embed.add_field(name=f"{prefix}{cmd.name}", value=cmd.description or "No description provided", inline=False)
+            usage = get_command_usage(cmd)
+            example = generate_command_example(cmd)
+            embed.add_field(
+                name=f"**{prefix}{cmd.name}**",
+                value=f"**Usage:** `{usage}`\n**Example:** `{example}`",
+                inline=False
+            )
         else:
             embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
     
