@@ -114,6 +114,8 @@ async def help(ctx, command_name: str = None):
 
         if cog:
             # Add cog header with a different color and spacing
+            if embed.fields:
+                embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing before the cog header
             embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
 
         for command in commands:
@@ -132,6 +134,7 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
