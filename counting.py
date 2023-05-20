@@ -9,11 +9,7 @@ from giveaway import Giveaway
 from tracking import Tracking  # Import the Tracking class
 from musicbot import MusicBot
 
-
-
-
 tracemalloc.start()
-
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -36,29 +32,28 @@ default_data = {
 # Add your extension names here
 extensions = ['musicbot', 'giveaway', 'tracking']
 
-
-
-
 # emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
 trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
-
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send('Invalid command.')
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send('You missed some required arguments.')
-    else:
-        raise error
-
 
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
             json.dump({}, f, indent=4)
 
+def generate_command_example(command):
+    params = inspect.signature(command.callback).parameters.values()
+    args = []
 
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is param.empty:
+                args.append(f"<{param.name}>")
+            else:
+                args.append(f"[{param.name}]")
+
+    example = f"!{command.name} {' '.join(args)}"
+    return example
 
 def get_command_usage(command):
     signature = f"!{command.name}"
@@ -75,22 +70,35 @@ def get_command_usage(command):
     usage = " ".join(params_str)
     return f"{signature} {usage}"
 
-def generate_command_example(command):
-    params = inspect.signature(command.callback).parameters.values()
-    args = []
+async def generate_help_data():
+    help_data = {}
 
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is param.empty:
-                args.append(f"<{param.name}>")
-            else:
-                args.append(f"[{param.name}]")
+    for extension in extensions:
+        ext = bot.get_cog(extension)
+        print(f"Extension: {extension}, Cog: {ext}")
+        if ext:
+            for command in ext.get_commands():
+                if not command.hidden:
+                    usage = get_command_usage(command)
+                    example = generate_command_example(command)
+                    help_data[command.name] = {'usage': usage, 'example': example}
 
-    example = f"!{command.name} {' '.join(args)}"
-    return example
+    try:
+        with open('help_data.json', 'w') as f:
+            json.dump(help_data, f, indent=4)
 
+        print("Help data generated successfully.")
+    except Exception as e:
+        print(f"Error generating help data: {e}")
 
-
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send('Invalid command.')
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('You missed some required arguments.')
+    else:
+        raise error
 
 @bot.event
 async def on_ready():
@@ -125,6 +133,11 @@ async def on_ready():
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
+
+...
+
+# Rest of your code
+
 
 
 
