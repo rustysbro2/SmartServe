@@ -1,4 +1,3 @@
-
 import discord
 from discord.ext import commands
 import os
@@ -18,11 +17,11 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 bot.remove_command('help')
 
-# the file where we will save our data
+# File paths
 data_file = 'count_data.json'
-help_data_file = 'help_data.json'  # File to store the help data
+help_data_file = 'help_data.json'
 
-# the expected keys and their default values
+# Default data values
 default_data = {
     'channel_id': None,
     'count': 0,
@@ -34,28 +33,18 @@ default_data = {
     'successful_counts': 0
 }
 
-# Add your extension names here
+# List of extensions
 extensions = ['musicbot', 'giveaway', 'tracking']
 
-# emojis lists
+# Emojis
 check_mark_emojis = ['✅', '☑️', '✔️']
 trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
-
-
 
 
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
             json.dump({}, f, indent=4)
-
-
-
-
-
-
-
-
 
 
 @bot.event
@@ -66,12 +55,6 @@ async def on_ready():
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
-
-
-
-
-
-
 
 
 async def generate_help_data(help_data_file):
@@ -118,6 +101,7 @@ async def generate_help_data(help_data_file):
     print(f"File exists: {os.path.exists(help_data_file)}")
     print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
+
 def generate_command_example(command):
     params = inspect.signature(command.callback).parameters.values()
     args = []
@@ -153,7 +137,7 @@ def get_command_usage(command):
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
-    embed.description = "Welcome to the Bot Help!\nHere are the available commands:\n\n"
+    embed.description = "Welcome to the Bot Help!\nHere are the available commands:\n"
 
     # Get all the cogs and their commands
     cogs = {}
