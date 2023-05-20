@@ -3,6 +3,9 @@ from discord.ext import commands
 import yt_dlp
 import os
 import asyncio
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
