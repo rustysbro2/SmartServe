@@ -6,26 +6,26 @@ class MusicBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(pass_context=True)
-    async def play(self, ctx, url: str):
-        # Connect to voice channel
-        channel = ctx.message.author.voice.channel
-        voice_channel = await channel.connect()
+    @commands.command()
+    async def join(self, ctx):
+        channel = ctx.author.voice.channel
+        await channel.connect()
 
-        # Download audio file
-        ydl_opts = {'format': 'bestaudio'}
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    @commands.command()
+    async def leave(self, ctx):
+        if ctx.voice_client:
+            await ctx.voice_client.disconnect()
+
+    @commands.command()
+    async def play(self, ctx, url):
+        if not ctx.voice_client:
+            await ctx.invoke(self.bot.get_command("join"))
+        
+        with youtube_dl.YoutubeDL({'format': 'bestaudio', 'noplaylist':'True'}) as ydl:
             info = ydl.extract_info(url, download=False)
             url2 = info['formats'][0]['url']
-            voice_channel.play(discord.FFmpegPCMAudio(executable="ffmpeg.exe", source=url2))
+            ctx.voice_client.play(discord.FFmpegPCMAudio(url2))
 
-    @commands.command(pass_context=True)
-    async def leave(self, ctx):
-        voice_client = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
-        if voice_client and voice_client.is_connected():
-            await voice_client.disconnect()
-        else:
-            await ctx.send("I'm not in a voice channel.")
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
