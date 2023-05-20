@@ -118,6 +118,9 @@ async def initialize_bot():
     await generate_help_data()  # Move the generate_help_data() call here
 
 
+
+
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
@@ -147,15 +150,6 @@ async def on_ready():
 
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
-
-    for extension in extensions:
-        try:
-            bot.load_extension(extension)  # Load the extension
-            print(f"Extension '{extension}' loaded successfully.")
-        except commands.ExtensionError as e:
-            print(f"Failed to load extension '{extension}': {e}")
-
-    await generate_help_data()  # Move the generate_help_data() call here
 
   
 @bot.command()
