@@ -73,7 +73,7 @@ def generate_command_example(command):
 
 def get_command_usage(command):
     signature = f"!{command.name}"
-    params = inspect.signature(command.callback).parameters.values()
+    params = inspect.signature(command.callback.__wrapped__).parameters.values()
     params_str = []
 
     for param in params:
@@ -84,7 +84,9 @@ def get_command_usage(command):
                 params_str.append(f"<{param.name}>")
 
     usage = " ".join(params_str)
-    return f"{signature} {usage}"
+    example = f"!{command.name} {' '.join(params_str)}"
+    return f"{signature} {usage}", example
+
 
 
 async def generate_help_data():
@@ -176,16 +178,16 @@ async def help(ctx, command_name: str = None):
             value = f"`{usage['usage']}`\nExample: {example}" if example else f"`{usage['usage']}`"
             embed.add_field(name=f"**{cmd}**", value=value, inline=False)
     else:
-        usage = help_data.get(command_name)
+        usage, example = help_data.get(command_name, {}).values()
         if usage:
-            example = usage['example']
-            value = f"`{usage['usage']}`\nExample: {example}" if example else f"`{usage['usage']}`"
+            value = f"`{usage}`\nExample: `{example}`" if example else f"`{usage}`"
             embed.add_field(name=f"**{command_name}**", value=value, inline=False)
         else:
             embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
