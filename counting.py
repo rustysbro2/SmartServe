@@ -226,7 +226,7 @@ async def on_message(message):
     if not data:
         return
 
-    if message.channel.id == data.get('channel_id'):
+if message.channel.id == data.get('channel_id'):
     fail_reason = ""
     increment_changed = False  # Initialize increment_changed as False
 
@@ -262,10 +262,7 @@ async def on_message(message):
     except Exception:
         fail_reason = "The text you entered is not a valid mathematical expression."
 
-    if fail_reason:
-        # Rest of the code
-
-
+ 
         if fail_reason:
             print('Fail reason:', fail_reason)
             await message.add_reaction('❌')
