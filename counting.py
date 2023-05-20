@@ -144,6 +144,7 @@ async def generate_help_data(help_data_file):
 
 
 
+
 @bot.command()
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
@@ -161,7 +162,7 @@ async def help(ctx, command_name: str = None):
             # Add cog header with a different color and spacing
             if embed.fields:
                 embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing before the cog header
-            embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
+            embed.add_field(name=f"\u200b{cog_name}", value="\u200b", inline=False)
             embed.color = discord.Color.random()  # Set a random color for cog headers
 
         for command in commands:
@@ -180,7 +181,6 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
-
 
 
 
