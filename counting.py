@@ -15,13 +15,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 
 
-
-bot.add_cog(Giveaway(bot))
-bot.add_cog(Tracking(bot))
-bot.add_cog(MusicBot(bot))
-
-
-
 # the file where we will save our data
 data_file = 'count_data.json'
 
@@ -99,6 +92,11 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
+
+bot.add_cog(Giveaway(bot))
+bot.add_cog(Tracking(bot))
+bot.add_cog(MusicBot(bot))
 
 def get_command_usage(command):
     signature = f"!{command.name}"
