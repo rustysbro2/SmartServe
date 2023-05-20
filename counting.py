@@ -1,24 +1,3 @@
-async def generate_help_data():
-    help_data = {}
-
-    for cog_name, cog in bot.cogs.items():
-        commands_list = []
-        for command in cog.get_commands():
-            if not command.hidden:
-                usage, example = get_command_usage(command)
-                commands_list.append({
-                    'name': command.name,
-                    'usage': usage,
-                    'example': example
-                })
-
-        if commands_list:
-            help_data[cog_name] = commands_list
-
-    with open('help_data.json', 'w') as f:
-        json.dump(help_data, f, indent=4)
-
-    print("Help data generated successfully.")
 import discord
 from discord.ext import commands
 import os
@@ -26,11 +5,7 @@ import json
 import inspect
 import tracemalloc
 import random
-from giveaway import Giveaway
-from tracking import Tracking
-from musicbot import MusicBot
 import asyncio
-
 
 tracemalloc.start()
 
@@ -96,7 +71,6 @@ def get_command_usage(command):
     example = f"!{command.name} {' '.join(params_str)}"
     return f"{signature} {usage}", example
 
-
 async def generate_help_data():
     help_data = {}
 
@@ -119,12 +93,6 @@ async def generate_help_data():
 
     print("Help data generated successfully.")
 
-
-
-
-
-
-
 async def load_help_data():
     try:
         with open('help_data.json', 'r') as f:
@@ -136,8 +104,6 @@ async def load_help_data():
     return help_data
 
 async def initialize_bot():
-    await bot.wait_until_ready()  # Wait for the bot to be ready
-
     for extension in extensions:
         try:
             bot.load_extension(extension)  # Load the extension
@@ -147,9 +113,7 @@ async def initialize_bot():
 
     await generate_help_data()  # Move the generate_help_data() call here
 
-
-
-
+    await bot.wait_until_ready()  # Wait for the bot to be ready
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -181,13 +145,11 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
-  
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
         print("Help command called")
-        with open('help_data.json', 'r') as f:
-            help_data = json.load(f)
+        help_data = await load_help_data()
         print("Help data loaded successfully")
         print("Help data content:", help_data)  # Debug: Print the content of help_data
     except FileNotFoundError:
