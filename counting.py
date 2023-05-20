@@ -134,28 +134,8 @@ def get_command_usage(command):
     return f"```{signature} {usage}```\n{example}"
 
 
-@bot.command()
-async def help(ctx, command_name: str = None):
-    embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
-    embed.set_thumbnail(url=bot.user.avatar.url)
-    embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    for command in bot.commands:
-        if not command.hidden:
-            usage = get_command_usage(command)
-            embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
 
-    if command_name:
-        cmd = bot.get_command(command_name)
-        if cmd:
-            usage = get_command_usage(cmd)
-            embed.clear_fields()
-            embed.add_field(name=f"**{cmd.name}**", value=f"```{usage}```", inline=False)
-        else:
-            embed.description = f"No information found for command: `{command_name}`"
-
-    embed.set_footer(text="For more information, contact the bot owner.")
-    await ctx.send(embed=embed)
 
 
 
