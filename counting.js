@@ -2,7 +2,7 @@ const Discord = require("discord.js");
 
 const bot = new Discord.Client();
 
-bot.slashCommands = Discord.SlashCommands(bot);
+bot.slashCommands = new Discord.SlashCommands(bot);
 
 bot.on("ready", () => {
   console.log("Bot is ready!");
