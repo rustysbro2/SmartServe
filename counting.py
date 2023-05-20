@@ -40,14 +40,6 @@ extensions = ['musicbot', 'giveaway', 'tracking']
 check_mark_emojis = ['✅', '☑️', '✔️']
 trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
 
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send('Invalid command.')
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send('You missed some required arguments.')
-    else:
-        raise error
 
 
 
@@ -60,32 +52,7 @@ def ensure_data_file_exists():
 
 
 
-async def generate_help_data(help_data_file):
-    print("Generating help data...")
-    help_data = {}
 
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        print(f"Extension: {extension}, Cog: {ext}")
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-
-    try:
-        with open(help_data_file, 'w') as f:
-            json.dump(help_data, f, indent=4)
-
-        print("Help data generated successfully.")
-    except Exception as e:
-        print(f"Error generating help data: {e}")
-
-    # Debug lines to verify file path, existence, and size
-    print(f"Current working directory: {os.getcwd()}")
-    print(f"File exists: {os.path.exists(help_data_file)}")
-    print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
 
 
@@ -93,23 +60,7 @@ async def generate_help_data(help_data_file):
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
-    ensure_data_file_exists()
-
-    with open(data_file, 'r') as f:
-        all_data = json.load(f)
-
-    for guild in bot.guilds:
-        guild_id = str(guild.id)
-        if guild_id not in all_data:
-            all_data[guild_id] = default_data.copy()
-        else:
-            existing_data = all_data[guild_id]
-            for key, value in default_data.items():
-                if key not in existing_data:
-                    existing_data[key] = value
-
-    with open(data_file, 'w') as f:
-        json.dump(all_data, f, indent=4)
+    await bot.change_presence(activity=discord.Game(name="with commands"))
 
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
@@ -137,60 +88,22 @@ async def help(ctx, command_name: str = None):
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     if command_name is None:
-        for extension in extensions:
-            ext = bot.get_cog(extension)
-            if ext:
-                for command in ext.get_commands():
-                    if not command.hidden:
-                        usage = get_command_usage(command)
-                        example = generate_command_example(command)
-                        value = f"`{usage}`\nExample: {example}" if example else f"`{usage}`"
-                        embed.add_field(name=f"**{command.name}**", value=value, inline=False)
+        for cmd in bot.commands:
+            if not cmd.hidden:
+                usage = get_command_usage(cmd)
+                example = generate_command_example(cmd)
+                embed.add_field(name=f"**{cmd.name}**", value=f"`{usage}`\nExample: {example}", inline=False)
     else:
-        for extension in extensions:
-            ext = bot.get_cog(extension)
-            if ext:
-                command = ext.get_command(command_name)
-                if command and not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    value = f"`{usage}`\nExample: {example}" if example else f"`{usage}`"
-                    embed.add_field(name=f"**{command.name}**", value=value, inline=False)
-                    break  # Stop searching after finding the command
+        cmd = bot.get_command(command_name)
+        if cmd and not cmd.hidden:
+            usage = get_command_usage(cmd)
+            example = generate_command_example(cmd)
+            embed.add_field(name=f"**{cmd.name}**", value=f"`{usage}`\nExample: {example}", inline=False)
+        else:
+            embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
-
-
-def generate_command_example(command):
-    params = inspect.signature(command.callback).parameters.values()
-    args = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is param.empty:
-                args.append(f"<{param.name}>")
-            else:
-                args.append(f"[{param.name}]")
-
-    example = f"!{command.name} {' '.join(args)}"
-    return example
-
-
-def get_command_usage(command):
-    signature = f"!{command.name}"
-    params = inspect.signature(command.callback).parameters.values()
-    params_str = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is not param.empty:
-                params_str.append(f"[{param.name}]")
-            else:
-                params_str.append(f"<{param.name}>")
-
-    usage = " ".join(params_str)
-    return f"{signature} {usage}"
 
 
 
