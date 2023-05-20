@@ -92,6 +92,7 @@ async def generate_help_data():
     except Exception as e:
         print(f"Error generating help data: {e}")
 
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
@@ -122,6 +123,8 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
+    await generate_help_data()  # Generate help data
+
     for extension in extensions:
         try:
             bot.load_extension(extension)  # Load the extension
@@ -133,9 +136,8 @@ async def on_ready():
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
-    await generate_help_data()  # Generate help data
-
     print("Extensions and cogs loaded successfully.")
+
 
 
 ...
