@@ -62,6 +62,10 @@ class MusicBot(commands.Cog):
             voice_client.play(discord.FFmpegPCMAudio(filename), after=lambda e: self.bot.loop.create_task(self.check_queue(voice_channel)))
             await voice_channel.send(f"Now playing: {filename} (requested by {requester})")
 
+            queue_size = queue.qsize()
+            if queue_size > 1:
+                await voice_channel.send(f"Queue size: {queue_size} song(s)")
+
             while voice_client.is_playing() or voice_client.is_paused():
                 if voice_channel in self.vote_skip and len(self.vote_skip[voice_channel]) >= (len(voice_channel.members) // 2) + 1:
                     voice_client.stop()
