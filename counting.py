@@ -88,6 +88,8 @@ def get_command_usage(command):
     return f"{signature} {usage}"
 
 
+# ...
+
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
@@ -120,7 +122,11 @@ async def on_ready():
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
-    await generate_help_data()
+    await generate_help_data(help_data_file)
+
+# ...
+
+
 
 
 async def generate_help_data(help_data_file):
