@@ -61,7 +61,7 @@ def generate_command_example(command):
 
 def get_command_usage(command):
     signature = f"!{command.name}"
-    params = inspect.signature(command.callback.__wrapped__).parameters.values()
+    params = inspect.signature(command.callback).parameters.values()
     params_str = []
 
     for param in params:
@@ -74,6 +74,7 @@ def get_command_usage(command):
     usage = " ".join(params_str)
     example = f"!{command.name} {' '.join(params_str)}"
     return f"{signature} {usage}", example
+
 
 async def generate_help_data():
     help_data = {}
