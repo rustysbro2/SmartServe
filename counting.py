@@ -107,6 +107,8 @@ async def generate_help_data(help_data_file):
         'Tracking': {},
     }
 
+    general_commands = []
+
     for extension in extensions:
         ext = bot.get_cog(extension)
         print(f"Extension: {extension}, Cog: {ext}")
@@ -115,10 +117,17 @@ async def generate_help_data(help_data_file):
                 if not command.hidden:
                     usage = get_command_usage(command)
                     example = generate_command_example(command)
-                    if extension == 'counting':
-                        help_data['Counting'][command.name] = {'usage': usage, 'example': example}
-                    else:
-                        help_data[extension][command.name] = {'usage': usage, 'example': example}
+                    help_data[extension][command.name] = {'usage': usage, 'example': example}
+                else:
+                    general_commands.append(command)
+        else:
+            for command in bot.commands:
+                if not command.hidden:
+                    usage = get_command_usage(command)
+                    example = generate_command_example(command)
+                    general_commands.append(command)
+
+    help_data['Counting'] = {command.name: {'usage': get_command_usage(command), 'example': generate_command_example(command)} for command in general_commands}
 
     try:
         with open(help_data_file, 'w') as f:
@@ -132,6 +141,7 @@ async def generate_help_data(help_data_file):
     print(f"Current working directory: {os.getcwd()}")
     print(f"File exists: {os.path.exists(help_data_file)}")
     print(f"File size: {os.path.getsize(help_data_file)} bytes")
+
 
 
 @bot.command()
