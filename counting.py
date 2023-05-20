@@ -105,8 +105,40 @@ async def load_help_data():
 
 async def initialize_bot():
     await bot.wait_until_ready()  # Wait for the bot to be ready
+    ensure_data_file_exists()
+
+    with open(data_file, 'r') as f:
+        all_data = json.load(f)
+
+    for guild in bot.guilds:
+        guild_id = str(guild.id)
+        if guild_id not in all_data:
+            all_data[guild_id] = default_data.copy()
+        else:
+            existing_data = all_data[guild_id]
+            for key, value in default_data.items():
+                if key not in existing_data:
+                    existing_data[key] = value
+
+    with open(data_file, 'w') as f:
+        json.dump(all_data, f, indent=4)
+
+    for extension in extensions:
+        try:
+            bot.load_extension(extension)  # Load the extension
+            print(f"Extension '{extension}' loaded successfully.")
+        except commands.ExtensionError as e:
+            print(f"Failed to load extension '{extension}': {e}")
+
+    await generate_help_data()  # Move the generate_help_data() call here
+
+    await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
+    await bot.add_cog(Tracking(bot))  # Add the Tracking cog
+    await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
+
     help_data = await load_help_data()
     print("Help data content:", help_data)
+
 
 @bot.event
 async def on_command_error(ctx, error):
