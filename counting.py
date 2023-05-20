@@ -92,10 +92,11 @@ async def generate_help_data():
         for cmd in bot.commands:
             if not cmd.hidden:
                 signature = f"{cmd.name} {cmd.signature}"
-                example = f"!{cmd.name} {cmd.usage}"
+                example = f"!{cmd.name} {cmd.signature}"
                 help_data[cmd.name] = {'signature': signature, 'example': example}
         json.dump(help_data, f, indent=4)
     print("Help data generated successfully.")
+
 
 
 
