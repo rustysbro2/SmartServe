@@ -13,9 +13,10 @@ extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-bot.load_extension('cogs.tracking', setup_function_name='setup_tracking')
-bot.load_extension('cogs.music', setup_function_name='setup_music')
-bot.load_extension('cogs.giveaway', setup_function_name='setup_giveaway')
+bot.load_extension('cogs.tracking')
+bot.load_extension('cogs.music')
+bot.load_extension('cogs.giveaway')
+
 
 
 # the file where we will save our data
