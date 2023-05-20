@@ -41,6 +41,7 @@ class MusicBot(commands.Cog):
                 }],
                 'verbose': True,
                 'progress_hooks': [self.debug_progress_hook],
+                'logger': self.debug_logger,
             }
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=False)
