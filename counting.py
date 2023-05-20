@@ -55,6 +55,7 @@ async def on_ready():
     await bot.load_extension('cogs.tracking')
     await bot.load_extension('cogs.music')
     await bot.load_extension('cogs.giveaway')
+    print("Extensions loaded successfully.")
 
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
