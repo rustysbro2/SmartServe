@@ -57,8 +57,10 @@ class MusicBot(commands.Cog):
             await ctx.send("Failed to extract the audio from the video. Please try again later.")
         except discord.errors.ClientException:
             await ctx.send("Failed to play the audio. Please make sure I have the necessary permissions.")
+        except youtube_dl.utils.DownloadError as e:
+            await ctx.send(f"An error occurred while downloading the audio: {str(e)}")
         except Exception as e:
-            await ctx.send(f"An error occurred while playing the video: {e}")
+            await ctx.send(f"An error occurred while playing the video: {str(e)}")
 
     @commands.command()
     async def pause(self, ctx):
