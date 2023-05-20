@@ -121,11 +121,12 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
+    await bot.wait_until_ready()  # Wait until the bot is fully ready
     await generate_help_data()  # Generate help data
 
     for extension in extensions:
         try:
-            bot.load_extension(extension)  # Load the extension
+            await bot.load_extension(extension)  # Load the extension
             print(f"Extension '{extension}' loaded successfully.")
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
