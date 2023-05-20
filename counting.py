@@ -87,22 +87,16 @@ def get_command_usage(command):
     return f"{signature} {usage}"
 
 async def generate_help_data():
-    help_data = {}
-
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        print(f"Extension: {extension}, Cog: {ext}")
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-
     with open('help_data.json', 'w') as f:
+        help_data = {}
+        for cmd in bot.commands:
+            if not cmd.hidden:
+                signature = f"{cmd.name} {cmd.signature}"
+                example = f"!{cmd.name} {cmd.usage}"
+                help_data[cmd.name] = {'signature': signature, 'example': example}
         json.dump(help_data, f, indent=4)
-
     print("Help data generated successfully.")
+
 
 
 
