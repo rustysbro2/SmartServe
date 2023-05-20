@@ -123,10 +123,31 @@ async def help(ctx, command_name: str = None):
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
+    cogs = {}
     for command in bot.commands:
         if not command.hidden:
-            usage = get_command_usage(command)
-            embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
+            cog = command.cog
+            if cog:
+                if cog not in cogs:
+                    cogs[cog] = []
+                cogs[cog].append(command)
+            else:
+                if None not in cogs:
+                    cogs[None] = []
+                cogs[None].append(command)
+
+    sorted_cogs = sorted(cogs.keys(), key=lambda c: c.__class__.__name__)
+
+    for cog in sorted_cogs:
+        if cog:
+            embed.add_field(name=f"**{cog.__class__.__name__}**", value="\u200b", inline=False)
+            for command in cogs[cog]:
+                usage = get_command_usage(command)
+                embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
+        else:
+            for command in cogs[cog]:
+                usage = get_command_usage(command)
+                embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
 
     if command_name:
         cmd = bot.get_command(command_name)
@@ -154,7 +175,6 @@ def get_command_usage(command):
 
     usage = " ".join(params_str)
     return f"{signature} {usage}"
-
 
 
 
