@@ -32,30 +32,45 @@ class MusicBot(commands.Cog):
         else:
             await ctx.send("I am not currently connected to a voice channel.")
 
-    @commands.command()
+   @commands.command()
     async def play(self, ctx, url):
         if not ctx.voice_client:
             await self.join(ctx)
-        
+
         if not ctx.voice_client:
             return
 
-        if ctx.voice_client.channel not in self.voice_queues:
-            self.voice_queues[ctx.voice_client.channel] = asyncio.Queue()
-            self.vote_skip[ctx.voice_client.channel] = set()
+        if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
+            # Audio is already playing, add the new song to the queue
+            queue = self.voice_queues[ctx.voice_client.channel]
+            ydl_opts = {'format': 'bestaudio/best', 'outtmpl': 'downloads/%(id)s.%(ext)s'}
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    filename = ydl.prepare_filename(info)
+                    await queue.put((filename, ctx.author))
+                    await ctx.send(f"Added to the queue: {info['title']}")
+            except Exception as e:
+                print(e)
+        else:
+            # No audio playing, play the song immediately
+            if ctx.voice_client.channel not in self.voice_queues:
+                self.voice_queues[ctx.voice_client.channel] = asyncio.Queue()
+                self.vote_skip[ctx.voice_client.channel] = set()
 
-        queue = self.voice_queues[ctx.voice_client.channel]
-        ydl_opts = {'format': 'bestaudio/best', 'outtmpl': 'downloads/%(id)s.%(ext)s'}
-        try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=True)
-                filename = ydl.prepare_filename(info)
-                await queue.put((filename, ctx.author))
-                if queue.qsize() == 1:
-                    await self.play_queue(ctx.voice_client.channel)
-                await ctx.send(f"Added to the queue: {info['title']}")
-        except Exception as e:
-            print(e)
+            queue = self.voice_queues[ctx.voice_client.channel]
+            ydl_opts = {'format': 'bestaudio/best', 'outtmpl': 'downloads/%(id)s.%(ext)s'}
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    filename = ydl.prepare_filename(info)
+                    await queue.put((filename, ctx.author))
+                    if queue.qsize() == 1:
+                        await self.play_queue(ctx.voice_client.channel)
+                    await ctx.send(f"Now playing: {info['title']}")
+            except Exception as e:
+                print(e)
+
 
     async def play_queue(self, voice_channel):
         queue = self.voice_queues[voice_channel]
