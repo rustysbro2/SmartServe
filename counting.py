@@ -58,7 +58,7 @@ def ensure_data_file_exists():
             json.dump({}, f, indent=4)
 
 def generate_command_example(command):
-    params = inspect.signature(command.callback).parameters.values()
+    params = inspect.signature(command.callback.__wrapped__).parameters.values()
     args = []
 
     for param in params:
