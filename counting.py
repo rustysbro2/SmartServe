@@ -3,6 +3,12 @@ from discord.ext import commands
 import os
 import json
 import inspect
+from cogs.giveaway import GiveawayCog
+from cogs.tracking import TrackingCog
+from cogs.musicbot import MusicBotCog
+
+extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
+
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
