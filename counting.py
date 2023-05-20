@@ -141,10 +141,12 @@ async def on_ready():
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
 
-    await generate_help_data()
+    await generate_help_data()  # Move the generate_help_data() call here
+
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
+
 
 
 
