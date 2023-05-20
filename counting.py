@@ -10,6 +10,8 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 # the file where we will save our data
 data_file = 'count_data.json'
 
+bot.remove_command('help')
+
 # the expected keys and their default values
 default_data = {
     'channel_id': None,
