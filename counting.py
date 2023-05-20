@@ -13,9 +13,7 @@ extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-bot.load_extension('cogs.tracking')
-bot.load_extension('cogs.music')
-bot.load_extension('cogs.giveaway')
+
 
 
 
