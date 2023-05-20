@@ -139,11 +139,12 @@ async def on_ready():
         except commands.ExtensionError as e:
             print(f"Failed to load extension '{extension}': {e}")
 
+    bot.loop.create_task(generate_help_data())  # Schedule the generate_help_data coroutine as a background task
+
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
-    await generate_help_data()
 
 
 
