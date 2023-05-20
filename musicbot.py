@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import yt_dlp
+import os
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
@@ -8,8 +9,11 @@ class MusicBot(commands.Cog):
 
     @commands.command()
     async def join(self, ctx):
-        channel = ctx.author.voice.channel
-        await channel.connect()
+        if ctx.author.voice and ctx.author.voice.channel:
+            channel = ctx.author.voice.channel
+            await channel.connect()
+        else:
+            await ctx.send("You are not connected to a voice channel")
 
     @commands.command()
     async def leave(self, ctx):
@@ -20,23 +24,20 @@ class MusicBot(commands.Cog):
     async def play(self, ctx, url):
         if not ctx.voice_client:
             await ctx.invoke(self.bot.get_command("join"))
+        
+        if not ctx.voice_client:
+            return
 
         # Specify the `format` parameter to download a lower quality audio format.
-        with yt_dlp.YoutubeDL({'format': 'bestaudio[ext=mp3]', 'noplaylist':'True'}) as ydl:
-            info = ydl.extract_info(url, download=False)
-            url2 = info['formats'][0]['url']
-            ctx.voice_client.play(discord.FFmpegPCMAudio(url2))
-
-        # Handle errors gracefully.
+        ydl_opts = {'format': 'bestaudio/best', 'outtmpl': 'downloads/%(title)s.%(ext)s'}
         try:
-            info = ydl.extract_info(url, download=False)
-            url2 = info['formats'][0]['url']
-            ctx.voice_client.play(discord.FFmpegPCMAudio(url2))
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info)
+                ctx.voice_client.play(discord.FFmpegPCMAudio(filename))
         except Exception as e:
             print(e)
-            return
 
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
-
