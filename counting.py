@@ -121,7 +121,7 @@ async def on_ready():
     await generate_help_data()
 
 
-aasync def generate_help_data():
+async def generate_help_data():
     print("Generating help data...")
     help_data = {}
 
