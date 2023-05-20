@@ -119,6 +119,7 @@ async def check_queue(self, voice_channel):
                 votes_remaining = votes_needed - len(vote_skip_set)
                 await ctx.send(f"{votes_remaining} more vote(s) needed to skip the current song.")
 
+
     def delete_file(self, filename):
         try:
             os.remove(filename)
