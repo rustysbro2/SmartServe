@@ -14,6 +14,8 @@ tracemalloc.start()
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
+bot.remove_command('help')
+
 # the file where we will save our data
 data_file = 'count_data.json'
 
