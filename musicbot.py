@@ -55,7 +55,7 @@ class MusicBot(commands.Cog):
                     await self.play_queue(ctx.voice_client.channel)
                 await ctx.send(f"Added to the queue: {info['title']}")
         except Exception as e:
-            print(e)
+            print(f"Error during download: {e}")
 
     async def play_queue(self, voice_channel):
         queue = self.voice_queues[voice_channel]
@@ -142,7 +142,6 @@ class MusicBot(commands.Cog):
             else:
                 votes_remaining = votes_needed - len(vote_skip_set)
                 await ctx.send(f"{votes_remaining} more vote(s) needed to skip the current song.")
-
 
     def delete_file(self, filename):
         try:
