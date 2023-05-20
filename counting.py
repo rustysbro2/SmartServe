@@ -121,7 +121,7 @@ async def on_ready():
     await generate_help_data()
 
 
-async def generate_help_data():
+aasync def generate_help_data():
     print("Generating help data...")
     help_data = {}
 
@@ -147,6 +147,17 @@ async def generate_help_data():
     print(f"Current working directory: {os.getcwd()}")
     print(f"File exists: {os.path.exists(help_data_file)}")
     print(f"File size: {os.path.getsize(help_data_file)} bytes")
+
+    # Load and display the help data
+    try:
+        with open(help_data_file, 'r') as f:
+            help_data = json.load(f)
+            print("Help data loaded:", help_data)
+    except FileNotFoundError:
+        print("Help data file not found.")
+    except Exception as e:
+        print(f"Error loading help data: {e}")
+
 
 
 @bot.command()
