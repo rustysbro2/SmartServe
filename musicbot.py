@@ -20,7 +20,7 @@ class MusicBot(commands.Cog):
 
     @commands.command()
     async def leave(self, ctx):
-        if ctx.voice_client and ctx.voice_client.channel:
+        if ctx.voice_client:
             if len(ctx.voice_client.channel.members) > 1:
                 await ctx.send("There are still users in the voice channel. I will not leave.")
             else:
@@ -31,6 +31,7 @@ class MusicBot(commands.Cog):
                 await ctx.send("Leaving voice channel.")
         else:
             await ctx.send("I am not currently connected to a voice channel.")
+
 
     @commands.command()
     async def play(self, ctx, url):
