@@ -100,14 +100,14 @@ async def generate_help_data():
                     example = generate_command_example(command)
                     help_data[command.name] = {'usage': usage, 'example': example}
 
-    with open('help_data.json', 'w') as f:
-        json.dump(help_data, f, indent=4)
+    try:  # Indentation corrected here
+        with open('help_data.json', 'w') as f:
+            json.dump(help_data, f, indent=4)
 
-        
-
-    print("Help data generated successfully.")
+        print("Help data generated successfully.")
     except Exception as e:
         print(f"Error generating help data: {e}")
+
 
 
 
