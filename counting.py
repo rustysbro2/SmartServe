@@ -66,14 +66,12 @@ async def help(ctx, command_name: str = None):
         for command in bot.commands:
             if not command.hidden:
                 usage = get_command_usage(command)
-                example = generate_command_example(command)
-                embed.add_field(name=f"**!{command.name}**", value=f"{usage}\nExample: {example}", inline=False)
+                embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
     else:
         command = bot.get_command(command_name)
         if command and not command.hidden:
             usage = get_command_usage(command)
-            example = generate_command_example(command)
-            embed.add_field(name=f"**!{command.name}**", value=f"{usage}\nExample: {example}", inline=False)
+            embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
         else:
             embed.description = f"No information found for command: `!{command_name}`"
 
@@ -93,8 +91,7 @@ def get_command_usage(command):
                 params_str.append(f"<{param.name}>")
 
     usage = " ".join(params_str)
-    signature_with_params = f"{signature} {usage}"
-    return f"```\n{signature_with_params}\n```"
+    return f"```\n{signature} {' '.join(params_str)}\n```"
 
 
 
