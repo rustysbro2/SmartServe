@@ -83,6 +83,8 @@ async def generate_help_data():
                     usage, example = get_command_usage(command)
                     help_data[command.name] = {'usage': usage, 'example': example}
 
+    print("Generated help data:", help_data)  # Debug: Print the generated help_data dictionary
+
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
 
