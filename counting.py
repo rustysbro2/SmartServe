@@ -24,9 +24,6 @@ default_data = {
     'successful_counts': 0
 }
 
-# Add your extension names here
-extensions = ['musicbot', 'giveaway', 'tracking']
-
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
         with open(data_file, 'w') as f:
@@ -49,18 +46,11 @@ async def on_ready():
         with open(data_file, 'w') as f:
             json.dump(default_data, f, indent=4)
 
-    for extension in extensions:
-        try:
-            bot.load_extension(extension)  # Load the extension
-            print(f"Extension '{extension}' loaded successfully.")
-            # Retrieve the commands from the loaded extension and add them to the bot's command list
-            ext = bot.get_cog(extension)
-            if ext:
-                for command in ext.get_commands():
-                    bot.add_command(command)
-        except commands.ExtensionError as e:
-            print(f"Failed to load extension '{extension}': {e}")
-
+    # Load the cogs dynamically
+    for filename in os.listdir('./cogs'):
+        if filename.endswith('.py'):
+            bot.load_extension(f'cogs.{filename[:-3]}')
+            print(f"Cog '{filename[:-3]}' loaded successfully.")
 
 @bot.command()
 async def help(ctx, command_name: str = None):
@@ -73,33 +63,23 @@ async def help(ctx, command_name: str = None):
             if not command.hidden:
                 usage = get_command_usage(command)
                 embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
-        for extension in extensions:
-            ext = bot.get_cog(extension)
-            if ext:
-                for command in ext.get_commands():
-                    if not command.hidden:
-                        usage = get_command_usage(command)
-                        embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
     else:
         command = bot.get_command(command_name)
         if command and not command.hidden:
             usage = get_command_usage(command)
             embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
         else:
-            for extension in extensions:
-                ext = bot.get_cog(extension)
-                if ext:
-                    command = ext.get_command(command_name)
-                    if command and not command.hidden:
-                        usage = get_command_usage(command)
-                        embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
-                        break
+            for cog in bot.cogs.values():
+                command = cog.get_command(command_name)
+                if command and not command.hidden:
+                    usage = get_command_usage(command)
+                    embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
+                    break
             else:
                 embed.description = f"No information found for command: `!{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
-
 
 def get_command_usage(command):
     signature = f"!{command.name}"
@@ -115,6 +95,7 @@ def get_command_usage(command):
 
     usage = " ".join(params_str)
     return f"```\n{signature} {' '.join(params_str)}\n```"
+
 
 
 
