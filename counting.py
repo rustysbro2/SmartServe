@@ -117,13 +117,14 @@ async def help(ctx, command_name: str = None):
 
     # Get all the cogs and their commands
     cogs = {}
-    for cog in bot.cogs.values():
-        cogs[cog] = []
-
     for cmd in bot.commands:
         if cmd.cog:
+            if cmd.cog not in cogs:
+                cogs[cmd.cog] = []
             cogs[cmd.cog].append(cmd)
         else:
+            if None not in cogs:
+                cogs[None] = []
             cogs[None].append(cmd)
 
     # Sort the cogs alphabetically
@@ -144,21 +145,7 @@ async def help(ctx, command_name: str = None):
         else:
             # Add commands without a cog
             for cmd in cogs[cog]:
-                usage = get_command_usage(cmd)
-                embed.add_field(name=f"**!{cmd.name}**", value=f"```{usage}```", inline=False)
 
-    if command_name:
-        # Remove cog-specific sorting for specific command search
-        embed.clear_fields()
-        cmd = bot.get_command(command_name)
-        if cmd:
-            usage = get_command_usage(cmd)
-            embed.add_field(name=f"**!{cmd.name}**", value=f"```{usage}```", inline=False)
-        else:
-            embed.description = f"No information found for command: `{command_name}`"
-
-    embed.set_footer(text="For more information, contact the bot owner.")
-    await ctx.send(embed=embed)
 
 
 
