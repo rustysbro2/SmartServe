@@ -138,7 +138,8 @@ async def help(ctx, command_name: str = None):
     sorted_cogs = sorted(cogs.keys(), key=lambda c: str(c))
 
     for cog in sorted_cogs:
-        embed.add_field(name=f"**{cog}**", value="\u200b", inline=False)
+        cog_name = cog.__class__.__name__ if cog else "Custom"
+        embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
         for command in cogs[cog]:
             usage = get_command_usage(command)
             embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
