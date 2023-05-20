@@ -69,7 +69,7 @@ class MusicBot(commands.Cog):
         voice_client = voice_channel.guild.voice_client
         try:
             voice_client.play(discord.FFmpegPCMAudio(filename), after=lambda e: self.bot.loop.create_task(self.check_queue(voice_channel)))
-            
+
             queue_size = queue.qsize() + 1  # Add 1 for the current song
             await voice_channel.send(f"Now playing: {filename} (requested by {requester})\nQueue size: {queue_size} song(s)")
 
@@ -81,7 +81,7 @@ class MusicBot(commands.Cog):
                 await asyncio.sleep(1)  # Check vote skip status every second
 
         except Exception as e:
-            print(e)
+            print(f"Error playing song: {e}")
 
         # Play the next song in the queue
         await self.play_queue(voice_channel)
@@ -132,6 +132,12 @@ class MusicBot(commands.Cog):
             if len(vote_skip_set) >= votes_needed:
                 await ctx.send("Vote skip successful. Skipping current song.")
                 ctx.voice_client.stop()
+
+                # Check if the current song is being skipped and remove it from the queue
+                if not self.voice_queues[voice_channel].empty():
+                    filename, _ = self.voice_queues[voice_channel].get_nowait()
+                    if filename == ctx.voice_client.source:
+                        await ctx.send("Skipped song removed from the queue.")
             else:
                 votes_remaining = votes_needed - len(vote_skip_set)
                 await ctx.send(f"{votes_remaining} more vote(s) needed to skip the current song.")
