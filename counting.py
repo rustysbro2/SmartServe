@@ -115,14 +115,43 @@ async def help(ctx, command_name: str = None):
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    if command_name is None:
-        for cmd in bot.commands:
-            if not cmd.hidden:
+    # Get all the cogs and their commands
+    cogs = {}
+    for cog in bot.cogs.values():
+        cogs[cog] = []
+
+    for cmd in bot.commands:
+        if cmd.cog:
+            cogs[cmd.cog].append(cmd)
+        else:
+            cogs[None].append(cmd)
+
+    # Sort the cogs alphabetically
+    sorted_cogs = sorted(cogs.keys(), key=lambda c: c.__class__.__name__)
+
+    for cog in sorted_cogs:
+        if cog:
+            # Add cog name as a field
+            embed.add_field(name=f"**{cog.__class__.__name__}**", value=" ", inline=False)
+
+            # Sort commands within the cog alphabetically
+            sorted_cmds = sorted(cogs[cog], key=lambda c: c.name)
+
+            # Add commands for the cog
+            for cmd in sorted_cmds:
                 usage = get_command_usage(cmd)
                 embed.add_field(name=f"**!{cmd.name}**", value=f"```{usage}```", inline=False)
-    else:
+        else:
+            # Add commands without a cog
+            for cmd in cogs[cog]:
+                usage = get_command_usage(cmd)
+                embed.add_field(name=f"**!{cmd.name}**", value=f"```{usage}```", inline=False)
+
+    if command_name:
+        # Remove cog-specific sorting for specific command search
+        embed.clear_fields()
         cmd = bot.get_command(command_name)
-        if cmd and not cmd.hidden:
+        if cmd:
             usage = get_command_usage(cmd)
             embed.add_field(name=f"**!{cmd.name}**", value=f"```{usage}```", inline=False)
         else:
@@ -130,6 +159,7 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
