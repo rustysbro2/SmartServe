@@ -79,8 +79,8 @@ def get_command_usage(command):
 async def generate_help_data():
     help_data = {}
 
-    for extension in bot.extensions.values():
-        for command in extension.get_commands():
+    for cog in bot.cogs.values():
+        for command in cog.get_commands():
             if not command.hidden:
                 usage, example = get_command_usage(command)
                 help_data[command.name] = {'usage': usage, 'example': example}
@@ -89,6 +89,7 @@ async def generate_help_data():
         json.dump(help_data, f, indent=4)
 
     print("Help data generated successfully.")
+
 
 
 
@@ -115,10 +116,6 @@ async def initialize_bot():
             print(f"Failed to load extension '{extension}': {e}")
 
     await generate_help_data()  # Move the generate_help_data() call here
-
-    await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
-    await bot.add_cog(Tracking(bot))  # Add the Tracking cog
-    await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
 
 @bot.event
@@ -160,10 +157,7 @@ async def on_ready():
 
     await generate_help_data()  # Move the generate_help_data() call here
 
-    await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
-    await bot.add_cog(Tracking(bot))  # Add the Tracking cog
-    await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
-
+  
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
