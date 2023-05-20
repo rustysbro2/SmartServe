@@ -92,6 +92,7 @@ async def generate_help_data():
 
     print("Help data generated successfully.")
 
+
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
