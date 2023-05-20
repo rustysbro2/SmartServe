@@ -71,7 +71,7 @@ class MusicBot(commands.Cog):
             await voice_channel.send(f"Now playing: {filename} (requested by {requester})\nQueue size: {queue_size} song(s)")
 
             while voice_client.is_playing() or voice_client.is_paused():
-                if voice_channel in self.vote_skip and len(self.vote_skip[voice_channel]) >= (len(voice_channel.members) // 2) + 1:
+                if voice_channel in self.vote_skip and len(self.vote_skip[voice_channel]) >= (len(voice_channel.members) - 1) // 2 + 1:
                     voice_client.stop()
                     break
 
@@ -83,10 +83,9 @@ class MusicBot(commands.Cog):
     async def check_queue(self, voice_channel):
         queue = self.voice_queues[voice_channel]
         if queue.empty():
-            voice_client = voice_channel.guild.voice_client
-            if len(voice_channel.members) == 1:  # Only the bot is in the channel
+            if voice_channel.guild.voice_client:
                 await self.leave(voice_channel)
-                return
+            return
 
         await self.play_queue(voice_channel)
 
@@ -99,15 +98,24 @@ class MusicBot(commands.Cog):
         voice_channel = ctx.voice_client.channel
         member = ctx.author
         vote_skip_set = self.vote_skip[voice_channel]
-        vote_skip_set.add(member)
 
-        votes_needed = (len(voice_channel.members) // 2) + 1
+        # Calculate votes needed (excluding bot users)
+        votes_needed = (len(voice_channel.members) - 1) // 2 + 1
 
-        if len(vote_skip_set) >= votes_needed:
-            await ctx.send("Vote skip successful. Skipping current song.")
-            ctx.voice_client.stop()
+        if member == self.bot.user:
+            await ctx.send("Bots cannot vote to skip.")
+        elif member in vote_skip_set:
+            await ctx.send("You have already voted to skip.")
         else:
-            await ctx.send(f"{member.mention} has voted to skip the current song. {votes_needed - len(vote_skip_set)} more vote(s) needed.")
+            vote_skip_set.add(member)
+            await ctx.send(f"{member.mention} has voted to skip the current song.")
+
+            if len(vote_skip_set) >= votes_needed:
+                await ctx.send("Vote skip successful. Skipping current song.")
+                ctx.voice_client.stop()
+            else:
+                votes_remaining = votes_needed - len(vote_skip_set)
+                await ctx.send(f"{votes_remaining} more vote(s) needed to skip the current song.")
 
     def delete_file(self, filename):
         try:
