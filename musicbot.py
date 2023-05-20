@@ -58,7 +58,7 @@ class MusicBot(commands.Cog):
                     await self.play_queue(ctx.voice_client.channel)
                 await ctx.send(f"Added to the queue: {info['title']}")
         except Exception as e:
-            print(e)
+            logging.error(f"Error downloading or adding song to queue: {e}")
 
     async def play_queue(self, voice_channel):
         queue = self.voice_queues[voice_channel]
@@ -84,7 +84,7 @@ class MusicBot(commands.Cog):
                 await asyncio.sleep(1)  # Check vote skip status every second
 
         except Exception as e:
-            print(f"Error playing song: {e}")
+            logging.error(f"Error playing song: {e}")
 
         # Play the next song in the queue
         await self.play_queue(voice_channel)
@@ -154,7 +154,7 @@ class MusicBot(commands.Cog):
         try:
             os.remove(filename)
         except Exception as e:
-            print(f"Error deleting file: {e}")
+            logging.error(f"Error deleting file: {e}")
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
