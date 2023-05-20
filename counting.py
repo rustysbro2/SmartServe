@@ -152,16 +152,18 @@ async def help(ctx, command_name: str = None):
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     counting_commands = []
-    cog_commands = {}
+    cog_commands = {"Counting": []}  # Initialize the "Counting" cog
 
     for command in bot.commands:
         if command.cog_name == "Counting":
             counting_commands.append(command)
-        else:
-            cog_name = command.cog_name or "General"
+        elif command.cog_name:
+            cog_name = command.cog_name
             if cog_name not in cog_commands:
                 cog_commands[cog_name] = []
             cog_commands[cog_name].append(command)
+        else:
+            cog_commands["Counting"].append(command)  # Add commands without a cog to "Counting"
 
     if counting_commands:
         embed.add_field(name="**Counting**", value="\u200b", inline=False)
@@ -179,6 +181,7 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
