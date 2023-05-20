@@ -125,7 +125,7 @@ async def on_ready():
     await generate_help_data()
 
 
-async def generate_help_data():
+aasync def generate_help_data():
     help_data = {}
 
     for extension in extensions:
@@ -147,6 +147,12 @@ async def generate_help_data():
         print(f"Error generating help data: {e}")
 
     await bot.change_presence(activity=discord.Game(name="!help for commands"))
+
+    # Refresh the command cache
+    bot.command_prefix = '!'  # Set the prefix temporarily
+    await bot.wait_until_ready()  # Wait until the bot is ready
+    bot.command_prefix = '!'  # Set the prefix back to the original value
+
 
 
 
