@@ -117,14 +117,15 @@ async def help(ctx, command_name: str = None):
             embed.add_field(name=f"**{command.name}**", value="", inline=False)
 
             # Add the command usage in a code block
-            embed.add_field(name="Usage:", value=f"```\n{usage}\n```", inline=False)
+            embed.add_field(name="Usage:", value=f"`{usage}`", inline=False)
 
             # Add the example if available
             if example:
-                embed.add_field(name="Example:", value=f"```\n{example}\n```", inline=False)
+                embed.add_field(name="Example:", value=f"`{example}`", inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
