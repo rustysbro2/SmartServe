@@ -5,7 +5,6 @@ import json
 import inspect
 import tracemalloc
 import random
-import asyncio
 
 tracemalloc.start()
 
@@ -36,24 +35,6 @@ extensions = ['musicbot', 'giveaway', 'tracking']
 check_mark_emojis = ['✅', '☑️', '✔️']
 trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
 
-def ensure_data_file_exists():
-    if not os.path.exists(data_file):
-        with open(data_file, 'w') as f:
-            json.dump({}, f, indent=4)
-
-def generate_command_example(command):
-    params = inspect.signature(command.callback.__wrapped__).parameters.values()
-    args = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is param.empty:
-                args.append(f"<{param.name}>")
-            else:
-                args.append(f"[{param.name}]")
-
-    example = f"!{command.name} {' '.join(args)}"
-    return example
 
 def get_command_usage(command):
     signature = f"!{command.name}"
@@ -70,6 +51,7 @@ def get_command_usage(command):
     usage = " ".join(params_str)
     example = f"!{command.name} {' '.join(params_str)}"
     return f"{signature} {usage}", example
+
 
 async def generate_help_data():
     help_data = {}
@@ -93,6 +75,7 @@ async def generate_help_data():
 
     print("Help data generated successfully.")
 
+
 async def load_help_data():
     try:
         with open('help_data.json', 'r') as f:
@@ -103,7 +86,10 @@ async def load_help_data():
         help_data = {}
     return help_data
 
+
 async def initialize_bot():
+    await bot.wait_until_ready()  # Wait for the bot to be ready
+
     for extension in extensions:
         try:
             bot.load_extension(extension)  # Load the extension
@@ -113,7 +99,6 @@ async def initialize_bot():
 
     await generate_help_data()  # Move the generate_help_data() call here
 
-    await bot.wait_until_ready()  # Wait for the bot to be ready
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -123,6 +108,7 @@ async def on_command_error(ctx, error):
         await ctx.send('You missed some required arguments.')
     else:
         raise error
+
 
 @bot.event
 async def on_ready():
@@ -145,11 +131,13 @@ async def on_ready():
     with open(data_file, 'w') as f:
         json.dump(all_data, f, indent=4)
 
+
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
         print("Help command called")
-        help_data = await load_help_data()
+        with open('help_data.json', 'r') as f:
+            help_data = json.load(f)
         print("Help data loaded successfully")
         print("Help data content:", help_data)  # Debug: Print the content of help_data
     except FileNotFoundError:
@@ -161,21 +149,44 @@ async def help(ctx, command_name: str = None):
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
     if command_name is None:
-        for cmd, usage in help_data.items():
-            example = usage['example']
-            value = f"`{usage['usage']}`\nExample: {example}" if example else f"`{usage['usage']}`"
-            embed.add_field(name=f"**{cmd}**", value=value, inline=False)
+        for cog_name, commands_list in help_data.items():
+            for command in commands_list:
+                usage = command['usage']
+                example = command['example']
+                value = f"`{usage}`\nExample: `{example}`" if example else f"`{usage}`"
+                embed.add_field(name=f"**{cog_name} - {command['name']}**", value=value, inline=False)
     else:
-        usage, example = help_data.get(command_name, {}).values()
-        if usage:
-            value = f"`{usage}`\nExample: `{example}`" if example else f"`{usage}`"
-            embed.add_field(name=f"**{command_name}**", value=value, inline=False)
-        else:
-            embed.description = f"No information found for command: `{command_name}`"
+        for cog_name, commands_list in help_data.items():
+            for command in commands_list:
+                if command['name'] == command_name:
+                    usage = command['usage']
+                    example = command['example']
+                    value = f"`{usage}`\nExample: `{example}`" if example else f"`{usage}`"
+                    embed.add_field(name=f"**{cog_name} - {command_name}**", value=value, inline=False)
+                    break
+            else:
+                continue
+            break
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
     print("Help command executed successfully")
+
+
+async def generate_command_example(command):
+    params = inspect.signature(command.callback.__wrapped__).parameters.values()
+    args = []
+
+    for param in params:
+        if param.name not in ['self', 'ctx']:
+            if param.default is param.empty:
+                args.append(f"<{param.name}>")
+            else:
+                args.append(f"[{param.name}]")
+
+    example = f"!{command.name} {' '.join(args)}"
+    return example
+
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
