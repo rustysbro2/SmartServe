@@ -4,6 +4,7 @@ import os
 import json
 import inspect
 import tracemalloc
+import random
 from giveaway import Giveaway
 from tracking import Tracking  # Import the Tracking class
 from musicbot import MusicBot
