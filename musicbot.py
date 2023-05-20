@@ -2,11 +2,13 @@ import discord
 from discord.ext import commands
 import yt_dlp
 import os
-import unidecode
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        # Create downloads directory if it doesn't exist
+        if not os.path.exists('downloads'):
+            os.makedirs('downloads')
 
     @commands.command()
     async def join(self, ctx):
@@ -29,13 +31,11 @@ class MusicBot(commands.Cog):
         if not ctx.voice_client:
             return
 
-        ydl_opts = {'format': 'bestaudio/best'}
+        ydl_opts = {'format': 'bestaudio/best', 'outtmpl': 'downloads/%(id)s.%(ext)s'}
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
                 filename = ydl.prepare_filename(info)
-                # Sanitize filename by replacing non-ASCII characters
-                filename = unidecode.unidecode(filename)
                 ctx.voice_client.play(discord.FFmpegPCMAudio(filename))
         except Exception as e:
             print(e)
