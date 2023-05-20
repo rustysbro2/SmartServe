@@ -50,7 +50,7 @@ class MusicBot(commands.Cog):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
                 filename = ydl.prepare_filename(info)
-                await queue.put((filename, ctx.author))
+                await queue.put((filename, ctx.author, ctx.channel))
                 if queue.qsize() == 1:
                     await self.play_queue(ctx.voice_client.channel)
                 await ctx.send(f"Added to the queue: {info['title']}")
@@ -62,13 +62,13 @@ class MusicBot(commands.Cog):
         if queue.empty():
             return
 
-        filename, requester = await queue.get()
+        filename, requester, text_channel = await queue.get()
         voice_client = voice_channel.guild.voice_client
         try:
-            voice_client.play(discord.FFmpegPCMAudio(filename), after=lambda e: self.bot.loop.create_task(self.check_queue(voice_channel)))
+            voice_client.play(discord.FFmpegPCMAudio(filename), after=lambda e: self.bot.loop.create_task(self.check_queue(voice_channel, text_channel)))
             
             queue_size = queue.qsize() + 1  # Add 1 for the current song
-            await voice_channel.send(f"Now playing: {filename} (requested by {requester})\nQueue size: {queue_size} song(s)")
+            await text_channel.send(f"Now playing: {filename} (requested by {requester})\nQueue size: {queue_size} song(s)")
 
             while voice_client.is_playing() or voice_client.is_paused():
                 if voice_channel in self.vote_skip and len(self.vote_skip[voice_channel]) >= (len(voice_channel.members) - 1) // 2 + 1:
@@ -80,7 +80,7 @@ class MusicBot(commands.Cog):
         except Exception as e:
             print(e)
 
-    async def check_queue(self, voice_channel):
+    async def check_queue(self, voice_channel, text_channel):
         queue = self.voice_queues[voice_channel]
         if queue.empty():
             if voice_channel.guild.voice_client:
