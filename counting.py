@@ -116,7 +116,7 @@ def generate_command_example(command):
     example = f"!{command.name} {' '.join(args)}"
     return example
 
-
+@bot.command()
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
