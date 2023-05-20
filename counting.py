@@ -112,8 +112,8 @@ async def help(ctx, command_name: str = None):
         cog = bot.get_cog(cog_name)
         commands = cog.get_commands() if cog else bot.commands
 
-        # Add cog header with a different color
         if cog:
+            # Add cog header with a different color and spacing
             embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
 
         for command in commands:
@@ -123,8 +123,16 @@ async def help(ctx, command_name: str = None):
                 # Add the command name in bold and usage in a code block
                 embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
 
+    # Add additional commands outside of cogs
+    additional_commands = [bot.get_command(cmd) for cmd in ['set_channel', 'set_increment']]
+    for command in additional_commands:
+        if command:
+            usage = get_command_usage(command)
+            embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
+
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
