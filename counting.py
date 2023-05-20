@@ -118,7 +118,6 @@ async def generate_help_data(help_data_file):
     print(f"File exists: {os.path.exists(help_data_file)}")
     print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
-
 def generate_command_example(command):
     params = inspect.signature(command.callback).parameters.values()
     args = []
@@ -154,7 +153,7 @@ def get_command_usage(command):
 async def help(ctx, command_name: str = None):
     embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
     embed.set_thumbnail(url=bot.user.avatar.url)
-    embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
+    embed.description = "Welcome to the Bot Help!\nHere are the available commands:\n\n"
 
     # Get all the cogs and their commands
     cogs = {}
@@ -173,8 +172,8 @@ async def help(ctx, command_name: str = None):
 
     for cog in sorted_cogs:
         if cog:
-            # Add cog name as a field
-            embed.add_field(name=f"**{cog.__class__.__name__}**", value="\u200b", inline=False)
+            # Add cog name as a section header
+            embed.add_field(name=f"{cog.__class__.__name__}", value="\u200b", inline=False)
 
             # Sort commands within the cog alphabetically
             sorted_cmds = sorted(cogs[cog], key=lambda c: c.name)
@@ -183,13 +182,13 @@ async def help(ctx, command_name: str = None):
             for cmd in sorted_cmds:
                 usage = get_command_usage(cmd)
                 example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}\n", inline=False)
         else:
             # Add commands without a cog
             for cmd in cogs[cog]:
                 usage = get_command_usage(cmd)
                 example = generate_command_example(cmd)
-                embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}", inline=False)
+                embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}\n", inline=False)
 
     if command_name:
         # Remove cog-specific sorting for specific command search
@@ -198,7 +197,7 @@ async def help(ctx, command_name: str = None):
         if cmd:
             usage = get_command_usage(cmd)
             example = generate_command_example(cmd)
-            embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}", inline=False)
+            embed.add_field(name=f"**{cmd.name}**", value=f"```python\n{usage}\n```\n{example}\n", inline=False)
         else:
             embed.description = f"No information found for command: `{command_name}`"
 
