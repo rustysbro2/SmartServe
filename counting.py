@@ -4,15 +4,12 @@ import os
 import json
 import inspect
 import tracemalloc
+import random
 from giveaway import Giveaway
-from tracking import Tracking  # Import the Tracking class
+from tracking import Tracking
 from musicbot import MusicBot
 
-
-
-
 tracemalloc.start()
-
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
@@ -35,22 +32,9 @@ default_data = {
 # Add your extension names here
 extensions = ['musicbot', 'giveaway', 'tracking']
 
-
-bot.load_extension('counting')
-
 # emojis lists
 check_mark_emojis = ['✅', '☑️', '✔️']
 trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
-
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send('Invalid command.')
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send('You missed some required arguments.')
-    else:
-        raise error
-
 
 def ensure_data_file_exists():
     if not os.path.exists(data_file):
@@ -87,19 +71,29 @@ def get_command_usage(command):
     example = f"!{command.name} {' '.join(params_str)}"
     return f"{signature} {usage}", example
 
+async def generate_help_data():
+    help_data = {}
+    for extension in extensions:
+        ext = bot.get_cog(extension)
+        if ext:
+            for command in ext.get_commands():
+                if not command.hidden:
+                    usage, example = get_command_usage(command)
+                    help_data[command.name] = {'usage': usage, 'example': example}
 
+    with open('help_data.json', 'w') as f:
+        json.dump(help_data, f, indent=4)
 
+    print("Help data generated successfully.")
 
-
-
-
-
-
-
-
-
-
-
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        await ctx.send('Invalid command.')
+    elif isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('You missed some required arguments.')
+    else:
+        raise error
 
 @bot.event
 async def on_ready():
@@ -135,34 +129,6 @@ async def on_ready():
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
-    # Move the following code inside the on_ready event
-    async def generate_help_data():
-        help_data = {}
-        for extension in extensions:
-            ext = bot.get_cog(extension)
-            if ext:
-                for command in ext.get_commands():
-                    if not command.hidden:
-                        usage, example = get_command_usage(command)
-                        help_data[command.name] = {'usage': usage, 'example': example}
-
-        with open('help_data.json', 'w') as f:
-            json.dump(help_data, f, indent=4)
-
-        print("Help data generated successfully.")
-
-
-
-
-
-
-
-
-
-
-
-
-bot.remove_command('help')
 @bot.command()
 async def help(ctx, command_name: str = None):
     try:
@@ -190,10 +156,6 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
-
-
-
-
 
 @bot.command()
 async def set_channel(ctx, channel: discord.TextChannel):
