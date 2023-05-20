@@ -78,9 +78,11 @@ async def generate_help_data():
     for extension in extensions:
         ext = bot.get_cog(extension)
         if ext:
+            print(f"Processing extension: {extension}")  # Debug: Print the current extension being processed
             for command in ext.get_commands():
                 if not command.hidden:
                     usage, example = get_command_usage(command)
+                    print(f"Processing command: {command.name}")  # Debug: Print the current command being processed
                     help_data[command.name] = {'usage': usage, 'example': example}
 
     print("Generated help data:", help_data)  # Debug: Print the generated help_data dictionary
