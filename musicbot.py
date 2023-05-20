@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import youtube_dl
+import pytube
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
@@ -26,21 +26,15 @@ class MusicBot(commands.Cog):
             await ctx.send("I'm not connected to a voice channel. Use the `join` command first.")
             return
 
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-            'verbose': True  # Add the verbose flag
-        }
+        try:
+            video = pytube.YouTube(url)
+            audio_stream = video.streams.filter(only_audio=True).first()
+            audio_url = audio_stream.url
 
-        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-            url2 = info['formats'][0]['url']
             ctx.voice_client.stop()
-            ctx.voice_client.play(discord.FFmpegPCMAudio(url2))
+            ctx.voice_client.play(discord.FFmpegPCMAudio(audio_url))
+        except pytube.exceptions.PytubeError:
+            await ctx.send("Failed to load the video. Please provide a valid YouTube URL.")
 
     @commands.command()
     async def pause(self, ctx):
