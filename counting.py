@@ -4,6 +4,8 @@ import os
 import json
 import inspect
 from cogs.giveaway import Giveaway
+from cogs.tracking import Tracking
+from cogs.musicbot import MusicBot
 
 
 extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
@@ -14,7 +16,9 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 
 
-
+bot.add_cog(Giveaway(bot))
+bot.add_cog(Tracking(bot))
+bot.add_cog(MusicBot(bot))
 
 
 
