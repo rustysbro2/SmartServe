@@ -60,7 +60,14 @@ class MusicBot(commands.Cog):
             self.is_playing = False
             asyncio.run_coroutine_threadsafe(ctx.send("Queue is empty. Leaving voice channel."), self.bot.loop)
         else:
-            asyncio.run_coroutine_threadsafe(self.play_queue(ctx), self.bot.loop)
+            self.play_queue(ctx)
+        
+    # Delete the file after it finishes playing
+    def delete_file(self, filename):
+        try:
+            os.remove(filename)
+        except Exception as e:
+            print(f"Error deleting file: {e}")
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
