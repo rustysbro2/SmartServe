@@ -11,7 +11,7 @@ extensions = ['cogs.giveaway', 'cogs.tracking', 'cogs.musicbot']
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-bot.add_cog(Giveaway(bot))
+
 
 
 
