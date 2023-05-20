@@ -81,7 +81,11 @@ class MusicBot(commands.Cog):
                 await asyncio.sleep(1)  # Check vote skip status every second
 
         except Exception as e:
-            print(e)
+            print(f"Error playing song: {e}")
+
+        # Play the next song in the queue
+        await self.play_queue(voice_channel)
+
 
 
     async def check_queue(self, voice_channel):
