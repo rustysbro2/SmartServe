@@ -8,6 +8,8 @@ import random
 from giveaway import Giveaway
 from tracking import Tracking
 from musicbot import MusicBot
+import asyncio
+
 
 tracemalloc.start()
 
