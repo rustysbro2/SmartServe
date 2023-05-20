@@ -58,26 +58,6 @@ def ensure_data_file_exists():
         with open(data_file, 'w') as f:
             json.dump({}, f, indent=4)
 
-async def generate_help_data():
-    help_data = {}
-
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        print(f"Extension: {extension}, Cog: {ext}")
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-
-    try:
-        with open('help_data.json', 'w') as f:
-            json.dump(help_data, f, indent=4)
-
-        print("Help data generated successfully.")
-    except Exception as e:
-        print(f"Error generating help data: {e}")
 
 
 def get_command_usage(command):
@@ -107,6 +87,14 @@ async def generate_help_data():
                     usage = get_command_usage(command)
                     example = generate_command_example(command)
                     help_data[command.name] = {'usage': usage, 'example': example}
+
+    try:
+        with open('help_data.json', 'w') as f:
+            json.dump(help_data, f, indent=4)
+
+        print("Help data generated successfully.")
+    except Exception as e:
+        print(f"Error generating help data: {e}")
 
     try:  # Indentation corrected here
         with open('help_data.json', 'w') as f:
