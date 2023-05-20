@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import youtube_dl
+import yt_dlp
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
@@ -22,7 +22,7 @@ class MusicBot(commands.Cog):
             await ctx.invoke(self.bot.get_command("join"))
 
         # Specify the `format` parameter to download a lower quality audio format.
-        with youtube_dl.YoutubeDL({'format': 'bestaudio[ext=m4a]', 'noplaylist':'True'}) as ydl:
+        with yt_dlp.YoutubeDL({'format': 'bestaudio[ext=m4a]', 'noplaylist':'True'}) as ydl:
             info = ydl.extract_info(url, download=False)
             url2 = info['formats'][0]['url']
             ctx.voice_client.play(discord.FFmpegPCMAudio(url2))
