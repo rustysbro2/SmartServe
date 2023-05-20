@@ -2,43 +2,34 @@ import discord
 from discord.ext import commands
 import yt_dlp
 import os
+import asyncio
 from collections import deque
 
 class MusicBot(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # Create downloads directory if it doesn't exist
-        if not os.path.exists('downloads'):
-            os.makedirs('downloads')
-        self.voice_clients = {}
-        self.song_queues = {}
+        self.queue = deque()
+        self.is_playing = False
 
     @commands.command()
     async def join(self, ctx):
         if ctx.author.voice and ctx.author.voice.channel:
             channel = ctx.author.voice.channel
-            voice_client = await channel.connect()
-            self.voice_clients[channel.id] = voice_client
-            self.song_queues[channel.id] = deque()
+            await channel.connect()
         else:
             await ctx.send("You are not connected to a voice channel")
 
     @commands.command()
     async def leave(self, ctx):
-        voice_client = self.voice_clients.get(ctx.author.voice.channel.id)
-        if voice_client:
-            await voice_client.disconnect()
-            del self.voice_clients[ctx.author.voice.channel.id]
-            del self.song_queues[ctx.author.voice.channel.id]
+        if ctx.voice_client:
+            await ctx.voice_client.disconnect()
 
     @commands.command()
     async def play(self, ctx, url):
-        voice_client = self.voice_clients.get(ctx.author.voice.channel.id)
-        if not voice_client:
+        if not ctx.voice_client:
             await ctx.invoke(self.bot.get_command("join"))
         
-        voice_client = self.voice_clients.get(ctx.author.voice.channel.id)
-        if not voice_client:
+        if not ctx.voice_client:
             return
 
         ydl_opts = {'format': 'bestaudio/best', 'outtmpl': 'downloads/%(id)s.%(ext)s'}
@@ -46,20 +37,30 @@ class MusicBot(commands.Cog):
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)
                 filename = ydl.prepare_filename(info)
-                self.song_queues[ctx.author.voice.channel.id].append(filename)
-                if not voice_client.is_playing():
-                    self.play_next(ctx.author.voice.channel.id)
+                self.queue.append((filename, ctx.author))
+                await self.play_queue(ctx)
+                await ctx.send(f"Added to the queue: {info['title']}")
         except Exception as e:
             print(e)
 
-    def play_next(self, channel_id):
-        if len(self.song_queues[channel_id]) > 0:
-            next_song = self.song_queues[channel_id].popleft()
-            source = discord.FFmpegPCMAudio(next_song)
-            def after(error):
-                if len(self.song_queues[channel_id]) > 0:
-                    self.play_next(channel_id)
-            self.voice_clients[channel_id].play(source, after=after)
+    async def play_queue(self, ctx):
+        if not self.is_playing and self.queue:
+            self.is_playing = True
+            filename, requester = self.queue.popleft()
+            voice_channel = ctx.voice_client
+            try:
+                voice_channel.play(discord.FFmpegPCMAudio(filename), after=lambda e: self.check_queue(ctx))
+                await ctx.send(f"Now playing: {filename} (requested by {requester})")
+            except Exception as e:
+                print(e)
+                self.is_playing = False
+
+    def check_queue(self, ctx):
+        if not self.queue:
+            self.is_playing = False
+            asyncio.run_coroutine_threadsafe(ctx.send("Queue is empty. Leaving voice channel."), self.bot.loop)
+        else:
+            asyncio.run_coroutine_threadsafe(self.play_queue(ctx), self.bot.loop)
 
 def setup(bot):
     bot.add_cog(MusicBot(bot))
