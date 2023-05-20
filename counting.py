@@ -120,23 +120,8 @@ async def generate_help_data(help_data_file):
 
 
 
-@bot.command()
-async def help(ctx, command_name: str = None):
-    embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
-    embed.set_thumbnail(url=bot.user.avatar.url)
-    embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    # Get all the commands sorted by cog name
-    sorted_commands = sorted(bot.commands, key=lambda c: c.cog_name or "")
 
-    for command in sorted_commands:
-        if not command.hidden:
-            usage = get_command_usage(command)
-            example = generate_command_example(command)
-            embed.add_field(name=f"**{command.name}**", value=f"Usage:\n`{usage}`\nExample:\n`{example}`", inline=False)
-
-    embed.set_footer(text="For more information, contact the bot owner.")
-    await ctx.send(embed=embed)
 
 
 def generate_command_example(command):
@@ -153,7 +138,6 @@ def generate_command_example(command):
     example = f"!{command.name} {' '.join(args)}"
     return example
 
-
 def get_command_usage(command):
     signature = f"!{command.name}"
     params = inspect.signature(command.callback).parameters.values()
@@ -167,7 +151,27 @@ def get_command_usage(command):
                 params_str.append(f"<{param.name}>")
 
     usage = " ".join(params_str)
-    return f"{signature} {usage}"
+    example = generate_command_example(command)
+    return f"{signature} {usage}", example
+
+@bot.command()
+async def help(ctx, command_name: str = None):
+    embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
+    embed.set_thumbnail(url=bot.user.avatar.url)
+    embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
+
+    # Get all the commands sorted by cog name
+    sorted_commands = sorted(bot.commands, key=lambda c: c.cog_name or "")
+
+    for command in sorted_commands:
+        if not command.hidden:
+            usage, example = get_command_usage(command)
+            embed.add_field(name=f"**{command.name}**", value=f"Usage:\n`{usage}`\nExample:\n`{example}`", inline=False)
+
+    embed.set_footer(text="For more information, contact the bot owner.")
+    await ctx.send(embed=embed)
+
+
 
 
 
