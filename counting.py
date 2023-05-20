@@ -6,9 +6,8 @@ import inspect
 import tracemalloc
 import random
 from giveaway import Giveaway
-from tracking import Tracking  # Import the Tracking class
+from tracking import Tracking
 from musicbot import MusicBot
-
 
 tracemalloc.start()
 
@@ -16,76 +15,12 @@ intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
 bot.remove_command('help')
+
 # the file where we will save our data
 data_file = 'count_data.json'
+help_data_file = 'help_data.json'  # File to store the help data
 
-# the expected keys and their default values
-default_data = {
-    'channel_id': None,
-    'count': 0,
-    'last_counter_id': None,
-    'high_score': 0,
-    'increment': 1,
-    'pending_increment': None,
-    'old_increment': 1,
-    'successful_counts': 0  # add this line
-}
-
-# Add your extension names here
-extensions = ['musicbot', 'giveaway', 'tracking']
-
-
-# emojis lists
-check_mark_emojis = ['✅', '☑️', '✔️']
-trophy_emojis = ['🏆', '🥇', '🥈', '🥉']
-
-
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.CommandNotFound):
-        await ctx.send('Invalid command.')
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send('You missed some required arguments.')
-    else:
-        raise error
-
-
-def ensure_data_file_exists():
-    if not os.path.exists(data_file):
-        with open(data_file, 'w') as f:
-            json.dump({}, f, indent=4)
-
-
-def generate_command_example(command):
-    params = inspect.signature(command.callback).parameters.values()
-    args = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is param.empty:
-                args.append(f"<{param.name}>")
-            else:
-                args.append(f"[{param.name}]")
-
-    example = f"!{command.name} {' '.join(args)}"
-    return example
-
-
-def get_command_usage(command):
-    signature = f"!{command.name}"
-    params = inspect.signature(command.callback).parameters.values()
-    params_str = []
-
-    for param in params:
-        if param.name not in ['self', 'ctx']:
-            if param.default is not param.empty:
-                params_str.append(f"[{param.name}]")
-            else:
-                params_str.append(f"<{param.name}>")
-
-    usage = " ".join(params_str)
-    return f"{signature} {usage}"
-
+# Rest of your code...
 
 @bot.event
 async def on_ready():
@@ -137,12 +72,17 @@ async def generate_help_data():
                     help_data[command.name] = {'usage': usage, 'example': example}
 
     try:
-        with open('help_data.json', 'w') as f:
+        with open(help_data_file, 'w') as f:
             json.dump(help_data, f, indent=4)
 
         print("Help data generated successfully.")
     except Exception as e:
         print(f"Error generating help data: {e}")
+
+    # Debug lines to verify file path, existence, and size
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"File exists: {os.path.exists(help_data_file)}")
+    print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
 
 @bot.command()
