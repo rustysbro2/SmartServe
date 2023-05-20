@@ -6,7 +6,8 @@ import inspect
 import tracemalloc
 from giveaway import Giveaway
 from tracking import Tracking  # Import the Tracking class
-from music import MusicBot
+from musicbot import MusicBot
+
 
 
 
@@ -135,7 +136,9 @@ async def on_ready():
     await generate_help_data()
     await bot.add_cog(Giveaway(bot))  # Add the Giveaway cog
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
-    await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
+    await bot.add_cog(MusicBot(bot))
+
+
 
 
 
