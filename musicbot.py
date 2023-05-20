@@ -42,9 +42,6 @@ class MusicBot(commands.Cog):
             ctx.voice_client.stop()
             ctx.voice_client.play(discord.FFmpegPCMAudio(url2))
 
-
-
-
     @commands.command()
     async def pause(self, ctx):
         if ctx.voice_client.is_playing():
