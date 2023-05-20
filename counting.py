@@ -67,16 +67,33 @@ async def help(ctx, command_name: str = None):
             if not command.hidden:
                 usage = get_command_usage(command)
                 embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
+        for extension in extensions:
+            ext = bot.get_cog(extension)
+            if ext:
+                for command in ext.get_commands():
+                    if not command.hidden:
+                        usage = get_command_usage(command)
+                        embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
     else:
         command = bot.get_command(command_name)
         if command and not command.hidden:
             usage = get_command_usage(command)
             embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
         else:
-            embed.description = f"No information found for command: `!{command_name}`"
+            for extension in extensions:
+                ext = bot.get_cog(extension)
+                if ext:
+                    command = ext.get_command(command_name)
+                    if command and not command.hidden:
+                        usage = get_command_usage(command)
+                        embed.add_field(name=f"**!{command.name}**", value=f"{usage}", inline=False)
+                        break
+            else:
+                embed.description = f"No information found for command: `!{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+)
 
 def get_command_usage(command):
     signature = f"!{command.name}"
