@@ -123,7 +123,7 @@ async def help(ctx, command_name: str = None):
     for cog in sorted_cogs:
         if cog:
             # Add cog name as a field
-            embed.add_field(name=f"**{cog.__class__.__name__}**", value=" ", inline=False)
+            embed.add_field(name=f"**{cog.__class__.__name__}**", value="\u200b", inline=False)
 
             # Sort commands within the cog alphabetically
             sorted_cmds = sorted(cogs[cog], key=lambda c: c.name)
