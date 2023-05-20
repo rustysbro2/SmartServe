@@ -125,7 +125,7 @@ async def on_ready():
     await generate_help_data()
 
 
-def generate_help_data():
+async def generate_help_data():
     help_data = {}
 
     for extension in extensions:
@@ -145,6 +145,7 @@ def generate_help_data():
         print("Help data generated successfully.")
     except Exception as e:
         print(f"Error generating help data: {e}")
+
 
 
 @bot.command()
