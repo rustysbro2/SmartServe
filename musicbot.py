@@ -84,8 +84,8 @@ class MusicBot(commands.Cog):
 async def check_queue(self, voice_channel):
     queue = self.voice_queues[voice_channel]
     if queue.empty():
-        if self.voice_client is None:
-            await self.join(voice_channel)
+        if self.voice_client is not None:
+            await self.leave(voice_channel)
         return
 
     await self.play_queue(voice_channel)
