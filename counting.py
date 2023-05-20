@@ -88,7 +88,32 @@ def get_command_usage(command):
     return f"{signature} {usage}"
 
 
-# ...
+async def generate_help_data(help_data_file):
+    print("Generating help data...")
+    help_data = {}
+
+    for extension in extensions:
+        ext = bot.get_cog(extension)
+        print(f"Extension: {extension}, Cog: {ext}")
+        if ext:
+            for command in ext.get_commands():
+                if not command.hidden:
+                    usage = get_command_usage(command)
+                    example = generate_command_example(command)
+                    help_data[command.name] = {'usage': usage, 'example': example}
+
+    try:
+        with open(help_data_file, 'w') as f:
+            json.dump(help_data, f, indent=4)
+
+        print("Help data generated successfully.")
+    except Exception as e:
+        print(f"Error generating help data: {e}")
+
+    # Debug lines to verify file path, existence, and size
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"File exists: {os.path.exists(help_data_file)}")
+    print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
 @bot.event
 async def on_ready():
@@ -130,32 +155,7 @@ async def on_ready():
 
 
 
-async def generate_help_data(help_data_file):
-    print("Generating help data...")
-    help_data = {}
 
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        print(f"Extension: {extension}, Cog: {ext}")
-        if ext:
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage = get_command_usage(command)
-                    example = generate_command_example(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-
-    try:
-        with open(help_data_file, 'w') as f:
-            json.dump(help_data, f, indent=4)
-
-        print("Help data generated successfully.")
-    except Exception as e:
-        print(f"Error generating help data: {e}")
-
-    # Debug lines to verify file path, existence, and size
-    print(f"Current working directory: {os.getcwd()}")
-    print(f"File exists: {os.path.exists(help_data_file)}")
-    print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
 
 
