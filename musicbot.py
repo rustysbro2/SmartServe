@@ -39,7 +39,7 @@ class MusicBot(commands.Cog):
                     'preferredcodec': 'mp3',
                     'preferredquality': '192',
                 }],
-                'logger': self.debug_logger,
+                'verbose': True,
                 'progress_hooks': [self.debug_progress_hook],
             }
             with youtube_dl.YoutubeDL(ydl_opts) as ydl:
