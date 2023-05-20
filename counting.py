@@ -122,7 +122,8 @@ async def on_ready():
     await bot.add_cog(Tracking(bot))  # Add the Tracking cog
     await bot.add_cog(MusicBot(bot))  # Add the MusicBot cog
 
-    await generate_help_data(help_data_file)
+    await generate_help_data(help_data_file)  # Pass the help_data_file argument
+
 
 # ...
 
