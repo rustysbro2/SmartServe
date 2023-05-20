@@ -151,36 +151,27 @@ async def help(ctx, command_name: str = None):
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    counting_commands = []
-    cog_commands = {"Counting": []}  # Initialize the "Counting" cog
+    # Get all the commands sorted by cog name
+    sorted_commands = sorted(bot.commands, key=lambda c: c.cog_name or "")
 
-    for command in bot.commands:
-        if command.cog_name == "Counting":
-            counting_commands.append(command)
-        elif command.cog_name:
-            cog_name = command.cog_name
-            if cog_name not in cog_commands:
-                cog_commands[cog_name] = []
-            cog_commands[cog_name].append(command)
-        else:
-            cog_commands["Counting"].append(command)  # Add commands without a cog to "Counting"
-
-    if counting_commands:
-        embed.add_field(name="**Counting**", value="\u200b", inline=False)
-        for command in counting_commands:
+    for command in sorted_commands:
+        if not command.hidden:
             usage = get_command_usage(command)
-            embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
-        embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing after counting commands
+            example = generate_command_example(command)
 
-    for cog_name, commands in cog_commands.items():
-        embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
-        for command in commands:
-            usage = get_command_usage(command)
-            embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
-        embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing after cog commands
+            # Add the command name as a bold header
+            embed.add_field(name=f"**{command.name}**", value="", inline=False)
+
+            # Add the command usage in a code block
+            embed.add_field(name="Usage:", value=f"```\n{usage}\n```", inline=False)
+
+            # Add the example if available
+            if example:
+                embed.add_field(name="Example:", value=f"```\n{example}\n```", inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
