@@ -151,36 +151,35 @@ async def help(ctx, command_name: str = None):
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
+    # Check if there are any counting-related commands
+    counting_commands = [command for command in bot.commands if command.cog_name == "Counting"]
+    if counting_commands:
+        embed.add_field(name="**Counting**", value="\u200b", inline=False)  # Add counting header
+        for command in counting_commands:
+            usage = get_command_usage(command)
+            embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
+
     # Get all the commands sorted by cog name
     sorted_cogs = sorted(bot.cogs.keys())
-
     for cog_name in sorted_cogs:
         cog = bot.get_cog(cog_name)
         commands = cog.get_commands() if cog else bot.commands
 
-        if cog:
+        if cog and cog_name != "Counting":  # Exclude Counting cog from displaying
             # Add cog header with a different color and spacing
             if embed.fields:
                 embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing before the cog header
-            embed.add_field(name=f"\u200b{cog_name}", value="\u200b", inline=False)
+            embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
             embed.color = discord.Color.random()  # Set a random color for cog headers
 
         for command in commands:
-            if not command.hidden:
+            if not command.hidden and command.cog_name != "Counting":  # Exclude Counting commands from displaying
                 usage = get_command_usage(command)
-
-                # Add the command name in bold and usage in a code block
                 embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
-
-    # Add additional commands outside of cogs
-    additional_commands = [bot.get_command(cmd) for cmd in ['set_channel', 'set_increment']]
-    for command in additional_commands:
-        if command:
-            usage = get_command_usage(command)
-            embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
