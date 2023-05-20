@@ -144,6 +144,9 @@ async def help(ctx, command_name: str = None):
             usage = get_command_usage(command)
             embed.add_field(name=f"**{command.name}**", value=f"```{usage}```", inline=False)
 
+        # Add space between categories
+        embed.add_field(name="\u200b", value="\u200b", inline=False)
+
     if custom_commands:
         embed.add_field(name="**Custom**", value="\u200b", inline=False)
         for command in custom_commands:
