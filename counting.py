@@ -103,7 +103,11 @@ async def generate_help_data():
     with open('help_data.json', 'w') as f:
         json.dump(help_data, f, indent=4)
 
+        
+
     print("Help data generated successfully.")
+    except Exception as e:
+        print(f"Error generating help data: {e}")
 
 
 
