@@ -83,18 +83,14 @@ async def generate_help_data():
     for extension in bot.extensions:
         print(extension)
 
-    # Generate help data for each extension
-    for extension in extensions:
-        ext = bot.get_cog(extension)
-        if ext:
-            print(f"\nExtension: {extension}")
-            for command in ext.get_commands():
-                if not command.hidden:
-                    usage, example = get_command_usage(command)
-                    help_data[command.name] = {'usage': usage, 'example': example}
-                    print(f"Command: {command.name}")
-                    print(f"Usage: {usage}")
-                    print(f"Example: {example}")
+    # Generate help data for each command
+    for command in bot.commands:
+        if not command.hidden:
+            usage, example = get_command_usage(command)
+            help_data[command.name] = {'usage': usage, 'example': example}
+            print(f"Command: {command.name}")
+            print(f"Usage: {usage}")
+            print(f"Example: {example}")
 
     print("Generated help data:", help_data)
 
@@ -102,6 +98,7 @@ async def generate_help_data():
         json.dump(help_data, f, indent=4)
 
     print("Help data generated successfully.")
+
 
 
 
