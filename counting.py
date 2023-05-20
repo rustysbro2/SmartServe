@@ -168,15 +168,18 @@ async def help(ctx, command_name: str = None):
         for command in counting_commands:
             usage = get_command_usage(command)
             embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
+        embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing after counting commands
 
     for cog_name, commands in cog_commands.items():
         embed.add_field(name=f"**{cog_name}**", value="\u200b", inline=False)
         for command in commands:
             usage = get_command_usage(command)
             embed.add_field(name=f"**{command.name}**", value=f"```\n{usage}\n```", inline=False)
+        embed.add_field(name="\u200b", value="\u200b", inline=False)  # Add spacing after cog commands
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
