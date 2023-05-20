@@ -115,7 +115,7 @@ async def generate_help_data(help_data_file):
     print(f"File exists: {os.path.exists(help_data_file)}")
     print(f"File size: {os.path.getsize(help_data_file)} bytes")
 
-@bot.event
+
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
@@ -161,7 +161,7 @@ async def help(ctx, command_name: str = None):
     try:
         with open('help_data.json', 'r') as f:
             help_data = json.load(f)
-            print(f"Help data loaded: {help_data}")
+        print(f"Help data loaded: {help_data}")
     except FileNotFoundError:
         help_data = {}
         print("Help data file not found.")
@@ -186,6 +186,7 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
