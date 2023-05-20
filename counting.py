@@ -93,7 +93,7 @@ async def help(ctx, command_name: str = None):
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
-)
+
 
 def get_command_usage(command):
     signature = f"!{command.name}"
