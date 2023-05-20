@@ -80,14 +80,28 @@ class MusicBot(commands.Cog):
         except Exception as e:
             print(e)
 
-    async def check_queue(self, voice_channel):
-        queue = self.voice_queues[voice_channel]
-        if queue.empty():
-            if voice_channel.guild.voice_client:
-                await self.leave(voice_channel)
-            return
+ async def check_queue(self, voice_channel):
+    queue = self.voice_queues[voice_channel]
+    if queue.empty():
+        if voice_channel.guild.voice_client:
+            await self.leave(voice_channel.guild.voice_client)
+        return
 
-        await self.play_queue(voice_channel)
+    await self.play_queue(voice_channel)
+
+async def leave(self, voice_client):
+    if voice_client:
+        if len(voice_client.channel.members) > 1:
+            await voice_client.channel.send("There are still users in the voice channel. I will not leave.")
+        else:
+            await voice_client.disconnect()
+            if voice_client.channel in self.voice_queues:
+                del self.voice_queues[voice_client.channel]
+                del self.vote_skip[voice_client.channel]
+            await voice_client.channel.send("Leaving voice channel.")
+    else:
+        await voice_client.channel.send("I am not currently connected to a voice channel.")
+
 
     @commands.command()
     async def vote_skip(self, ctx):
