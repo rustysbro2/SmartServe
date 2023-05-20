@@ -1,3 +1,26 @@
+@bot.command()
+async def help(ctx, command_name: str = None):
+    embed = discord.Embed(title="Bot Help", color=discord.Color.blue())
+    embed.set_thumbnail(url=bot.user.avatar.url)
+    embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
+
+    if command_name is None:
+        for cmd in bot.commands:
+            if not cmd.hidden:
+                usage = get_command_usage(cmd)
+                example = generate_command_example(cmd)
+                embed.add_field(name=f"**{cmd.name}**", value=f"Usage: `{usage}`\nExample: `{example}`", inline=False)
+    else:
+        cmd = bot.get_command(command_name)
+        if cmd and not cmd.hidden:
+            usage = get_command_usage(cmd)
+            example = generate_command_example(cmd)
+            embed.add_field(name=f"**{cmd.name}**", value=f"Usage: `{usage}`\nExample: `{example}`", inline=False)
+        else:
+            embed.description = f"No information found for command: `{command_name}`"
+
+    embed.set_footer(text="For more information, contact the bot owner.")
+    await ctx.send(embed=embed)
 import discord
 from discord.ext import commands
 import os
@@ -160,16 +183,24 @@ async def help(ctx, command_name: str = None):
     embed.set_thumbnail(url=bot.user.avatar.url)
     embed.description = "Welcome to the Bot Help!\nHere are the available commands:"
 
-    # Get all the commands sorted by cog name
-    sorted_commands = sorted(bot.commands, key=lambda c: c.cog_name or "")
-
-    for command in sorted_commands:
-        if not command.hidden:
-            usage, example = get_command_usage(command)
-            embed.add_field(name=f"**{command.name}**", value=f"Usage:\n`{usage}`\nExample:\n`{example}`", inline=False)
+    if command_name is None:
+        for cmd in bot.commands:
+            if not cmd.hidden:
+                usage = get_command_usage(cmd)
+                example = generate_command_example(cmd)
+                embed.add_field(name=f"**{cmd.name}**", value=f"Usage: `{usage}`\nExample: `{example}`", inline=False)
+    else:
+        cmd = bot.get_command(command_name)
+        if cmd and not cmd.hidden:
+            usage = get_command_usage(cmd)
+            example = generate_command_example(cmd)
+            embed.add_field(name=f"**{cmd.name}**", value=f"Usage: `{usage}`\nExample: `{example}`", inline=False)
+        else:
+            embed.description = f"No information found for command: `{command_name}`"
 
     embed.set_footer(text="For more information, contact the bot owner.")
     await ctx.send(embed=embed)
+
 
 
 
