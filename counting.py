@@ -28,7 +28,7 @@ default_data = {
     'increment': 1,
     'pending_increment': None,
     'old_increment': 1,
-    'successful_counts': 0  # add this line
+    'successful_counts': 0
 }
 
 # Add your extension names here
@@ -75,6 +75,7 @@ def get_command_usage(command):
 
 async def generate_help_data():
     help_data = {}
+    print("Generated help data:", help_data)  # Debug: Print the generated help data
     for extension in extensions:
         ext = bot.get_cog(extension)
         if ext:
@@ -102,8 +103,6 @@ async def load_help_data():
 
 help_data = await load_help_data()
 print("Help data content:", help_data)  # Debug: Print the help data outside the function
-
-
 
 @bot.event
 async def on_command_error(ctx, error):
