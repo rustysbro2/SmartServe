@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord_slash import SlashCommand
 import os
 import json
 import inspect
@@ -14,6 +15,7 @@ tracemalloc.start()
 
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='!', intents=intents)
+slash = SlashCommand(bot)
 
 bot.remove_command('help')
 
