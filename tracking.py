@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord_slash import cog_ext, SlashContext
 import json
 import random
 
@@ -56,9 +57,9 @@ class Tracking(commands.Cog):
         ]
         return positive_emojis
 
-    @commands.command()
+    @cog_ext.cog_slash(name="set_join_channel")
     @commands.has_permissions(administrator=True)
-    async def set_join_channel(self, ctx, channel: discord.TextChannel):
+    async def set_join_channel(self, ctx: SlashContext, channel: discord.TextChannel):
         guild = ctx.guild
 
         # Load existing data from the JSON file
