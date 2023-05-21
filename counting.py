@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from discord_slash import SlashCommand
+from discord_slash import cog_ext, SlashContext
 import os
 import json
 import inspect
