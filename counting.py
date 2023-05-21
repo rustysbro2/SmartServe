@@ -10,6 +10,7 @@ import asyncio
 from giveaway import Giveaway
 from tracking import Tracking
 from musicbot import MusicBot
+import interactions
 
 tracemalloc.start()
 
