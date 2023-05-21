@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord_slash import cog_ext, SlashContext
 import json
 import random
+import interactions
 
 class Tracking(commands.Cog):
     def __init__(self, bot):
