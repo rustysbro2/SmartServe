@@ -1,9 +1,0 @@
-discord.py==1.7.3
-os
-json
-ast
-operator
-requests
-logging
-inspect
-random
