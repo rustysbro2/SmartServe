@@ -30,8 +30,19 @@ async function trackUserJoin(guildId, member) {
     };
   }
 
+  // Check if the member is a bot
   if (member.user.bot) {
     console.log(`Bot joined the server: ${member.user.tag}`);
+    if (guildData.trackingChannelId) {
+      const trackingChannel = await member.guild.channels.cache.get(guildData.trackingChannelId);
+      if (trackingChannel && trackingChannel.isText()) {
+        trackingChannel.send(`Bot ${member.user.tag} joined the server.`);
+      } else {
+        console.log('Tracking channel does not exist or is not text-based.');
+      }
+    } else {
+      console.log('Tracking channel ID not set.');
+    }
     return;
   }
 
