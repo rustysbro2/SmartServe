@@ -9,9 +9,10 @@ const helpCommand = {
     const { commands } = interaction.client;
 
     const helpMessage = commands.map(command => {
-      const commandName = command.name;
-      const commandDescription = command.description;
-      const commandOptions = command.options ? command.options.map(option => option.name).join(', ') : '';
+      const commandData = command.data;
+      const commandName = commandData.name;
+      const commandDescription = commandData.description;
+      const commandOptions = commandData.options ? commandData.options.map(option => option.name).join(', ') : '';
       const usage = `/${commandName} ${commandOptions}`;
 
       return `**${commandName}**: ${commandDescription}\nUsage: \`${usage}\``;
