@@ -13,10 +13,11 @@
   "author": "Your Name",
   "license": "MIT",
   "dependencies": {
-    "discord.js": "^13.5.0",
-    "fs": "0.0.1-security",
     "@discordjs/builders": "^0.6.0",
     "@discordjs/rest": "^1.7.1",
-    "discord-api-types/v9": "^*"
+    "discord-api-types": "^0.37.42",
+    "discord-api-types/v9": "^*",
+    "discord.js": "^13.5.0",
+    "fs": "0.0.1-security"
   }
 }
