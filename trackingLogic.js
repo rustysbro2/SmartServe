@@ -108,25 +108,19 @@ async function trackUserJoin(guildId, member) {
 
   if (member instanceof GuildMember) {
     const invites = await member.guild.invites.fetch();
-    
-    console.log('Invites:', invites); // Debug info
 
     const usedInvite = invites.find((invite) => {
       const inviteData = guildData.inviteMap[invite.code];
       return inviteData && inviteData.uses < invite.uses;
     });
 
-    console.log('Used Invite:', usedInvite); // Debug info
-
-    if (usedInvite) {
+    if (usedInvite && usedInvite.code) { // Add check for code property
       guildData.inviteMap[usedInvite.code] = {
         uses: usedInvite.uses,
         inviter: member.id
       };
 
       const trackingChannelId = guildData.trackingChannelId;
-      console.log('Tracking Channel ID:', trackingChannelId); // Debug info
-
       if (trackingChannelId) {
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
         if (trackingChannel && trackingChannel.isText()) {
@@ -137,11 +131,7 @@ async function trackUserJoin(guildId, member) {
             .catch((error) => {
               console.error('Error sending tracking message:', error);
             });
-        } else {
-          console.error('Tracking channel not found or is not a text channel');
         }
-      } else {
-        console.error('Tracking channel ID not found');
       }
     }
   }
