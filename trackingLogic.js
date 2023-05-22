@@ -18,7 +18,7 @@ function saveTrackingData(data) {
   fs.writeFileSync('trackingData.json', jsonData, { encoding: 'utf8', flag: 'w' });
 }
 
-function trackUserJoin(guildId, member) {
+async function trackUserJoin(guildId, member) {
   const trackingData = loadTrackingData();
   let guildData = trackingData[guildId];
 
@@ -28,7 +28,7 @@ function trackUserJoin(guildId, member) {
     };
   }
 
-  const invites = member.guild.fetchInvites();
+  const invites = await member.guild.fetchInvites();
 
   const usedInvite = invites.find((invite) => {
     const inviteData = guildData.inviteMap[invite.code];
@@ -52,23 +52,3 @@ function trackUserJoin(guildId, member) {
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
-
-function setTrackingChannel(guildId, channelId) {
-  const trackingData = loadTrackingData();
-  let guildData = trackingData[guildId];
-
-  if (!guildData) {
-    guildData = {
-      inviteMap: {},
-      trackingChannelId: null,
-    };
-  }
-
-  guildData.trackingChannelId = channelId;
-  saveTrackingData(trackingData);
-}
-
-module.exports = {
-  trackUserJoin,
-  setTrackingChannel,
-};
