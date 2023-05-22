@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 
 const helpCommand = {
   data: new SlashCommandBuilder()
@@ -9,34 +9,22 @@ const helpCommand = {
   execute: async (interaction) => {
     const { commands } = interaction.client;
 
-    // Create embed
-    const embed = new MessageEmbed()
-      .setColor('#0099ff')
-      .setTitle('Available Commands')
-      .setFooter('Use the navigation buttons to see more commands');
-
-    // Create action row with buttons
-    const row = new MessageActionRow()
-      .addComponents(
-        new MessageButton()
-          .setCustomId('previous')
-          .setLabel('Previous')
-          .setStyle('SECONDARY'),
-        new MessageButton()
-          .setCustomId('next')
-          .setLabel('Next')
-          .setStyle('SECONDARY')
-      );
-
-    // Add commands to embed
-    commands.forEach(command => {
+    const commandFields = commands.map(command => {
       const commandName = command.data.name;
       const commandDescription = command.data.description;
-      const commandOptions = command.data.options ? command.data.options.map(option => `\`${option.name}\``).join(', ') : '';
-      embed.addField(`**/${commandName}**`, `${commandDescription}\nOptions: ${commandOptions}`);
+      const commandOptions = command.data.options ? command.data.options.map(option => option.name).join(', ') : '';
+      const usage = `/${commandName} ${commandOptions}`;
+
+      return { name: `**${commandName}**`, value: `${commandDescription}\nUsage: \`${usage}\`` };
     });
 
-    await interaction.reply({ embeds: [embed], components: [row] });
+    const embed = new MessageEmbed()
+      .setTitle('Available Commands')
+      .addFields(commandFields)
+      .setColor('#0099ff')
+      .setFooter({ text: 'This is a footer' });  // Update this text as needed
+
+    await interaction.reply({ embeds: [embed] });
   }
 };
 
