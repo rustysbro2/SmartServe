@@ -52,3 +52,23 @@ async function trackUserJoin(guildId, member) {
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
+
+function setTrackingChannel(guildId, channelId) {
+  const trackingData = loadTrackingData();
+  let guildData = trackingData[guildId];
+
+  if (!guildData) {
+    guildData = {
+      inviteMap: {},
+      trackingChannelId: null,
+    };
+  }
+
+  guildData.trackingChannelId = channelId;
+  saveTrackingData(trackingData);
+}
+
+module.exports = {
+  trackUserJoin,
+  setTrackingChannel,
+};
