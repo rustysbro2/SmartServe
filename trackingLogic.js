@@ -55,18 +55,18 @@ async function trackUserJoin(guildId, member) {
       };
 
       if (guildData.trackingChannelId) {
-        const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
+        const trackingChannel = await member.guild.channels.cache.get(guildData.trackingChannelId);
 
         console.log(`Tracking channel: ${trackingChannel}`);
 
         if (trackingChannel && trackingChannel.isText()) {
-          const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
+          const inviter = await member.guild.members.fetch(usedInvite.inviter.id);
           if (inviter) {
-            console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server. Invited by ${inviter}`);
-            await trackingChannel.send(`User ${member.user.tag} joined the server. Invited by ${inviter}`);
+            console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server. Invited by ${inviter.user.tag}`);
+            trackingChannel.send(`User ${member.user.tag} joined the server. Invited by ${inviter.user.tag}`);
           } else {
             console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server.`);
-            await trackingChannel.send(`User ${member.user.tag} joined the server.`);
+            trackingChannel.send(`User ${member.user.tag} joined the server.`);
           }
         } else {
           console.log('Tracking channel does not exist or is not text-based.');
@@ -84,7 +84,6 @@ async function trackUserJoin(guildId, member) {
   trackingData[guildId] = guildData;
   await saveTrackingData(trackingData);
 }
-
 
 function setTrackingChannel(guildId, channelId) {
   const trackingData = loadTrackingData();
