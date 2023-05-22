@@ -1,4 +1,4 @@
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2');
 
 const connectionConfig = {
   host: 'localhost',
@@ -8,30 +8,76 @@ const connectionConfig = {
 };
 
 async function loadTrackingData() {
-  try {
-    const connection = await mysql.createConnection(connectionConfig);
+  const connection = mysql.createConnection(connectionConfig);
 
-    const [rows] = await connection.execute('SELECT * FROM tracking_data');
-    const trackingData = {};
+  return new Promise((resolve, reject) => {
+    connection.connect((err) => {
+      if (err) {
+        console.error('Error connecting to MySQL:', err);
+        reject(err);
+        return;
+      }
 
-    for (const row of rows) {
-      trackingData[row.guild_id] = {
-        inviteMap: JSON.parse(row.invite_map),
-        trackingChannelId: row.tracking_channel_id
-      };
-    }
+      const checkTableQuery = 'SHOW TABLES LIKE "tracking_data"';
+      connection.query(checkTableQuery, (error, results) => {
+        if (error) {
+          console.error('Error checking table existence:', error);
+          reject(error);
+          connection.end();
+          return;
+        }
 
-    console.log('Tracking data loaded successfully');
-    return trackingData;
-  } catch (error) {
-    console.error('Error loading tracking data:', error);
-    throw error;
-  }
+        if (results.length === 0) {
+          const createTableQuery = `
+            CREATE TABLE tracking_data (
+              guild_id VARCHAR(255) PRIMARY KEY,
+              invite_map TEXT,
+              tracking_channel_id VARCHAR(255)
+            )
+          `;
+          connection.query(createTableQuery, (error) => {
+            if (error) {
+              console.error('Error creating tracking_data table:', error);
+              reject(error);
+            } else {
+              console.log('Tracking data table created successfully');
+              resolve({});
+            }
+            connection.end();
+          });
+        } else {
+          const selectDataQuery = 'SELECT * FROM tracking_data';
+          connection.query(selectDataQuery, (error, results) => {
+            if (error) {
+              console.error('Error loading tracking data:', error);
+              reject(error);
+            } else {
+              const trackingData = {};
+              for (const row of results) {
+                trackingData[row.guild_id] = {
+                  inviteMap: JSON.parse(row.invite_map),
+                  trackingChannelId: row.tracking_channel_id
+                };
+              }
+              console.log('Tracking data loaded successfully');
+              resolve(trackingData);
+            }
+            connection.end();
+          });
+        }
+      });
+    });
+  });
 }
 
-async function saveTrackingData(data) {
-  try {
-    const connection = await mysql.createConnection(connectionConfig);
+function saveTrackingData(data) {
+  const connection = mysql.createConnection(connectionConfig);
+
+  connection.connect((err) => {
+    if (err) {
+      console.error('Error connecting to MySQL:', err);
+      return;
+    }
 
     const values = Object.entries(data).map(([guildId, { inviteMap, trackingChannelId }]) => {
       return `('${guildId}', '${JSON.stringify(inviteMap)}', '${trackingChannelId}')`;
@@ -39,12 +85,15 @@ async function saveTrackingData(data) {
 
     const query = `INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ${values} ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)`;
 
-    await connection.execute(query);
-    console.log('Tracking data saved successfully');
-  } catch (error) {
-    console.error('Error saving tracking data:', error);
-    throw error;
-  }
+    connection.query(query, (error, results) => {
+      if (error) {
+        console.error('Error saving tracking data:', error);
+      } else {
+        console.log('Tracking data saved successfully');
+      }
+      connection.end();
+    });
+  });
 }
 
 async function trackUserJoin(guildId, member) {
@@ -83,21 +132,28 @@ async function trackUserJoin(guildId, member) {
   }
 
   trackingData[guildId] = guildData;
-  await saveTrackingData(trackingData);
+  saveTrackingData(trackingData);
 }
 
-async function setTrackingChannel(guildId, channelId) {
-  try {
-    const connection = await mysql.createConnection(connectionConfig);
+function setTrackingChannel(guildId, channelId) {
+  const connection = mysql.createConnection(connectionConfig);
+
+  connection.connect((err) => {
+    if (err) {
+      console.error('Error connecting to MySQL:', err);
+      return;
+    }
 
     const query = `UPDATE tracking_data SET tracking_channel_id = '${channelId}' WHERE guild_id = '${guildId}'`;
-    await connection.execute(query);
-
-    console.log('Tracking channel updated successfully');
-  } catch (error) {
-    console.error('Error updating tracking channel:', error);
-    throw error;
-  }
+    connection.query(query, (error, results) => {
+      if (error) {
+        console.error('Error updating tracking channel:', error);
+      } else {
+        console.log('Tracking channel updated successfully');
+      }
+      connection.end();
+    });
+  });
 }
 
 module.exports = {
