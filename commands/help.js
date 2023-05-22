@@ -11,7 +11,7 @@ const helpCommand = {
     const helpMessage = commands.map(command => {
       const commandName = command.data.name;
       const commandDescription = command.data.description;
-      const commandOptions = command.data.options.map(option => option.name).join(', ');
+      const commandOptions = command.data.options ? command.data.options.map(option => option.name).join(', ') : '';
       const usage = `/${commandName} ${commandOptions}`;
 
       return `**${commandName}**: ${commandDescription}\nUsage: \`${usage}\``;
