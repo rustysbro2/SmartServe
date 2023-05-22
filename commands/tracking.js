@@ -1,4 +1,4 @@
-const { CommandInteractionOptionResolver } = require('discord.js');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { setTrackingChannel } = require('../trackingLogic');
 
 module.exports = {
