@@ -3,7 +3,9 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const helpCommand = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Show available commands'),
+    .setDescription('Show available commands')
+    .toJSON(), // Add .toJSON() to convert the command builder to JSON
+
   execute: async (interaction) => {
     const { commands } = interaction.client;
 
