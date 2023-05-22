@@ -150,6 +150,7 @@ async function trackUserJoin(guildId, member) {
 }
 
 
+
 function setTrackingChannel(guildId, channelId) {
   const connection = mysql.createConnection(connectionConfig);
 
