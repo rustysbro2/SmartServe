@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 
 const helpCommand = {
   data: new SlashCommandBuilder()
@@ -8,33 +9,34 @@ const helpCommand = {
   execute: async (interaction) => {
     const { commands } = interaction.client;
 
-    // Assume commands are objects with `category` property
-    const categories = {};
+    // Create embed
+    const embed = new MessageEmbed()
+      .setColor('#0099ff')
+      .setTitle('Available Commands');
+
+    // Create action row with buttons
+    const row = new MessageActionRow()
+      .addComponents(
+        new MessageButton()
+          .setCustomId('previous')
+          .setLabel('Previous')
+          .setStyle('PRIMARY'),
+        new MessageButton()
+          .setCustomId('next')
+          .setLabel('Next')
+          .setStyle('PRIMARY')
+      );
+
+    // Add commands to embed
     commands.forEach(command => {
-      const category = command.category || 'General';
-      if (!categories[category]) {
-        categories[category] = [];
-      }
-      categories[category].push(command);
+      const commandName = command.data.name;
+      const commandDescription = command.data.description;
+      const commandOptions = command.data.options ? command.data.options.map(option => option.name).join(', ') : '';
+      const usage = `/${commandName} ${commandOptions}`;
+      embed.addField(`**${commandName}**:`, `${commandDescription}\nUsage: \`${usage}\``);
     });
 
-    let helpMessage = '';
-    for (const category in categories) {
-      helpMessage += `**${category}**\n`;
-
-      const categoryCommands = categories[category].map(command => {
-        const commandName = command.data.name;
-        const commandDescription = command.data.description;
-        const commandOptions = command.data.options ? command.data.options.map(option => option.name).join(', ') : '';
-        const usage = `/${commandName} ${commandOptions}`;
-
-        return `> **${commandName}**: ${commandDescription}\n> Usage: \`${usage}\``;
-      }).join('\n\n');
-
-      helpMessage += `${categoryCommands}\n\n`;
-    }
-
-    await interaction.reply(`**Available Commands**:\n\n${helpMessage}`);
+    await interaction.reply({ embeds: [embed], components: [row] });
   }
 };
 
