@@ -96,48 +96,70 @@ function saveTrackingData(data) {
 }
 
 async function trackUserJoin(guildId, member) {
-  const trackingData = await loadTrackingData();
-  let guildData = trackingData[guildId];
+  try {
+    const trackingData = await loadTrackingData();
+    let guildData = trackingData[guildId];
 
-  if (!guildData) {
-    guildData = {
-      inviteMap: {},
-      trackingChannelId: null
-    };
-  }
-
-  if (member instanceof GuildMember) {
-    const invites = await member.guild.invites.fetch();
-
-    const usedInvite = invites.find((invite) => {
-      const inviteData = guildData.inviteMap[invite.code];
-      return inviteData && inviteData.uses < invite.uses;
-    });
-
-    if (usedInvite && usedInvite.code) { // Add check for code property
-      guildData.inviteMap[usedInvite.code] = {
-        uses: usedInvite.uses,
-        inviter: member.id
+    if (!guildData) {
+      guildData = {
+        inviteMap: {},
+        trackingChannelId: null
       };
+    }
 
-      const trackingChannelId = guildData.trackingChannelId;
-      if (trackingChannelId) {
-        const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
-        if (trackingChannel && trackingChannel.isText()) {
-          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
-            .then(() => {
-              console.log('Tracking message sent successfully');
-            })
-            .catch((error) => {
-              console.error('Error sending tracking message:', error);
-            });
-        }
+    if (member instanceof GuildMember) {
+      const invites = await member.guild.invites.fetch();
+
+      const usedInvite = invites.find((invite) => {
+        const inviteData = guildData.inviteMap[invite.code];
+        return inviteData && inviteData.uses < invite.uses;
+      });
+
+      if (usedInvite && usedInvite.code) {
+        guildData.inviteMap[usedInvite.code] = {
+          uses: usedInvite.uses,
+          inviter: member.id
+        };
+
+        const connection = mysql.createConnection(connectionConfig);
+
+        connection.connect((err) => {
+          if (err) {
+            console.error('Error connecting to MySQL:', err);
+            return;
+          }
+
+          const query = `SELECT tracking_channel_id FROM tracking_data WHERE guild_id = '${guildId}'`;
+          connection.query(query, (error, results) => {
+            if (error) {
+              console.error('Error retrieving tracking channel ID:', error);
+            } else {
+              const trackingChannelId = results[0].tracking_channel_id;
+
+              if (trackingChannelId) {
+                const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
+                if (trackingChannel && trackingChannel.isText()) {
+                  trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
+                    .then(() => {
+                      console.log('Tracking message sent successfully');
+                    })
+                    .catch((error) => {
+                      console.error('Error sending tracking message:', error);
+                    });
+                }
+              }
+            }
+            connection.end();
+          });
+        });
       }
     }
-  }
 
-  trackingData[guildId] = guildData;
-  saveTrackingData(trackingData);
+    trackingData[guildId] = guildData;
+    saveTrackingData(trackingData);
+  } catch (error) {
+    console.error('Error tracking user join:', error);
+  }
 }
 
 function setTrackingChannel(guildId, channelId) {
