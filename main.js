@@ -3,7 +3,7 @@ const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { token, clientId } = require('./config');
-const { trackUserJoin } = require('./trackingLogic');
+const { trackUserJoin, setTrackingChannel } = require('./trackingLogic');
 
 const client = new Client({
   intents: [
