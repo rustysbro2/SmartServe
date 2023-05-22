@@ -1,19 +1,22 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { CommandInteractionOptionResolver } = require('discord.js');
 const { setTrackingChannel } = require('../trackingLogic');
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('track')
-    .setDescription('Track user joins using invite codes')
-    .addChannelOption((option) =>
-      option
-        .setName('channel')
-        .setDescription('Set the tracking channel')
-        .setRequired(true)
-    ),
-
+  data: {
+    name: 'track',
+    description: 'Track user joins using invite codes',
+    options: [
+      {
+        name: 'channel',
+        description: 'Set the tracking channel',
+        type: 'CHANNEL',
+        required: true,
+      },
+    ],
+  },
   async execute(interaction) {
-    const trackingChannel = interaction.options.getChannel('channel');
+    const options = new CommandInteractionOptionResolver(interaction.options);
+    const trackingChannel = options.getChannel('channel');
 
     if (!trackingChannel || !trackingChannel.isText()) {
       return interaction.reply('Please select a text channel for tracking.');
