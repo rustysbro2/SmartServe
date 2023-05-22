@@ -97,13 +97,10 @@ function saveTrackingData(data) {
 
 async function trackUserJoin(guildId, member) {
   const trackingData = await loadTrackingData();
-  let guildData = trackingData[guildId];
-
-  if (!guildData) {
-    guildData = {
-      inviteMap: {},
-      trackingChannelId: null
-    };
+  let guildData = trackingData[guildId] || {
+  inviteMap: {},
+  trackingChannelId: null
+};
   }
 
   if (member instanceof GuildMember) {
