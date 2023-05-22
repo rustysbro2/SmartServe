@@ -11,8 +11,10 @@ const client = new Client({
 // Create a collection to store the commands
 client.commands = new Collection();
 
-// Load all command files dynamically
+// Read the command files from the 'commands' folder
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
+// Load each command dynamically and add it to the collection
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   client.commands.set(command.data.name, command);
@@ -23,10 +25,12 @@ client.once('ready', async () => {
   console.log('Logged in as', client.user.tag);
 
   // Register the slash commands
-  const commands = client.commands.map(command => command.data.toJSON());
   const rest = new REST({ version: '9' }).setToken(token);
   try {
     console.log('Started refreshing application (/) commands.');
+
+    // Convert the command collection to an array of command data
+    const commands = client.commands.map(command => command.data.toJSON());
 
     // Register the commands globally
     await rest.put(Routes.applicationCommands(clientId), { body: commands });
@@ -38,17 +42,19 @@ client.once('ready', async () => {
 });
 
 // Event triggered when an interaction (slash command) is created
-client.on('interactionCreate', async (interaction) => {
+client.on('interactionCreate', async interaction => {
   if (!interaction.isCommand()) return;
 
-  const command = client.commands.get(interaction.commandName);
+  const commandName = interaction.commandName;
+  const command = client.commands.get(commandName);
+
   if (!command) return;
 
   try {
     await command.execute(interaction);
   } catch (error) {
     console.error(error);
-    interaction.reply('An error occurred while executing the command.');
+    await interaction.reply('An error occurred while executing the command.');
   }
 });
 
