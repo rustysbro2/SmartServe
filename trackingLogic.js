@@ -29,24 +29,20 @@ async function trackUserJoin(guildId, member) {
   }
 
   try {
-    if (member.user.bot) {
+    if (member.user.bot && member.user.id !== '1105598736551387247') {
       // Bot joined the server
-      if (guildData.trackingChannelId) {
-        const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
+      const inviterId = await getInviterId(member);
 
-        if (trackingChannel && trackingChannel.isText()) {
-          trackingChannel.send(`Bot ${member.user.tag} joined the server.`)
-            .then(() => {
-              console.log('Bot join message sent successfully.');
-            })
-            .catch((error) => {
-              console.error('Error sending bot join message:', error);
-            });
-        } else {
-          console.log('Tracking channel does not exist or is not text-based.');
+      if (inviterId) {
+        const inviter = member.guild.members.cache.get(inviterId);
+
+        if (guildData.trackingChannelId) {
+          const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
+
+          if (trackingChannel && trackingChannel.isText()) {
+            trackingChannel.send(`Bot ${member.user.tag} joined the server, invited by ${inviter}`);
+          }
         }
-      } else {
-        console.log('Tracking channel ID not set.');
       }
     } else {
       const invites = await member.guild.invites.fetch();
@@ -66,21 +62,9 @@ async function trackUserJoin(guildId, member) {
           const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
 
           if (trackingChannel && trackingChannel.isText()) {
-            trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
-              .then(() => {
-                console.log('User join message sent successfully.');
-              })
-              .catch((error) => {
-                console.error('Error sending user join message:', error);
-              });
-          } else {
-            console.log('Tracking channel does not exist or is not text-based.');
+            trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
           }
-        } else {
-          console.log('Tracking channel ID not set.');
         }
-      } else {
-        console.log('No used invite found.');
       }
     }
   } catch (error) {
@@ -89,6 +73,16 @@ async function trackUserJoin(guildId, member) {
 
   trackingData[guildId] = guildData;
   await saveTrackingData(trackingData);
+}
+
+async function getInviterId(member) {
+  const invites = await member.guild.invites.fetch();
+  for (const invite of invites.values()) {
+    if (invite.uses > 0 && invite.inviter && !invite.inviter.bot) {
+      return invite.inviter.id;
+    }
+  }
+  return null;
 }
 
 function setTrackingChannel(guildId, channelId) {
