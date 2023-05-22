@@ -136,23 +136,31 @@ async function trackUserJoin(guildId, member) {
 function setTrackingChannel(guildId, channelId) {
   const connection = mysql.createConnection(connectionConfig);
 
-  connection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to MySQL:', err);
-      return;
-    }
-
-    const query = `UPDATE tracking_data SET tracking_channel_id = '${channelId}' WHERE guild_id = '${guildId}'`;
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error('Error updating tracking channel:', error);
-      } else {
-        console.log('Tracking channel updated successfully');
+  return new Promise((resolve, reject) => {
+    connection.connect((err) => {
+      if (err) {
+        console.error('Error connecting to MySQL:', err);
+        reject(err);
+        return;
       }
-      connection.end();
+
+      const query = `INSERT INTO tracking_data (guild_id, tracking_channel_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE tracking_channel_id = ?`;
+      const values = [guildId, channelId, channelId];
+
+      connection.query(query, values, (error, results) => {
+        if (error) {
+          console.error('Error updating tracking channel:', error);
+          reject(error);
+        } else {
+          console.log('Tracking channel updated successfully');
+          resolve();
+        }
+        connection.end();
+      });
     });
   });
 }
+
 
 // Create the table on startup
 createTable();
