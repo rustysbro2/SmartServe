@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { GuildMember, Permissions } = require('discord.js');
+const { GuildMember } = require('discord.js');
 
 function loadTrackingData() {
   try {
@@ -20,7 +20,9 @@ function saveTrackingData(data) {
 }
 
 async function trackUserJoin(guildId, member) {
-  const trackingData = loadTrackingData();
+  console.log('Tracking user join:', member.user.tag);
+  
+    const trackingData = loadTrackingData();
   let guildData = trackingData[guildId];
 
   if (!guildData) {
@@ -48,31 +50,18 @@ async function trackUserJoin(guildId, member) {
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
         if (trackingChannel && trackingChannel.isText()) {
           trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
+          console.log(`Tracking message sent in channel ${trackingChannel.name}`);
+        } else {
+          console.log('Tracking channel is not a text channel');
         }
+      } else {
+        console.log('Tracking channel ID is not set');
       }
+    } else {
+      console.log('No valid invite found for the user');
     }
   }
 
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
-
-function setTrackingChannel(guildId, channelId) {
-  const trackingData = loadTrackingData();
-  let guildData = trackingData[guildId];
-
-  if (!guildData) {
-    guildData = {
-      inviteMap: {},
-      trackingChannelId: null,
-    };
-  }
-
-  guildData.trackingChannelId = channelId;
-  saveTrackingData(trackingData);
-}
-
-module.exports = {
-  trackUserJoin,
-  setTrackingChannel,
-};
