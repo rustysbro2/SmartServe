@@ -1,36 +1,24 @@
-const { CommandInteractionOptionResolver } = require('discord.js');
-const { setTrackingChannel } = require('../trackingLogic');
+const { SlashCommandBuilder } = require('@discordjs/builders');
 
-module.exports = {
-  data: {
-    name: 'track',
-    description: 'Track user joins using invite codes',
-    options: [
-      {
-        name: 'channel',
-        description: 'Set the tracking channel',
-        type: 'CHANNEL',
-        required: true,
-      },
-    ],
-  },
-  async execute(interaction) {
-    const options = new CommandInteractionOptionResolver(interaction.options);
-    const trackingChannel = options.getChannel('channel');
+const helpCommand = {
+  data: new SlashCommandBuilder()
+    .setName('help')
+    .setDescription('Show available commands'),
 
-    if (!trackingChannel || !trackingChannel.isText()) {
-      return interaction.reply('Please select a text channel for tracking.');
-    }
+  execute: async (interaction) => {
+    const { commands } = interaction.client;
 
-    const guildId = interaction.guild.id;
-    const channelId = trackingChannel.id;
+    const helpMessage = commands.map(command => {
+      const commandName = command.name;
+      const commandDescription = command.description;
+      const commandOptions = command.options ? command.options.map(option => option.name).join(', ') : '';
+      const usage = `/${commandName} ${commandOptions}`;
 
-    try {
-      await setTrackingChannel(guildId, channelId);
-      await interaction.reply(`Tracking channel set to ${trackingChannel}`);
-    } catch (error) {
-      console.error('Error setting tracking channel:', error);
-      await interaction.reply('An error occurred while setting the tracking channel.');
-    }
+      return `**${commandName}**: ${commandDescription}\nUsage: \`${usage}\``;
+    }).join('\n\n');
+
+    await interaction.reply(`**Available Commands**:\n\n${helpMessage}`);
   },
 };
+
+module.exports = helpCommand;
