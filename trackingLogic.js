@@ -1,12 +1,12 @@
-const fs = require('fs').promises;
+const fs = require('fs');
 
-async function loadTrackingData() {
+function loadTrackingData() {
   try {
-    const data = await fs.readFile('trackingData.json', 'utf8');
+    const data = fs.readFileSync('trackingData.json', 'utf8');
     return JSON.parse(data);
   } catch (error) {
     if (error.code === 'ENOENT') {
-      await fs.writeFile('trackingData.json', '{}', 'utf8');
+      fs.writeFileSync('trackingData.json', '{}', 'utf8');
       return {};
     }
     throw error;
@@ -15,7 +15,7 @@ async function loadTrackingData() {
 
 async function saveTrackingData(data) {
   const jsonData = JSON.stringify(data, null, 2);
-  await fs.writeFile('trackingData.json', jsonData, { encoding: 'utf8', flag: 'w' });
+  fs.writeFileSync('trackingData.json', jsonData, { encoding: 'utf8', flag: 'w' });
 }
 
 async function trackUserJoin(guildId, member) {
@@ -30,7 +30,6 @@ async function trackUserJoin(guildId, member) {
 
   try {
     const invites = await member.guild.invites.fetch();
-    console.log('Invites:', invites);
 
     const usedInvite = invites.find((invite) => {
       const inviteData = guildData.inviteMap[invite.code];
@@ -38,8 +37,6 @@ async function trackUserJoin(guildId, member) {
     });
 
     if (usedInvite) {
-      console.log('Used Invite:', usedInvite);
-
       guildData.inviteMap[usedInvite.code] = {
         uses: usedInvite.uses,
         inviter: member.id,
@@ -47,11 +44,8 @@ async function trackUserJoin(guildId, member) {
 
       if (guildData.trackingChannelId) {
         const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
-        console.log('Tracking Channel:', trackingChannel);
 
         if (trackingChannel && trackingChannel.isText()) {
-          console.log('Sending message...');
-
           trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
             .then(() => {
               console.log('Message sent successfully.');
@@ -69,7 +63,11 @@ async function trackUserJoin(guildId, member) {
       console.log('No used invite found.');
     }
   } catch (error) {
-    console.error(`Failed to fetch invites: ${error}`);
+    if (error.message.includes('Missing Access')) {
+      console.log('Bot joined the server.');
+    } else {
+      console.error(`Failed to fetch invites: ${error}`);
+    }
   }
 
   trackingData[guildId] = guildData;
@@ -98,5 +96,5 @@ function setTrackingChannel(guildId, channelId) {
 
 module.exports = {
   trackUserJoin,
-  setTrackingChannel,
+  setTrackingChannel
 };
