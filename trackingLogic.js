@@ -62,8 +62,10 @@ async function trackUserJoin(guildId, member) {
         if (trackingChannel && trackingChannel.isText()) {
           const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
           if (inviter) {
+            console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server. Invited by ${inviter}`);
             trackingChannel.send(`User ${member.user.tag} joined the server. Invited by ${inviter}`);
           } else {
+            console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server.`);
             trackingChannel.send(`User ${member.user.tag} joined the server.`);
           }
         } else {
@@ -82,6 +84,7 @@ async function trackUserJoin(guildId, member) {
   trackingData[guildId] = guildData;
   await saveTrackingData(trackingData);
 }
+
 
 function setTrackingChannel(guildId, channelId) {
   const trackingData = loadTrackingData();
