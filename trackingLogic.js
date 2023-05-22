@@ -28,31 +28,35 @@ function trackUserJoin(guildId, member) {
     };
   }
 
-  member.guild.fetchInvites()
-    .then(invites => {
-      const usedInvite = invites.find(invite => {
-        const inviteData = guildData.inviteMap[invite.code];
-        if (inviteData && inviteData.uses < invite.uses) {
-          return true;
-        }
-        return false;
-      });
+  try {
+    member.guild.fetchInvites()
+      .then(invites => {
+        const usedInvite = invites.find(invite => {
+          const inviteData = guildData.inviteMap[invite.code];
+          if (inviteData && inviteData.uses < invite.uses) {
+            return true;
+          }
+          return false;
+        });
 
-      if (usedInvite) {
-        guildData.inviteMap[usedInvite.code] = {
-          uses: usedInvite.uses,
-          inviter: member.id,
-        };
+        if (usedInvite) {
+          guildData.inviteMap[usedInvite.code] = {
+            uses: usedInvite.uses,
+            inviter: member.id,
+          };
 
-        if (guildData.trackingChannelId) {
-          const trackingChannel = member.guild.channels.cache.get(guildData.trackingChannelId);
-          if (trackingChannel && trackingChannel.isText()) {
-            trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
+          if (guildData.trackingChannelId) {
+            const trackingChannel = member.guild.channels.cache.get(guildData.trackingChannelId);
+            if (trackingChannel && trackingChannel.isText()) {
+              trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
+            }
           }
         }
-      }
-    })
-    .catch(console.error);
+      })
+      .catch(console.error);
+  } catch (error) {
+    console.error(`Failed to fetch invites: ${error}`);
+  }
 
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
