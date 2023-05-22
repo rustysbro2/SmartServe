@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { setTrackingChannel } = require('../TrackingLogic');
+const { setTrackingChannel } = require('../trackingLogic');
 
 const setTrackingChannelCommand = {
   data: new SlashCommandBuilder()
