@@ -125,6 +125,7 @@ async function trackUserJoin(guildId, member) {
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
         if (trackingChannel && trackingChannel.isText()) {
           console.log(`Sending tracking message for user ${member.user.tag} joined using invite code ${usedInvite.code}`);
+          console.log('Invite Data:', guildData.inviteMap[invite.code]); // Debug: Log inviteData
           trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
             .then(() => {
               console.log('Tracking message sent successfully');
@@ -148,6 +149,7 @@ async function trackUserJoin(guildId, member) {
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
+
 
 
 
