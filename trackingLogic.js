@@ -35,7 +35,7 @@ function trackUserJoin(guildId, member) {
       );
 
       if (usedInvite) {
-        const trackingChannelId = 'YOUR_TRACKING_CHANNEL_ID';
+        const trackingChannelId = guildData.trackingChannelId;
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
         if (trackingChannel && trackingChannel.isText()) {
           trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
@@ -47,6 +47,27 @@ function trackUserJoin(guildId, member) {
   });
 }
 
+function setTrackingChannel(guildId, channelId) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error('Error getting MySQL connection:', err);
+      return;
+    }
+
+    const updateQuery = 'UPDATE guilds SET trackingChannelId = ? WHERE guildId = ?';
+    connection.query(updateQuery, [channelId, guildId], (err) => {
+      if (err) {
+        console.error('Error updating tracking channel:', err);
+        connection.release();
+        return;
+      }
+
+      connection.release();
+    });
+  });
+}
+
 module.exports = {
   trackUserJoin,
+  setTrackingChannel,
 };
