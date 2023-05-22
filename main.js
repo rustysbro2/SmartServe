@@ -47,7 +47,12 @@ client.once('ready', async () => {
     console.log('Started refreshing application (/) commands.');
 
     // Convert the command collection to an array of command data
-    const commands = [...client.commands.values()];
+    const commands = [...client.commands.values()].map((command) => command.data);
+
+    // Log each command to the console
+    for (const command of commands) {
+      console.log(command);
+    }
 
     // Register the commands globally
     await rest.put(Routes.applicationCommands(clientId), { body: commands });
