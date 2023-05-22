@@ -1,78 +1,52 @@
-const fs = require('fs');
-const { GuildMember } = require('discord.js');
+const mysql = require('mysql');
 
-function loadTrackingData() {
-  try {
-    const data = fs.readFileSync('trackingData.json', 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      fs.writeFileSync('trackingData.json', '{}', 'utf8');
-      return {};
+const pool = mysql.createPool({
+  host: 'localhost',
+  user: 'Rustysbro',
+  password: '1234',
+  database: 'counting',
+});
+
+function trackUserJoin(guildId, member) {
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error('Error getting MySQL connection:', err);
+      return;
     }
-    throw error;
-  }
-}
 
-function saveTrackingData(data) {
-  const jsonData = JSON.stringify(data, null, 2);
-  fs.writeFileSync('trackingData.json', jsonData, { encoding: 'utf8', flag: 'w' });
-}
+    const invitesQuery = 'SELECT * FROM invites WHERE guildId = ?';
+    connection.query(invitesQuery, [guildId], (err, inviteResults) => {
+      if (err) {
+        console.error('Error querying invites:', err);
+        connection.release();
+        return;
+      }
 
-async function trackUserJoin(guildId, member) {
-  const trackingData = loadTrackingData();
-  let guildData = trackingData[guildId];
+      const invites = {};
+      for (const inviteResult of inviteResults) {
+        invites[inviteResult.code] = {
+          uses: inviteResult.uses,
+          inviter: inviteResult.inviterId,
+        };
+      }
 
-  if (!guildData) {
-    guildData = {
-      inviteMap: {},
-    };
-  }
+      const usedInvite = member.guild.invites.cache.find(
+        (invite) => invites[invite.code] && invites[invite.code].uses < invite.uses
+      );
 
-  if (member instanceof GuildMember) {
-    const invites = await member.guild.invites.fetch();
-
-    const usedInvite = invites.find((invite) => {
-      const inviteData = guildData.inviteMap[invite.code];
-      return inviteData && inviteData.uses < invite.uses;
-    });
-
-    if (usedInvite) {
-      guildData.inviteMap[usedInvite.code] = {
-        uses: usedInvite.uses,
-        inviter: member.id,
-      };
-
-      const trackingChannelId = guildData.trackingChannelId;
-      if (trackingChannelId) {
+      if (usedInvite) {
+        const trackingChannelId = 'YOUR_TRACKING_CHANNEL_ID';
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
         if (trackingChannel && trackingChannel.isText()) {
           trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
         }
       }
-    }
-  }
 
-  trackingData[guildId] = guildData;
-  saveTrackingData(trackingData);
-}
-
-function setTrackingChannel(guildId, channelId) {
-  const trackingData = loadTrackingData();
-  let guildData = trackingData[guildId];
-
-  if (!guildData) {
-    guildData = {
-      inviteMap: {},
-      trackingChannelId: null,
-    };
-  }
-
-  guildData.trackingChannelId = channelId;
-  saveTrackingData(trackingData);
+      connection.release();
+    });
+  });
 }
 
 module.exports = {
   trackUserJoin,
-  setTrackingChannel,
 };
