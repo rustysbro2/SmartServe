@@ -20,6 +20,7 @@ function saveTrackingData(data) {
 }
 
 async function trackUserJoin(member) {
+  console.log('Tracking user join:', member.user.tag);
   const trackingData = loadTrackingData();
   const guildData = trackingData[member.guild.id] || { inviteMap: {} };
 
@@ -32,6 +33,7 @@ async function trackUserJoin(member) {
     });
 
     if (usedInvite) {
+      console.log(`User joined using invite code ${usedInvite.code}`);
       guildData.inviteMap[usedInvite.code] = {
         uses: usedInvite.uses,
         inviter: member.id,
@@ -41,9 +43,16 @@ async function trackUserJoin(member) {
       if (trackingChannelId) {
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
         if (trackingChannel && trackingChannel.isText()) {
+          console.log('Sending tracking message...');
           trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
+        } else {
+          console.log('Tracking channel not found or is not a text channel');
         }
+      } else {
+        console.log('Tracking channel ID not set');
       }
+    } else {
+      console.log('No used invite found for the user');
     }
   }
 
@@ -52,6 +61,7 @@ async function trackUserJoin(member) {
 }
 
 function setTrackingChannel(guildId, channelId) {
+  console.log(`Setting tracking channel for guild ID ${guildId} to channel ID ${channelId}`);
   const trackingData = loadTrackingData();
   let guildData = trackingData[guildId];
 
