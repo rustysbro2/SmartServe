@@ -30,12 +30,16 @@ async function trackUserJoin(guildId, member) {
 
   try {
     const invites = await member.guild.invites.fetch();
+    console.log('Invites:', invites); // Logging invites for debugging
+
     const usedInvite = invites.find((invite) => {
       const inviteData = guildData.inviteMap[invite.code];
       return inviteData && inviteData.uses < invite.uses;
     });
 
     if (usedInvite) {
+      console.log('Used Invite:', usedInvite); // Logging used invite for debugging
+
       guildData.inviteMap[usedInvite.code] = {
         uses: usedInvite.uses,
         inviter: member.id,
@@ -43,7 +47,10 @@ async function trackUserJoin(guildId, member) {
 
       if (guildData.trackingChannelId) {
         const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
+        console.log('Tracking Channel:', trackingChannel); // Logging tracking channel for debugging
+
         if (trackingChannel && trackingChannel.isText()) {
+          console.log('Sending message...'); // Logging message sending for debugging
           trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
         }
       }
