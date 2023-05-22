@@ -20,16 +20,6 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
-// Import helpCommand and trackingCommands
-const { helpCommand } = require('./commands/help');
-const { trackingCommands } = require('./commands/tracking');
-
-// Add helpCommand and trackingCommands to the command collection
-client.commands.set(helpCommand.data.name, helpCommand);
-trackingCommands.forEach(command => {
-  client.commands.set(command.data.name, command);
-});
-
 // Event triggered when the bot is ready
 client.once('ready', async () => {
   console.log('Logged in as', client.user.tag);
