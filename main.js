@@ -3,7 +3,6 @@ const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { token, clientId } = require('./config');
-const { trackUserJoin, setTrackingChannel } = require('./trackingLogic');
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_INVITES],
@@ -20,6 +19,16 @@ for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
   client.commands.set(command.data.name, command);
 }
+
+// Import helpCommand and trackingCommands
+const { helpCommand } = require('./commands/help');
+const { trackingCommands } = require('./commands/tracking');
+
+// Add helpCommand and trackingCommands to the command collection
+client.commands.set(helpCommand.data.name, helpCommand);
+trackingCommands.forEach(command => {
+  client.commands.set(command.data.name, command);
+});
 
 // Event triggered when the bot is ready
 client.once('ready', async () => {
@@ -57,11 +66,6 @@ client.on('interactionCreate', async interaction => {
     console.error(error);
     await interaction.reply('An error occurred while executing the command.');
   }
-});
-
-// Event triggered when a user joins a guild
-client.on('guildMemberAdd', member => {
-  trackUserJoin(member.guild.id, member);
 });
 
 // Login the bot using the token
