@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
 
 const helpCommand = {
   data: new SlashCommandBuilder()
@@ -9,23 +8,17 @@ const helpCommand = {
   execute: async (interaction) => {
     const { commands } = interaction.client;
 
-    const commandFields = commands.map(command => {
-      const commandName = command.data.name;
-      const commandDescription = command.data.description;
-      const commandOptions = command.data.options ? command.data.options.map(option => option.name).join(', ') : '';
+    const helpMessage = commands.map(command => {
+      const commandName = command.name;
+      const commandDescription = command.description;
+      const commandOptions = command.options ? command.options.map(option => option.name).join(', ') : '';
       const usage = `/${commandName} ${commandOptions}`;
 
-      return { name: `**${commandName}**`, value: `${commandDescription}\nUsage: \`${usage}\`` };
-    });
+      return `**${commandName}**: ${commandDescription}\nUsage: \`${usage}\``;
+    }).join('\n\n');
 
-    const embed = new MessageEmbed()
-      .setTitle('Available Commands')
-      .addFields(commandFields)
-      .setColor('#0099ff')
-      .setFooter({ text: 'This is a footer' });  // Update this text as needed
-
-    await interaction.reply({ embeds: [embed] });
-  }
+    await interaction.reply(`**Available Commands**:\n\n${helpMessage}`);
+  },
 };
 
 module.exports = helpCommand;
