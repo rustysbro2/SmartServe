@@ -17,10 +17,8 @@ const helpCommand = {
       return `**${commandName}**: ${commandDescription}\nUsage: \`${usage}\``;
     }).join('\n\n');
 
-    interaction.reply(`**Available Commands**:\n\n${helpMessage}`);
+    await interaction.reply(`**Available Commands**:\n\n${helpMessage}`);
   }
 };
 
-module.exports = {
-  commands: [helpCommand]
-};
+module.exports = helpCommand;
