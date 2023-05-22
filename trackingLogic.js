@@ -1,4 +1,3 @@
-const fs = require('fs');
 const mysql = require('mysql2');
 
 const connectionConfig = {
@@ -155,7 +154,7 @@ function setTrackingChannel(guildId, channelId) {
   });
 }
 
-
+// Create the table on startup
 createTable();
 
 module.exports = {
