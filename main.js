@@ -47,7 +47,7 @@ client.once('ready', async () => {
     console.log('Started refreshing application (/) commands.');
 
     // Convert the command collection to an array of command data
-    const commands = client.commands.map((command) => command.data.toJSON());
+    const commands = [...client.commands.values()];
 
     // Register the commands globally
     await rest.put(Routes.applicationCommands(clientId), { body: commands });
@@ -61,7 +61,7 @@ client.once('ready', async () => {
 // Event triggered when a user joins a guild
 client.on('guildMemberAdd', async (member) => {
   console.log('Tracking user join:', member.user.tag);
-  await setTrackingChannel(member.guild.id, member);
+  await trackUserJoin(member.guild.id, member);
 });
 
 // Event triggered when an interaction (slash command) is created
