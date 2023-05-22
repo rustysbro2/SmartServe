@@ -14,13 +14,11 @@ const setTrackingChannelCommand = {
     const channel = interaction.options.getChannel('channel');
     if (channel) {
       setTrackingChannel(interaction.guildId, channel.id);
-      interaction.reply(`Tracking channel set to <#${channel.id}>.`);
+      await interaction.reply(`Tracking channel set to <#${channel.id}>.`);
     } else {
-      interaction.reply('Please provide a valid channel.');
+      await interaction.reply('Please provide a valid channel.');
     }
   }
 };
 
-module.exports = {
-  setTrackingChannelCommand
-};
+module.exports = setTrackingChannelCommand;
