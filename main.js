@@ -60,6 +60,7 @@ client.once('ready', async () => {
 
 // Event triggered when a user joins a guild
 client.on('guildMemberAdd', member => {
+  console.log('Tracking user join:', member.user.tag);
   trackUserJoin(member.guild.id, member);
 });
 
