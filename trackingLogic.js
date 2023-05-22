@@ -1,3 +1,4 @@
+const fs = require('fs');
 const mysql = require('mysql2');
 
 const connectionConfig = {
@@ -7,7 +8,35 @@ const connectionConfig = {
   database: 'counting'
 };
 
-async function loadTrackingData() {
+function createTable() {
+  const connection = mysql.createConnection(connectionConfig);
+
+  connection.connect((err) => {
+    if (err) {
+      console.error('Error connecting to MySQL:', err);
+      return;
+    }
+
+    const query = `
+      CREATE TABLE IF NOT EXISTS tracking_data (
+        guild_id VARCHAR(255) PRIMARY KEY,
+        invite_map TEXT,
+        tracking_channel_id VARCHAR(255)
+      )
+    `;
+
+    connection.query(query, (error, results) => {
+      if (error) {
+        console.error('Error creating tracking_data table:', error);
+      } else {
+        console.log('tracking_data table created successfully');
+      }
+      connection.end();
+    });
+  });
+}
+
+function loadTrackingData() {
   const connection = mysql.createConnection(connectionConfig);
 
   return new Promise((resolve, reject) => {
@@ -18,53 +47,23 @@ async function loadTrackingData() {
         return;
       }
 
-      const checkTableQuery = 'SHOW TABLES LIKE "tracking_data"';
-      connection.query(checkTableQuery, (error, results) => {
+      const query = 'SELECT * FROM tracking_data';
+      connection.query(query, (error, results) => {
         if (error) {
-          console.error('Error checking table existence:', error);
+          console.error('Error loading tracking data:', error);
           reject(error);
-          connection.end();
-          return;
-        }
-
-        if (results.length === 0) {
-          const createTableQuery = `
-            CREATE TABLE tracking_data (
-              guild_id VARCHAR(255) PRIMARY KEY,
-              invite_map TEXT,
-              tracking_channel_id VARCHAR(255)
-            )
-          `;
-          connection.query(createTableQuery, (error) => {
-            if (error) {
-              console.error('Error creating tracking_data table:', error);
-              reject(error);
-            } else {
-              console.log('Tracking data table created successfully');
-              resolve({});
-            }
-            connection.end();
-          });
         } else {
-          const selectDataQuery = 'SELECT * FROM tracking_data';
-          connection.query(selectDataQuery, (error, results) => {
-            if (error) {
-              console.error('Error loading tracking data:', error);
-              reject(error);
-            } else {
-              const trackingData = {};
-              for (const row of results) {
-                trackingData[row.guild_id] = {
-                  inviteMap: JSON.parse(row.invite_map),
-                  trackingChannelId: row.tracking_channel_id
-                };
-              }
-              console.log('Tracking data loaded successfully');
-              resolve(trackingData);
-            }
-            connection.end();
-          });
+          const trackingData = {};
+          for (const row of results) {
+            trackingData[row.guild_id] = {
+              inviteMap: JSON.parse(row.invite_map),
+              trackingChannelId: row.tracking_channel_id
+            };
+          }
+          console.log('Tracking data loaded successfully');
+          resolve(trackingData);
         }
+        connection.end();
       });
     });
   });
@@ -155,6 +154,8 @@ function setTrackingChannel(guildId, channelId) {
     });
   });
 }
+
+createTable();
 
 module.exports = {
   loadTrackingData,
