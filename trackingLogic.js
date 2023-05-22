@@ -29,16 +29,46 @@ async function trackUserJoin(guildId, member) {
     };
   }
 
-  const trackingChannelId = guildData.trackingChannelId;
-  if (trackingChannelId) {
-    const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
-    if (trackingChannel && trackingChannel.isText()) {
-      const inviter = member.inviter || 'Unknown'; // Get the inviter's name or set as 'Unknown' if not available
-      trackingChannel.send(`User ${member.user.tag} joined, invited by ${inviter}`);
+  if (member instanceof GuildMember) {
+    const invites = await member.guild.invites.fetch();
+
+    const usedInvite = invites.find((invite) => {
+      const inviteData = guildData.inviteMap[invite.code];
+      return inviteData && inviteData.uses < invite.uses;
+    });
+
+    if (usedInvite) {
+      guildData.inviteMap[usedInvite.code] = {
+        uses: usedInvite.uses,
+        inviter: member.id,
+      };
+
+      const trackingChannelId = guildData.trackingChannelId;
+      if (trackingChannelId) {
+        const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
+        if (trackingChannel && trackingChannel.isText()) {
+          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
+        }
+      }
     }
   }
 
   trackingData[guildId] = guildData;
+  saveTrackingData(trackingData);
+}
+
+function setTrackingChannel(guildId, channelId) {
+  const trackingData = loadTrackingData();
+  let guildData = trackingData[guildId];
+
+  if (!guildData) {
+    guildData = {
+      inviteMap: {},
+      trackingChannelId: null,
+    };
+  }
+
+  guildData.trackingChannelId = channelId;
   saveTrackingData(trackingData);
 }
 
