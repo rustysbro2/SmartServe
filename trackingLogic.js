@@ -63,10 +63,10 @@ async function trackUserJoin(guildId, member) {
           const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
           if (inviter) {
             console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server. Invited by ${inviter}`);
-            trackingChannel.send(`User ${member.user.tag} joined the server. Invited by ${inviter}`);
+            await trackingChannel.send(`User ${member.user.tag} joined the server. Invited by ${inviter}`);
           } else {
             console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server.`);
-            trackingChannel.send(`User ${member.user.tag} joined the server.`);
+            await trackingChannel.send(`User ${member.user.tag} joined the server.`);
           }
         } else {
           console.log('Tracking channel does not exist or is not text-based.');
