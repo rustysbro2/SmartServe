@@ -59,8 +59,8 @@ client.once('ready', async () => {
 });
 
 // Event triggered when a user joins a guild
-client.on('guildMemberAdd', async member => {
-  await trackUserJoin(member.guild.id, member);
+client.on('guildMemberAdd', member => {
+  trackUserJoin(member.guild.id, member);
 });
 
 // Event triggered when an interaction (slash command) is created
