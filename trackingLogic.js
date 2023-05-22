@@ -19,6 +19,8 @@ async function saveTrackingData(data) {
 }
 
 async function trackUserJoin(guildId, member) {
+  console.log(`Tracking user join: ${member.user.tag}`);
+
   const trackingData = await loadTrackingData();
   let guildData = trackingData[guildId];
 
@@ -31,10 +33,14 @@ async function trackUserJoin(guildId, member) {
   try {
     const invites = await member.guild.invites.fetch();
 
+    console.log(`Fetched invites: ${invites.size}`);
+
     const usedInvite = invites.find((invite) => {
       const inviteData = guildData.inviteMap[invite.code];
       return inviteData && inviteData.uses < invite.uses;
     });
+
+    console.log(`Used invite: ${usedInvite}`);
 
     if (usedInvite) {
       guildData.inviteMap[usedInvite.code] = {
@@ -45,6 +51,8 @@ async function trackUserJoin(guildId, member) {
       if (guildData.trackingChannelId) {
         const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
 
+        console.log(`Tracking channel: ${trackingChannel}`);
+
         if (trackingChannel && trackingChannel.isText()) {
           const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
           if (inviter) {
@@ -52,8 +60,14 @@ async function trackUserJoin(guildId, member) {
           } else {
             trackingChannel.send(`Bot ${member.user.tag} joined the server.`);
           }
+        } else {
+          console.log('Tracking channel does not exist or is not text-based.');
         }
+      } else {
+        console.log('Tracking channel ID not set.');
       }
+    } else {
+      console.log('No used invite found.');
     }
   } catch (error) {
     console.error(`Failed to fetch invites: ${error}`);
