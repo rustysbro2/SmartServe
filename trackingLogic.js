@@ -111,7 +111,7 @@ async function trackUserJoin(guildId, member) {
 
     const usedInvite = invites.find((invite) => {
       const inviteKey = invite.code || invite.url; // Use invite code or URL as the key
-      const inviteData = guildData.inviteMap[inviteKey] || {};
+      const inviteData = guildData.inviteMap[inviteKey] || null; // Add null check for inviteData
       return inviteData && inviteData.inviter !== member.id;
     });
 
@@ -148,6 +148,7 @@ async function trackUserJoin(guildId, member) {
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
+
 
 function setTrackingChannel(guildId, channelId) {
   const connection = mysql.createConnection(connectionConfig);
