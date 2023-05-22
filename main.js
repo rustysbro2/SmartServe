@@ -6,7 +6,7 @@ const { token, clientId } = require('./config');
 const { trackUserJoin } = require('./trackingLogic');
 
 const client = new Client({ 
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_INVITES] 
+  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_INVITES, Intents.FLAGS.GUILD_PRESENCES]
 });
 
 // Create a collection to store the commands
