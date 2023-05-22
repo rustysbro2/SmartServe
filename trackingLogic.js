@@ -106,17 +106,49 @@ async function trackUserJoin(guildId, member) {
     };
   }
 
-  const trackingChannelId = guildData.trackingChannelId;
-  if (trackingChannelId) {
-    const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
-    if (trackingChannel && trackingChannel.isText()) {
-      trackingChannel.send(`User ${member.user.tag} joined the guild.`);
+  if (member instanceof GuildMember) {
+    const invites = await member.guild.invites.fetch();
+
+    const usedInvite = invites.find((invite) => {
+      const inviteData = guildData.inviteMap[invite.code];
+      return inviteData && inviteData.uses < invite.uses;
+    });
+
+    if (usedInvite) {
+      guildData.inviteMap[usedInvite.code] = {
+        uses: usedInvite.uses,
+        inviter: member.id
+      };
+
+      const trackingChannelId = guildData.trackingChannelId;
+      if (trackingChannelId) {
+        const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
+        if (trackingChannel && trackingChannel.isText()) {
+          console.log(`Sending tracking message for user ${member.user.tag} joined using invite code ${usedInvite.code}`);
+          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
+            .then(() => {
+              console.log('Tracking message sent successfully');
+            })
+            .catch((error) => {
+              console.error('Error sending tracking message:', error);
+            });
+        } else {
+          console.log('Tracking channel not found or not a text channel');
+        }
+      } else {
+        console.log('No tracking channel set');
+      }
+    } else {
+      console.log('No valid invite found');
     }
+  } else {
+    console.log('Member is not an instance of GuildMember');
   }
 
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
+
 
 function setTrackingChannel(guildId, channelId) {
   const connection = mysql.createConnection(connectionConfig);
