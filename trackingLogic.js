@@ -125,7 +125,14 @@ async function trackUserJoin(guildId, member) {
       if (trackingChannelId) {
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
         if (trackingChannel && trackingChannel.isText()) {
-          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
+          console.log('Sending tracking message...');
+          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
+            .then(() => {
+              console.log('Tracking message sent successfully');
+            })
+            .catch((error) => {
+              console.error('Error sending tracking message:', error);
+            });
         }
       }
     }
