@@ -81,7 +81,7 @@ function saveTrackingData(data) {
     const values = Object.entries(data).map(([guildId, { inviteMap, trackingChannelId }]) => {
       const inviteMapEscaped = inviteMap ? mysql.escape(JSON.stringify(inviteMap)) : 'NULL';
       const trackingChannelIdEscaped = trackingChannelId ? mysql.escape(trackingChannelId) : 'NULL';
-      return `(${mysql.escape(guildId)}, '${inviteMapEscaped}', '${trackingChannelIdEscaped}')`;
+      return `(${mysql.escape(guildId)}, ${inviteMapEscaped}, ${trackingChannelIdEscaped})`;
     });
 
     const query = `INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ${values} ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)`;
@@ -96,6 +96,7 @@ function saveTrackingData(data) {
     });
   });
 }
+
 
 
 async function trackUserJoin(guildId, member) {
