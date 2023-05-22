@@ -13,15 +13,13 @@ function loadTrackingData() {
   }
 }
 
-async function saveTrackingData(data) {
+function saveTrackingData(data) {
   const jsonData = JSON.stringify(data, null, 2);
   fs.writeFileSync('trackingData.json', jsonData, { encoding: 'utf8', flag: 'w' });
 }
 
-async function trackUserJoin(guildId, member) {
-  console.log(`Tracking user join: ${member.user.tag}`);
-
-  const trackingData = await loadTrackingData();
+function trackUserJoin(guildId, member) {
+  const trackingData = loadTrackingData();
   let guildData = trackingData[guildId];
 
   if (!guildData) {
@@ -30,82 +28,29 @@ async function trackUserJoin(guildId, member) {
     };
   }
 
-  // Check if the member is a bot
-  if (member.user.bot) {
-    console.log(`Bot joined the server: ${member.user.tag}`);
+  const invites = member.guild.fetchInvites();
+
+  const usedInvite = invites.find((invite) => {
+    const inviteData = guildData.inviteMap[invite.code];
+    return inviteData && inviteData.uses < invite.uses;
+  });
+
+  if (usedInvite) {
+    guildData.inviteMap[usedInvite.code] = {
+      uses: usedInvite.uses,
+      inviter: member.id,
+    };
+
     if (guildData.trackingChannelId) {
-      const trackingChannel = await member.guild.channels.cache.get(guildData.trackingChannelId);
+      const trackingChannel = member.guild.channels.cache.get(guildData.trackingChannelId);
       if (trackingChannel && trackingChannel.isText()) {
-        trackingChannel.send(`Bot ${member.user.tag} joined the server.`);
-      } else {
-        console.log('Tracking channel does not exist or is not text-based.');
+        trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
       }
-    } else {
-      console.log('Tracking channel ID not set.');
     }
-    return;
-  }
-
-  try {
-    const oldInvites = guildData.inviteMap;
-    const newInvites = await member.guild.invites.fetch();
-
-    console.log(`Fetched invites: ${newInvites.size}`);
-
-    const usedInvite = newInvites.find((newInvite) => {
-      const oldInvite = oldInvites[newInvite.code];
-      return !oldInvite || oldInvite.uses < newInvite.uses;
-    });
-
-    console.log(`Used invite: ${usedInvite}`);
-
-    if (usedInvite) {
-      guildData.inviteMap[usedInvite.code] = {
-        uses: usedInvite.uses,
-        inviter: usedInvite.inviter.id,
-      };
-
-      if (guildData.trackingChannelId) {
-        const trackingChannel = await member.guild.channels.cache.get(guildData.trackingChannelId);
-
-        console.log(`Tracking channel: ${trackingChannel}`);
-
-        if (trackingChannel && trackingChannel.isText()) {
-          const inviter = await member.guild.members.fetch(usedInvite.inviter.id);
-          if (inviter) {
-            console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server. Invited by ${inviter.user.tag}`);
-            trackingChannel.send(`User ${member.user.tag} joined the server. Invited by ${inviter.user.tag}`)
-              .then(() => {
-                console.log('Message sent successfully.');
-              })
-              .catch((error) => {
-                console.error('Error sending message:', error);
-              });
-          } else {
-            console.log(`Sending message in tracking channel: User ${member.user.tag} joined the server.`);
-            trackingChannel.send(`User ${member.user.tag} joined the server.`)
-              .then(() => {
-                console.log('Message sent successfully.');
-              })
-              .catch((error) => {
-                console.error('Error sending message:', error);
-              });
-          }
-        } else {
-          console.log('Tracking channel does not exist or is not text-based.');
-        }
-      } else {
-        console.log('Tracking channel ID not set.');
-      }
-    } else {
-      console.log('No used invite found.');
-    }
-  } catch (error) {
-    console.error(`Failed to fetch invites: ${error}`);
   }
 
   trackingData[guildId] = guildData;
-  await saveTrackingData(trackingData);
+  saveTrackingData(trackingData);
 }
 
 function setTrackingChannel(guildId, channelId) {
@@ -117,11 +62,6 @@ function setTrackingChannel(guildId, channelId) {
       inviteMap: {},
       trackingChannelId: null,
     };
-    trackingData[guildId] = guildData;
-  }
-
-  if (guildData.trackingChannelId === channelId) {
-    return;
   }
 
   guildData.trackingChannelId = channelId;
@@ -130,5 +70,5 @@ function setTrackingChannel(guildId, channelId) {
 
 module.exports = {
   trackUserJoin,
-  setTrackingChannel
+  setTrackingChannel,
 };
