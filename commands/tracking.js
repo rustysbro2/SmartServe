@@ -1,9 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { setTrackingChannel } = require('../trackingLogic');
 
-const setTrackingChannelCommand = {
+const trackCommand = {
   data: new SlashCommandBuilder()
-    .setName('setchannel')
+    .setName('track')  // Changed the command name here
     .setDescription('Set the tracking channel')
     .addChannelOption(option =>
       option.setName('channel')
@@ -21,4 +21,4 @@ const setTrackingChannelCommand = {
   }
 };
 
-module.exports = setTrackingChannelCommand;
+module.exports = trackCommand;
