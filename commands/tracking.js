@@ -10,11 +10,10 @@ const setTrackingChannelCommand = {
         .setDescription('Channel for tracking')
         .setRequired(true)
     ),
-
   execute: async (interaction) => {
     const channel = interaction.options.getChannel('channel');
     if (channel) {
-      setTrackingChannel(interaction.guild.id, channel.id);
+      setTrackingChannel(interaction.guildId, channel.id);
       interaction.reply(`Tracking channel set to <#${channel.id}>.`);
     } else {
       interaction.reply('Please provide a valid channel.');
