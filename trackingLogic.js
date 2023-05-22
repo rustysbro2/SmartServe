@@ -20,7 +20,7 @@ function createTable() {
     const query = `
       CREATE TABLE IF NOT EXISTS tracking_data (
         guild_id VARCHAR(255) PRIMARY KEY,
-        invite_map TEXT,
+        invite_map JSON,
         tracking_channel_id VARCHAR(255)
       )
     `;
@@ -56,7 +56,7 @@ function loadTrackingData() {
           const trackingData = {};
           for (const row of results) {
             trackingData[row.guild_id] = {
-              inviteMap: JSON.parse(row.invite_map),
+              inviteMap: row.invite_map,
               trackingChannelId: row.tracking_channel_id
             };
           }
@@ -79,7 +79,7 @@ function saveTrackingData(data) {
     }
 
     const values = Object.entries(data).map(([guildId, { inviteMap, trackingChannelId }]) => {
-      return `('${guildId}', '${JSON.stringify(inviteMap)}', '${trackingChannelId}')`;
+      return `('${guildId}', '${mysql.escape(inviteMap)}', '${mysql.escape(trackingChannelId)}')`;
     });
 
     const query = `INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ${values} ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)`;
@@ -98,18 +98,15 @@ function saveTrackingData(data) {
 async function trackUserJoin(guildId, member) {
   const trackingData = await loadTrackingData();
   let guildData = trackingData[guildId] || {
-  inviteMap: {},
-  trackingChannelId: null
-};
-  }
+    inviteMap: {},
+    trackingChannelId: null
+  };
 
   if (member instanceof GuildMember) {
     const invites = await member.guild.invites.fetch();
 
     const usedInvite = invites.find((invite) => {
       const inviteKey = invite.code || invite.url; // Use invite code or URL as the key
-      console.log('inviteKey:', inviteKey); // Debug: Log inviteKey
-      console.log('inviteMap:', guildData.inviteMap); // Debug: Log inviteMap
       const inviteData = guildData.inviteMap[inviteKey] || null; // Add null check for inviteData
       return inviteData && inviteData.inviter !== member.id;
     });
@@ -149,9 +146,6 @@ async function trackUserJoin(guildId, member) {
   saveTrackingData(trackingData);
 }
 
-
-
-
 function setTrackingChannel(guildId, channelId) {
   const connection = mysql.createConnection(connectionConfig);
 
@@ -161,7 +155,7 @@ function setTrackingChannel(guildId, channelId) {
       return;
     }
 
-    const query = `UPDATE tracking_data SET tracking_channel_id = '${channelId}' WHERE guild_id = '${guildId}'`;
+    const query = `UPDATE tracking_data SET tracking_channel_id = '${mysql.escape(channelId)}' WHERE guild_id = '${mysql.escape(guildId)}'`;
     connection.query(query, (error, results) => {
       if (error) {
         console.error('Error updating tracking channel:', error);
