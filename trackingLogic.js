@@ -43,7 +43,7 @@ async function trackUserJoin(guildId, member) {
       };
 
       if (guildData.trackingChannelId) {
-        const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
+        const trackingChannel = await member.guild.channels.cache.get(guildData.trackingChannelId);
 
         if (trackingChannel && trackingChannel.isText()) {
           trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
