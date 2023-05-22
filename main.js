@@ -134,6 +134,7 @@ async function trackUserJoin(guildId, member) {
             console.error('Error retrieving tracking channel ID:', error);
           } else {
             const trackingChannelId = results[0].tracking_channel_id;
+            console.log('Tracking Channel ID:', trackingChannelId); // Debug info
 
             if (trackingChannelId) {
               const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
@@ -145,7 +146,11 @@ async function trackUserJoin(guildId, member) {
                   .catch((error) => {
                     console.error('Error sending tracking message:', error);
                   });
+              } else {
+                console.error('Tracking channel not found or is not a text channel');
               }
+            } else {
+              console.error('Tracking channel ID not found');
             }
           }
           connection.end();
@@ -157,7 +162,6 @@ async function trackUserJoin(guildId, member) {
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
-
 
 function setTrackingChannel(guildId, channelId) {
   const connection = mysql.createConnection(connectionConfig);
