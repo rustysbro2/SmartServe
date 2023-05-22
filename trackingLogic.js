@@ -79,13 +79,12 @@ function saveTrackingData(data) {
     }
 
     const values = Object.entries(data).map(([guildId, { inviteMap, trackingChannelId }]) => {
-      return [guildId, JSON.stringify(inviteMap), trackingChannelId];
+      return `('${guildId}', '${JSON.stringify(inviteMap)}', '${trackingChannelId}')`;
     });
 
-    const query = 'INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ? ' +
-                  'ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)';
+    const query = `INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ${values} ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)`;
 
-    connection.query(query, [values], (error, results) => {
+    connection.query(query, (error, results) => {
       if (error) {
         console.error('Error saving tracking data:', error);
       } else {
@@ -111,7 +110,7 @@ async function trackUserJoin(guildId, member) {
     const invites = await member.guild.invites.fetch();
 
     const usedInvite = invites.find((invite) => {
-      const inviteData = guildData.inviteMap && guildData.inviteMap[invite.code];
+      const inviteData = guildData.inviteMap[invite.code];
       return inviteData && inviteData.uses < invite.uses;
     });
 
@@ -121,27 +120,48 @@ async function trackUserJoin(guildId, member) {
         inviter: member.id
       };
 
-      const trackingChannelId = guildData.trackingChannelId;
-      if (trackingChannelId) {
-        const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
-        if (trackingChannel && trackingChannel.isText()) {
-          console.log('Sending tracking message...');
-          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
-            .then(() => {
-              console.log('Tracking message sent successfully');
-            })
-            .catch((error) => {
-              console.error('Error sending tracking message:', error);
-            });
+      const connection = mysql.createConnection(connectionConfig);
+
+      connection.connect((err) => {
+        if (err) {
+          console.error('Error connecting to MySQL:', err);
+          return;
         }
-      }
+
+        const query = `SELECT tracking_channel_id FROM tracking_data WHERE guild_id = '${guildId}'`;
+        connection.query(query, (error, results) => {
+          if (error) {
+            console.error('Error retrieving tracking channel ID:', error);
+          } else {
+            const trackingChannelId = results[0].tracking_channel_id;
+            console.log('Tracking Channel ID:', trackingChannelId); // Debug info
+
+            if (trackingChannelId) {
+              const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
+              if (trackingChannel && trackingChannel.isText()) {
+                trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
+                  .then(() => {
+                    console.log('Tracking message sent successfully');
+                  })
+                  .catch((error) => {
+                    console.error('Error sending tracking message:', error);
+                  });
+              } else {
+                console.error('Tracking channel not found or is not a text channel');
+              }
+            } else {
+              console.error('Tracking channel ID not found');
+            }
+          }
+          connection.end();
+        });
+      });
     }
   }
 
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
-
 
 function setTrackingChannel(guildId, channelId) {
   const connection = mysql.createConnection(connectionConfig);
@@ -152,9 +172,7 @@ function setTrackingChannel(guildId, channelId) {
       return;
     }
 
-    const query = `INSERT INTO tracking_data (guild_id, tracking_channel_id) VALUES ('${guildId}', '${channelId}') ` +
-                  `ON DUPLICATE KEY UPDATE tracking_channel_id = '${channelId}'`;
-
+    const query = `UPDATE tracking_data SET tracking_channel_id = '${channelId}' WHERE guild_id = '${guildId}'`;
     connection.query(query, (error, results) => {
       if (error) {
         console.error('Error updating tracking channel:', error);
