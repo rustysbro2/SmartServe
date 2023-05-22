@@ -62,6 +62,11 @@ async function trackUserJoin(guildId, member) {
     }
   }
 
-  trackingData[guildId] = guildData;
+    guildData.trackingChannelId = channelId;
   saveTrackingData(trackingData);
 }
+
+module.exports = {
+  trackUserJoin,
+  setTrackingChannel,
+};
