@@ -3,6 +3,7 @@ const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { token, clientId } = require('./config');
+const { trackUserJoin } = require('./TrackingLogic'); // Import the trackUserJoin function
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_INVITES],
@@ -39,6 +40,12 @@ client.once('ready', async () => {
   } catch (error) {
     console.error(error);
   }
+});
+
+// Event triggered when a user joins a guild
+client.on('guildMemberAdd', member => {
+  // Call the trackUserJoin function
+  trackUserJoin(member.guild.id, member);
 });
 
 // Event triggered when an interaction (slash command) is created
