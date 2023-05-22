@@ -21,8 +21,6 @@ const setTrackingChannelCommand = {
   }
 };
 
-const trackingCommands = [setTrackingChannelCommand];
-
 module.exports = {
-  trackingCommands
+  setTrackingChannelCommand
 };
