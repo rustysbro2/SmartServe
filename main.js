@@ -3,6 +3,7 @@ const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { token, clientId } = require('./config');
+const { trackUserJoin, setTrackingChannel } = require('./TrackingLogic');
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_INVITES],
@@ -56,6 +57,11 @@ client.on('interactionCreate', async interaction => {
     console.error(error);
     await interaction.reply('An error occurred while executing the command.');
   }
+});
+
+// Event triggered when a user joins a guild
+client.on('guildMemberAdd', member => {
+  trackUserJoin(member.guild.id, member);
 });
 
 // Login the bot using the token
