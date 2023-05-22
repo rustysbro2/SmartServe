@@ -155,7 +155,10 @@ function setTrackingChannel(guildId, channelId) {
       return;
     }
 
-    const query = `UPDATE tracking_data SET tracking_channel_id = '${mysql.escape(channelId)}' WHERE guild_id = '${mysql.escape(guildId)}'`;
+    const guildIdEscaped = mysql.escape(guildId);
+    const channelIdEscaped = mysql.escape(channelId);
+
+    const query = `UPDATE tracking_data SET tracking_channel_id = ${channelIdEscaped} WHERE guild_id = ${guildIdEscaped}`;
     connection.query(query, (error, results) => {
       if (error) {
         console.error('Error updating tracking channel:', error);
@@ -166,6 +169,7 @@ function setTrackingChannel(guildId, channelId) {
     });
   });
 }
+
 
 // Create the table on startup
 createTable();
