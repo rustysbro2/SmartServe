@@ -30,14 +30,20 @@ async function trackUserJoin(guildId, member) {
     };
   }
 
+  if (member.user.bot) {
+    console.log(`Bot joined the server: ${member.user.tag}`);
+    return;
+  }
+
   try {
-    const invites = await member.guild.invites.fetch();
+    const oldInvites = guildData.inviteMap;
+    const newInvites = await member.guild.invites.fetch();
 
-    console.log(`Fetched invites: ${invites.size}`);
+    console.log(`Fetched invites: ${newInvites.size}`);
 
-    const usedInvite = invites.find((invite) => {
-      const inviteData = guildData.inviteMap[invite.code];
-      return inviteData && inviteData.uses < invite.uses;
+    const usedInvite = newInvites.find((newInvite) => {
+      const oldInvite = oldInvites[newInvite.code];
+      return !oldInvite || oldInvite.uses < newInvite.uses;
     });
 
     console.log(`Used invite: ${usedInvite}`);
@@ -45,7 +51,7 @@ async function trackUserJoin(guildId, member) {
     if (usedInvite) {
       guildData.inviteMap[usedInvite.code] = {
         uses: usedInvite.uses,
-        inviter: member.id,
+        inviter: usedInvite.inviter.id,
       };
 
       if (guildData.trackingChannelId) {
@@ -56,9 +62,9 @@ async function trackUserJoin(guildId, member) {
         if (trackingChannel && trackingChannel.isText()) {
           const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
           if (inviter) {
-            trackingChannel.send(`Bot ${member.user.tag} joined the server. Invited by ${inviter}`);
+            trackingChannel.send(`User ${member.user.tag} joined the server. Invited by ${inviter}`);
           } else {
-            trackingChannel.send(`Bot ${member.user.tag} joined the server.`);
+            trackingChannel.send(`User ${member.user.tag} joined the server.`);
           }
         } else {
           console.log('Tracking channel does not exist or is not text-based.');
