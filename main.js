@@ -18,11 +18,11 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 // Load each command dynamically and add it to the collection
 for (const file of commandFiles) {
   let command;
-try {
-  command = require(`./commands/${file}`);
-} catch (error) {
-  console.error(`Error loading command file '${file}':`, error);
-}
+  try {
+    command = require(`./commands/${file}`);
+  } catch (error) {
+    console.error(`Error loading command file '${file}':`, error);
+  }
 
   if (command && command.data && command.data.name) {
     console.log(`Loaded command '${command.data.name}' from file '${file}'`);
@@ -59,8 +59,8 @@ client.once('ready', async () => {
 });
 
 // Event triggered when a user joins a guild
-client.on('guildMemberAdd', member => {
-  trackUserJoin(member.guild.id, member);
+client.on('guildMemberAdd', async member => {
+  await trackUserJoin(member.guild.id, member);
 });
 
 // Event triggered when an interaction (slash command) is created
