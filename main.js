@@ -3,7 +3,7 @@ const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { token, clientId } = require('./config');
-const { trackUserJoin } = require('./trackingLogic'); // Import the trackUserJoin function
+const { trackUserJoin } = require('./trackingLogic');
 
 const client = new Client({
   intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_INVITES],
@@ -18,11 +18,8 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 // Load each command dynamically and add it to the collection
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
-  const commandName = file.split('.')[0]; // Extract the command name from the filename
-  client.commands.set(commandName, command);
+  client.commands.set(command.data.name, command);
 }
-
-
 
 // Event triggered when the bot is ready
 client.once('ready', async () => {
@@ -34,7 +31,12 @@ client.once('ready', async () => {
     console.log('Started refreshing application (/) commands.');
 
     // Convert the command collection to an array of command data
-    const commands = client.commands.map(command => command.data.toJSON());
+    const commands = [];
+    client.commands.forEach(command => {
+      if (command.data.toJSON) {
+        commands.push(command.data.toJSON());
+      }
+    });
 
     // Register the commands globally
     await rest.put(Routes.applicationCommands(clientId), { body: commands });
@@ -47,7 +49,6 @@ client.once('ready', async () => {
 
 // Event triggered when a user joins a guild
 client.on('guildMemberAdd', member => {
-  // Call the trackUserJoin function
   trackUserJoin(member.guild.id, member);
 });
 
