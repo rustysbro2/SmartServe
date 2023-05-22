@@ -5,8 +5,9 @@ const trackCommand = {
   data: new SlashCommandBuilder()
     .setName('track')
     .setDescription('Set the tracking channel')
-    .addChannelOption(option =>
-      option.setName('channel')
+    .addChannelOption((option) =>
+      option
+        .setName('channel')
         .setDescription('Channel for tracking')
         .setRequired(true)
     ),
