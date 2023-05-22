@@ -19,15 +19,9 @@ function saveTrackingData(data) {
   fs.writeFileSync('trackingData.json', jsonData, { encoding: 'utf8', flag: 'w' });
 }
 
-async function trackUserJoin(guildId, member) {
+async function trackUserJoin(member) {
   const trackingData = loadTrackingData();
-  let guildData = trackingData[guildId];
-
-  if (!guildData) {
-    guildData = {
-      inviteMap: {},
-    };
-  }
+  const guildData = trackingData[member.guild.id] || { inviteMap: {} };
 
   if (member instanceof GuildMember) {
     const invites = await member.guild.invites.fetch();
@@ -46,20 +40,14 @@ async function trackUserJoin(guildId, member) {
       const trackingChannelId = guildData.trackingChannelId;
       if (trackingChannelId) {
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
-        console.log('Tracking Channel:', trackingChannel); // Check if the trackingChannel object is logged correctly
-
         if (trackingChannel && trackingChannel.isText()) {
-          try {
-            await trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
-          } catch (error) {
-            console.error('Error sending message:', error);
-          }
+          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
         }
       }
     }
   }
 
-  trackingData[guildId] = guildData;
+  trackingData[member.guild.id] = guildData;
   saveTrackingData(trackingData);
 }
 
