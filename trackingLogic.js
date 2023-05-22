@@ -1,7 +1,6 @@
 const mysql = require('mysql2');
 const { GuildMember } = require('discord.js');
 
-
 const connectionConfig = {
   host: 'localhost',
   user: 'rustysbro',
@@ -80,12 +79,13 @@ function saveTrackingData(data) {
     }
 
     const values = Object.entries(data).map(([guildId, { inviteMap, trackingChannelId }]) => {
-      return `('${guildId}', '${JSON.stringify(inviteMap)}', '${trackingChannelId}')`;
+      return [guildId, JSON.stringify(inviteMap), trackingChannelId];
     });
 
-    const query = `INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ${values} ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)`;
+    const query = 'INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ? ' +
+                  'ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)';
 
-    connection.query(query, (error, results) => {
+    connection.query(query, [values], (error, results) => {
       if (error) {
         console.error('Error saving tracking data:', error);
       } else {
@@ -144,7 +144,9 @@ function setTrackingChannel(guildId, channelId) {
       return;
     }
 
-    const query = `UPDATE tracking_data SET tracking_channel_id = '${channelId}' WHERE guild_id = '${guildId}'`;
+    const query = `INSERT INTO tracking_data (guild_id, tracking_channel_id) VALUES ('${guildId}', '${channelId}') ` +
+                  `ON DUPLICATE KEY UPDATE tracking_channel_id = '${channelId}'`;
+
     connection.query(query, (error, results) => {
       if (error) {
         console.error('Error updating tracking channel:', error);
