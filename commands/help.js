@@ -22,5 +22,5 @@ const helpCommand = {
 };
 
 module.exports = {
-  helpCommand
+  commands: [helpCommand] // Wrap the helpCommand inside the 'commands' array
 };
