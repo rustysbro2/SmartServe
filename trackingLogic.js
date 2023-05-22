@@ -29,40 +29,28 @@ async function trackUserJoin(guildId, member) {
   }
 
   try {
-    if (member.user.bot && member.user.id !== '1105598736551387247') {
-      // Bot joined the server
-      const inviterId = await getInviterId(member);
+    const invites = await member.guild.invites.fetch();
 
-      if (inviterId) {
-        const inviter = member.guild.members.cache.get(inviterId);
+    const usedInvite = invites.find((invite) => {
+      const inviteData = guildData.inviteMap[invite.code];
+      return inviteData && inviteData.uses < invite.uses;
+    });
 
-        if (guildData.trackingChannelId) {
-          const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
+    if (usedInvite) {
+      guildData.inviteMap[usedInvite.code] = {
+        uses: usedInvite.uses,
+        inviter: member.id,
+      };
 
-          if (trackingChannel && trackingChannel.isText()) {
-            trackingChannel.send(`Bot ${member.user.tag} joined the server, invited by ${inviter}`);
-          }
-        }
-      }
-    } else {
-      const invites = await member.guild.invites.fetch();
+      if (guildData.trackingChannelId) {
+        const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
 
-      const usedInvite = invites.find((invite) => {
-        const inviteData = guildData.inviteMap[invite.code];
-        return inviteData && inviteData.uses < invite.uses;
-      });
-
-      if (usedInvite) {
-        guildData.inviteMap[usedInvite.code] = {
-          uses: usedInvite.uses,
-          inviter: member.id,
-        };
-
-        if (guildData.trackingChannelId) {
-          const trackingChannel = await member.guild.channels.fetch(guildData.trackingChannelId);
-
-          if (trackingChannel && trackingChannel.isText()) {
-            trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
+        if (trackingChannel && trackingChannel.isText()) {
+          const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
+          if (inviter) {
+            trackingChannel.send(`Bot ${member.user.tag} joined the server. Invited by ${inviter}`);
+          } else {
+            trackingChannel.send(`Bot ${member.user.tag} joined the server.`);
           }
         }
       }
@@ -73,16 +61,6 @@ async function trackUserJoin(guildId, member) {
 
   trackingData[guildId] = guildData;
   await saveTrackingData(trackingData);
-}
-
-async function getInviterId(member) {
-  const invites = await member.guild.invites.fetch();
-  for (const invite of invites.values()) {
-    if (invite.uses > 0 && invite.inviter && !invite.inviter.bot) {
-      return invite.inviter.id;
-    }
-  }
-  return null;
 }
 
 function setTrackingChannel(guildId, channelId) {
