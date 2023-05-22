@@ -1,4 +1,6 @@
 const mysql = require('mysql2');
+const { GuildMember } = require('discord.js');
+
 
 const connectionConfig = {
   host: 'localhost',
