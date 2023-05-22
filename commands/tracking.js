@@ -1,3 +1,4 @@
+const { CommandInteractionOptionResolver } = require('discord.js');
 const { setTrackingChannel } = require('../trackingLogic');
 
 module.exports = {
@@ -14,9 +15,10 @@ module.exports = {
     ],
   },
   async execute(interaction) {
-    const trackingChannel = interaction.options.getChannel('channel');
+    const options = new CommandInteractionOptionResolver(interaction.options);
+    const trackingChannel = options.getChannel('channel');
 
-    if (!trackingChannel.isText()) {
+    if (!trackingChannel || !trackingChannel.isText()) {
       return interaction.reply('Please select a text channel for tracking.');
     }
 
