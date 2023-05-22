@@ -18,7 +18,12 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 // Load each command dynamically and add it to the collection
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
+  if (command && command.data && command.data.name) {
+    console.log(`Loaded command '${command.data.name}' from file '${file}'`);
+    client.commands.set(command.data.name, command);
+  } else {
+    console.log(`Invalid command file '${file}'`);
+  }
 }
 
 // Event triggered when the bot is ready
