@@ -18,6 +18,7 @@ const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('
 // Load each command dynamically and add it to the collection
 for (const file of commandFiles) {
   const command = require(`./commands/${file}`);
+  console.log(`Loaded command '${command.data.name}' from file '${file}'`);
   client.commands.set(command.data.name, command);
 }
 
