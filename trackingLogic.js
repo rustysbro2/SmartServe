@@ -1,11 +1,11 @@
 const fs = require('fs');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
 const connectionConfig = {
   host: 'localhost',
   user: 'Rustysbro',
   password: '1234',
-  database: 'counting'
+  database: 'counting',
 };
 
 function loadTrackingData() {
@@ -29,7 +29,7 @@ function loadTrackingData() {
           for (const row of results) {
             trackingData[row.guild_id] = {
               inviteMap: JSON.parse(row.invite_map),
-              trackingChannelId: row.tracking_channel_id
+              trackingChannelId: row.tracking_channel_id,
             };
           }
           console.log('Tracking data loaded successfully');
@@ -50,9 +50,13 @@ function saveTrackingData(data) {
       return;
     }
 
-    const values = Object.entries(data).map(([guildId, { inviteMap, trackingChannelId }]) => {
-      return `('${guildId}', '${JSON.stringify(inviteMap)}', '${trackingChannelId}')`;
-    });
+    const values = Object.entries(data).map(
+      ([guildId, { inviteMap, trackingChannelId }]) => {
+        return `('${guildId}', '${JSON.stringify(
+          inviteMap
+        )}', '${trackingChannelId}')`;
+      }
+    );
 
     const query = `INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ${values} ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)`;
 
@@ -74,7 +78,7 @@ async function trackUserJoin(guildId, member) {
   if (!guildData) {
     guildData = {
       inviteMap: {},
-      trackingChannelId: null
+      trackingChannelId: null,
     };
   }
 
@@ -89,14 +93,18 @@ async function trackUserJoin(guildId, member) {
     if (usedInvite) {
       guildData.inviteMap[usedInvite.code] = {
         uses: usedInvite.uses,
-        inviter: member.id
+        inviter: member.id,
       };
 
       const trackingChannelId = guildData.trackingChannelId;
       if (trackingChannelId) {
-        const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
+        const trackingChannel = member.guild.channels.cache.get(
+          trackingChannelId
+        );
         if (trackingChannel && trackingChannel.isText()) {
-          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
+          trackingChannel.send(
+            `User ${member.user.tag} joined using invite code ${usedInvite.code}`
+          );
         }
       }
     }
@@ -131,5 +139,5 @@ module.exports = {
   loadTrackingData,
   saveTrackingData,
   trackUserJoin,
-  setTrackingChannel
+  setTrackingChannel,
 };
