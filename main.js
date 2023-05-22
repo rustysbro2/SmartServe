@@ -1,195 +1,90 @@
-const mysql = require('mysql2');
-const { GuildMember } = require('discord.js');
+const { Client, Intents, Collection } = require('discord.js');
+const fs = require('fs');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { token, clientId } = require('./config');
+const { trackUserJoin, setTrackingChannel } = require('./trackingLogic');
 
-const connectionConfig = {
-  host: 'localhost',
-  user: 'rustysbro',
-  password: '1234',
-  database: 'counting'
-};
+const client = new Client({
+  intents: [
+    Intents.FLAGS.GUILDS,
+    Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_INVITES,
+    Intents.FLAGS.GUILD_PRESENCES,
+  ],
+});
 
-function createTable() {
-  const connection = mysql.createConnection(connectionConfig);
+// Create a collection to store the commands
+client.commands = new Collection();
 
-  connection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to MySQL:', err);
-      return;
-    }
+// Read the command files from the 'commands' folder
+const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
 
-    const query = `
-      CREATE TABLE IF NOT EXISTS tracking_data (
-        guild_id VARCHAR(255) PRIMARY KEY,
-        invite_map TEXT,
-        tracking_channel_id VARCHAR(255)
-      )
-    `;
-
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error('Error creating tracking_data table:', error);
-      } else {
-        console.log('tracking_data table created successfully');
-      }
-      connection.end();
-    });
-  });
-}
-
-function loadTrackingData() {
-  const connection = mysql.createConnection(connectionConfig);
-
-  return new Promise((resolve, reject) => {
-    connection.connect((err) => {
-      if (err) {
-        console.error('Error connecting to MySQL:', err);
-        reject(err);
-        return;
-      }
-
-      const query = 'SELECT * FROM tracking_data';
-      connection.query(query, (error, results) => {
-        if (error) {
-          console.error('Error loading tracking data:', error);
-          reject(error);
-        } else {
-          const trackingData = {};
-          for (const row of results) {
-            trackingData[row.guild_id] = {
-              inviteMap: JSON.parse(row.invite_map),
-              trackingChannelId: row.tracking_channel_id
-            };
-          }
-          console.log('Tracking data loaded successfully');
-          resolve(trackingData);
-        }
-        connection.end();
-      });
-    });
-  });
-}
-
-function saveTrackingData(data) {
-  const connection = mysql.createConnection(connectionConfig);
-
-  connection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to MySQL:', err);
-      return;
-    }
-
-    const values = Object.entries(data).map(([guildId, { inviteMap, trackingChannelId }]) => {
-      return `('${guildId}', '${JSON.stringify(inviteMap)}', '${trackingChannelId}')`;
-    });
-
-    const query = `INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ${values} ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)`;
-
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error('Error saving tracking data:', error);
-      } else {
-        console.log('Tracking data saved successfully');
-      }
-      connection.end();
-    });
-  });
-}
-
-async function trackUserJoin(guildId, member) {
-  const trackingData = await loadTrackingData();
-  let guildData = trackingData[guildId];
-
-  if (!guildData) {
-    guildData = {
-      inviteMap: {},
-      trackingChannelId: null
-    };
+// Load each command dynamically and add it to the collection
+for (const file of commandFiles) {
+  let command;
+  try {
+    command = require(`./commands/${file}`);
+  } catch (error) {
+    console.error(`Error loading command file '${file}':`, error);
   }
 
-  if (member instanceof GuildMember) {
-    const invites = await member.guild.invites.fetch();
-
-    const usedInvite = invites.find((invite) => {
-      const inviteData = guildData.inviteMap[invite.code];
-      return inviteData && inviteData.uses < invite.uses;
-    });
-
-    if (usedInvite) {
-      guildData.inviteMap[usedInvite.code] = {
-        uses: usedInvite.uses,
-        inviter: member.id
-      };
-
-      const connection = mysql.createConnection(connectionConfig);
-
-      connection.connect((err) => {
-        if (err) {
-          console.error('Error connecting to MySQL:', err);
-          return;
-        }
-
-        const query = `SELECT tracking_channel_id FROM tracking_data WHERE guild_id = '${guildId}'`;
-        connection.query(query, (error, results) => {
-          if (error) {
-            console.error('Error retrieving tracking channel ID:', error);
-          } else {
-            const trackingChannelId = results[0].tracking_channel_id;
-            console.log('Tracking Channel ID:', trackingChannelId); // Debug info
-
-            if (trackingChannelId) {
-              const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
-              if (trackingChannel && trackingChannel.isText()) {
-                trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
-                  .then(() => {
-                    console.log('Tracking message sent successfully');
-                  })
-                  .catch((error) => {
-                    console.error('Error sending tracking message:', error);
-                  });
-              } else {
-                console.error('Tracking channel not found or is not a text channel');
-              }
-            } else {
-              console.error('Tracking channel ID not found');
-            }
-          }
-          connection.end();
-        });
-      });
-    }
+  if (command && command.data && command.data.name) {
+    console.log(`Loaded command '${command.data.name}' from file '${file}'`);
+    client.commands.set(command.data.name, command);
+  } else {
+    console.log(`Invalid command file '${file}'`);
   }
-
-  trackingData[guildId] = guildData;
-  saveTrackingData(trackingData);
 }
 
-function setTrackingChannel(guildId, channelId) {
-  const connection = mysql.createConnection(connectionConfig);
+// Event triggered when the bot is ready
+client.once('ready', async () => {
+  console.log('Logged in as', client.user.tag);
 
-  connection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to MySQL:', err);
-      return;
+  // Register the slash commands
+  const rest = new REST({ version: '9' }).setToken(token);
+  try {
+    console.log('Started refreshing application (/) commands.');
+
+    // Convert the command collection to an array of command data
+    const commands = [...client.commands.values()].map((command) => command.data);
+
+    // Log each command to the console
+    for (const command of commands) {
+      console.log(command);
     }
 
-    const query = `UPDATE tracking_data SET tracking_channel_id = '${channelId}' WHERE guild_id = '${guildId}'`;
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error('Error updating tracking channel:', error);
-      } else {
-        console.log('Tracking channel updated successfully');
-      }
-      connection.end();
-    });
-  });
-}
+    // Register the commands globally
+    await rest.put(Routes.applicationCommands(clientId), { body: commands });
 
-// Create the table on startup
-createTable();
+    console.log('Successfully reloaded application (/) commands.');
+  } catch (error) {
+    console.error(error);
+  }
+});
 
-module.exports = {
-  loadTrackingData,
-  saveTrackingData,
-  trackUserJoin,
-  setTrackingChannel
-};
+// Event triggered when a user joins a guild
+client.on('guildMemberAdd', async (member) => {
+  console.log('Tracking user join:', member.user.tag);
+  await trackUserJoin(member.guild.id, member);
+});
+
+// Event triggered when an interaction (slash command) is created
+client.on('interactionCreate', async (interaction) => {
+  if (!interaction.isCommand()) return;
+
+  const commandName = interaction.commandName;
+  const command = client.commands.get(commandName);
+
+  if (!command) return;
+
+  try {
+    await command.execute(interaction);
+  } catch (error) {
+    console.error(error);
+    await interaction.reply('An error occurred while executing the command.');
+  }
+});
+
+// Login the bot using the token
+client.login(token);
