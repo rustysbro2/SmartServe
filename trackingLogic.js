@@ -1,5 +1,4 @@
-const fs = require('fs');
-const mysql = require('mysql2');
+const mysql = require('mysql2/promise');
 
 const connectionConfig = {
   host: 'localhost',
@@ -8,47 +7,31 @@ const connectionConfig = {
   database: 'counting'
 };
 
-function loadTrackingData() {
-  const connection = mysql.createConnection(connectionConfig);
+async function loadTrackingData() {
+  try {
+    const connection = await mysql.createConnection(connectionConfig);
 
-  return new Promise((resolve, reject) => {
-    connection.connect((err) => {
-      if (err) {
-        console.error('Error connecting to MySQL:', err);
-        reject(err);
-        return;
-      }
+    const [rows] = await connection.execute('SELECT * FROM tracking_data');
+    const trackingData = {};
 
-      const query = 'SELECT * FROM tracking_data';
-      connection.query(query, (error, results) => {
-        if (error) {
-          console.error('Error loading tracking data:', error);
-          reject(error);
-        } else {
-          const trackingData = {};
-          for (const row of results) {
-            trackingData[row.guild_id] = {
-              inviteMap: JSON.parse(row.invite_map),
-              trackingChannelId: row.tracking_channel_id
-            };
-          }
-          console.log('Tracking data loaded successfully');
-          resolve(trackingData);
-        }
-        connection.end();
-      });
-    });
-  });
+    for (const row of rows) {
+      trackingData[row.guild_id] = {
+        inviteMap: JSON.parse(row.invite_map),
+        trackingChannelId: row.tracking_channel_id
+      };
+    }
+
+    console.log('Tracking data loaded successfully');
+    return trackingData;
+  } catch (error) {
+    console.error('Error loading tracking data:', error);
+    throw error;
+  }
 }
 
-function saveTrackingData(data) {
-  const connection = mysql.createConnection(connectionConfig);
-
-  connection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to MySQL:', err);
-      return;
-    }
+async function saveTrackingData(data) {
+  try {
+    const connection = await mysql.createConnection(connectionConfig);
 
     const values = Object.entries(data).map(([guildId, { inviteMap, trackingChannelId }]) => {
       return `('${guildId}', '${JSON.stringify(inviteMap)}', '${trackingChannelId}')`;
@@ -56,15 +39,12 @@ function saveTrackingData(data) {
 
     const query = `INSERT INTO tracking_data (guild_id, invite_map, tracking_channel_id) VALUES ${values} ON DUPLICATE KEY UPDATE invite_map = VALUES(invite_map), tracking_channel_id = VALUES(tracking_channel_id)`;
 
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error('Error saving tracking data:', error);
-      } else {
-        console.log('Tracking data saved successfully');
-      }
-      connection.end();
-    });
-  });
+    await connection.execute(query);
+    console.log('Tracking data saved successfully');
+  } catch (error) {
+    console.error('Error saving tracking data:', error);
+    throw error;
+  }
 }
 
 async function trackUserJoin(guildId, member) {
@@ -103,28 +83,21 @@ async function trackUserJoin(guildId, member) {
   }
 
   trackingData[guildId] = guildData;
-  saveTrackingData(trackingData);
+  await saveTrackingData(trackingData);
 }
 
-function setTrackingChannel(guildId, channelId) {
-  const connection = mysql.createConnection(connectionConfig);
-
-  connection.connect((err) => {
-    if (err) {
-      console.error('Error connecting to MySQL:', err);
-      return;
-    }
+async function setTrackingChannel(guildId, channelId) {
+  try {
+    const connection = await mysql.createConnection(connectionConfig);
 
     const query = `UPDATE tracking_data SET tracking_channel_id = '${channelId}' WHERE guild_id = '${guildId}'`;
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error('Error updating tracking channel:', error);
-      } else {
-        console.log('Tracking channel updated successfully');
-      }
-      connection.end();
-    });
-  });
+    await connection.execute(query);
+
+    console.log('Tracking channel updated successfully');
+  } catch (error) {
+    console.error('Error updating tracking channel:', error);
+    throw error;
+  }
 }
 
 module.exports = {
