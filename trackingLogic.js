@@ -110,23 +110,22 @@ async function trackUserJoin(guildId, member) {
     const invites = await member.guild.invites.fetch();
 
     const usedInvite = invites.find((invite) => {
-      const inviteData = guildData.inviteMap[invite.code];
-      return inviteData && inviteData.uses < invite.uses;
+      const inviteKey = invite.code || invite.url; // Use invite code or URL as the key
+      const inviteData = guildData.inviteMap[inviteKey];
+      return inviteData && inviteData.inviter !== member.id;
     });
 
     if (usedInvite) {
-      guildData.inviteMap[usedInvite.code] = {
-        uses: usedInvite.uses,
-        inviter: member.id
+      const inviteKey = usedInvite.code || usedInvite.url; // Use invite code or URL as the key
+      guildData.inviteMap[inviteKey] = {
+        inviter: usedInvite.inviter.id
       };
 
       const trackingChannelId = guildData.trackingChannelId;
       if (trackingChannelId) {
         const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
         if (trackingChannel && trackingChannel.isText()) {
-          console.log(`Sending tracking message for user ${member.user.tag} joined using invite code ${usedInvite.code}`);
-          console.log('Invite Data:', guildData.inviteMap[invite.code]); // Debug: Log inviteData
-          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`)
+          trackingChannel.send(`User ${member.user.tag} joined using invite ${inviteKey}`)
             .then(() => {
               console.log('Tracking message sent successfully');
             })
@@ -149,10 +148,6 @@ async function trackUserJoin(guildId, member) {
   trackingData[guildId] = guildData;
   saveTrackingData(trackingData);
 }
-
-
-
-
 
 function setTrackingChannel(guildId, channelId) {
   const connection = mysql.createConnection(connectionConfig);
