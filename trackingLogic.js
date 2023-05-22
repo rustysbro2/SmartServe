@@ -29,27 +29,11 @@ async function trackUserJoin(guildId, member) {
     };
   }
 
-  if (member instanceof GuildMember) {
-    const invites = await member.guild.invites.fetch();
-
-    const usedInvite = invites.find((invite) => {
-      const inviteData = guildData.inviteMap[invite.code];
-      return inviteData && inviteData.uses < invite.uses;
-    });
-
-    if (usedInvite) {
-      guildData.inviteMap[usedInvite.code] = {
-        uses: usedInvite.uses,
-        inviter: member.id,
-      };
-
-      const trackingChannelId = guildData.trackingChannelId;
-      if (trackingChannelId) {
-        const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
-        if (trackingChannel && trackingChannel.isText()) {
-          trackingChannel.send(`User ${member.user.tag} joined using invite code ${usedInvite.code}`);
-        }
-      }
+  const trackingChannelId = guildData.trackingChannelId;
+  if (trackingChannelId) {
+    const trackingChannel = member.guild.channels.cache.get(trackingChannelId);
+    if (trackingChannel && trackingChannel.isText()) {
+      trackingChannel.send(`User ${member.user.tag} joined the server.`);
     }
   }
 
