@@ -1,4 +1,5 @@
 // bot.js
+// /
 const { Client } = require('discord.js');
 const { token } = require('./config.js');
 
