@@ -5,7 +5,7 @@ const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 
 // Importing MusicPlayer
-const { MusicPlayer } = require('./features/musicPlayer.js');
+const MusicPlayer = require('./features/musicPlayer.js');
 
 // List intents that the bot needs access to
 const intents = new Intents([
