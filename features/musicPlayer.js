@@ -2,7 +2,8 @@ const { createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType, Au
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
-    constructor(guildId) {
+    constructor(client, guildId) {
+        this.client = client;
         this.guildId = guildId;
         this.queue = [];
         this.player = createAudioPlayer();
@@ -15,7 +16,7 @@ class MusicPlayer {
     }
 
     async join(channelId) {
-        const channel = await client.channels.fetch(channelId);
+        const channel = await this.client.channels.fetch(channelId);
         this.connection = joinVoiceChannel({
             channelId: channel.id,
             guildId: this.guildId,
