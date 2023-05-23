@@ -69,21 +69,24 @@ module.exports = {
                 if (newInvite) {
                     inviter = newInvite.inviter ? client.users.cache.get(newInvite.inviter.id) : null;
                     joinMethod = `They were invited by <@${inviter.id}>.`;
-                } else if (member.user.bot) {
-                    joinMethod = 'They joined via OAuth2.';
                 } else {
-                    joinMethod = 'They used a Vanity URL.';
+                    if (member.user.bot) {
+                        joinMethod = 'They joined via OAuth2.';
+                    } else {
+                        joinMethod = 'They likely used a Vanity URL or an invite that was later deleted.';
+                    }
                 }
 
-        const embed = new MessageEmbed()
-            .setTitle(member.user.bot ? "Bot Joined!" : "New Member Joined!")
-            .setDescription(`<@${member.user.id}> has joined the server. ${joinMethod}${inviter ? ` Invited by <@${inviter.id}>.` : ''}`)
-            .setColor("#32CD32");
-        const channelId = await getInviteChannelId(member.guild.id);
-        const channel = member.guild.channels.cache.get(channelId);
-        if (channel) channel.send({ embeds: [embed] });
-    });
-});
+                const embed = new MessageEmbed()
+                    .setTitle(member.user.bot ? "Bot Joined!" : "New Member Joined!")
+                    .setDescription(`<@${member.user.id}> has joined the server. ${joinMethod}`)
+                    .setColor("#32CD32");
+                const channelId = await getInviteChannelId(member.guild.id);
+                const channel = member.guild.channels.cache.get(channelId);
+                if (channel) channel.send({ embeds: [embed] });
+            });
+        });
+
 
 
         client.on('inviteCreate', async invite => {
