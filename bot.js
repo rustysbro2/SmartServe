@@ -4,17 +4,24 @@ const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 
+// Importing MusicPlayer
+const { MusicPlayer } = require('./features/musicPlayer.js');
+
 // List intents that the bot needs access to
 const intents = new Intents([
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
     Intents.FLAGS.GUILD_MEMBERS,
+    Intents.FLAGS.GUILD_VOICE_STATES,
 ]);
 
 const client = new Client({ shards: "auto", intents });
 
 // Create a new Collection for commands
 client.commands = new Collection();
+
+// Initialize the MusicPlayer
+client.musicPlayer = new MusicPlayer();
 
 // Dynamically retrieve commands
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
