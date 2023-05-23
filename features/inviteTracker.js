@@ -27,7 +27,19 @@ module.exports = {
         
         client.on('guildCreate', guild => {
             fetchInvites(guild);
+            // Send a message to the guild's default channel (usually the channel with the ID that matches the guild ID)
+            let defaultChannel = "";
+            guild.channels.cache.forEach((channel) => {
+                if(channel.type == "text" && defaultChannel == "") {
+                    if(channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
+                        defaultChannel = channel;
+                    }
+                }
+            })
+            //defaultChannel will be the channel object that it first finds the bot has permissions for
+            defaultChannel.send(`Hello, I'm your new bot!`).catch(console.error);
         });
+
         
         client.on('guildMemberAdd', async member => {
             // Fetch the invite channel for this guild from the database
