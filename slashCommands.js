@@ -1,22 +1,21 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { clientId, guildId, token } = require('./config.json');
-
-const commandsInCode = new Set(fs.readdirSync('./commands').map(file => file.slice(0, -3)));
+const { clientId, token } = require('./config.js');
 
 const rest = new REST({ version: '9' }).setToken(token);
 
 (async () => {
-    const registeredCommands = await rest.get(
-        Routes.applicationGuildCommands(clientId, guildId),
-    );
+    try {
+        const commands = await rest.get(Routes.applicationCommands(clientId));
+        const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+        const commandsInCode = commandFiles.map(file => require(`./commands/${file}`).data.name);
 
-    for (const command of registeredCommands) {
-        if (!commandsInCode.has(command.name)) {
-            console.log(`Deleting command: ${command.name}`);
-            await rest.delete(
-                Routes.applicationGuildCommand(clientId, guildId, command.id),
-            );
+        for (const command of commands) {
+            if (!commandsInCode.includes(command.name)) {
+                await rest.delete(Routes.applicationCommand(clientId, command.id));
+            }
         }
+    } catch (error) {
+        console.error(error);
     }
 })();
