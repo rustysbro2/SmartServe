@@ -30,26 +30,26 @@ class MusicPlayer {
         this.connection.subscribe(this.player);
     }
 
-async play(url) {
-    const info = await ytdl.getBasicInfo(url);
-    const formats = info.formats.filter((format) => format.audioBitrate);
-    const bestFormat = formats.sort((a, b) => b.audioBitrate - a.audioBitrate)[0];
-    
-    const stream = ytdl(url, { format: bestFormat });
-    const filename = path.join(__dirname, `${Date.now()}.opus`);
-    await pipeline(stream, fs.createWriteStream(filename));
-    
-    const resource = createAudioResource(filename, { inputType: StreamType.OggOpus });
-    this.player.play(resource);
-    
-    this.player.once(AudioPlayerStatus.Idle, () => {
-        fs.unlink(filename, (err) => {
-            if (err) {
-                console.error('Failed to delete file:', filename);
-            }
+    async play(url) {
+        const info = await ytdl.getBasicInfo(url);
+        const formats = info.formats.filter((format) => format.audioBitrate);
+        const bestFormat = formats.sort((a, b) => b.audioBitrate - a.audioBitrate)[0];
+        
+        const stream = ytdl(url, { format: bestFormat });
+        const filename = path.join(__dirname, `${Date.now()}.opus`);
+        await pipeline(stream, fs.createWriteStream(filename));
+        
+        const resource = createAudioResource(filename, { inputType: StreamType.OggOpus });
+        this.player.play(resource);
+        
+        this.player.once(AudioPlayerStatus.Idle, () => {
+            fs.unlink(filename, (err) => {
+                if (err) {
+                    console.error('Failed to delete file:', filename);
+                }
+            });
         });
-    });
+    }
 }
-
 
 module.exports = MusicPlayer;
