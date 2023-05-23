@@ -35,7 +35,7 @@ module.exports = {
                 SELECT channelId
                 FROM inviteChannels
                 WHERE guildId = ?
-            `, [member.guild.id], function (error, results) {
+            `, [member.guild.id], async function (error, results) {  // Make this callback async
                 if (error) throw error;
                 if (results.length > 0) {
                     const channelId = results[0].channelId;
@@ -59,6 +59,7 @@ module.exports = {
                 }
             });
         });
+
 
         client.on('inviteCreate', async invite => {
             if (!invites[invite.guild.id]) {
