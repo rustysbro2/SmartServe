@@ -32,6 +32,10 @@ module.exports = {
 
         client.on('guildMemberAdd', async member => {
             console.log(`New member added: ${member.user.tag}`);
+            const newInvites = await member.guild.invites.fetch();
+            const oldInvites = invites[member.guild.id];
+            const usedInvite = newInvites.find(invite => oldInvites.get(invite.code)?.uses < invite.uses) || false;
+            invites[member.guild.id] = newInvites;
             db.query(`
                 SELECT channelId
                 FROM inviteChannels
@@ -42,14 +46,16 @@ module.exports = {
                     const channelId = results[0].channelId;
                     const channel = member.guild.channels.cache.get(channelId);
                     if (!channel) return;
-
-                    console.log(`Member joined: ${member.user.tag}. Sending message to channel: ${channel.name}`);
-
-                    const embed = new MessageEmbed()
-                        .setTitle("New Member Joined!")
-                        .setDescription(`${member.user.tag} has joined the server.`)
-                        .setColor("#32CD32");
-                    channel.send({ embeds: [embed] });
+                    console.log(`Member ${member.user.tag} joined. Sending message to channel: ${channel.name}`);
+                    let inviter = "an unknown source";
+                    if (usedInvite) {
+                        inviter = `<@${usedInvite.inviter.id}>`;  // Mention inviter
+                    } else if (member.guild.features.includes('VANITY_URL')) {
+                        inviter = "a vanity URL";
+                    } else if (member.user.bot) {
+                        inviter = "OAuth2 (bot)";
+                    }
+                    channel.send(`<@${member.id}> has joined the server, invited by ${inviter}.`);  // Mention joined user
                 }
             });
         });
