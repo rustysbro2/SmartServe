@@ -35,7 +35,7 @@ module.exports = {
                 SELECT channelId
                 FROM inviteChannels
                 WHERE guildId = ?
-            `, [member.guild.id], async function (error, results) {  // Make this callback async
+            `, [member.guild.id], async function (error, results) {
                 if (error) throw error;
                 if (results.length > 0) {
                     const channelId = results[0].channelId;
@@ -51,11 +51,14 @@ module.exports = {
                                 .setTitle("New Member Joined!")
                                 .setDescription(`${member.user.tag} joined using invite code ${invite.code} from ${invite.inviter.tag}. Code used ${invite.uses} times.`)
                                 .setColor("#32CD32");
-                            // Add error handling here
                             channel.send({ embeds: [embed] }).catch(console.error);
                         }
                     });
 
+                    invites[member.guild.id] = newInvites;
+                }
+            });
+        });
 
         client.on('inviteCreate', async invite => {
             if (!invites[invite.guild.id]) {
