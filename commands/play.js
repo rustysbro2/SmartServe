@@ -1,46 +1,30 @@
-const { createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType, AudioPlayerStatus } = require('@discordjs/voice');
-const ytdl = require('discord-ytdl-core');
-const prism = require('prism-media');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { AudioPlayerStatus } = require('@discordjs/voice');
+const MusicPlayer = require('../features/musicPlayer');
 
-class MusicPlayer {
-    constructor(client, guildId) {
-        this.client = client;
-        this.guildId = guildId;
-        this.queue = [];
-        this.player = createAudioPlayer();
-        this.connection = null;
-        this.player.on(AudioPlayerStatus.Idle, () => {
-            if(this.queue.length > 0) {
-                this.play(this.queue.shift());
+module.exports = {
+    data: new SlashCommandBuilder()
+        .setName('play')
+        .setDescription('Play a song.')
+        .addStringOption(option => option.setName('url').setDescription('The URL of the song to play').setRequired(true)),
+    async execute(interaction, client) {
+        const url = interaction.options.getString('url');
+        let musicPlayer = client.musicPlayers.get(interaction.guildId);
+        if (!musicPlayer) {
+            musicPlayer = new MusicPlayer(client, interaction.guildId);
+            client.musicPlayers.set(interaction.guildId, musicPlayer);
+        }
+        if (!musicPlayer.connection) {
+            const channel = interaction.member.voice.channelId;
+            if (!channel) {
+                return interaction.reply('You need to join a voice channel first!');
             }
-        });
-    }
-
-    async join(channelId) {
-        const channel = await this.client.channels.fetch(channelId);
-        this.connection = joinVoiceChannel({
-            channelId: channel.id,
-            guildId: this.guildId,
-            adapterCreator: channel.guild.voiceAdapterCreator,
-        });
-        this.connection.subscribe(this.player);
-    }
-
-    async play(url) {
-        const info = await ytdl.getBasicInfo(url);
-        const formats = info.formats.filter((format) => format.audioBitrate);
-        const bestFormat = ytdl.chooseFormat(formats, { quality: 'highestaudio' });
-    
-        const stream = new prism.OggOpusDemuxer().on('error', console.error);
-        ytdl(url, { format: bestFormat }).pipe(stream);
-    
-        const resource = createAudioResource(stream, { inputType: StreamType.OggOpus });
-        this.player.play(resource);
-    }
-
-    enqueue(url) {
-        this.queue.push(url);
-    }
-}
-
-module.exports = MusicPlayer;
+            await musicPlayer.join(channel);
+        }
+        musicPlayer.enqueue(url);
+        if (musicPlayer.player.state.status === AudioPlayerStatus.Idle) {
+            musicPlayer.play(musicPlayer.queue.shift());
+        }
+        await interaction.reply('Enqueued your song!');
+    },
+};
