@@ -1,3 +1,7 @@
+client.on('ready', () => {
+    console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+    client.user.setActivity(`${client.guilds.cache.size} servers | Shard: ${client.shard.ids}`, { type: 'WATCHING' });
+});
 // bot.js
 const { Client, Intents, Collection } = require('discord.js');
 const fs = require('fs');
@@ -24,8 +28,9 @@ for (const file of commandFiles) {
 
 client.on('ready', () => {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-    client.user.setActivity(`Watching ${client.guilds.cache.size} servers | Shard: ${client.shard.ids}`, { type: 'WATCHING' });
+    client.user.setActivity(`${client.guilds.cache.size} servers | Shard: ${client.shard.ids}`, { type: 'WATCHING' });
 });
+
 
 
 client.on('interactionCreate', async interaction => {
