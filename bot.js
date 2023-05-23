@@ -8,7 +8,9 @@ const fs = require('fs');
 const intents = new Intents([
     Intents.FLAGS.GUILDS,
     Intents.FLAGS.GUILD_MESSAGES,
+    Intents.FLAGS.GUILD_MEMBERS,
 ]);
+
 
 const client = new Client({ shards: "auto", intents });
 
