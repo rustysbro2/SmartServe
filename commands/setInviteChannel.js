@@ -1,3 +1,7 @@
+// commands/setInviteChannel.js
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const inviteTracker = require('../features/inviteTracker.js');
+
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('setinvitechannel')
