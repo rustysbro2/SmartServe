@@ -28,15 +28,18 @@ class MusicPlayer {
 
     async join(channelId) {
         const channel = await this.client.channels.fetch(channelId);
+        console.log(`Joining channel: ${channel.id}`);  // Log the channel ID
         this.connection = joinVoiceChannel({
             channelId: channel.id,
             guildId: this.guildId,
             adapterCreator: channel.guild.voiceAdapterCreator,
         });
         this.connection.subscribe(this.player);
+        console.log('Player subscribed to connection'); // Log subscription
     }
 
     async play(url) {
+        console.log(`Attempting to play: ${url}`); // Log the URL
         const stream = ytdl(url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
 
         // Adding error handling for the stream
@@ -46,6 +49,7 @@ class MusicPlayer {
 
         const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
         this.player.play(resource);
+        console.log('Resource played'); // Log when resource is played
     }
 
     enqueue(url) {
