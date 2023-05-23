@@ -64,16 +64,27 @@ module.exports = {
             `, [member.guild.id], async function (error, dbInvites) {
                 if (error) throw error;
                 const newInvite = invites[member.guild.id].find(invite => invite.uses !== dbInvites[invite.code]);
-                const inviter = newInvite.inviter ? client.users.cache.get(newInvite.inviter.id) : null;
-                const embed = new MessageEmbed()
-                    .setTitle("New Member Joined!")
-                    .setDescription(`<@${member.user.id}> has joined the server. ${inviter ? `They were invited by <@${inviter.id}>.` : 'We could not determine who invited them.'}`)
-                    .setColor("#32CD32");
-                const channelId = await getInviteChannelId(member.guild.id);
-                const channel = member.guild.channels.cache.get(channelId);
-                if (channel) channel.send({ embeds: [embed] });
-            });
-        });
+                let joinMethod = '';
+                let inviter = null;
+                if (newInvite) {
+                    inviter = newInvite.inviter ? client.users.cache.get(newInvite.inviter.id) : null;
+                    joinMethod = `They were invited by <@${inviter.id}>.`;
+                } else if (member.user.bot) {
+                    joinMethod = 'They joined via OAuth2.';
+                } else {
+                    joinMethod = 'They used a Vanity URL.';
+                }
+
+        const embed = new MessageEmbed()
+            .setTitle(member.user.bot ? "Bot Joined!" : "New Member Joined!")
+            .setDescription(`<@${member.user.id}> has joined the server. ${joinMethod}${inviter ? ` Invited by <@${inviter.id}>.` : ''}`)
+            .setColor("#32CD32");
+        const channelId = await getInviteChannelId(member.guild.id);
+        const channel = member.guild.channels.cache.get(channelId);
+        if (channel) channel.send({ embeds: [embed] });
+    });
+});
+
 
         client.on('inviteCreate', async invite => {
             console.log(`Invite created: ${invite.code}`);
