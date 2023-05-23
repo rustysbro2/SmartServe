@@ -67,7 +67,7 @@ module.exports = {
                 const inviter = newInvite.inviter ? client.users.cache.get(newInvite.inviter.id) : null;
                 const embed = new MessageEmbed()
                     .setTitle("New Member Joined!")
-                    .setDescription(`${member.user.tag} has joined the server. ${inviter ? `They were invited by ${inviter.tag}.` : 'We could not determine who invited them.'}`)
+                    .setDescription(`<@${member.user.id}> has joined the server. ${inviter ? `They were invited by <@${inviter.id}>.` : 'We could not determine who invited them.'}`)
                     .setColor("#32CD32");
                 const channelId = await getInviteChannelId(member.guild.id);
                 const channel = member.guild.channels.cache.get(channelId);
