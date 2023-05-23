@@ -44,37 +44,44 @@ module.exports = {
                     const channel = member.guild.channels.cache.get(channelId);
                     if (!channel) return;
 
-                    const newGuildInvites = await member.guild.invites.fetch();
-                    const oldGuildInvites = invites[member.guild.id];
-                    const usedInvite = oldGuildInvites.find(inv => newGuildInvites.get(inv.code).uses > inv.uses);
-
                     let embed;
-                    if (usedInvite) {
-                        const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
+                    if (member.user.bot) {
                         embed = new MessageEmbed()
-                            .setTitle("New Member Joined!")
-                            .setDescription(`${member.user.tag} joined using invite code ${usedInvite.code} from ${inviter.user.tag}. Total uses: ${usedInvite.uses}`)
+                            .setTitle("New Bot Joined!")
+                            .setDescription(`${member.user.tag} joined through OAuth.`)
                             .setColor("#32CD32");
                     } else {
-                        // Here we handle the case where we can't determine the invite used
-                        const isVanity = await member.guild.fetchVanityData().catch(() => false);
-                        if (isVanity) {
+                        const newGuildInvites = await member.guild.invites.fetch();
+                        const oldGuildInvites = invites[member.guild.id];
+                        const usedInvite = oldGuildInvites.find(inv => newGuildInvites.get(inv.code).uses > inv.uses);
+
+                        if (usedInvite) {
+                            const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
                             embed = new MessageEmbed()
                                 .setTitle("New Member Joined!")
-                                .setDescription(`${member.user.tag} joined using the vanity URL.`)
+                                .setDescription(`${member.user.tag} joined using invite code ${usedInvite.code} from ${inviter.user.tag}. Total uses: ${usedInvite.uses}`)
                                 .setColor("#32CD32");
                         } else {
-                            embed = new MessageEmbed()
-                                .setTitle("New Member Joined!")
-                                .setDescription(`${member.user.tag} joined, but we couldn't determine the invite used.`)
-                                .setColor("#32CD32");
+                            // Here we handle the case where we can't determine the invite used
+                            const isVanity = await member.guild.fetchVanityData().catch(() => false);
+                            if (isVanity) {
+                                embed = new MessageEmbed()
+                                    .setTitle("New Member Joined!")
+                                    .setDescription(`${member.user.tag} joined using the vanity URL.`)
+                                    .setColor("#32CD32");
+                            } else {
+                                embed = new MessageEmbed()
+                                    .setTitle("New Member Joined!")
+                                    .setDescription(`${member.user.tag} joined, but we couldn't determine the invite used.`)
+                                    .setColor("#32CD32");
+                            }
                         }
                     }
-
                     channel.send({ embeds: [embed] });
                 }
             });
         });
+
 
         client.on('inviteCreate', async invite => {
             console.log(`Invite created: ${invite.code}`);
