@@ -1,5 +1,7 @@
 // commands/play.js
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const MusicPlayer = require('../features/musicPlayer.js');
+
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -12,7 +14,7 @@ module.exports = {
     async execute(interaction, client) {
         const url = interaction.options.getString('song');
         const guildId = interaction.guild.id;
-        let musicPlayer = client.musicPlayers.get(guildId);
+        let musicPlayer = new MusicPlayer(guildId);
         if(!musicPlayer) {
             musicPlayer = new client.MusicPlayer(guildId);
             client.musicPlayers.set(guildId, musicPlayer);
