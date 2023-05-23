@@ -1,4 +1,3 @@
-// bot.js
 const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.js');
@@ -28,21 +27,15 @@ client.on('interactionCreate', async interaction => {
     if (!command) return;
 
     try {
-        await interaction.deferReply(); // Defer reply
         await command.execute(interaction);
-        // Edit the reply once the command execution is complete
-        await interaction.editReply({ content: 'Command executed!' }); // Change this to the appropriate message
     } catch (error) {
         console.error(error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
     }
 });
 
-
 client.on('ready', () => {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
 });
-
-// Add your event handlers and other code here
 
 client.login(token);
