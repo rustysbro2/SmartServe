@@ -23,8 +23,9 @@ module.exports = {
         }
         musicPlayer.enqueue(url);
         if (musicPlayer.player.state.status === AudioPlayerStatus.Idle) {
+            await interaction.channel.send(`Now playing: ${url}`);
             musicPlayer.play(musicPlayer.queue.shift());
         }
-        await interaction.reply('Enqueued your song!');
+        await interaction.reply(`Queued your song! The queue now has ${musicPlayer.queue.length} song(s).`);
     },
 };
