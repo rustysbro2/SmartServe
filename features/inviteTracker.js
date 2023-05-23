@@ -30,31 +30,32 @@ module.exports = {
             console.log(`Bot joined a new guild: ${guild.name}`);
         });
 
-        client.on('guildMemberUpdate', async (oldMember, newMember) => {
-            console.log(`Guild member updated: ${newMember.user.tag}`);
-            if (newMember.user.bot) {
+        client.on('guildMemberAdd', async member => {
+            console.log(`New member added: ${member.user.tag}`);
+            if (member.user.bot) {
                 db.query(`
                     SELECT channelId
                     FROM inviteChannels
                     WHERE guildId = ?
-                `, [newMember.guild.id], async function (error, results) {
+                `, [member.guild.id], async function (error, results) {
                     if (error) throw error;
                     if (results.length > 0) {
                         const channelId = results[0].channelId;
-                        const channel = newMember.guild.channels.cache.get(channelId);
+                        const channel = member.guild.channels.cache.get(channelId);
                         if (!channel) return;
 
-                        console.log(`Bot joined: ${newMember.user.tag}. Sending message to channel: ${channel.name}`);
+                        console.log(`Bot joined: ${member.user.tag}. Sending message to channel: ${channel.name}`);
 
                         const embed = new MessageEmbed()
                             .setTitle("New Bot Joined!")
-                            .setDescription(`${newMember.user.tag} has joined the server.`)
+                            .setDescription(`${member.user.tag} has joined the server.`)
                             .setColor("#32CD32");
                         channel.send({ embeds: [embed] });
                     }
                 });
             }
         });
+
 
         client.on('inviteCreate', async invite => {
             console.log(`Invite created: ${invite.code}`);
