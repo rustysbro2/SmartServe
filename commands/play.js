@@ -14,7 +14,7 @@ module.exports = {
     async execute(interaction, client) {
         const url = interaction.options.getString('song');
         const guildId = interaction.guild.id;
-        let musicPlayer = new MusicPlayer(guildId);
+        let musicPlayer = new MusicPlayer(client, guildId);
         if(!musicPlayer) {
             musicPlayer = new client.MusicPlayer(guildId);
             client.musicPlayers.set(guildId, musicPlayer);
