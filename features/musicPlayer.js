@@ -15,7 +15,7 @@ class MusicPlayer {
         this.connection = null;
         this.player.on(AudioPlayerStatus.Idle, () => {
             if(this.queue.length > 0) {
-                this.play(this.queue.shift());
+                this.playSong(this.queue.shift());
             }
         });
     }
@@ -31,17 +31,24 @@ class MusicPlayer {
     }
 
     async play(url) {
+        this.queue.push(url);
+        if (this.player.state.status === AudioPlayerStatus.Idle) {
+            this.playSong(this.queue.shift());
+        }
+    }
+
+    async playSong(url) {
         const info = await ytdl.getBasicInfo(url);
         const formats = info.formats.filter((format) => format.audioBitrate);
         const bestFormat = formats.sort((a, b) => b.audioBitrate - a.audioBitrate)[0];
-        
+
         const stream = ytdl(url, { format: bestFormat });
         const filename = path.join(__dirname, `${Date.now()}.opus`);
         await pipeline(stream, fs.createWriteStream(filename));
-        
+
         const resource = createAudioResource(filename, { inputType: StreamType.OggOpus });
         this.player.play(resource);
-        
+
         this.player.once(AudioPlayerStatus.Idle, () => {
             fs.unlink(filename, (err) => {
                 if (err) {
@@ -49,6 +56,10 @@ class MusicPlayer {
                 }
             });
         });
+    }
+
+    enqueue(url) {
+        this.queue.push(url);
     }
 }
 
