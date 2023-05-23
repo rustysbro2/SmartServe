@@ -1,7 +1,7 @@
 // slashCommands.js
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { clientId, token } = require('./config.json');
+const { clientId, token } = require('./config.js');
 const fs = require('fs');
 
 module.exports = async function(client) {
