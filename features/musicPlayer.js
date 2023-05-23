@@ -1,5 +1,5 @@
 const { createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType, AudioPlayerStatus } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
+const ytdl = require('discord-ytdl-core');
 
 class MusicPlayer {
     constructor(client, guildId) {
@@ -26,7 +26,7 @@ class MusicPlayer {
     }
 
     async play(url) {
-        const stream = ytdl(url, { filter: 'audioonly' });
+        const stream = ytdl(url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
         const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
         this.player.play(resource);
     }
