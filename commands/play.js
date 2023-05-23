@@ -1,29 +1,24 @@
+// commands/play.js
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const MusicPlayer = require('../features/musicPlayer');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('play')
-        .setDescription('Play a song.')
-        .addStringOption(option => option.setName('url').setDescription('The URL of the song to play').setRequired(true)),
-    async execute(interaction) {
-        const url = interaction.options.getString('url');
-        let musicPlayer = client.musicPlayers.get(interaction.guildId);
-        if (!musicPlayer) {
-            musicPlayer = new MusicPlayer(interaction.guildId);
-            client.musicPlayers.set(interaction.guildId, musicPlayer);
+        .setDescription('Plays a song')
+        .addStringOption(option =>
+            option.setName('song')
+                .setDescription('URL of the song to play')
+                .setRequired(true)),
+    async execute(interaction, client) {
+        const url = interaction.options.getString('song');
+        const guildId = interaction.guild.id;
+        let musicPlayer = client.musicPlayers.get(guildId);
+        if(!musicPlayer) {
+            musicPlayer = new client.MusicPlayer(guildId);
+            client.musicPlayers.set(guildId, musicPlayer);
         }
-        if (!musicPlayer.connection) {
-            const channel = interaction.member.voice.channelId;
-            if (!channel) {
-                return interaction.reply('You need to join a voice channel first!');
-            }
-            await musicPlayer.join(channel);
-        }
-        musicPlayer.enqueue(url);
-        if (musicPlayer.player.state.status === AudioPlayerStatus.Idle) {
-            musicPlayer.play(musicPlayer.queue.shift());
-        }
-        await interaction.reply('Enqueued your song!');
+        await musicPlayer.join(interaction.member.voice.channel.id);
+        musicPlayer.play(url);
+        await interaction.reply('Playing your song!');
     },
 };
