@@ -18,6 +18,18 @@ db.query(`
     if (error) throw error;
 });
 
+db.query(`
+    CREATE TABLE IF NOT EXISTS invites (
+        guildId VARCHAR(255),
+        inviteCode VARCHAR(255),
+        inviterId VARCHAR(255),
+        uses INT,
+        PRIMARY KEY(guildId, inviteCode)
+    )
+`, function (error) {
+    if (error) throw error;
+});
+
 module.exports = {
     name: 'inviteTracker',
     async execute(client) {
@@ -32,7 +44,22 @@ module.exports = {
 
         client.on('guildMemberAdd', async member => {
             console.log(`New member added: ${member.user.tag}`);
-
+            
+            const embed = new MessageEmbed()
+                .setTitle("New Member Joined!")
+                .setColor("#32CD32");
+            
+            if (member.user.bot) {
+                embed.setDescription(`${member.user.tag} joined the server through OAuth.`);
+            } else {
+                const newInvite = invites[member.guild.id].find(invite => invite.uses !== dbInvites[invite.code]);
+                if (newInvite) {
+                    embed.setDescription(`${member.user.tag} was invited by ${newInvite.inviter.tag}.`);
+                } else {
+                    embed.setDescription(`${member.user.tag} joined, but we couldn't determine the invite used.`);
+                }
+            }
+            
             db.query(`
                 SELECT channelId
                 FROM inviteChannels
@@ -43,40 +70,8 @@ module.exports = {
                     const channelId = results[0].channelId;
                     const channel = member.guild.channels.cache.get(channelId);
                     if (!channel) return;
-
-                    let embed;
-                    if (member.user.bot) {
-                        embed = new MessageEmbed()
-                            .setTitle("New Bot Joined!")
-                            .setDescription(`${member.user.tag} joined through OAuth.`)
-                            .setColor("#32CD32");
-                    } else {
-                        const newGuildInvites = await member.guild.invites.fetch();
-                        const oldGuildInvites = invites[member.guild.id];
-                        const usedInvite = oldGuildInvites.find(inv => newGuildInvites.get(inv.code).uses > inv.uses);
-
-                        if (usedInvite) {
-                            const inviter = member.guild.members.cache.get(usedInvite.inviter.id);
-                            embed = new MessageEmbed()
-                                .setTitle("New Member Joined!")
-                                .setDescription(`${member.user.tag} joined using invite code ${usedInvite.code} from ${inviter.user.tag}. Total uses: ${usedInvite.uses}`)
-                                .setColor("#32CD32");
-                        } else {
-                            // Here we handle the case where we can't determine the invite used
-                            const isVanity = await member.guild.fetchVanityData().catch(() => false);
-                            if (isVanity) {
-                                embed = new MessageEmbed()
-                                    .setTitle("New Member Joined!")
-                                    .setDescription(`${member.user.tag} joined using the vanity URL.`)
-                                    .setColor("#32CD32");
-                            } else {
-                                embed = new MessageEmbed()
-                                    .setTitle("New Member Joined!")
-                                    .setDescription(`${member.user.tag} joined, but we couldn't determine the invite used.`)
-                                    .setColor("#32CD32");
-                            }
-                        }
-                    }
+                    
+                    console.log(`Sending message to channel: ${channel.name}`);
                     channel.send({ embeds: [embed] });
                 }
             });
