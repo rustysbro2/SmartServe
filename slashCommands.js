@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const { clientId, token } = require('./config.json');
+const { clientId, token } = require('./config.js');
 
 const commands = [];
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -17,7 +17,6 @@ const rest = new REST({ version: '9' }).setToken(token);
     try {
         console.log('Started refreshing application (/) commands.');
 
-        // Register the commands globally
         await rest.put(
             Routes.applicationCommands(clientId),
             { body: commands },
