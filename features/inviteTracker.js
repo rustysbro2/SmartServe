@@ -23,12 +23,47 @@ db.query(`
 module.exports = {
     name: 'inviteTracker',
     async execute(client) {
-module.exports = {
-    name: 'inviteTracker',
-    async execute(client) {
-        // ... rest of the code ...
+        client.guilds.cache.forEach(guild => {
+            fetchInvites(guild);
+        });
+        
+        client.on('guildCreate', guild => {
+            fetchInvites(guild);
+        });
+        
+        client.on('guildMemberAdd', async member => {
+            const cachedInvites = invites[member.guild.id];
+            const newInvites = await member.guild.invites.fetch();
+
+            newInvites.forEach(invite => {
+                if (cachedInvites.get(invite.code).uses < invite.uses) {
+                    const channelId = inviteChannels[member.guild.id];
+                    const channel = member.guild.channels.cache.get(channelId);
+                    const embed = new MessageEmbed()
+                        .setTitle("New Member Joined!")
+                        .setDescription(`${member.user.tag} joined using invite code ${invite.code} from ${invite.inviter.tag}. Code used ${invite.uses} times.`)
+                        .setColor("#32CD32");
+                    channel.send({ embeds: [embed] });
+                }
+            });
+
+            invites[member.guild.id] = newInvites;
+        });
+
+        client.on('inviteCreate', async invite => {
+            if (!invites[invite.guild.id]) {
+                await fetchInvites(invite.guild);
+            } else {
+                invites[invite.guild.id].set(invite.code, invite);
+            }
+        });
+        
+        client.on('inviteDelete', async invite => {
+            const cachedInvites = invites[invite.guild.id];
+            cachedInvites.delete(invite.code);
+        });
     },
     setInviteChannel(guildId, channelId) {
         inviteChannels[guildId] = channelId;
-    },
+    }
 };
