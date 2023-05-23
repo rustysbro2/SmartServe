@@ -37,7 +37,8 @@ class MusicPlayer {
         }
     }
 
-    async playSong(url) {
+async playSong(url) {
+    try {
         const info = await ytdl.getBasicInfo(url);
         const formats = info.formats.filter((format) => format.audioBitrate);
         const bestFormat = formats.sort((a, b) => b.audioBitrate - a.audioBitrate)[0];
@@ -56,7 +57,12 @@ class MusicPlayer {
                 }
             });
         });
+    } catch (err) {
+        console.error('Failed to play song:', err);
+        // You might want to retry the operation, handle the error in some other way, or ignore it.
     }
+}
+
 
     enqueue(url) {
         this.queue.push(url);
