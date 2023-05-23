@@ -11,7 +11,6 @@ const intents = new Intents([
     Intents.FLAGS.GUILD_MEMBERS,
 ]);
 
-
 const client = new Client({ shards: "auto", intents });
 
 // Create a new Collection for commands
@@ -27,6 +26,9 @@ for (const file of commandFiles) {
 client.once('ready', async () => {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
     client.user.setActivity(`Watching ${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+
+    // Start the invite tracker
+    inviteTracker.execute(client);
 
     // Start the command registration process after bot is ready
     const slashCommands = require('./slashCommands.js');
