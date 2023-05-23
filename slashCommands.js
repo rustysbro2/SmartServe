@@ -20,11 +20,12 @@ module.exports = async function(client) {
         try {
             console.log(`Started refreshing application (/) commands for guild ${guild.id}.`);
 
-            // Remove all slash commands in the guild
+            // Get existing slash commands in the guild
             const existingCommands = await rest.get(
                 Routes.applicationGuildCommands(clientId, guild.id)
             );
 
+            // Remove old commands
             for (const command of existingCommands) {
                 if (!commands.find(cmd => cmd.name === command.name)) {
                     await rest.delete(
@@ -33,11 +34,15 @@ module.exports = async function(client) {
                 }
             }
 
-            // Register the new slash commands
-            await rest.put(
-                Routes.applicationGuildCommands(clientId, guild.id),
-                { body: commands },
-            );
+            // Add new commands
+            for (const command of commands) {
+                if (!existingCommands.find(cmd => cmd.name === command.name)) {
+                    await rest.post(
+                        Routes.applicationGuildCommands(clientId, guild.id),
+                        { body: command },
+                    );
+                }
+            }
 
             console.log(`Successfully reloaded application (/) commands for guild ${guild.id}.`);
         } catch (error) {
