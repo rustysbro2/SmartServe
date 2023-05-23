@@ -51,14 +51,10 @@ module.exports = {
                                 .setTitle("New Member Joined!")
                                 .setDescription(`${member.user.tag} joined using invite code ${invite.code} from ${invite.inviter.tag}. Code used ${invite.uses} times.`)
                                 .setColor("#32CD32");
-                            channel.send({ embeds: [embed] });
+                            // Add error handling here
+                            channel.send({ embeds: [embed] }).catch(console.error);
                         }
                     });
-
-                    invites[member.guild.id] = newInvites;
-                }
-            });
-        });
 
 
         client.on('inviteCreate', async invite => {
