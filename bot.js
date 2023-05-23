@@ -1,7 +1,3 @@
-client.on('ready', () => {
-    console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-    client.user.setActivity(`${client.guilds.cache.size} servers | Shard: ${client.shard.ids}`, { type: 'WATCHING' });
-});
 // bot.js
 const { Client, Intents, Collection } = require('discord.js');
 const fs = require('fs');
