@@ -41,36 +41,30 @@ module.exports = {
         });
 
         
-        client.on('guildMemberAdd', async member => {
-            // Fetch the invite channel for this guild from the database
-            db.query(`
-                SELECT channelId
-                FROM inviteChannels
-                WHERE guildId = ?
-            `, [member.guild.id], async function (error, results) {
-                if (error) throw error;
-                if (results.length > 0) {
-                    const channelId = results[0].channelId;
-                    const channel = member.guild.channels.cache.get(channelId);
-                    if (!channel) return;
+        client.on('guildMemberUpdate', async (oldMember, newMember) => {
+            if (newMember.user.bot) {
+                // Fetch the invite channel for this guild from the database
+                db.query(`
+                    SELECT channelId
+                    FROM inviteChannels
+                    WHERE guildId = ?
+                `, [newMember.guild.id], async function (error, results) {  // Make this callback async
+                    if (error) throw error;
+                    if (results.length > 0) {
+                        const channelId = results[0].channelId;
+                        const channel = newMember.guild.channels.cache.get(channelId);
+                        if (!channel) return;
 
-                    const cachedInvites = invites[member.guild.id];
-                    const newInvites = await member.guild.invites.fetch();
-
-                    newInvites.forEach(invite => {
-                        if (cachedInvites.get(invite.code).uses < invite.uses) {
-                            const embed = new MessageEmbed()
-                                .setTitle("New Member Joined!")
-                                .setDescription(`${member.user.tag} joined using invite code ${invite.code} from ${invite.inviter.tag}. Code used ${invite.uses} times.`)
-                                .setColor("#32CD32");
-                            channel.send({ embeds: [embed] }).catch(console.error);
-                        }
-                    });
-
-                    invites[member.guild.id] = newInvites;
-                }
-            });
+                        const embed = new MessageEmbed()
+                            .setTitle("New Bot Joined!")
+                            .setDescription(`${newMember.user.tag} has joined the server.`)
+                            .setColor("#32CD32");
+                        channel.send({ embeds: [embed] });
+                    }
+                });
+            }
         });
+
 
         client.on('inviteCreate', async invite => {
             if (!invites[invite.guild.id]) {
