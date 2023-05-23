@@ -2,10 +2,8 @@
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
+const MusicPlayer = require('./features/musicPlayer.js');  // Importing MusicPlayer
 const fs = require('fs');
-
-// Importing MusicPlayer
-const MusicPlayer = require('./features/musicPlayer.js');
 
 // List intents that the bot needs access to
 const intents = new Intents([
@@ -20,8 +18,8 @@ const client = new Client({ shards: "auto", intents });
 // Create a new Collection for commands
 client.commands = new Collection();
 
-// Initialize the MusicPlayer
-client.musicPlayer = new MusicPlayer();
+// Create a new Collection for music players
+client.musicPlayers = new Collection();  // This will hold the music players for each guild
 
 // Dynamically retrieve commands
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
