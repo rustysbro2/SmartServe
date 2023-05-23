@@ -8,6 +8,17 @@ class MusicPlayer {
         this.queue = [];
         this.player = createAudioPlayer();
         this.connection = null;
+
+        // Adding error handling for the player
+        this.player.on('error', error => {
+            console.error(`Error in audio player: ${error.message}`);
+        });
+
+        // Monitoring the status of the AudioPlayer
+        this.player.on('stateChange', (oldState, newState) => {
+            console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`);
+        });
+
         this.player.on(AudioPlayerStatus.Idle, () => {
             if(this.queue.length > 0) {
                 this.play(this.queue.shift());
@@ -27,6 +38,12 @@ class MusicPlayer {
 
     async play(url) {
         const stream = ytdl(url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<25 });
+
+        // Adding error handling for the stream
+        stream.on('error', error => {
+            console.error(`Error in audio stream: ${error.message}`);
+        });
+
         const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
         this.player.play(resource);
     }
