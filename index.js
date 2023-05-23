@@ -1,6 +1,8 @@
 // index.js
 const { ShardingManager } = require('discord.js');
 const { token } = require('./config.js');
+require('./slashCommands.js');
+
 
 const manager = new ShardingManager('./bot.js', { token: token });
 
