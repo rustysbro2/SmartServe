@@ -4,6 +4,13 @@ const { Routes } = require('discord-api-types/v9');
 const { clientId, token } = require('./config.js');
 const fs = require('fs');
 
+function commandHasChanged(oldCommand, newCommand) {
+    return oldCommand.name !== newCommand.name ||
+        oldCommand.description !== newCommand.description ||
+        (oldCommand.options && newCommand.options && 
+        JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options));
+}
+
 module.exports = async function(client) {
     const commands = [];
     const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -25,11 +32,17 @@ module.exports = async function(client) {
                 Routes.applicationGuildCommands(clientId, guild.id)
             );
 
-            // Remove old commands
+            // Remove old commands and update changed commands
             for (const command of existingCommands) {
-                if (!commands.find(cmd => cmd.name === command.name)) {
+                const newCommand = commands.find(cmd => cmd.name === command.name);
+                if (!newCommand) {
                     await rest.delete(
                         Routes.applicationGuildCommand(clientId, guild.id, command.id)
+                    );
+                } else if (commandHasChanged(command, newCommand)) {
+                    await rest.patch(
+                        Routes.applicationGuildCommand(clientId, guild.id, command.id),
+                        { body: newCommand }
                     );
                 }
             }
