@@ -25,7 +25,7 @@ for (const file of commandFiles) {
 
 client.once('ready', async () => {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-    client.user.setActivity(`Watching ${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+    client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
 
     // Start the invite tracker
     inviteTracker.execute(client);
