@@ -26,9 +26,11 @@ module.exports = async function(client) {
             );
 
             for (const command of existingCommands) {
-                await rest.delete(
-                    Routes.applicationGuildCommand(clientId, guild.id, command.id)
-                );
+                if (!commands.find(cmd => cmd.name === command.name)) {
+                    await rest.delete(
+                        Routes.applicationGuildCommand(clientId, guild.id, command.id)
+                    );
+                }
             }
 
             // Register the new slash commands
