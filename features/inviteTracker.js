@@ -3,7 +3,6 @@ const db = require('../database.js');
 const { MessageEmbed } = require('discord.js');
 
 let invites = {};
-let inviteChannels = {};
 
 async function fetchInvites(guild) {
     const guildInvites = await guild.invites.fetch();
@@ -11,10 +10,9 @@ async function fetchInvites(guild) {
 }
 
 db.query(`
-    CREATE TABLE IF NOT EXISTS invites (
-        code VARCHAR(255) PRIMARY KEY,
-        inviter VARCHAR(255),
-        uses INT
+    CREATE TABLE IF NOT EXISTS inviteChannels (
+        guildId VARCHAR(255) PRIMARY KEY,
+        channelId VARCHAR(255)
     )
 `, function (error) {
     if (error) throw error;
@@ -32,22 +30,34 @@ module.exports = {
         });
         
         client.on('guildMemberAdd', async member => {
-            const cachedInvites = invites[member.guild.id];
-            const newInvites = await member.guild.invites.fetch();
-
-            newInvites.forEach(invite => {
-                if (cachedInvites.get(invite.code).uses < invite.uses) {
-                    const channelId = inviteChannels[member.guild.id];
+            // Fetch the invite channel for this guild from the database
+            db.query(`
+                SELECT channelId
+                FROM inviteChannels
+                WHERE guildId = ?
+            `, [member.guild.id], function (error, results) {
+                if (error) throw error;
+                if (results.length > 0) {
+                    const channelId = results[0].channelId;
                     const channel = member.guild.channels.cache.get(channelId);
-                    const embed = new MessageEmbed()
-                        .setTitle("New Member Joined!")
-                        .setDescription(`${member.user.tag} joined using invite code ${invite.code} from ${invite.inviter.tag}. Code used ${invite.uses} times.`)
-                        .setColor("#32CD32");
-                    channel.send({ embeds: [embed] });
+                    if (!channel) return;
+
+                    const cachedInvites = invites[member.guild.id];
+                    const newInvites = await member.guild.invites.fetch();
+
+                    newInvites.forEach(invite => {
+                        if (cachedInvites.get(invite.code).uses < invite.uses) {
+                            const embed = new MessageEmbed()
+                                .setTitle("New Member Joined!")
+                                .setDescription(`${member.user.tag} joined using invite code ${invite.code} from ${invite.inviter.tag}. Code used ${invite.uses} times.`)
+                                .setColor("#32CD32");
+                            channel.send({ embeds: [embed] });
+                        }
+                    });
+
+                    invites[member.guild.id] = newInvites;
                 }
             });
-
-            invites[member.guild.id] = newInvites;
         });
 
         client.on('inviteCreate', async invite => {
@@ -64,6 +74,13 @@ module.exports = {
         });
     },
     setInviteChannel(guildId, channelId) {
-        inviteChannels[guildId] = channelId;
+        db.query(`
+            INSERT INTO inviteChannels (guildId, channelId)
+            VALUES (?, ?)
+            ON DUPLICATE KEY UPDATE
+            channelId = VALUES(channelId)
+        `, [guildId, channelId], function (error) {
+            if (error) throw error;
+        });
     }
 };
