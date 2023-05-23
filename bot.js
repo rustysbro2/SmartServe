@@ -24,7 +24,9 @@ for (const file of commandFiles) {
 
 client.on('ready', () => {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+    client.user.setActivity(`Watching ${client.guilds.cache.size} servers | Shard: ${client.shard.ids}`, { type: 'WATCHING' });
 });
+
 
 client.on('interactionCreate', async interaction => {
     if (!interaction.isCommand()) return;
