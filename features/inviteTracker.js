@@ -24,36 +24,27 @@ module.exports = {
         client.guilds.cache.forEach(guild => {
             fetchInvites(guild);
         });
-        
+
         client.on('guildCreate', guild => {
             fetchInvites(guild);
-            // Send a message to the guild's default channel (usually the channel with the ID that matches the guild ID)
-            let defaultChannel = "";
-            guild.channels.cache.forEach((channel) => {
-                if(channel.type == "text" && defaultChannel == "") {
-                    if(channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
-                        defaultChannel = channel;
-                    }
-                }
-            })
-            //defaultChannel will be the channel object that it first finds the bot has permissions for
-            defaultChannel.send(`Hello, I'm your new bot!`).catch(console.error);
+            console.log(`Bot joined a new guild: ${guild.name}`);
         });
 
-        
         client.on('guildMemberUpdate', async (oldMember, newMember) => {
+            console.log(`Guild member updated: ${newMember.user.tag}`);
             if (newMember.user.bot) {
-                // Fetch the invite channel for this guild from the database
                 db.query(`
                     SELECT channelId
                     FROM inviteChannels
                     WHERE guildId = ?
-                `, [newMember.guild.id], async function (error, results) {  // Make this callback async
+                `, [newMember.guild.id], async function (error, results) {
                     if (error) throw error;
                     if (results.length > 0) {
                         const channelId = results[0].channelId;
                         const channel = newMember.guild.channels.cache.get(channelId);
                         if (!channel) return;
+
+                        console.log(`Bot joined: ${newMember.user.tag}. Sending message to channel: ${channel.name}`);
 
                         const embed = new MessageEmbed()
                             .setTitle("New Bot Joined!")
@@ -65,8 +56,8 @@ module.exports = {
             }
         });
 
-
         client.on('inviteCreate', async invite => {
+            console.log(`Invite created: ${invite.code}`);
             if (!invites[invite.guild.id]) {
                 await fetchInvites(invite.guild);
             } else {
@@ -75,11 +66,13 @@ module.exports = {
         });
         
         client.on('inviteDelete', async invite => {
+            console.log(`Invite deleted: ${invite.code}`);
             const cachedInvites = invites[invite.guild.id];
             cachedInvites.delete(invite.code);
         });
     },
     setInviteChannel(guildId, channelId) {
+        console.log(`Setting invite channel: ${channelId} for guild: ${guildId}`);
         db.query(`
             INSERT INTO inviteChannels (guildId, channelId)
             VALUES (?, ?)
