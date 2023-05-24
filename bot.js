@@ -50,33 +50,24 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-  // Ignore if this update does not involve the bot
-  if (oldState.member.id !== client.user.id && newState.member.id !== client.user.id) {
-    return;
-  }
+  const botId = client.user.id;
+  const guildId = oldState.guild.id;
+  const musicPlayer = client.musicPlayers.get(guildId);
+  
+  if (musicPlayer && musicPlayer.connection) {
+    // Check if the bot is the only member in the voice channel
+    const botAlone = newState.channelId && newState.channel.members.size === 1 && newState.channel.members.has(botId);
 
-  // Handle case where bot is disconnected from a voice channel
-  if (oldState.channelId && !newState.channelId) {
-    const musicPlayer = client.musicPlayers.get(oldState.guild.id);
-    if (musicPlayer && musicPlayer.connection) {
-      musicPlayer.connection.destroy();
-      client.musicPlayers.delete(oldState.guild.id);
-    }
-    return;
-  }
-
-  // Handle case where bot is the only member in a voice channel
-  if (newState.channelId && newState.channel.members.size === 1 && newState.member.id === client.user.id) {
-    console.log(`Bot is the only member in the voice channel: ${newState.channel.name}`);
-    console.log(`Channel Members: ${newState.channel.members.size}`);
-    const musicPlayer = client.musicPlayers.get(newState.guild.id);
-    if (musicPlayer && musicPlayer.connection) {
+    if (botAlone) {
+      console.log(`Bot is the only member in the voice channel: ${newState.channel.name}`);
+      console.log(`Channel Members: ${newState.channel.members.size}`);
       console.log("Destroying connection and leaving voice channel.");
       musicPlayer.connection.destroy();
-      client.musicPlayers.delete(newState.guild.id);
+      client.musicPlayers.delete(guildId);
     }
   }
 });
+
 
 
 
