@@ -1,21 +1,17 @@
-// musicPlayer.js
-const { joinVoiceChannel, createAudioPlayer, createAudioResource, entersState, VoiceConnectionStatus, AudioPlayerStatus } = require('@discordjs/voice');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 const { MessageEmbed } = require('discord.js');
 
 class MusicPlayer {
-    constructor(client, channelId) {
+    constructor(client, guildId) {
         this.client = client;
-        this.channelId = channelId;
+        this.guildId = guildId;
         this.queue = [];
         this.player = createAudioPlayer();
         this.connection = null;
         this.player.on('idle', () => {
             if(this.queue.length > 0) {
                 this.play(this.queue.shift());
-            } else if(this.connection) {
-                this.connection.destroy();
-                this.connection = null;
             }
         });
     }
@@ -24,16 +20,10 @@ class MusicPlayer {
         const channel = await this.client.channels.fetch(channelId);
         this.connection = joinVoiceChannel({
             channelId: channel.id,
-            guildId: channel.guild.id,
+            guildId: this.guildId,
             adapterCreator: channel.guild.voiceAdapterCreator,
         });
         this.connection.subscribe(this.player);
-        try {
-            await entersState(this.connection, VoiceConnectionStatus.Ready, 20e3);
-        } catch (error) {
-            this.connection.destroy();
-            throw error;
-        }
     }
 
     async play(url) {
@@ -44,6 +34,19 @@ class MusicPlayer {
 
     enqueue(url) {
         this.queue.push(url);
+    }
+
+    async leaveIfEmpty() {
+        if (!this.connection) return;
+
+        const voiceChannel = this.client.channels.cache.get(this.connection.joinConfig.channelId);
+        const channelMembers = voiceChannel.members;
+
+        // Leave the voice channel if the bot is the only member left.
+        if (channelMembers.size === 1) {
+            this.connection.destroy();
+            this.connection = null;
+        }
     }
 }
 
