@@ -99,6 +99,8 @@ class MusicPlayer {
       this.textChannel.send(message)
         .then(() => console.log('Now Playing message sent:', message))
         .catch(error => console.error('Error sending Now Playing message:', error));
+    } else {
+      console.log('No song is currently playing.');
     }
   }
 }
