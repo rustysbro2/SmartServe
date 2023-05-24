@@ -26,7 +26,7 @@ module.exports = {
       },
     ];
 
-    // Create the help embed
+    // Create the main help embed
     const helpEmbed = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Help')
@@ -56,7 +56,7 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new MessageActionRow().addComponents(selectMenu);
 
-    // Reply with the help embed and action row
+    // Reply with the main help embed and action row
     await interaction.reply({
       embeds: [helpEmbed],
       components: [actionRow],
@@ -84,9 +84,22 @@ module.exports = {
           categoryEmbed.addField(command.name, command.description);
         });
 
+        // Create an option to go back to the main menu
+        const backButton = new MessageSelectMenu()
+          .setCustomId('help_back')
+          .setPlaceholder('Go back to main menu')
+          .addOptions({
+            label: 'Main Menu',
+            value: 'main_menu',
+            description: 'Go back to the main menu',
+          });
+
+        // Create a new action row with the back button
+        const categoryActionRow = new MessageActionRow().addComponents(backButton);
+
         await collectedInteraction.update({
           embeds: [categoryEmbed],
-          components: [],
+          components: [categoryActionRow],
         });
       }
     });
