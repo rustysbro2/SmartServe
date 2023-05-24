@@ -81,7 +81,7 @@ class MusicPlayer {
       return;
     }
 
-    const url = this.queue.shift();
+    const url = this.queue[0];
     const stream = ytdl(url, { filter: 'audioonly' });
     const resource = createAudioResource(stream);
 
@@ -89,20 +89,16 @@ class MusicPlayer {
 
     // Wait for the player to transition to the "Playing" state
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-    // Send the "Now playing" message after the player transitions to the "Playing" state
-    this.sendNowPlaying();
   }
 
+  sendNowPlaying() {
+    const currentSong = this.queue[0];
+    const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
+    this.textChannel.send(message);
 
-sendNowPlaying() {
-  const currentSong = this.queue[0];
-  const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
-  this.textChannel.send(message);
-
-  // Remove the played song from the queue
-  this.queue.shift();
+    // Remove the played song from the queue
+    this.queue.shift();
+  }
 }
-
 
 module.exports = MusicPlayer;
