@@ -17,6 +17,7 @@ class MusicPlayer {
     this.queue = [];
     this.audioPlayer = createAudioPlayer();
     this.connection = null;
+    this.currentSong = null;  // New Line Added
 
     this.setupListeners();
   }
@@ -72,8 +73,10 @@ class MusicPlayer {
     }
 
     const wasEmpty = this.queue.length === 0;
-
     this.queue.push(url);
+
+    // This line is new
+    if (wasEmpty) this.currentSong = url;
 
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
@@ -91,17 +94,18 @@ class MusicPlayer {
       return;
     }
 
-    const url = this.queue.shift();
-    console.log('Processing queue. Now playing:', url);
+    // This is new - the current song will always be the one at the front of the queue
+    this.currentSong = this.queue.shift();
+    console.log('Processing queue. Now playing:', this.currentSong);
 
-    const stream = ytdl(url, { filter: 'audioonly' });
+    const stream = ytdl(this.currentSong, { filter: 'audioonly' });
     const resource = createAudioResource(stream);
 
     this.audioPlayer.play(resource);
 
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-    console.log('Now playing:', url);
+    console.log('Now playing:', this.currentSong);
 
     // Introduce a delay before sending the "Now playing" message
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -110,12 +114,11 @@ class MusicPlayer {
   }
 
   sendNowPlaying() {
-    const currentSong = this.queue[0];
-    if (currentSong) {
-      console.log('Sending Now Playing message:', currentSong);
-      const message = `Now playing: ${currentSong}`;
+    if (this.currentSong) {
+      console.log('Sending Now Playing message:', this.currentSong);
+      const message = `Now playing: ${this.currentSong}`;
       this.textChannel.send(message).then(() => {
-        console.log('Now Playing message sent:', currentSong);
+        console.log('Now Playing message sent:', this.currentSong);
       }).catch((error) => {
         console.error(`Failed to send Now Playing message: ${error.message}`);
       });
