@@ -22,7 +22,8 @@ class MusicPlayer {
     this.audioPlayer.on('stateChange', (oldState, newState) => {
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
         this.processQueue();
-      } else if (newState.status === AudioPlayerStatus.Playing) {
+      } else if (newState.status === AudioPlayerStatus.Playing && oldState.status !== AudioPlayerStatus.Playing) {
+        // Send the "Now playing" message as soon as the song starts playing
         this.sendNowPlaying();
       }
     });
