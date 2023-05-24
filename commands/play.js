@@ -25,14 +25,11 @@ module.exports = {
         if (!musicPlayer) {
             musicPlayer = new MusicPlayer(guildId, channel.id, interaction.channel);
             client.musicPlayers.set(guildId, musicPlayer);
-            await musicPlayer.joinChannel();
+            await musicPlayer.join(channel.id);
         }
 
-        try {
-            await musicPlayer.addSong(url);
-            await interaction.reply('Added to queue!');
-        } catch (error) {
-            await interaction.reply(`Error: ${error.message}`);
-        }
+        musicPlayer.enqueue(url);
+
+        await interaction.reply('Added to queue!');
     },
 };
