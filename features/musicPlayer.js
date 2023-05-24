@@ -37,6 +37,11 @@ class MusicPlayer {
         console.log('Channel ID:', this.channelId);
         console.log('Guild ID:', this.guildId);
         console.log('Text Channel:', this.textChannel.name);
+        console.log('Guild available:', this.textChannel.guild.available);
+        console.log('Guild channels:', this.textChannel.guild.channels.cache.size);
+        console.log('Voice channel:', this.textChannel.guild.channels.cache.get(this.channelId));
+
+
 
         this.connection = joinVoiceChannel({
             channelId: this.channelId,
