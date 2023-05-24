@@ -19,12 +19,9 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on('stateChange', (oldState, newState) => {
-      console.log('State change:', oldState.status, '->', newState.status);
+    this.audioPlayer.on('stateChange', async (oldState, newState) => {
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-        this.processQueue();
-      } else if (newState.status === AudioPlayerStatus.Playing) {
-        this.sendNowPlaying();
+        await this.processQueue();
       }
     });
 
@@ -89,18 +86,16 @@ class MusicPlayer {
     this.audioPlayer.play(resource);
 
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+    // Send the "Now Playing" message after the player transitions to the "Playing" state
+    this.sendNowPlaying();
   }
 
   sendNowPlaying() {
     const currentSong = this.queue[0];
-    console.log('Sending Now Playing message:', currentSong);
     if (currentSong) {
       const message = `Now playing: ${currentSong}`;
-      this.textChannel.send(message)
-        .then(() => console.log('Now Playing message sent:', message))
-        .catch(error => console.error('Error sending Now Playing message:', error));
-    } else {
-      console.log('No song is currently playing.');
+      this.textChannel.send(message);
     }
   }
 }
