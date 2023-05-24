@@ -32,18 +32,26 @@ module.exports = {
       .setTitle('Help')
       .setDescription('Please select a category:');
 
-    // Create an array of option objects for the select menu
-    const categoryOptions = commandCategories.map((category) => ({
-      label: category.name,
-      value: category.name,
-      description: `Commands: ${category.commands.map((command) => command.name).join(', ')}`,
-    }));
-
     // Create the select menu with category options
     const selectMenu = new MessageSelectMenu()
       .setCustomId('help_category')
-      .setPlaceholder('Select a category')
-      .addOptions(categoryOptions);
+      .setPlaceholder('Select a category');
+
+    // Add options to the select menu based on command categories
+    commandCategories.forEach((category) => {
+      const options = category.commands.map((command) => ({
+        label: command.name,
+        value: command.name,
+        description: command.description,
+      }));
+
+      selectMenu.addOptions({
+        label: category.name,
+        value: category.name,
+        description: `Commands: ${options.map((option) => option.label).join(', ')}`,
+        options: options,
+      });
+    });
 
     // Create the action row with the select menu
     const actionRow = new MessageActionRow().addComponents(selectMenu);
@@ -56,12 +64,6 @@ module.exports = {
     });
 
     collector.on('collect', async (collectedInteraction) => {
-      console.log('Collected interaction:', collectedInteraction.customId);
-      console.log('Collected interaction user:', collectedInteraction.user.id);
-      console.log('Interaction user:', interaction.user.id);
-      console.log('Collected interaction channel:', collectedInteraction.channel.id);
-      console.log('Interaction channel:', interaction.channel.id);
-
       if (collectedInteraction.customId === 'help_category' && collectedInteraction.user.id === interaction.user.id) {
         const selectedCategory = collectedInteraction.values[0];
         const categoryCommands = commandCategories.find((category) => category.name === selectedCategory);
@@ -80,13 +82,11 @@ module.exports = {
         const backButton = new MessageSelectMenu()
           .setCustomId('help_back')
           .setPlaceholder('Go back to main menu')
-          .addOptions([
-            {
-              label: 'Main Menu',
-              value: 'main_menu',
-              description: 'Go back to the main menu',
-            },
-          ]);
+          .addOptions({
+            label: 'Main Menu',
+            value: 'main_menu',
+            description: 'Go back to the main menu',
+          });
 
         // Create a new action row with the back button
         const categoryActionRow = new MessageActionRow().addComponents(backButton);
@@ -94,19 +94,20 @@ module.exports = {
         await collectedInteraction.update({
           embeds: [categoryEmbed],
           components: [categoryActionRow],
+        }).catch((error) => {
+          console.error('Error updating category commands:', error);
         });
       } else if (collectedInteraction.customId === 'help_back' && collectedInteraction.user.id === interaction.user.id) {
-        const mainMenuActionRow = new MessageActionRow().addComponents(selectMenu);
-        await collectedInteraction.update({
+        await interaction.update({
           embeds: [helpEmbed],
-          components: [mainMenuActionRow],
+          components: [actionRow],
+        }).catch((error) => {
+          console.error('Error updating main menu:', error);
         });
       }
     });
 
     collector.on('end', async (collected) => {
-      console.log('Collector ended. Collected size:', collected.size);
-
       if (collected.size === 0) {
         await interaction.editReply({
           content: 'Category selection expired.',
