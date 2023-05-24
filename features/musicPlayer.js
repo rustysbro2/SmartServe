@@ -64,8 +64,10 @@ class MusicPlayer {
       throw new Error('Invalid YouTube URL');
     }
 
+    const wasEmpty = this.queue.length === 0;
+
     this.queue.push(url);
-    if (this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    if (wasEmpty) {
       await this.processQueue();
     }
   }
@@ -89,9 +91,6 @@ class MusicPlayer {
 
     // Wait for the player to transition to the "Playing" state
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-    // Send the "Now playing" message
-    this.sendNowPlaying();
   }
 
   sendNowPlaying() {
