@@ -29,6 +29,8 @@ module.exports = {
         }
 
         await musicPlayer.addSong(url);
+        await musicPlayer.sendNowPlaying();
+
 
         // Notify the user
         await interaction.reply(`Added to queue!`);
