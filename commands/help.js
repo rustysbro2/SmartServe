@@ -15,7 +15,7 @@ module.exports = {
         name: 'Music',
         commands: [
           { name: 'play', description: 'Play a song.' },
-          { name: 'skip', description: 'Skip the current song.' },
+          { name: 'voteskip', description: 'Vote to skip the current song.' },
         ],
       },
       {
