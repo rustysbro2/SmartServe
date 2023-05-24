@@ -23,22 +23,20 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    console.log('Setting up audio player listeners.');
-    this.audioPlayer.on('stateChange', (oldState, newState) => {
-      console.log(`State change: ${oldState.status} -> ${newState.status}`);
-      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-        console.log('Audio player state changed to Idle. Processing queue.');
-        this.processQueue();
-      } else if (newState.status === AudioPlayerStatus.Playing && oldState.status !== AudioPlayerStatus.Playing) {
-        console.log('Audio player state changed to Playing. Sending Now Playing message...');
-        this.sendNowPlaying();
-      }
-    });
+      console.log('Setting up audio player listeners.');
+      this.audioPlayer.on('stateChange', (oldState, newState) => {
+          console.log(`State change: ${oldState.status} -> ${newState.status}`);
+          if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+              console.log('Audio player state changed to Idle. Processing queue.');
+              this.processQueue();
+          }
+      });
 
-    this.audioPlayer.on('error', (error) => {
-      console.error(`Error: ${error.message}`);
-    });
+      this.audioPlayer.on('error', (error) => {
+          console.error(`Error: ${error.message}`);
+      });
   }
+
 
   async joinChannel() {
     console.log('Joining voice channel...');
