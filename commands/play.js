@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { entersState } = require('@discordjs/voice');
+const { entersState, VoiceConnectionStatus } = require('@discordjs/voice');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus } = require('@discordjs/voice');
 
@@ -29,22 +29,23 @@ module.exports = {
       musicPlayer = new MusicPlayer(guildId, channelId, textChannel);
       client.musicPlayers.set(guildId, musicPlayer);
       await musicPlayer.joinChannel();
+
+      // Wait for the player to transition to the "Playing" state
+      await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+      // Send the "Now playing" message
+      musicPlayer.sendNowPlaying();
     }
 
     const wasEmpty = musicPlayer.queue.length === 0; // Check if the queue was empty before adding the song
     await musicPlayer.addSong(url);
 
-    if (wasEmpty) {
-      // If the queue was empty, wait for the player to transition to the "Playing" state
-      await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+    if (wasEmpty && musicPlayer.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+      // If the queue was empty and the player is not already playing, start playing the song
+      await musicPlayer.processQueue();
     }
 
     // Notify the user
     await interaction.reply(`Added to queue!`);
-
-    if (wasEmpty) {
-      // If the queue was empty, send the "Now playing" message
-      musicPlayer.sendNowPlaying();
-    }
   },
 };
