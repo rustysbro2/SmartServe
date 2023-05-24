@@ -7,7 +7,6 @@ const {
   VoiceConnectionStatus,
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
-const { entersState } = require('@discordjs/voice');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
