@@ -56,6 +56,12 @@ module.exports = {
     });
 
     collector.on('collect', async (collectedInteraction) => {
+      console.log('Collected interaction:', collectedInteraction.customId);
+      console.log('Collected interaction user:', collectedInteraction.user.id);
+      console.log('Interaction user:', interaction.user.id);
+      console.log('Collected interaction channel:', collectedInteraction.channel.id);
+      console.log('Interaction channel:', interaction.channel.id);
+
       if (collectedInteraction.customId === 'help_category' && collectedInteraction.user.id === interaction.user.id) {
         const selectedCategory = collectedInteraction.values[0];
         const categoryCommands = commandCategories.find((category) => category.name === selectedCategory);
@@ -90,14 +96,26 @@ module.exports = {
           components: [categoryActionRow],
         });
       } else if (collectedInteraction.customId === 'help_back' && collectedInteraction.user.id === interaction.user.id) {
+        const mainMenuActionRow = new MessageActionRow().addComponents(selectMenu);
         await collectedInteraction.update({
+          embeds: [helpEmbed],
+          components: [mainMenuActionRow],
+        });
+      }
+    });
+
+    collector.on('end', async (collected) => {
+      console.log('Collector ended. Collected size:', collected.size);
+
+      if (collected.size === 0) {
+        await interaction.editReply({
+          content: 'Category selection expired.',
           embeds: [helpEmbed],
           components: [actionRow],
         });
       }
     });
 
-    // Reply with the main help embed and action row
     await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
   },
 };
