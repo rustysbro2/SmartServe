@@ -18,7 +18,7 @@ module.exports = {
     const channelId = interaction.member.voice.channelId;
     const textChannel = interaction.channel;
 
-    // The member who sent the command must be in a voice channel:
+    // The member who sent the command must be in a voice channel
     if (!channelId) {
       return await interaction.reply('You must be in a voice channel to play music!');
     }
@@ -34,17 +34,15 @@ module.exports = {
     const wasEmpty = musicPlayer.queue.length === 0; // Check if the queue was empty before adding the song
     await musicPlayer.addSong(url);
 
-    if (wasEmpty) {
-      // If the queue was empty, wait for the player to transition to the "Playing" state
+    if (wasEmpty && musicPlayer.queue.length === 1) {
+      // If the queue was empty and the current song is the first one, wait for the player to transition to the "Playing" state
       await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+      // Send the "Now playing" message
+      musicPlayer.sendNowPlaying();
     }
 
     // Notify the user
-    await interaction.reply(`Added to queue!`);
-
-    if (wasEmpty) {
-      // If the queue was empty, send the "Now playing" message
-      musicPlayer.sendNowPlaying();
-    }
+    await interaction.reply('Added to queue!');
   },
 };
