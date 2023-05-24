@@ -79,17 +79,19 @@ class MusicPlayer {
       return;
     }
 
-    const url = this.queue[0];
+    const url = this.queue.shift();
     const stream = ytdl(url, { filter: 'audioonly' });
     const resource = createAudioResource(stream);
 
     this.audioPlayer.play(resource);
 
+    // Wait for the player to transition to the "Playing" state
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-    
-    // Send the "Now playing" message after the player transitions to the "Playing" state
+
+    // Send the "Now playing" message right before the song starts playing
     this.sendNowPlaying();
   }
+
 
   sendNowPlaying() {
     const currentSong = this.queue[0];
