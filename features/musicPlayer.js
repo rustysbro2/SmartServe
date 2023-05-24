@@ -87,8 +87,11 @@ class MusicPlayer {
 
 
   sendNowPlaying() {
-    this.textChannel.send(`Now playing: ${this.queue[0]}`);
+    const currentSong = this.queue[0];
+    const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
+    this.textChannel.send(message);
   }
+
 }
 
 module.exports = MusicPlayer;
