@@ -29,10 +29,20 @@ module.exports = {
       await musicPlayer.joinChannel();
     }
 
+    const wasEmpty = musicPlayer.queue.length === 0; // Check if the queue was empty before adding the song
     await musicPlayer.addSong(url);
-    musicPlayer.sendNowPlaying(); // Call sendNowPlaying without await
+
+    if (wasEmpty) {
+      // If the queue was empty, wait for the player to transition to the "Playing" state
+      await musicPlayer.audioPlayer.playing();
+    }
 
     // Notify the user
     await interaction.reply(`Added to queue!`);
+
+    if (wasEmpty) {
+      // If the queue was empty, send the "Now playing" message
+      musicPlayer.sendNowPlaying();
+    }
   },
 };
