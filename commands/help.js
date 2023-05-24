@@ -96,7 +96,7 @@ module.exports = {
           components: [categoryActionRow],
         });
       } else if (collectedInteraction.customId === 'help_back') {
-        await interaction.update({
+        await collectedInteraction.update({
           embeds: [helpEmbed],
           components: [actionRow],
         });
