@@ -95,11 +95,14 @@ class MusicPlayer {
   }
 
 
-  sendNowPlaying() {
-    const currentSong = this.queue[0];
-    const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
-    this.textChannel.send(message);
-  }
+sendNowPlaying() {
+  const currentSong = this.queue[0];
+  const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
+  this.textChannel.send(message);
+
+  // Remove the played song from the queue
+  this.queue.shift();
 }
+
 
 module.exports = MusicPlayer;
