@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { entersState } = require('@discordjs/voice');
 const MusicPlayer = require('../features/musicPlayer.js');
+const { AudioPlayerStatus } = require('@discordjs/voice');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -32,11 +34,15 @@ module.exports = {
     const wasEmpty = musicPlayer.queue.length === 0; // Check if the queue was empty before adding the song
     await musicPlayer.addSong(url);
 
+    console.log('Processing queue after adding song...');
+    console.log('Queue length:', musicPlayer.queue.length);
+
     if (wasEmpty && musicPlayer.queue.length === 1) {
       // If the queue was empty and the current song is the first one, wait for the player to transition to the "Playing" state
-      await musicPlayer.audioPlayer.state.waitForStatus(AudioPlayerStatus.Playing, 5e3);
+      console.log('Waiting for the player to transition to the "Playing" state...');
+      await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-      // Send the "Now playing" message
+      console.log('Now playing:', musicPlayer.queue[0]);
       musicPlayer.sendNowPlaying();
     }
 
