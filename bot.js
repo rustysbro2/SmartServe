@@ -40,6 +40,7 @@ client.on('interactionCreate', async interaction => {
     if (!command) return;
 
     try {
+        console.log(`Received command: ${command.data.name}`);
         await command.execute(interaction, client);
     } catch (error) {
         console.error(error);
@@ -55,6 +56,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     if (oldState.channelId !== newState.channelId) {
         const playCommand = client.commands.get('play');
         if (playCommand) {
+            console.log('Executing play command from voiceStateUpdate');
             await playCommand.execute(oldState, client);
         }
     }
