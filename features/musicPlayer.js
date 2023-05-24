@@ -15,38 +15,68 @@ class MusicPlayer {
         this.textChannel = textChannel;
         this.queue = [];
         this.audioPlayer = createAudioPlayer();
-        this.connection = null;
         this.setupListeners();
     }
 
     setupListeners() {
         this.audioPlayer.on('stateChange', (oldState, newState) => {
             if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-                if (this.queue.length > 0) {
-                    this.play(this.queue.shift());
-                }
+                this.processQueue();
+            } else if (newState.status === AudioPlayerStatus.Playing) {
+                this.sendNowPlaying();
             }
+        });
+
+        this.audioPlayer.on('error', (error) => {
+            this.textChannel.send(`Error: ${error.message}`);
         });
     }
 
     async join(channelId) {
-        const channel = await this.client.channels.fetch(channelId);
+        const guild = this.textChannel.guild;
+        const channel = guild.channels.cache.get(channelId);
+
+        if (!channel || channel.type !== 'GUILD_VOICE') {
+            throw new Error('Invalid voice channel');
+        }
+
         this.connection = joinVoiceChannel({
             channelId: channel.id,
-            guildId: this.guildId,
-            adapterCreator: channel.guild.voiceAdapterCreator,
+            guildId: guild.id,
+            adapterCreator: guild.voiceAdapterCreator,
         });
+
+        try {
+            await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
+        } catch (error) {
+            this.connection.destroy();
+            throw error;
+        }
+
         this.connection.subscribe(this.audioPlayer);
     }
 
-    async play(url) {
+    async addSong(url) {
+        this.queue.push(url);
+        if (this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+            await this.processQueue();
+        }
+    }
+
+    async processQueue() {
+        if (this.queue.length === 0) {
+            this.connection.destroy();
+            return;
+        }
+
+        const url = this.queue.shift();
         const stream = ytdl(url, { filter: 'audioonly' });
         const resource = createAudioResource(stream);
         this.audioPlayer.play(resource);
     }
 
-    enqueue(url) {
-        this.queue.push(url);
+    sendNowPlaying() {
+        this.textChannel.send(`Now playing: ${this.queue[0]}`);
     }
 }
 
