@@ -78,39 +78,43 @@ class MusicPlayer {
     }
   }
 
-  async processQueue() {
-    if (this.queue.length === 0) {
-      if (this.connection) {
-        this.connection.destroy();
-        this.connection = null;
-        console.log('Bot left the voice channel.');
-      }
-      console.log('Queue is empty. Stopping playback.');
-      return;
+async processQueue() {
+  if (this.queue.length === 0) {
+    if (this.connection) {
+      this.connection.destroy();
+      this.connection = null;
+      console.log('Bot left the voice channel.');
     }
-
-    if (!this.connection) {
-      await this.joinChannel();
-    }
-
-    while (this.queue.length > 0) {
-      this.currentSong = this.queue.shift();
-      console.log('Processing queue. Now playing:', this.currentSong);
-
-      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
-      const resource = createAudioResource(stream);
-
-      this.audioPlayer.play(resource);
-
-      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-      console.log('Now playing:', this.currentSong);
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      this.sendNowPlaying();
-    }
+    console.log('Queue is empty. Stopping playback.');
+    return;
   }
+
+  if (!this.connection) {
+    await this.joinChannel();
+  }
+
+  while (this.queue.length > 0) {
+    this.currentSong = this.queue.shift();
+    console.log('Processing queue. Now playing:', this.currentSong);
+
+    const stream = ytdl(this.currentSong, { filter: 'audioonly' });
+    const resource = createAudioResource(stream);
+
+    this.audioPlayer.play(resource);
+
+    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+    console.log('Now playing:', this.currentSong);
+
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    this.sendNowPlaying();
+
+    // Reset voteSkips set
+    this.voteSkips.clear();
+  }
+}
+
 
   sendNowPlaying() {
     if (this.currentSong) {
