@@ -94,8 +94,10 @@ class MusicPlayer {
   }
 
   sendNowPlaying() {
+    if (this.queue.length === 0) return; // Return if the queue is empty
+
     const currentSong = this.queue[0];
-    const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
+    const message = `Now playing: ${currentSong}`;
     this.textChannel.send(message);
   }
 }
