@@ -1,53 +1,57 @@
-const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
+const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 const { MessageEmbed } = require('discord.js');
 
 class MusicPlayer {
-    constructor(client, guildId) {
-        this.client = client;
+    constructor(guildId, channelId, textChannel) {
         this.guildId = guildId;
+        this.channelId = channelId;
+        this.textChannel = textChannel;
         this.queue = [];
-        this.player = createAudioPlayer();
-        this.connection = null;
-        this.player.on('idle', () => {
-            if(this.queue.length > 0) {
-                this.play(this.queue.shift());
+        this.audioPlayer = createAudioPlayer();
+        this.setupListeners();
+    }
+
+    setupListeners() {
+        this.audioPlayer.on('stateChange', (oldState, newState) => {
+            if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+                // If the Idle state is entered from a non-Idle state, it means that an audio resource has finished playing.
+                // The queue is then processed to start playing the next track, if one is available.
+                this.processQueue();
+            } else if (newState.status === AudioPlayerStatus.Playing) {
+                // If the Playing state has been entered, then a new track has started playback.
+                this.sendNowPlaying();
             }
         });
-    }
 
-    async join(channelId) {
-        const channel = await this.client.channels.fetch(channelId);
-        this.connection = joinVoiceChannel({
-            channelId: channel.id,
-            guildId: this.guildId,
-            adapterCreator: channel.guild.voiceAdapterCreator,
+        this.audioPlayer.on('error', (error) => {
+            this.textChannel.send(`Error: ${error.message}`);
         });
-        this.connection.subscribe(this.player);
     }
 
-    async play(url) {
-        const stream = ytdl(url, { filter: 'audioonly' });
-        const resource = createAudioResource(stream);
-        this.player.play(resource);
-    }
+    async joinChannel() {
+        this.connection = joinVoiceChannel({
+            channelId: this.channelId,
+            guildId: this.guildId,
+            adapterCreator: this.textChannel.guild.voiceAdapterCreator,
+        });
 
-    enqueue(url) {
-        this.queue.push(url);
-    }
-
-    async leaveIfEmpty() {
-        if (!this.connection) return;
-
-        const voiceChannel = this.client.channels.cache.get(this.connection.joinConfig.channelId);
-        const channelMembers = voiceChannel.members;
-
-        // Leave the voice channel if the bot is the only member left.
-        if (channelMembers.size === 1) {
+        try {
+            await Promise.race([entersState(this.connection, VoiceConnectionStatus.Ready, 30e3), entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3)]);
+        } catch (error) {
             this.connection.destroy();
-            this.connection = null;
+            throw error;
+        }
+
+        this.connection.subscribe(this.audioPlayer);
+    }
+
+    async addSong(url) {
+        this.queue.push(url);
+        if (this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+            await this.processQueue();
         }
     }
-}
 
-module.exports = MusicPlayer;
+    async processQueue() {
+        if (this.queue.length === 0
