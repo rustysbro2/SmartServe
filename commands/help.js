@@ -73,13 +73,10 @@ module.exports = {
     let currentMenu = 'main_menu';
 
     collector.on('collect', async (collectedInteraction) => {
-      console.log('Collected interaction:', collectedInteraction.customId);
-      console.log('Collected interaction user:', collectedInteraction.user.id);
-      console.log('Interaction user:', interaction.user.id);
-      console.log('Collected interaction channel:', collectedInteraction.channel.id);
-      console.log('Interaction channel:', interaction.channel.id);
-
-      if (collectedInteraction.customId === 'help_category' && collectedInteraction.channel === interaction.channel) {
+      if (
+        collectedInteraction.customId === 'help_category' &&
+        collectedInteraction.channel === interaction.channel
+      ) {
         const selectedCategory = collectedInteraction.values[0];
         const categoryCommands = commandCategories.find(
           (category) => category.name === selectedCategory
@@ -128,7 +125,10 @@ module.exports = {
 
         // Update the current menu selection
         currentMenu = selectedCategory;
-      } else if (collectedInteraction.customId === 'help_back' && collectedInteraction.channel === interaction.channel) {
+      } else if (
+        collectedInteraction.customId === 'help_back' &&
+        collectedInteraction.channel === interaction.channel
+      ) {
         if (currentMenu === 'main_menu') {
           // Update the message with the main menu again
           await collectedInteraction.update({
