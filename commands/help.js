@@ -110,15 +110,11 @@ module.exports = {
 
         currentMenu = selectedCategory;
       } else if (collectedInteraction.customId === 'help_back') {
-        let menuEmbed, menuActionRow, menuOptions;
+        let menuEmbed, menuOptions;
         if (currentMenu === 'main_menu') {
           menuEmbed = helpEmbed;
           menuOptions = prevMenuOptions;
-        } else if (currentMenu === 'Music') {
-          menuEmbed = helpEmbed;
-          menuOptions = prevMenuOptions;
-          currentMenu = 'main_menu';
-        } else if (currentMenu === 'Invite Tracker') {
+        } else if (currentMenu === 'Music' || currentMenu === 'Invite Tracker') {
           menuEmbed = helpEmbed;
           menuOptions = prevMenuOptions;
           currentMenu = 'main_menu';
