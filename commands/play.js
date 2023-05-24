@@ -7,11 +7,12 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('play')
     .setDescription('Play a song from YouTube')
-    .addStringOption(option =>
+    .addStringOption((option) =>
       option
         .setName('url')
         .setDescription('The YouTube URL of the song to play')
-        .setRequired(true)),
+        .setRequired(true)
+    ),
   async execute(interaction, client) {
     const url = interaction.options.getString('url');
     const guildId = interaction.guildId;
@@ -35,10 +36,12 @@ module.exports = {
     await musicPlayer.addSong(url);
 
     if (wasEmpty) {
-      // If the queue was empty and the current song is the first one, wait for the player to transition to the "Playing" state
+      // Wait for the player to transition to the "Playing" state
       await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+    }
 
-      // Send the "Now playing" message
+    // Send the "Now playing" message if there is a current song in the queue
+    if (musicPlayer.queue.length > 0) {
       musicPlayer.sendNowPlaying();
     }
 
