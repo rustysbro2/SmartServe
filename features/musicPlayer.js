@@ -134,7 +134,7 @@ class MusicPlayer {
       throw new Error('The bot is not in a voice channel.');
     }
 
-    const members = this.connection.joinConfig.guildId
+    const members = this.connection.joinConfig.guild.members;
       ? this.connection.joinConfig.guildId.members.cache
       : null;
 
