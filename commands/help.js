@@ -8,6 +8,8 @@ module.exports = {
 
   async execute(interaction) {
     const commands = interaction.client.commands;
+
+    // Define command categories and their respective commands
     const commandCategories = [
       {
         name: 'Music',
@@ -24,20 +26,18 @@ module.exports = {
       },
     ];
 
+    // Create the main help embed
     const helpEmbed = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Help')
       .setDescription('Please select a category:');
 
+    // Create the select menu with category options
     const selectMenu = new MessageSelectMenu()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    const actionRow = new MessageActionRow().addComponents(selectMenu);
-
-    let currentMenu = 'main_menu';
-    let prevMenuOptions = [];
-
+    // Add options to the select menu based on command categories
     commandCategories.forEach((category) => {
       const options = category.commands.map((command) => ({
         label: command.name,
@@ -51,24 +51,33 @@ module.exports = {
         description: `Commands: ${options.map((option) => option.label).join(', ')}`,
         options: options,
       });
-
-      if (category.name !== 'Main Menu') {
-        prevMenuOptions.push({
-          label: category.name,
-          value: category.name,
-        });
-      }
     });
 
+    // Create the action row with the select menu
+    const actionRow = new MessageActionRow().addComponents(selectMenu);
+
+    // Keep track of the current menu
+    let currentMenu = 'main_menu';
+
+    // Create an array to store previous menu options for navigation
+    const prevMenuOptions = [
+      { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+      { label: 'Music', value: 'Music', description: 'View Music commands' },
+      { label: 'Invite Tracker', value: 'Invite Tracker', description: 'View Invite Tracker commands' },
+    ];
+
+    // Reply with the main menu
     await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
 
+    // Create a filter to only collect interactions from the original user
     const filter = (collectedInteraction) =>
       collectedInteraction.user.id === interaction.user.id;
 
+    // Create a message component collector
     const collector = interaction.channel.createMessageComponentCollector({
       filter,
       componentType: 'SELECT_MENU',
-      time: 60000,
+      time: 60000, // 60 seconds
     });
 
     collector.on('collect', async (collectedInteraction) => {
@@ -101,15 +110,26 @@ module.exports = {
 
         currentMenu = selectedCategory;
       } else if (collectedInteraction.customId === 'help_back') {
-        let menuEmbed, menuActionRow;
+        let menuEmbed, menuActionRow, menuOptions;
         if (currentMenu === 'main_menu') {
           menuEmbed = helpEmbed;
-          menuActionRow = actionRow;
-        } else {
+          menuOptions = prevMenuOptions;
+        } else if (currentMenu === 'Music') {
           menuEmbed = helpEmbed;
-          menuActionRow = new MessageActionRow().addComponents(selectMenu);
+          menuOptions = prevMenuOptions;
+          currentMenu = 'main_menu';
+        } else if (currentMenu === 'Invite Tracker') {
+          menuEmbed = helpEmbed;
+          menuOptions = prevMenuOptions;
           currentMenu = 'main_menu';
         }
+
+        const backButton = new MessageSelectMenu()
+          .setCustomId('help_back')
+          .setPlaceholder('Go back to main menu')
+          .addOptions(menuOptions);
+
+        const menuActionRow = new MessageActionRow().addComponents(backButton);
 
         await collectedInteraction.update({
           embeds: [menuEmbed],
