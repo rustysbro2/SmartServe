@@ -64,7 +64,7 @@ module.exports = {
     });
 
     collector.on('collect', async (collectedInteraction) => {
-      if (collectedInteraction.customId === 'help_category') {
+      if (collectedInteraction.customId === 'help_category' && collectedInteraction.channel === interaction.channel) {
         const selectedCategory = collectedInteraction.values[0];
         const categoryCommands = commandCategories.find((category) => category.name === selectedCategory);
 
