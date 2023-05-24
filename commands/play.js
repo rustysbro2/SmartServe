@@ -1,49 +1,104 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const MusicPlayer = require('../features/musicPlayer.js');
-const { AudioPlayerStatus } = require('@discordjs/voice');
+const {
+  AudioPlayerStatus,
+  createAudioPlayer,
+  createAudioResource,
+  entersState,
+  joinVoiceChannel,
+  VoiceConnectionStatus,
+} = require('@discordjs/voice');
+const ytdl = require('ytdl-core');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('play')
-    .setDescription('Play a song from YouTube')
-    .addStringOption(option =>
-      option
-        .setName('url')
-        .setDescription('The YouTube URL of the song to play')
-        .setRequired(true)),
-  async execute(interaction, client) {
-    const url = interaction.options.getString('url');
-    const guildId = interaction.guildId;
-    const channelId = interaction.member.voice.channelId;
-    const textChannel = interaction.channel;
+class MusicPlayer {
+  constructor(guildId, channelId, textChannel) {
+    this.guildId = guildId;
+    this.channelId = channelId;
+    this.textChannel = textChannel;
+    this.queue = [];
+    this.audioPlayer = createAudioPlayer();
+    this.setupListeners();
+  }
 
-    // The member who sent the command must be in a voice channel
-    if (!channelId) {
-      return await interaction.reply('You must be in a voice channel to play music!');
-    }
-
-    // Create or retrieve the music player for this guild
-    let musicPlayer = client.musicPlayers.get(guildId);
-    if (!musicPlayer) {
-      musicPlayer = new MusicPlayer(guildId, channelId, textChannel);
-      client.musicPlayers.set(guildId, musicPlayer);
-      await musicPlayer.joinChannel();
-    }
-
-    const wasEmpty = musicPlayer.queue.length === 0; // Check if the queue was empty before adding the song
-    await musicPlayer.addSong(url);
-
-    if (wasEmpty && musicPlayer.queue.length === 1) {
-      // If the queue was empty and the current song is the first one, wait for stability
-      await new Promise(resolve => setTimeout(resolve, 500)); // Add a delay for stability
-
-      // Check the player status again
-      if (musicPlayer.audioPlayer.state.status === AudioPlayerStatus.Playing) {
-        musicPlayer.sendNowPlaying();
+  setupListeners() {
+    this.audioPlayer.on('stateChange', async (oldState, newState) => {
+      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+        await this.processQueue();
       }
+    });
+
+    this.audioPlayer.on('error', (error) => {
+      this.textChannel.send(`Error: ${error.message}`);
+    });
+  }
+
+  async joinChannel() {
+    this.connection = joinVoiceChannel({
+      channelId: this.channelId,
+      guildId: this.guildId,
+      adapterCreator: this.textChannel.guild.voiceAdapterCreator,
+    });
+
+    try {
+      await Promise.race([
+        entersState(this.connection, VoiceConnectionStatus.Ready, 30e3),
+        entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3),
+      ]);
+    } catch (error) {
+      this.connection.destroy();
+      throw error;
     }
 
-    // Notify the user
-    await interaction.reply('Added to queue!');
-  },
-};
+    this.connection.subscribe(this.audioPlayer);
+  }
+
+  isValidYoutubeUrl(url) {
+    const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+    return pattern.test(url);
+  }
+
+  async addSong(url) {
+    if (!this.isValidYoutubeUrl(url)) {
+      throw new Error('Invalid YouTube URL');
+    }
+
+    const wasEmpty = this.queue.length === 0;
+
+    this.queue.push(url);
+    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+      await this.processQueue();
+    }
+  }
+
+  async processQueue() {
+    if (this.queue.length === 0) {
+      if (this.connection) {
+        if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
+          this.connection.destroy();
+        }
+        this.connection = null;
+      }
+      return;
+    }
+
+    const url = this.queue.shift();
+    const stream = ytdl(url, { filter: 'audioonly' });
+    const resource = createAudioResource(stream);
+
+    this.audioPlayer.play(resource);
+
+    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+    // Send the "Now playing" message after the song starts playing
+    this.sendNowPlaying();
+
+    // Continue processing the queue
+    await this.processQueue();
+  }
+
+  sendNowPlaying() {
+    const currentSong = this.queue[0];
+    const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
+    this.textChannel.send(message);
+  }
+}
+
+module.exports = MusicPlayer;
