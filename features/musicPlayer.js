@@ -70,7 +70,12 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
-      this.connection.destroy();
+      if (this.connection) { // Check if connection exists
+        if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) { // Check connection status
+          this.connection.destroy();
+        }
+        this.connection = null; // Set connection to null
+      }
       return;
     }
 
@@ -79,6 +84,7 @@ class MusicPlayer {
     const resource = createAudioResource(stream);
     this.audioPlayer.play(resource);
   }
+
 
   sendNowPlaying() {
     this.textChannel.send(`Now playing: ${this.queue[0]}`);
