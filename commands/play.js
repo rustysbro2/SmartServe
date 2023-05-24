@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const MusicPlayer = require('../features/musicPlayer.js');
-const { AudioPlayerStatus } = require('@discordjs/voice');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -34,14 +33,15 @@ module.exports = {
     await musicPlayer.addSong(url);
 
     if (wasEmpty && musicPlayer.queue.length === 1) {
-      // If the queue was empty and the current song is the first one, wait for stability
+      // If the queue was empty and the current song is the first one, wait for the player to transition to the "Playing" state
       await new Promise(resolve => setTimeout(resolve, 500)); // Add a delay for stability
-
-      // Check the player status again
       if (musicPlayer.audioPlayer.state.status === AudioPlayerStatus.Playing) {
         musicPlayer.sendNowPlaying();
       }
     }
+
+    // Wait for a short delay before sending the response message
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     // Notify the user
     await interaction.reply('Added to queue!');
