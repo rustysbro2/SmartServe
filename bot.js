@@ -2,7 +2,6 @@
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
-const MusicPlayer = require('./features/musicPlayer.js');
 const fs = require('fs');
 
 const intents = new Intents([
@@ -15,7 +14,6 @@ const intents = new Intents([
 const client = new Client({ shards: "auto", intents });
 
 client.commands = new Collection();
-client.musicPlayers = new Collection();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
@@ -54,9 +52,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     if (!botInOldChannel) return;
 
     if (oldState.channelId !== newState.channelId) {
-        let musicPlayer = client.musicPlayers.get(oldState.guild.id);
-        if (musicPlayer) {
-            await musicPlayer.leaveIfEmpty();
+        const playCommand = client.commands.get('play');
+        if (playCommand) {
+            await playCommand.execute(oldState, client);
         }
     }
 });
