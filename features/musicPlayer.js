@@ -87,16 +87,26 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
-      // If the bot has left the voice channel, rejoin it
-      if (!this.connection) {
-        await this.joinChannel();
-        return;
+      // If the bot is already in the voice channel, leave it
+      if (this.connection) {
+        this.connection.destroy();
+        this.connection = null;
+        console.log('Bot left the voice channel.');
       }
-
-      // The queue is empty and the bot is already in the voice channel
       console.log('Queue is empty. Stopping playback.');
       return;
     }
+
+    // The queue is not empty
+    if (!this.connection) {
+      // Bot is not in the voice channel, so join it
+      await this.joinChannel();
+    }
+
+    // Rest of the code for processing the queue and playing songs
+    // ...
+  }
+
 
     // This is new - the current song will always be the one at the front of the queue
     this.currentSong = this.queue.shift();
