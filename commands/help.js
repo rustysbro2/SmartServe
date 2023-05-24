@@ -116,7 +116,7 @@ module.exports = {
         );
 
         // Update the message with the category commands and action row
-        await collectedInteraction.update({
+        await interaction.editReply({
           embeds: [categoryEmbed],
           components: [categoryActionRow],
         });
@@ -124,14 +124,62 @@ module.exports = {
         // Update the current menu selection
         currentMenu = selectedCategory;
       } else if (collectedInteraction.customId === 'help_back') {
-        // Update the message with the main menu again
-        await collectedInteraction.update({
-          embeds: [helpEmbed],
-          components: [actionRow],
-        });
+        if (currentMenu === 'main_menu') {
+          // Update the message with the main menu again
+          await interaction.editReply({
+            embeds: [helpEmbed],
+            components: [actionRow],
+          });
+        } else {
+          // Find the commands for the previous menu
+          const prevMenuCommands = commandCategories.find(
+            (category) => category.name === currentMenu
+          ).commands;
 
-        // Update the current menu selection
-        currentMenu = 'main_menu';
+          // Create a new embed for the previous menu commands
+          const prevMenuEmbed = new MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(`Category: ${currentMenu}`)
+            .setDescription('Here are the commands in this category:');
+
+          prevMenuCommands.forEach((command) => {
+            prevMenuEmbed.addField(command.name, command.description);
+          });
+
+          // Create an option to go back to the main menu
+          const backButton = new MessageSelectMenu()
+            .setCustomId('help_back')
+            .setPlaceholder('Go back to main menu')
+            .addOptions({
+              label: 'Main Menu',
+              value: 'main_menu',
+              description: 'Go back to the main menu',
+            });
+
+          // Create options to go back to the previous menu
+          const prevMenuOptions = commandCategories.map((category) => ({
+            label: `Back to ${category.name}`,
+            value: `back_to_${category.name}`,
+            description: `Go back to the ${category.name} menu`,
+          }));
+
+          // Create a new action row with the back button and previous menu options
+          const prevMenuActionRow = new MessageActionRow().addComponents(
+            backButton,
+            ...prevMenuOptions.map((option) =>
+              new MessageSelectMenu().setCustomId(option.value).setPlaceholder(option.label)
+            )
+          );
+
+          // Update the message with the previous menu commands and action row
+          await interaction.editReply({
+            embeds: [prevMenuEmbed],
+            components: [prevMenuActionRow],
+          });
+
+          // Update the current menu selection
+          currentMenu = 'main_menu';
+        }
       } else if (collectedInteraction.customId.startsWith('back_to_')) {
         // Determine the previous menu based on the customId
         const previousMenu = collectedInteraction.customId.replace('back_to_', '');
@@ -177,7 +225,7 @@ module.exports = {
         );
 
         // Update the message with the previous menu commands and action row
-        await collectedInteraction.update({
+        await interaction.editReply({
           embeds: [prevMenuEmbed],
           components: [prevMenuActionRow],
         });
