@@ -88,15 +88,6 @@ class MusicPlayer {
     this.sendNowPlaying(); // Send the "Now playing" message immediately after starting the song
   }
 
-
-    return new Promise((resolve) => {
-      this.audioPlayer.on('start', () => {
-        this.sendNowPlaying();
-        resolve();
-      });
-    });
-  }
-
   sendNowPlaying() {
     const currentSong = this.queue[0];
     if (currentSong) {
