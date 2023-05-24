@@ -59,11 +59,13 @@ class MusicPlayer {
   }
 
   isValidYoutubeUrl(url) {
+    console.log('Validating YouTube URL:', url);
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
     return pattern.test(url);
   }
 
   async addSong(url) {
+    console.log('Adding song to queue:', url);
     if (!this.isValidYoutubeUrl(url)) {
       throw new Error('Invalid YouTube URL');
     }
@@ -71,7 +73,7 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
 
     this.queue.push(url);
-    console.log('Song added to queue:', url);
+
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       await this.processQueue();
     }
@@ -88,6 +90,8 @@ class MusicPlayer {
     }
 
     const url = this.queue.shift();
+    console.log('Processing queue. Now playing:', url);
+
     const stream = ytdl(url, { filter: 'audioonly' });
     const resource = createAudioResource(stream);
 
