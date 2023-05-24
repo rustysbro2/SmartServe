@@ -89,16 +89,13 @@ class MusicPlayer {
 
     // Wait for the player to transition to the "Playing" state
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+  }
 
-    // Send the "Now playing" message
-    sendNowPlaying() {
-      const currentSong = this.queue[0];
-      const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
-      this.textChannel.send(message);
-    }
-
-
-
+  sendNowPlaying() {
+    const currentSong = this.queue[0];
+    const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
+    this.textChannel.send(message);
+  }
 }
 
 module.exports = MusicPlayer;
