@@ -1,17 +1,15 @@
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, entersState, VoiceConnectionStatus, AudioPlayerStatus } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 
 module.exports = {
-    data: {
-        name: 'play',
-        description: 'Play a song from YouTube',
-        options: [{
-            name: 'url',
-            type: 'STRING',
-            description: 'The YouTube URL of the song to play',
-            required: true,
-        }],
-    },
+    data: new SlashCommandBuilder()
+        .setName('play')
+        .setDescription('Play a song from YouTube')
+        .addStringOption(option => 
+            option.setName('url')
+                .setDescription('The YouTube URL of the song to play')
+                .setRequired(true)),
     async execute(interaction, client) {
         const url = interaction.options.getString('url');
         const guildId = interaction.guildId;
