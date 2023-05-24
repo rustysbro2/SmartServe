@@ -98,7 +98,9 @@ class MusicPlayer {
     if (currentSong) {
       console.log('Now playing:', currentSong);
       const message = `Now playing: ${currentSong}`;
-      this.textChannel.send(message);
+      this.textChannel.send(message)
+        .then(() => console.log('Now playing message sent successfully'))
+        .catch(error => console.error('Failed to send now playing message:', error));
     }
   }
 }
