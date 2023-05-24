@@ -38,52 +38,66 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     // Add options to the select menu based on command categories
-    commandCategories.forEach(category => {
+    commandCategories.forEach((category) => {
+      const options = category.commands.map((command) => ({
+        label: command.name,
+        value: command.name,
+        description: command.description,
+      }));
+
       selectMenu.addOptions({
         label: category.name,
         value: category.name,
+        description: `Commands: ${options.map((option) => option.label).join(', ')}`,
+        options: options,
       });
     });
 
     // Create the action row with the select menu
-    const actionRow = new MessageActionRow()
-      .addComponents(selectMenu);
+    const actionRow = new MessageActionRow().addComponents(selectMenu);
 
     // Reply with the help embed and action row
-    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
+    await interaction.reply({
+      embeds: [helpEmbed],
+      components: [actionRow],
+    });
 
     // Create a collector for the select menu interaction
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
-      time: 60000, // 1 minute
       max: 1,
+      time: 60000,
     });
 
     collector.on('collect', async (collectedInteraction) => {
       if (collectedInteraction.customId === 'help_category') {
         const selectedCategory = collectedInteraction.values[0];
+        const categoryCommands = commandCategories.find((category) => category.name === selectedCategory);
 
-        const selectedCommands = commandCategories.find(category => category.name === selectedCategory)?.commands;
+        // Create a new embed for the category commands
+        const categoryEmbed = new MessageEmbed()
+          .setColor('#0099ff')
+          .setTitle(`Category: ${selectedCategory}`)
+          .setDescription('Here are the commands in this category:');
 
-        if (selectedCommands) {
-          const categoryEmbed = new MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle(selectedCategory)
-            .setDescription('Here are the available commands:');
+        categoryCommands.commands.forEach((command) => {
+          categoryEmbed.addField(command.name, command.description);
+        });
 
-          selectedCommands.forEach(command => {
-            categoryEmbed.addField(command.name, command.description);
-          });
-
-          await collectedInteraction.update({ embeds: [categoryEmbed], components: [] });
-        } else {
-          await collectedInteraction.update({ content: 'Invalid category selected.', components: [] });
-        }
+        await collectedInteraction.update({
+          embeds: [categoryEmbed],
+          components: [],
+        });
       }
     });
 
     collector.on('end', async (collected) => {
-      await interaction.editReply({ content: 'Category selection expired.', components: [] });
+      if (collected.size === 0) {
+        await interaction.editReply({
+          content: 'Category selection expired.',
+          components: [],
+        });
+      }
     });
   },
 };
