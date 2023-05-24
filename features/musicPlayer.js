@@ -32,13 +32,18 @@ class MusicPlayer {
 
     async play(url) {
         console.log("Play method called", url); // Add this line
-        const stream = ytdl(url, { filter: 'audioonly' });
-        console.log("Stream created", stream); // Add this line
-        const resource = createAudioResource(stream);
-        console.log("Resource created", resource); // Add this line
-        this.player.play(resource);
-        console.log("Playback started"); // Add this line
+        try {
+            const stream = ytdl(url, { filter: 'audioonly' });
+            console.log("Stream created", stream); // Add this line
+            const resource = createAudioResource(stream);
+            console.log("Resource created", resource); // Add this line
+            this.player.play(resource);
+            console.log("Playback started"); // Add this line
+        } catch (error) {
+            console.error(`Error in play method: ${error}`);
+        }
     }
+
 
 
     enqueue(url) {
