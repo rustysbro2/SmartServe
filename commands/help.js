@@ -70,6 +70,9 @@ module.exports = {
       time: 60000, // 60 seconds
     });
 
+    // Store the current menu selection
+    let currentMenu = 'main_menu';
+
     collector.on('collect', async (collectedInteraction) => {
       if (collectedInteraction.customId === 'help_category') {
         const selectedCategory = collectedInteraction.values[0];
@@ -97,20 +100,90 @@ module.exports = {
             description: 'Go back to the main menu',
           });
 
-        // Create a new action row with the back button
-        const categoryActionRow = new MessageActionRow().addComponents(backButton);
+        // Create options to go back to the previous menu
+        const prevMenuOptions = commandCategories.map((category) => ({
+          label: `Back to ${category.name}`,
+          value: `back_to_${category.name}`,
+          description: `Go back to the ${category.name} menu`,
+        }));
 
-        // Update the message with the category commands and back button
+        // Create a new action row with the back button and previous menu options
+        const categoryActionRow = new MessageActionRow().addComponents(
+          backButton,
+          ...prevMenuOptions.map((option) =>
+            new MessageSelectMenu().setCustomId(option.value).setPlaceholder(option.label)
+          )
+        );
+
+        // Update the message with the category commands and action row
         await collectedInteraction.update({
           embeds: [categoryEmbed],
           components: [categoryActionRow],
         });
+
+        // Update the current menu selection
+        currentMenu = selectedCategory;
       } else if (collectedInteraction.customId === 'help_back') {
         // Update the message with the main menu again
         await collectedInteraction.update({
           embeds: [helpEmbed],
           components: [actionRow],
         });
+
+        // Update the current menu selection
+        currentMenu = 'main_menu';
+      } else if (collectedInteraction.customId.startsWith('back_to_')) {
+        // Determine the previous menu based on the customId
+        const previousMenu = collectedInteraction.customId.replace('back_to_', '');
+
+        // Find the commands for the previous menu
+        const prevMenuCommands = commandCategories.find(
+          (category) => category.name === previousMenu
+        ).commands;
+
+        // Create a new embed for the previous menu commands
+        const prevMenuEmbed = new MessageEmbed()
+          .setColor('#0099ff')
+          .setTitle(`Category: ${previousMenu}`)
+          .setDescription('Here are the commands in this category:');
+
+        prevMenuCommands.forEach((command) => {
+          prevMenuEmbed.addField(command.name, command.description);
+        });
+
+        // Create an option to go back to the main menu
+        const backButton = new MessageSelectMenu()
+          .setCustomId('help_back')
+          .setPlaceholder('Go back to main menu')
+          .addOptions({
+            label: 'Main Menu',
+            value: 'main_menu',
+            description: 'Go back to the main menu',
+          });
+
+        // Create options to go back to the previous menu
+        const prevMenuOptions = commandCategories.map((category) => ({
+          label: `Back to ${category.name}`,
+          value: `back_to_${category.name}`,
+          description: `Go back to the ${category.name} menu`,
+        }));
+
+        // Create a new action row with the back button and previous menu options
+        const prevMenuActionRow = new MessageActionRow().addComponents(
+          backButton,
+          ...prevMenuOptions.map((option) =>
+            new MessageSelectMenu().setCustomId(option.value).setPlaceholder(option.label)
+          )
+        );
+
+        // Update the message with the previous menu commands and action row
+        await collectedInteraction.update({
+          embeds: [prevMenuEmbed],
+          components: [prevMenuActionRow],
+        });
+
+        // Update the current menu selection
+        currentMenu = previousMenu;
       }
     });
 
