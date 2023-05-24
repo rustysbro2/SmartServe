@@ -1,5 +1,3 @@
-// MusicPlayer.js
-
 const {
   AudioPlayerStatus,
   createAudioPlayer,
@@ -12,6 +10,7 @@ const ytdl = require('ytdl-core');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
+    console.log('Creating new MusicPlayer instance.');
     this.guildId = guildId;
     this.channelId = channelId;
     this.textChannel = textChannel;
@@ -23,12 +22,14 @@ class MusicPlayer {
   }
 
   setupListeners() {
+    console.log('Setting up audio player listeners.');
     this.audioPlayer.on('stateChange', (oldState, newState) => {
       console.log(`State change: ${oldState.status} -> ${newState.status}`);
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+        console.log('Audio player state changed to Idle. Processing queue.');
         this.processQueue();
       } else if (newState.status === AudioPlayerStatus.Playing && oldState.status !== AudioPlayerStatus.Playing) {
-        console.log('Sending Now Playing message...');
+        console.log('Audio player state changed to Playing. Sending Now Playing message...');
         this.sendNowPlaying();
       }
     });
@@ -75,6 +76,7 @@ class MusicPlayer {
     this.queue.push(url);
 
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+      console.log('Queue was empty and audio player is not playing. Processing queue.');
       await this.processQueue();
     }
   }
@@ -106,8 +108,6 @@ class MusicPlayer {
 
     this.sendNowPlaying(); // Send the "Now playing" message after the delay
   }
-
-
 
   sendNowPlaying() {
     const currentSong = this.queue[0];
