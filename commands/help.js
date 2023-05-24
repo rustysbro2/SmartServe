@@ -58,31 +58,39 @@ module.exports = {
       .addComponents(selectMenu);
 
     // Reply with the help embed and action row
-    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
+    const reply = await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
 
-    const filter = (interaction) => interaction.isSelectMenu() && interaction.user.id === interaction.user.id;
-    const collector = interaction.channel.createMessageComponentCollector({ filter, time: 15000 });
+    // Store the message object from the reply
+    const message = reply instanceof Message ? reply : reply.message;
 
-    collector.on('collect', async (interaction) => {
-      const selectedCategory = interaction.values[0];
+    // Create a collector for the select menu interaction
+    const collector = message.createMessageComponentCollector({
+      componentType: 'SELECT_MENU',
+      time: 60000, // 1 minute
+      max: 1,
+    });
 
-      // Perform actions based on the selected category
-      switch (selectedCategory) {
-        case 'Music':
-          // Handle Music category commands
-          await interaction.editReply('Perform some action here based on the Music category.');
-          break;
-        case 'Invite Tracker':
-          // Handle Invite Tracker category commands
-          await interaction.editReply('Perform some action here based on the Invite Tracker category.');
-          break;
-        default:
-          await interaction.editReply('Invalid category selection.');
+    collector.on('collect', async (collectedInteraction) => {
+      if (collectedInteraction.customId === 'help_category') {
+        const selectedCategory = collectedInteraction.values[0];
+        
+        // Perform some action based on the selected category
+        switch (selectedCategory) {
+          case 'Music':
+            await collectedInteraction.editReply('Perform some action here based on the Music category.', { components: [] });
+            break;
+          case 'Invite Tracker':
+            await collectedInteraction.editReply('Perform some action here based on the Invite Tracker category.', { components: [] });
+            break;
+          default:
+            await collectedInteraction.editReply('Invalid category selected.', { components: [] });
+            break;
+        }
       }
     });
 
-    collector.on('end', async () => {
-      await interaction.editReply({ content: 'Category selection expired.', components: [] });
+    collector.on('end', async (collected) => {
+      await message.edit({ content: 'Category selection expired.', components: [] });
     });
   },
 };
