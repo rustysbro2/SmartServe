@@ -101,6 +101,11 @@ module.exports = {
           embeds: [categoryEmbed],
           components: [categoryActionRow],
         });
+      } else if (collectedInteraction.customId === 'help_back') {
+        await collectedInteraction.update({
+          embeds: [helpEmbed],
+          components: [actionRow],
+        });
       }
     });
 
