@@ -5,12 +5,11 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('play')
         .setDescription('Play a song from YouTube')
-        .addStringOption((option) =>
+        .addStringOption(option =>
             option
                 .setName('url')
                 .setDescription('The YouTube URL of the song to play')
-                .setRequired(true)
-        ),
+                .setRequired(true)),
     async execute(interaction, client) {
         const url = interaction.options.getString('url');
         const guildId = interaction.guildId;
@@ -32,10 +31,10 @@ module.exports = {
 
         try {
             await musicPlayer.addSong(url);
-            // Notify the user
-            await interaction.reply(`Added to queue!`);
+            await interaction.reply('Added to queue!');
         } catch (error) {
-            await interaction.reply(error.message);
+            console.error(error);
+            await interaction.reply('Error: Invalid YouTube URL');
         }
     },
 };
