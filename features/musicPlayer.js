@@ -127,46 +127,45 @@ class MusicPlayer {
     }
   }
 
-  async voteSkip(member) {
-    if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
-      throw new Error('There is no song currently playing.');
-    }
-
-    const voiceChannel = this.connection.joinConfig.channelId;
-    if (!voiceChannel) {
-      throw new Error('The bot is not in a voice channel.');
-    }
-
-    const guild = this.connection.joinConfig.guild;
-    if (!guild) {
-      throw new Error('Failed to retrieve the guild.');
-    }
-
-    const members = guild.members.cache;
-    const totalMembers = members.filter((m) => !m.user.bot).size;
-
-    if (totalMembers <= 1) {
-      throw new Error('There are no other members in the voice channel.');
-    }
-
-    if (this.voteSkips.has(member.id)) {
-      throw new Error('You have already voted to skip the current song.');
-    }
-
-    this.voteSkips.add(member.id);
-
-    const voteCount = this.voteSkips.size;
-    const votePercentage = voteCount / (totalMembers - 1); // Exclude the bot
-
-    if (votePercentage >= this.voteSkipThreshold) {
-      console.log('Vote skip threshold reached. Skipping the current song.');
-      this.audioPlayer.stop();
-      this.sendVoteSkipMessage();
-    } else {
-      console.log(`Received vote skip from ${member.user.tag}. Vote count: ${voteCount}/${totalMembers - 1}`);
-      this.sendVoteSkipMessage();
-    }
+async voteSkip(member) {
+  if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    throw new Error('There is no song currently playing.');
   }
+
+  const voiceChannel = this.connection.joinConfig.channelId;
+  if (!voiceChannel) {
+    throw new Error('The bot is not in a voice channel.');
+  }
+
+  const guild = this.textChannel.guild;
+  if (!guild) {
+    throw new Error('Failed to retrieve the guild.');
+  }
+
+  const members = guild.members.cache;
+  if (!members || members.size === 1) {
+    throw new Error('There are no other members in the voice channel.');
+  }
+
+  if (this.voteSkips.has(member.id)) {
+    throw new Error('You have already voted to skip the current song.');
+  }
+
+  this.voteSkips.add(member.id);
+
+  const voteCount = this.voteSkips.size;
+  const totalCount = members.size - 1; // Exclude the bot
+
+  const votePercentage = voteCount / totalCount;
+  if (votePercentage >= this.voteSkipThreshold) {
+    console.log('Vote skip threshold reached. Skipping the current song.');
+    this.audioPlayer.stop();
+    this.sendVoteSkipMessage();
+  } else {
+    console.log(`Received vote skip from ${member.user.tag}. Vote count: ${voteCount}/${totalCount}`);
+    this.sendVoteSkipMessage();
+  }
+}
 
 
 
