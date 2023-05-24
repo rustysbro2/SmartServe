@@ -82,10 +82,15 @@ class MusicPlayer {
     const resource = createAudioResource(stream);
 
     this.audioPlayer.play(resource);
-    this.sendNowPlaying();
 
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+    // Delay sending the "Now playing" message for 1 second
+    setTimeout(() => {
+      this.sendNowPlaying();
+    }, 1000);
   }
+
 
   sendNowPlaying() {
     const currentSong = this.queue[0];
