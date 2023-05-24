@@ -17,34 +17,20 @@ class MusicPlayer {
     }
 
     async join(channelId) {
-        console.log("Join method called"); // Add this line
         const channel = await this.client.channels.fetch(channelId);
-        console.log("Channel fetched", channel); // Add this line
         this.connection = joinVoiceChannel({
             channelId: channel.id,
             guildId: this.guildId,
             adapterCreator: channel.guild.voiceAdapterCreator,
         });
-        console.log("Join voice channel", this.connection); // Add this line
         this.connection.subscribe(this.player);
-        console.log("Subscribed player"); // Add this line
     }
 
     async play(url) {
-        console.log("Play method called", url); // Add this line
-        try {
-            const stream = ytdl(url, { filter: 'audioonly' });
-            console.log("Stream created", stream); // Add this line
-            const resource = createAudioResource(stream);
-            console.log("Resource created", resource); // Add this line
-            this.player.play(resource);
-            console.log("Playback started"); // Add this line
-        } catch (error) {
-            console.error(`Error in play method: ${error}`);
-        }
+        const stream = ytdl(url, { filter: 'audioonly' });
+        const resource = createAudioResource(stream);
+        this.player.play(resource);
     }
-
-
 
     enqueue(url) {
         this.queue.push(url);
