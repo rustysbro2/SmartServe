@@ -20,26 +20,19 @@ class MusicPlayer {
 
   setupListeners() {
     this.audioPlayer.on('stateChange', (oldState, newState) => {
-      console.log(`State change: ${oldState.status} -> ${newState.status}`);
-
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-        console.log('Processing queue...');
         this.processQueue();
-      } else if (newState.status === AudioPlayerStatus.Playing && oldState.status !== AudioPlayerStatus.Playing) {
-        console.log('Now playing...');
+      } else if (newState.status === AudioPlayerStatus.Playing) {
         this.sendNowPlaying();
       }
     });
 
     this.audioPlayer.on('error', (error) => {
-      console.error(`Audio player error: ${error.message}`);
       this.textChannel.send(`Error: ${error.message}`);
     });
   }
 
   async joinChannel() {
-    console.log('Joining voice channel...');
-
     this.connection = joinVoiceChannel({
       channelId: this.channelId,
       guildId: this.guildId,
@@ -51,9 +44,7 @@ class MusicPlayer {
         entersState(this.connection, VoiceConnectionStatus.Ready, 30e3),
         entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3),
       ]);
-      console.log('Voice connection established.');
     } catch (error) {
-      console.error(`Failed to establish voice connection: ${error.message}`);
       this.connection.destroy();
       throw error;
     }
@@ -75,14 +66,12 @@ class MusicPlayer {
 
     this.queue.push(url);
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
-      console.log('Processing queue after adding song...');
       await this.processQueue();
     }
   }
 
   async processQueue() {
     if (this.queue.length === 0) {
-      console.log('Queue is empty. Cleaning up connection...');
       if (this.connection) {
         if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
           this.connection.destroy();
@@ -105,8 +94,12 @@ class MusicPlayer {
     const currentSong = this.queue[0];
     if (currentSong) {
       const message = `Now playing: ${currentSong}`;
-      console.log(`Sending now playing message: ${message}`);
-      this.textChannel.send(message);
+      this.textChannel.send(message)
+        .catch(error => {
+          console.error('Error sending now playing message:', error);
+        });
+    } else {
+      console.log('No song is currently playing.');
     }
   }
 }
