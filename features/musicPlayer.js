@@ -101,7 +101,11 @@ class MusicPlayer {
     const currentSong = this.queue[0];
     if (currentSong) {
       const message = `Now playing: ${currentSong}`;
-      this.textChannel.send(message);
+      this.textChannel.send(message).then(() => {
+        console.log('Now Playing message sent:', currentSong);
+      }).catch((error) => {
+        console.error(`Failed to send Now Playing message: ${error.message}`);
+      });
     }
   }
 }
