@@ -19,14 +19,12 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
-      if (this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
+    this.audioPlayer.on('stateChange', (oldState, newState) => {
+      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
         this.processQueue();
+      } else if (newState.status === AudioPlayerStatus.Playing) {
+        this.sendNowPlaying();
       }
-    });
-
-    this.audioPlayer.on(AudioPlayerStatus.Playing, () => {
-      this.sendNowPlaying();
     });
 
     this.audioPlayer.on('error', (error) => {
