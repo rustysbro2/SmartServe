@@ -39,17 +39,9 @@ module.exports = {
 
     // Add options to the select menu based on command categories
     commandCategories.forEach(category => {
-      const options = category.commands.map(command => ({
-        label: command.name,
-        value: command.name,
-        description: command.description,
-      }));
-
       selectMenu.addOptions({
         label: category.name,
         value: category.name,
-        description: `Commands: ${options.map(option => option.label).join(', ')}`,
-        options: options,
       });
     });
 
@@ -58,13 +50,10 @@ module.exports = {
       .addComponents(selectMenu);
 
     // Reply with the help embed and action row
-    const reply = await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
-
-    // Store the message object from the reply
-    const message = reply instanceof Message ? reply : reply.message;
+    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
 
     // Create a collector for the select menu interaction
-    const collector = message.createMessageComponentCollector({
+    const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
       time: 60000, // 1 minute
       max: 1,
@@ -73,24 +62,28 @@ module.exports = {
     collector.on('collect', async (collectedInteraction) => {
       if (collectedInteraction.customId === 'help_category') {
         const selectedCategory = collectedInteraction.values[0];
-        
-        // Perform some action based on the selected category
-        switch (selectedCategory) {
-          case 'Music':
-            await collectedInteraction.editReply('Perform some action here based on the Music category.', { components: [] });
-            break;
-          case 'Invite Tracker':
-            await collectedInteraction.editReply('Perform some action here based on the Invite Tracker category.', { components: [] });
-            break;
-          default:
-            await collectedInteraction.editReply('Invalid category selected.', { components: [] });
-            break;
+
+        const selectedCommands = commandCategories.find(category => category.name === selectedCategory)?.commands;
+
+        if (selectedCommands) {
+          const categoryEmbed = new MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(selectedCategory)
+            .setDescription('Here are the available commands:');
+
+          selectedCommands.forEach(command => {
+            categoryEmbed.addField(command.name, command.description);
+          });
+
+          await collectedInteraction.update({ embeds: [categoryEmbed], components: [] });
+        } else {
+          await collectedInteraction.update({ content: 'Invalid category selected.', components: [] });
         }
       }
     });
 
     collector.on('end', async (collected) => {
-      await message.edit({ content: 'Category selection expired.', components: [] });
+      await interaction.editReply({ content: 'Category selection expired.', components: [] });
     });
   },
 };
