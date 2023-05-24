@@ -85,6 +85,9 @@ class MusicPlayer {
 
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
+    this.sendNowPlaying(); // Send the "Now playing" message immediately after starting the song
+  }
+
     return new Promise((resolve) => {
       this.audioPlayer.on('start', () => {
         this.sendNowPlaying();
