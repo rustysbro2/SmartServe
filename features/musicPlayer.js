@@ -88,18 +88,16 @@ class MusicPlayer {
     this.audioPlayer.play(resource);
 
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+    // Send the "Now playing" message after the player transitions to the "Playing" state
+    this.sendNowPlaying();
   }
 
   sendNowPlaying() {
     const currentSong = this.queue[0];
     if (currentSong) {
       const message = `Now playing: ${currentSong}`;
-      this.textChannel.send(message)
-        .catch(error => {
-          console.error('Error sending now playing message:', error);
-        });
-    } else {
-      console.log('No song is currently playing.');
+      this.textChannel.send(message);
     }
   }
 }
