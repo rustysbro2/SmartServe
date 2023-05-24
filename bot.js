@@ -55,24 +55,29 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     return;
   }
 
-  const guildId = newState.guild.id;
-  const musicPlayer = client.musicPlayers.get(guildId);
-
-  if (!musicPlayer) {
+  // Handle case where bot is disconnected from a voice channel
+  if (oldState.channelId && !newState.channelId) {
+    const musicPlayer = client.musicPlayers.get(oldState.guild.id);
+    if (musicPlayer && musicPlayer.connection) {
+      musicPlayer.connection.destroy();
+      client.musicPlayers.delete(oldState.guild.id);
+    }
     return;
   }
 
-  const voiceChannel = newState.channel;
-  const botIsAlone = voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(client.user.id);
-
-  if (botIsAlone) {
-    console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
-    console.log(`Channel Members: ${voiceChannel.members.size}`);
-    musicPlayer.connection.destroy();
-    client.musicPlayers.delete(guildId);
-    console.log("Destroying connection and leaving voice channel.");
+  // Handle case where bot is the only member in a voice channel
+  if (newState.channelId && newState.channel.members.size === 1 && newState.member.id === client.user.id) {
+    console.log(`Bot is the only member in the voice channel: ${newState.channel.name}`);
+    console.log(`Channel Members: ${newState.channel.members.size}`);
+    const musicPlayer = client.musicPlayers.get(newState.guild.id);
+    if (musicPlayer && musicPlayer.connection) {
+      console.log("Destroying connection and leaving voice channel.");
+      musicPlayer.connection.destroy();
+      client.musicPlayers.delete(newState.guild.id);
+    }
   }
 });
+
 
 
 
