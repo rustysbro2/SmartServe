@@ -1,4 +1,3 @@
-// commands/help.js
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageActionRow, MessageEmbed, MessageSelectMenu } = require('discord.js');
 
@@ -60,28 +59,5 @@ module.exports = {
 
     // Reply with the help embed and action row
     await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
-
-    // Listen for the 'SELECT_MENU' interaction type
-    const filter = i => i.isSelectMenu() && i.customId === 'help_category';
-    const collector = interaction.channel.createMessageComponentCollector({ filter, time: 15000 });
-
-    collector.on('collect', async i => {
-      const selectedCategory = i.values[0];
-
-      // Handle the selected category here
-      // You can send a new message, update the original message, or perform any other action based on the category selected
-
-      // Example: Sending a response based on the selected category
-      const responseEmbed = new MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle(`Selected Category: ${selectedCategory}`)
-        .setDescription('Perform some action here based on the category selected.');
-
-      await i.reply({ embeds: [responseEmbed], ephemeral: true });
-    });
-
-    collector.on('end', () => {
-      // Clean up or perform any necessary actions when the collector ends
-    });
   },
 };
