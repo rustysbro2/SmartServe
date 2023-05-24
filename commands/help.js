@@ -1,6 +1,6 @@
 // commands/help.js
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { MessageActionRow, MessageEmbed, MessageSelectMenu } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -9,20 +9,30 @@ module.exports = {
 
   async execute(interaction) {
     const commands = interaction.client.commands;
-    
+
     // Create the help embed
     const helpEmbed = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Help')
-      .setDescription('Here are the available commands:');
+      .setDescription('Please select a category:');
     
-    // Add a field for each command
-    commands.forEach((command) => {
-      const commandData = command.data.toJSON();
-      helpEmbed.addField(commandData.name, commandData.description);
-    });
+    // Get all unique categories from the commands
+    const categories = [...new Set(commands.map(command => command.category))];
     
-    // Reply with the help embed
-    await interaction.reply({ embeds: [helpEmbed] });
+    // Create the select menu with category options
+    const selectMenu = new MessageSelectMenu()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category')
+      .addOptions(categories.map(category => ({
+        label: category,
+        value: category,
+      })));
+
+    // Create the action row with the select menu
+    const actionRow = new MessageActionRow()
+      .addComponents(selectMenu);
+    
+    // Reply with the help embed and action row
+    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
   },
 };
