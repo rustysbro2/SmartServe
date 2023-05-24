@@ -24,6 +24,8 @@ class MusicPlayer {
     this.audioPlayer.on('stateChange', (oldState, newState) => {
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
         this.processQueue();
+      } else if (newState.status === AudioPlayerStatus.Playing) {
+        this.sendNowPlaying();
       }
     });
 
@@ -84,8 +86,6 @@ class MusicPlayer {
     this.audioPlayer.play(resource);
 
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-    this.sendNowPlaying(); // Send the "Now playing" message immediately after starting the song
   }
 
   sendNowPlaying() {
