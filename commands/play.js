@@ -54,7 +54,8 @@ module.exports = {
       await interaction.reply('Added to queue!');
     } catch (error) {
       console.error(`Error executing /play command: ${error.message}`);
-      await interaction.reply('There was an error while executing this command!');
+      // Reply with an error message, making it ephemeral so it doesn't affect the validity of the interaction
+      await interaction.reply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
     }
   },
 };
