@@ -65,8 +65,8 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     return;
   }
 
-  // Handle case where bot is the only member in a voice channel
-  if (newState.channelId && newState.channel.members.size === 1) {
+  // Handle case where bot is the only member in a voice channel or queue is empty
+  if ((newState.channelId && newState.channel.members.size === 1) || (newState.channelId && newState.channel.members.size === 0)) {
     console.log(`Bot is the only member in the voice channel: ${newState.channel.name}`);
     console.log(`Channel Members: ${newState.channel.members.size}`);
     const musicPlayer = client.musicPlayers.get(newState.guild.id);
@@ -77,5 +77,6 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     }
   }
 });
+
 
 client.login(token);
