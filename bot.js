@@ -58,7 +58,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   // Handle case where bot is disconnected from a voice channel
   if (oldState.channelId && !newState.channelId) {
     const musicPlayer = client.musicPlayers.get(oldState.guild.id);
-    if (musicPlayer) {
+    if (musicPlayer && musicPlayer.connection) {
       musicPlayer.connection.destroy();
       client.musicPlayers.delete(oldState.guild.id);
     }
@@ -68,12 +68,11 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
   // Handle case where bot is the only member in a voice channel
   if (newState.channelId && newState.channel.members.size === 1) {
     const musicPlayer = client.musicPlayers.get(newState.guild.id);
-    if (musicPlayer) {
+    if (musicPlayer && musicPlayer.connection) {
       musicPlayer.connection.destroy();
       client.musicPlayers.delete(newState.guild.id);
     }
   }
 });
-
 
 client.login(token);
