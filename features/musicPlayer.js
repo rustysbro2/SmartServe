@@ -1,4 +1,3 @@
-// MusicPlayer.js
 const {
     AudioPlayerStatus,
     createAudioPlayer,
@@ -53,7 +52,16 @@ class MusicPlayer {
         this.connection.subscribe(this.audioPlayer);
     }
 
+    isValidYoutubeUrl(url) {
+        const pattern = /^((http(s)?:\/\/)?((w){3}.)?youtube(.com)?|.*)((\?v=)|v\/|embed\/|watch\?|\&v=)?(\?v=)?([^#&?]*).*/;
+        return pattern.test(url);
+    }
+
     async addSong(url) {
+        if (!this.isValidYoutubeUrl(url)) {
+            throw new Error('Invalid YouTube URL');
+        }
+
         this.queue.push(url);
         if (this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
             await this.processQueue();
