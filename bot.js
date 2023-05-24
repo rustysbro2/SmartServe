@@ -48,6 +48,7 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
   }
 });
+
 client.on('voiceStateUpdate', async (oldState, newState) => {
   const botId = client.user.id;
   const guildId = oldState.guild.id;
@@ -60,10 +61,9 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     if (botInChannel && !botAlone) {
       console.log(`Other users joined the voice channel: ${newState.channel.name}`);
       console.log(`Channel Members: ${newState.channel.members.size}`);
-      return; // Skip further processing if other users joined
     }
 
-    if (botAlone) {
+    if (botInChannel && botAlone) {
       console.log(`Bot is the only member in the voice channel: ${newState.channel.name}`);
       console.log(`Channel Members: ${newState.channel.members.size}`);
       console.log("Destroying connection and leaving voice channel.");
@@ -72,6 +72,7 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
     }
   }
 });
+
 
 
 
