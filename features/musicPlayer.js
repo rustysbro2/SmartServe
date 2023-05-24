@@ -106,7 +106,7 @@ class MusicPlayer {
 
       console.log('Now playing:', this.currentSong);
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       this.sendNowPlaying();
     }
@@ -116,11 +116,14 @@ class MusicPlayer {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
       const message = `Now playing: ${this.currentSong}`;
-      this.textChannel.send(message).then(() => {
-        console.log('Now Playing message sent:', this.currentSong);
-      }).catch((error) => {
-        console.error(`Failed to send Now Playing message: ${error.message}`);
-      });
+      this.textChannel
+        .send(message)
+        .then(() => {
+          console.log('Now Playing message sent:', this.currentSong);
+        })
+        .catch((error) => {
+          console.error(`Failed to send Now Playing message: ${error.message}`);
+        });
     }
   }
 
@@ -134,14 +137,10 @@ class MusicPlayer {
       throw new Error('The bot is not in a voice channel.');
     }
 
-    const guild = this.textChannel.guild;
-    if (!guild) {
-      throw new Error('Failed to retrieve the guild.');
-    }
+    const members = this.textChannel.guild?.members.cache;
 
-    const members = guild.members.cache;
     if (!members || members.size === 1) {
-      console.log('Skipping the current song as there are no other members in the voice channel.');
+      console.log('Skipping the current song. No other members in the voice channel.');
       this.audioPlayer.stop();
       this.sendVoteSkipMessage();
       return;
@@ -167,20 +166,23 @@ class MusicPlayer {
     }
   }
 
-
-
-
-
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
-    const totalCount = this.connection.joinConfig.guild.members.cache.size - 1; // Exclude the bot
+    const totalCount = this.textChannel.guild?.members.cache.size - 1; // Exclude the bot
+
+    if (totalCount === undefined) {
+      throw new Error('Failed to retrieve the total count of members.');
+    }
 
     const message = `Vote skip: ${voteCount}/${totalCount}`;
-    this.textChannel.send(message).then(() => {
-      console.log('Vote skip message sent.');
-    }).catch((error) => {
-      console.error(`Failed to send vote skip message: ${error.message}`);
-    });
+    this.textChannel
+      .send(message)
+      .then(() => {
+        console.log('Vote skip message sent.');
+      })
+      .catch((error) => {
+        console.error(`Failed to send vote skip message: ${error.message}`);
+      });
   }
 }
 
