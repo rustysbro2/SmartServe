@@ -100,8 +100,13 @@ class MusicPlayer {
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
     console.log('Now playing:', url);
-    this.sendNowPlaying(); // Send the "Now playing" message immediately after starting the song
+
+    // Introduce a delay before sending the "Now playing" message
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    this.sendNowPlaying(); // Send the "Now playing" message after the delay
   }
+
 
 
   sendNowPlaying() {
