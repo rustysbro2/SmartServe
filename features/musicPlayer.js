@@ -21,9 +21,9 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on('stateChange', async (oldState, newState) => {
+    this.audioPlayer.on('stateChange', (oldState, newState) => {
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-        await this.processQueue();
+        this.processQueue();
       }
     });
 
@@ -63,7 +63,7 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
 
     this.queue.push(url);
-    if (wasEmpty && !this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       await this.processQueue();
     }
   }
@@ -82,8 +82,9 @@ class MusicPlayer {
     const resource = createAudioResource(stream);
 
     this.audioPlayer.play(resource);
-    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
     this.sendNowPlaying();
+
+    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
   }
 
   sendNowPlaying() {
