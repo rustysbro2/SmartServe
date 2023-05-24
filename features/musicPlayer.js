@@ -89,6 +89,9 @@ class MusicPlayer {
 
     // Wait for the player to transition to the "Playing" state
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+    // Send the "Now playing" message
+    this.sendNowPlaying();
   }
 
   sendNowPlaying() {
