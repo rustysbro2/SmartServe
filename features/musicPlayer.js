@@ -34,9 +34,10 @@ class MusicPlayer {
     }
 
     isValidYoutubeUrl(url) {
-        const pattern = /^((http(s)?:\/\/)?((w){3}.)?youtube(.com)?|.*)((\?v=)|v\/|embed\/|watch\?|\&v=)?(\?v=)?([^#&?]*).*/;
+        const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
         return pattern.test(url);
     }
+
 
     async joinChannel() {
         const channel = await this.textChannel.guild.channels.fetch(this.channelId);
