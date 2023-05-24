@@ -134,8 +134,8 @@ class MusicPlayer {
       throw new Error('The bot is not in a voice channel.');
     }
 
-    const members = this.connection.joinConfig.guild.members.cache
-      ? this.connection.joinConfig.guildId.members.cache
+    const members = this.connection.joinConfig.guild
+      ? this.connection.joinConfig.guild.members.cache
       : null;
 
     if (!members || members.size === 1) {
@@ -161,6 +161,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
