@@ -19,19 +19,16 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
-      this.processQueue();
-    });
-
-    this.audioPlayer.on(AudioPlayerStatus.Playing, () => {
-      this.sendNowPlaying();
+    this.audioPlayer.on('stateChange', (oldState, newState) => {
+      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+        this.processQueue();
+      }
     });
 
     this.audioPlayer.on('error', (error) => {
       this.textChannel.send(`Error: ${error.message}`);
     });
   }
-
 
   async joinChannel() {
     this.connection = joinVoiceChannel({
@@ -71,33 +68,32 @@ class MusicPlayer {
     }
   }
 
-
   async processQueue() {
     if (this.queue.length === 0) {
-      if (this.connection) { // Check if connection exists
-        if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) { // Check connection status
+      if (this.connection) {
+        if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
           this.connection.destroy();
         }
-        this.connection = null; // Set connection to null
+        this.connection = null;
       }
       return;
     }
 
-    const url = this.queue.shift();
+    const url = this.queue[0];
     const stream = ytdl(url, { filter: 'audioonly' });
     const resource = createAudioResource(stream);
 
     this.audioPlayer.play(resource);
 
-    // Wait for the player to transition to the "Playing" state
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+    
+    // Send the "Now playing" message after the player transitions to the "Playing" state
+    this.sendNowPlaying();
   }
 
   sendNowPlaying() {
-    if (this.queue.length === 0) return; // Return if the queue is empty
-
     const currentSong = this.queue[0];
-    const message = `Now playing: ${currentSong}`;
+    const message = currentSong ? `Now playing: ${currentSong}` : 'The queue is empty.';
     this.textChannel.send(message);
   }
 }
