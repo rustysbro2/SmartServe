@@ -15,6 +15,7 @@ class MusicPlayer {
         this.textChannel = textChannel;
         this.queue = [];
         this.audioPlayer = createAudioPlayer();
+        this.connection = null;
         this.setupListeners();
     }
 
@@ -32,18 +33,21 @@ class MusicPlayer {
         });
     }
 
+    isValidYoutubeUrl(url) {
+        const pattern = /^((http(s)?:\/\/)?((w){3}.)?youtube(.com)?|.*)((\?v=)|v\/|embed\/|watch\?|\&v=)?(\?v=)?([^#&?]*).*/;
+        return pattern.test(url);
+    }
+
     async joinChannel() {
+        const channel = await this.textChannel.guild.channels.fetch(this.channelId);
         this.connection = joinVoiceChannel({
-            channelId: this.channelId,
+            channelId: channel.id,
             guildId: this.guildId,
-            adapterCreator: this.textChannel.guild.voiceAdapterCreator,
+            adapterCreator: channel.guild.voiceAdapterCreator,
         });
 
         try {
-            await Promise.race([
-                entersState(this.connection, VoiceConnectionStatus.Ready, 30e3),
-                entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3),
-            ]);
+            await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
         } catch (error) {
             this.connection.destroy();
             throw error;
@@ -52,25 +56,29 @@ class MusicPlayer {
         this.connection.subscribe(this.audioPlayer);
     }
 
-    isValidYoutubeUrl(url) {
-        const pattern = /^((http(s)?:\/\/)?((w){3}.)?youtube(.com)?|.*)((\?v=)|v\/|embed\/|watch\?|\&v=)?(\?v=)?([^#&?]*).*/;
-        return pattern.test(url);
-    }
-
     async addSong(url) {
         if (!this.isValidYoutubeUrl(url)) {
             throw new Error('Invalid YouTube URL');
         }
 
-        this.queue.push(url);
+        const videoId = url.split('v=')[1];
+        const newUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        this.queue.push(newUrl);
+
         if (this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
             await this.processQueue();
         }
     }
 
     async processQueue() {
+        if (!this.connection) {
+            return;
+        }
+
         if (this.queue.length === 0) {
-            this.connection.destroy();
+            if (!this.connection.destroyed) {
+                this.connection.destroy();
+            }
             return;
         }
 
@@ -81,7 +89,9 @@ class MusicPlayer {
     }
 
     sendNowPlaying() {
-        this.textChannel.send(`Now playing: ${this.queue[0]}`);
+        if (this.queue.length > 0) {
+            this.textChannel.send(`Now playing: ${this.queue[0]}`);
+        }
     }
 }
 
