@@ -50,16 +50,30 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.on('voiceStateUpdate', async (oldState, newState) => {
-  if (!oldState.channelId) return;
-  const botInOldChannel = oldState.channel.members.has(client.user.id);
-  if (!botInOldChannel) return;
+  // Ignore if this update does not involve the bot
+  if (oldState.member.id !== client.user.id && newState.member.id !== client.user.id) {
+    return;
+  }
 
-  if (oldState.channelId !== newState.channelId) {
-    const playCommand = client.commands.get('play');
-    if (playCommand) {
-      await playCommand.execute(oldState, client);
+  // Handle case where bot is disconnected from a voice channel
+  if (oldState.channelId && !newState.channelId) {
+    const musicPlayer = client.musicPlayers.get(oldState.guild.id);
+    if (musicPlayer) {
+      musicPlayer.connection.destroy();
+      client.musicPlayers.delete(oldState.guild.id);
+    }
+    return;
+  }
+
+  // Handle case where bot is the only member in a voice channel
+  if (newState.channelId && newState.channel.members.size === 1) {
+    const musicPlayer = client.musicPlayers.get(newState.guild.id);
+    if (musicPlayer) {
+      musicPlayer.connection.destroy();
+      client.musicPlayers.delete(newState.guild.id);
     }
   }
 });
+
 
 client.login(token);
