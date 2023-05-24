@@ -134,7 +134,7 @@ class MusicPlayer {
       throw new Error('The bot is not in a voice channel.');
     }
 
-    const guild = this.connection.joinConfig.guild;
+    const guild = this.textChannel.guild;
     if (!guild) {
       throw new Error('Failed to retrieve the guild.');
     }
@@ -166,6 +166,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
