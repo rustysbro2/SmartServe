@@ -57,7 +57,6 @@ class MusicPlayer {
         return pattern.test(url);
     }
 
-
     async addSong(url) {
         if (!this.isValidYoutubeUrl(url)) {
             throw new Error('Invalid YouTube URL');
