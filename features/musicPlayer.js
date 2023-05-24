@@ -71,6 +71,7 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
 
     this.queue.push(url);
+    console.log('Song added to queue:', url);
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       await this.processQueue();
     }
@@ -82,6 +83,7 @@ class MusicPlayer {
         this.connection.destroy();
         this.connection = null;
       }
+      console.log('Queue is empty. Stopping playback.');
       return;
     }
 
@@ -100,6 +102,7 @@ class MusicPlayer {
   sendNowPlaying() {
     const currentSong = this.queue[0];
     if (currentSong) {
+      console.log('Sending Now Playing message:', currentSong);
       const message = `Now playing: ${currentSong}`;
       this.textChannel.send(message).then(() => {
         console.log('Now Playing message sent:', currentSong);
