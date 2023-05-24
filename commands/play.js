@@ -34,7 +34,7 @@ module.exports = {
     await musicPlayer.addSong(url);
 
     if (wasEmpty && musicPlayer.audioPlayer.state.status === AudioPlayerStatus.Playing) {
-      // If the queue was empty and the current song is playing, send the "Now playing" message
+      // Send the "Now playing" message if a song is already playing
       musicPlayer.sendNowPlaying();
     }
 
