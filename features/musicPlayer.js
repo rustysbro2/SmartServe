@@ -20,9 +20,11 @@ class MusicPlayer {
 
   setupListeners() {
     this.audioPlayer.on('stateChange', (oldState, newState) => {
+      console.log('State change:', oldState.status, '->', newState.status); // Debug statement
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
         this.processQueue();
       } else if (newState.status === AudioPlayerStatus.Playing) {
+        console.log('Now playing...'); // Debug statement
         this.sendNowPlaying();
       }
     });
@@ -33,6 +35,7 @@ class MusicPlayer {
   }
 
   async joinChannel() {
+    console.log('Joining voice channel...'); // Debug statement
     this.connection = joinVoiceChannel({
       channelId: this.channelId,
       guildId: this.guildId,
@@ -50,6 +53,7 @@ class MusicPlayer {
     }
 
     this.connection.subscribe(this.audioPlayer);
+    console.log('Voice connection established.'); // Debug statement
   }
 
   isValidYoutubeUrl(url) {
@@ -88,15 +92,13 @@ class MusicPlayer {
     this.audioPlayer.play(resource);
 
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-    // Send the "Now playing" message after the player transitions to the "Playing" state
-    this.sendNowPlaying();
   }
 
   sendNowPlaying() {
     const currentSong = this.queue[0];
     if (currentSong) {
       const message = `Now playing: ${currentSong}`;
+      console.log(message); // Debug statement
       this.textChannel.send(message);
     }
   }
