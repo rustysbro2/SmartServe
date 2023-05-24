@@ -13,6 +13,8 @@ const intents = new Intents([
 const client = new Client({ shards: "auto", intents });
 
 client.commands = new Collection();
+client.musicPlayers = new Map();
+
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
