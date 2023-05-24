@@ -65,10 +65,11 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
 
     this.queue.push(url);
-    if (wasEmpty) {
+    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       await this.processQueue();
     }
   }
+
 
   async processQueue() {
     if (this.queue.length === 0) {
