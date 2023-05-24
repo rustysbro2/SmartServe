@@ -139,6 +139,12 @@ class MusicPlayer {
       : null;
 
     if (!members || members.size === 1) {
+      if (members.size === 1 && members.first().id === member.id) {
+        console.log('Vote skip successful. Skipping the current song.');
+        this.audioPlayer.stop();
+        this.sendVoteSkipMessage();
+        return;
+      }
       throw new Error('There are no other members in the voice channel.');
     }
 
@@ -162,10 +168,9 @@ class MusicPlayer {
     }
   }
 
-
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
-    const totalCount = this.connection.joinConfig.guildId.members.cache.size - 1; // Exclude the bot
+    const totalCount = this.connection.joinConfig.guild.members.cache.size - 1; // Exclude the bot
 
     const message = `Vote skip: ${voteCount}/${totalCount}`;
     this.textChannel.send(message).then(() => {
