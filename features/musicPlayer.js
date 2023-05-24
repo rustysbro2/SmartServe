@@ -87,10 +87,13 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
-      if (this.connection) {
-        this.connection.destroy();
-        this.connection = null;
+      // If the bot has left the voice channel, rejoin it
+      if (!this.connection) {
+        await this.joinChannel();
+        return;
       }
+
+      // The queue is empty and the bot is already in the voice channel
       console.log('Queue is empty. Stopping playback.');
       return;
     }
