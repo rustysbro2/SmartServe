@@ -32,12 +32,12 @@ module.exports = {
       .setColor('#0099ff')
       .setTitle('Help')
       .setDescription('Please select a category:');
-    
+
     // Create the select menu with category options
     const selectMenu = new MessageSelectMenu()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
-    
+
     // Add options to the select menu based on command categories
     commandCategories.forEach(category => {
       const options = category.commands.map(command => ({
@@ -57,8 +57,31 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new MessageActionRow()
       .addComponents(selectMenu);
-    
+
     // Reply with the help embed and action row
     await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
+
+    // Listen for the 'SELECT_MENU' interaction type
+    const filter = i => i.isSelectMenu() && i.customId === 'help_category';
+    const collector = interaction.channel.createMessageComponentCollector({ filter, time: 15000 });
+
+    collector.on('collect', async i => {
+      const selectedCategory = i.values[0];
+
+      // Handle the selected category here
+      // You can send a new message, update the original message, or perform any other action based on the category selected
+
+      // Example: Sending a response based on the selected category
+      const responseEmbed = new MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle(`Selected Category: ${selectedCategory}`)
+        .setDescription('Perform some action here based on the category selected.');
+
+      await i.reply({ embeds: [responseEmbed], ephemeral: true });
+    });
+
+    collector.on('end', () => {
+      // Clean up or perform any necessary actions when the collector ends
+    });
   },
 };
