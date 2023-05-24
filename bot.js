@@ -1,65 +1,110 @@
-const { Client, Collection, Intents } = require('discord.js');
-const { token } = require('./config.js');
-const inviteTracker = require('./features/inviteTracker.js');
-const fs = require('fs');
+const {
+  AudioPlayerStatus,
+  createAudioPlayer,
+  createAudioResource,
+  entersState,
+  joinVoiceChannel,
+  VoiceConnectionStatus,
+} = require('@discordjs/voice');
+const ytdl = require('ytdl-core');
 
-const intents = new Intents([
-    Intents.FLAGS.GUILDS,
-    Intents.FLAGS.GUILD_MESSAGES,
-    Intents.FLAGS.GUILD_MEMBERS,
-    Intents.FLAGS.GUILD_VOICE_STATES,
-]);
+class MusicPlayer {
+  constructor(guildId, channelId, textChannel) {
+    this.guildId = guildId;
+    this.channelId = channelId;
+    this.textChannel = textChannel;
+    this.queue = [];
+    this.audioPlayer = createAudioPlayer();
+    this.setupListeners();
+  }
 
-const client = new Client({ shards: "auto", intents });
+  setupListeners() {
+    this.audioPlayer.on('stateChange', (oldState, newState) => {
+      console.log(`State change: ${oldState.status} -> ${newState.status}`);
+      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+        this.processQueue();
+      } else if (newState.status === AudioPlayerStatus.Playing) {
+        console.log('Now playing...');
+        this.sendNowPlaying();
+      }
+    });
 
-client.commands = new Collection();
-client.musicPlayers = new Map();
+    this.audioPlayer.on('error', (error) => {
+      console.error(`Audio player error: ${error.message}`);
+      this.textChannel.send(`Error: ${error.message}`);
+    });
+  }
 
-
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    client.commands.set(command.data.name, command);
-}
-
-client.once('ready', async () => {
-    console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-    client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
-
-    inviteTracker.execute(client);
-
-    const slashCommands = require('./slashCommands.js');
-    await slashCommands(client);
-});
-
-client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
-
-    const command = client.commands.get(interaction.commandName);
-
-    if (!command) return;
+  async joinChannel() {
+    console.log('Joining voice channel...');
+    this.connection = joinVoiceChannel({
+      channelId: this.channelId,
+      guildId: this.guildId,
+      adapterCreator: this.textChannel.guild.voiceAdapterCreator,
+    });
 
     try {
-        console.log(`Received command: ${command.data.name}`);
-        await command.execute(interaction, client);
+      await Promise.race([
+        entersState(this.connection, VoiceConnectionStatus.Ready, 30e3),
+        entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3),
+      ]);
     } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+      this.connection.destroy();
+      throw error;
     }
-});
 
-client.on('voiceStateUpdate', async (oldState, newState) => {
-    if (!oldState.channelId) return;
-    const botInOldChannel = oldState.channel.members.has(client.user.id);
-    if (!botInOldChannel) return;
+    this.connection.subscribe(this.audioPlayer);
+    console.log('Voice connection established.');
+  }
 
-    if (oldState.channelId !== newState.channelId) {
-        const playCommand = client.commands.get('play');
-        if (playCommand) {
-            console.log('Executing play command from voiceStateUpdate');
-            await playCommand.execute(oldState, client);
+  isValidYoutubeUrl(url) {
+    const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+    return pattern.test(url);
+  }
+
+  async addSong(url) {
+    if (!this.isValidYoutubeUrl(url)) {
+      throw new Error('Invalid YouTube URL');
+    }
+
+    const wasEmpty = this.queue.length === 0;
+
+    this.queue.push(url);
+    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+      console.log('Processing queue after adding song...');
+      await this.processQueue();
+    }
+  }
+
+  async processQueue() {
+    if (this.queue.length === 0) {
+      if (this.connection) {
+        if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
+          this.connection.destroy();
         }
+        this.connection = null;
+      }
+      return;
     }
-});
 
-client.login(token);
+    const url = this.queue.shift();
+    const stream = ytdl(url, { filter: 'audioonly' });
+    const resource = createAudioResource(stream);
+
+    this.audioPlayer.play(resource);
+
+    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+  }
+
+  sendNowPlaying() {
+    const currentSong = this.queue[0];
+    if (currentSong) {
+      const message = `Now playing: ${currentSong}`;
+      this.textChannel.send(message);
+    } else {
+      console.log('No song is currently playing.');
+    }
+  }
+}
+
+module.exports = MusicPlayer;
