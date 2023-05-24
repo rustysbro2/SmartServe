@@ -56,33 +56,67 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new MessageActionRow().addComponents(selectMenu);
 
-    // Create a state variable to track the current menu
-    let currentState = 'main_menu';
+    // Reply with the main menu
+    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
 
-    // Handle the interaction based on the current state
-    if (currentState === 'main_menu') {
-      await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
-    } else if (currentState === 'category_menu') {
-      // Create a new embed for the category commands
-      const categoryEmbed = new MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle(`Category: ${selectedCategory}`)
-        .setDescription('Here are the commands in this category:');
+    // Create a filter to only collect interactions from the original user
+    const filter = (interaction) => interaction.user.id === interaction.user.id;
 
-      // Create an option to go back to the main menu
-      const backButton = new MessageSelectMenu()
-        .setCustomId('help_back')
-        .setPlaceholder('Go back to main menu')
-        .addOptions({
-          label: 'Main Menu',
-          value: 'main_menu',
-          description: 'Go back to the main menu',
+    // Create a message component collector
+    const collector = interaction.channel.createMessageComponentCollector({
+      filter,
+      componentType: 'SELECT_MENU',
+      time: 60000, // 60 seconds
+    });
+
+    collector.on('collect', async (collectedInteraction) => {
+      if (collectedInteraction.customId === 'help_category') {
+        const selectedCategory = collectedInteraction.values[0];
+        const categoryCommands = commandCategories.find((category) => category.name === selectedCategory);
+
+        // Create a new embed for the category commands
+        const categoryEmbed = new MessageEmbed()
+          .setColor('#0099ff')
+          .setTitle(`Category: ${selectedCategory}`)
+          .setDescription('Here are the commands in this category:');
+
+        categoryCommands.commands.forEach((command) => {
+          categoryEmbed.addField(command.name, command.description);
         });
 
-      // Create a new action row with the back button
-      const categoryActionRow = new MessageActionRow().addComponents(backButton);
+        // Create an option to go back to the main menu
+        const backButton = new MessageSelectMenu()
+          .setCustomId('help_back')
+          .setPlaceholder('Go back to main menu')
+          .addOptions({
+            label: 'Main Menu',
+            value: 'main_menu',
+            description: 'Go back to the main menu',
+          });
 
-      await interaction.editReply({ embeds: [categoryEmbed], components: [categoryActionRow] });
-    }
+        // Create a new action row with the back button
+        const categoryActionRow = new MessageActionRow().addComponents(backButton);
+
+        await collectedInteraction.update({
+          embeds: [categoryEmbed],
+          components: [categoryActionRow],
+        });
+      } else if (collectedInteraction.customId === 'help_back') {
+        await interaction.update({
+          embeds: [helpEmbed],
+          components: [actionRow],
+        });
+      }
+    });
+
+    collector.on('end', async (collected) => {
+      if (collected.size === 0) {
+        await interaction.editReply({
+          content: 'Category selection expired.',
+          embeds: [helpEmbed],
+          components: [actionRow],
+        });
+      }
+    });
   },
 };
