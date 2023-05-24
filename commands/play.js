@@ -40,10 +40,8 @@ module.exports = {
       await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
     }
 
-    // Send the "Now playing" message if there is a current song in the queue
-    if (musicPlayer.queue.length > 0) {
-      musicPlayer.sendNowPlaying();
-    }
+    // Send the "Now playing" message
+    musicPlayer.sendNowPlaying();
 
     // Notify the user
     await interaction.reply('Added to queue!');
