@@ -15,6 +15,8 @@ class MusicPlayer {
     this.textChannel = textChannel;
     this.queue = [];
     this.audioPlayer = createAudioPlayer();
+    this.connection = null;
+
     this.setupListeners();
   }
 
@@ -26,7 +28,7 @@ class MusicPlayer {
     });
 
     this.audioPlayer.on('error', (error) => {
-      this.textChannel.send(`Error: ${error.message}`);
+      console.error(`Error: ${error.message}`);
     });
   }
 
@@ -38,11 +40,9 @@ class MusicPlayer {
     });
 
     try {
-      await Promise.race([
-        entersState(this.connection, VoiceConnectionStatus.Ready, 30e3),
-        entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3),
-      ]);
+      await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
     } catch (error) {
+      console.error(`Failed to join voice channel: ${error.message}`);
       this.connection.destroy();
       throw error;
     }
@@ -63,7 +63,7 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
 
     this.queue.push(url);
-    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    if (wasEmpty && !this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       await this.processQueue();
     }
   }
@@ -71,9 +71,7 @@ class MusicPlayer {
   async processQueue() {
     if (this.queue.length === 0) {
       if (this.connection) {
-        if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
-          this.connection.destroy();
-        }
+        this.connection.destroy();
         this.connection = null;
       }
       return;
@@ -84,10 +82,7 @@ class MusicPlayer {
     const resource = createAudioResource(stream);
 
     this.audioPlayer.play(resource);
-
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-    // Send the "Now Playing" message after the player transitions to the "Playing" state
     this.sendNowPlaying();
   }
 
