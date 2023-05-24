@@ -18,8 +18,8 @@ const client = new Client({ shards: "auto", intents });
 // Create a new Collection for commands
 client.commands = new Collection();
 
-// Create a new Collection for music players, storing them by voice channel ID
-client.musicPlayers = new Collection();  
+// Create a new Collection for music players
+client.musicPlayers = new Collection();  // This will hold the music players for each guild
 
 // Dynamically retrieve commands
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
@@ -54,5 +54,6 @@ client.on('interactionCreate', async interaction => {
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
     }
 });
+
 
 client.login(token);
