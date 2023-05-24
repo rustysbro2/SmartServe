@@ -33,24 +33,34 @@ class MusicPlayer {
     }
 
     async joinChannel() {
+        console.log('Joining channel...');
+        console.log('Channel ID:', this.channelId);
+        console.log('Guild ID:', this.guildId);
+        console.log('Text Channel:', this.textChannel.name);
+
         this.connection = joinVoiceChannel({
             channelId: this.channelId,
             guildId: this.guildId,
             adapterCreator: this.textChannel.guild.voiceAdapterCreator,
         });
 
+        console.log('Connection:', this.connection);
+
         try {
             await Promise.race([
                 entersState(this.connection, VoiceConnectionStatus.Ready, 30e3),
                 entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3),
             ]);
+            console.log('Connection state:', this.connection.state.status);
         } catch (error) {
             this.connection.destroy();
             throw error;
         }
 
         this.connection.subscribe(this.audioPlayer);
+        console.log('Joined voice channel successfully.');
     }
+
 
     async addSong(url) {
         this.queue.push(url);
