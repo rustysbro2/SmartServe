@@ -91,18 +91,14 @@ module.exports = {
         // Create a new action row with the back button
         const categoryActionRow = new MessageActionRow().addComponents(backButton);
 
-        await collectedInteraction.update({
+        await collectedInteraction.reply({
           embeds: [categoryEmbed],
           components: [categoryActionRow],
-        }).catch((error) => {
-          console.error('Error updating category commands:', error);
         });
       } else if (collectedInteraction.customId === 'help_back' && collectedInteraction.user.id === interaction.user.id) {
-        await interaction.update({
+        await interaction.reply({
           embeds: [helpEmbed],
           components: [actionRow],
-        }).catch((error) => {
-          console.error('Error updating main menu:', error);
         });
       }
     });
