@@ -12,24 +12,22 @@ module.exports = {
     async execute(interaction, client) {
         const url = interaction.options.getString('url');
         const guildId = interaction.guildId;
-        const userId = interaction.member.user.id;
-
-        // The member who sent the command must be in a voice channel:
-        const channel = interaction.member.voice.channel;
-        if (!channel) {
-            return await interaction.reply('You must be in a voice channel to play music!');
-        }
+        const channelId = interaction.member.voice.channelId;
+        const textChannel = interaction.channel;
 
         // Create or retrieve the music player for this guild
         let musicPlayer = client.musicPlayers.get(guildId);
         if (!musicPlayer) {
-            musicPlayer = new MusicPlayer(guildId, channel.id, interaction.channel);
+            musicPlayer = new MusicPlayer(guildId, channelId, textChannel);
             client.musicPlayers.set(guildId, musicPlayer);
-            await musicPlayer.join(channel.id);
+            await musicPlayer.join(channelId);
         }
 
-        musicPlayer.enqueue(url);
-
-        await interaction.reply('Added to queue!');
+        try {
+            await musicPlayer.addSong(url);
+            await interaction.reply('Added to queue!');
+        } catch (error) {
+            await interaction.reply(`Error: ${error.message}`);
+        }
     },
 };
