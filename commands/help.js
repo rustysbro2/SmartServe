@@ -56,12 +56,6 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new MessageActionRow().addComponents(selectMenu);
 
-    // Reply with the main help embed and action row
-    await interaction.reply({
-      embeds: [helpEmbed],
-      components: [actionRow],
-    });
-
     // Create a collector for the select menu interaction
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
@@ -113,9 +107,12 @@ module.exports = {
       if (collected.size === 0) {
         await interaction.editReply({
           content: 'Category selection expired.',
-          components: [],
+          embeds: [helpEmbed],
+          components: [actionRow],
         });
       }
     });
+
+    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
   },
 };
