@@ -1,6 +1,13 @@
-const { AudioPlayerStatus, createAudioPlayer, createAudioResource, joinVoiceChannel, StreamType } = require('@discordjs/voice');
+// MusicPlayer.js
+const {
+    AudioPlayerStatus,
+    createAudioPlayer,
+    createAudioResource,
+    entersState,
+    joinVoiceChannel,
+    VoiceConnectionStatus,
+} = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
-const { MessageEmbed } = require('discord.js');
 
 class MusicPlayer {
     constructor(guildId, channelId, textChannel) {
@@ -15,11 +22,8 @@ class MusicPlayer {
     setupListeners() {
         this.audioPlayer.on('stateChange', (oldState, newState) => {
             if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-                // If the Idle state is entered from a non-Idle state, it means that an audio resource has finished playing.
-                // The queue is then processed to start playing the next track, if one is available.
                 this.processQueue();
             } else if (newState.status === AudioPlayerStatus.Playing) {
-                // If the Playing state has been entered, then a new track has started playback.
                 this.sendNowPlaying();
             }
         });
@@ -37,7 +41,10 @@ class MusicPlayer {
         });
 
         try {
-            await Promise.race([entersState(this.connection, VoiceConnectionStatus.Ready, 30e3), entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3)]);
+            await Promise.race([
+                entersState(this.connection, VoiceConnectionStatus.Ready, 30e3),
+                entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3),
+            ]);
         } catch (error) {
             this.connection.destroy();
             throw error;
@@ -54,4 +61,20 @@ class MusicPlayer {
     }
 
     async processQueue() {
-        if (this.queue.length === 0
+        if (this.queue.length === 0) {
+            this.connection.destroy();
+            return;
+        }
+
+        const url = this.queue.shift();
+        const stream = ytdl(url, { filter: 'audioonly' });
+        const resource = createAudioResource(stream);
+        this.audioPlayer.play(resource);
+    }
+
+    sendNowPlaying() {
+        this.textChannel.send(`Now playing: ${this.queue[0]}`);
+    }
+}
+
+module.exports = MusicPlayer;
