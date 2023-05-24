@@ -59,5 +59,31 @@ module.exports = {
 
     // Reply with the help embed and action row
     await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
+    
+    // Collect the user's selection
+    const filter = (interaction) => interaction.isSelectMenu() && interaction.user.id === interaction.user.id;
+    const collector = interaction.channel.createMessageComponentCollector({ filter, time: 15000 });
+
+    collector.on('collect', async (interaction) => {
+      const selectedCategory = interaction.values[0];
+      
+      // Perform actions based on the selected category
+      switch (selectedCategory) {
+        case 'Music':
+          // Handle Music category commands
+          await interaction.reply('Perform some action here based on the Music category.');
+          break;
+        case 'Invite Tracker':
+          // Handle Invite Tracker category commands
+          await interaction.reply('Perform some action here based on the Invite Tracker category.');
+          break;
+        default:
+          await interaction.reply('Invalid category selection.');
+      }
+    });
+
+    collector.on('end', async () => {
+      await interaction.editReply({ content: 'Category selection expired.', components: [] });
+    });
   },
 };
