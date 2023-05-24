@@ -17,18 +17,18 @@ class MusicPlayer {
     this.queue = [];
     this.audioPlayer = createAudioPlayer();
     this.connection = null;
-    this.currentSong = null;  // New Line Added
+    this.currentSong = null;
 
     this.setupListeners();
   }
 
   setupListeners() {
     console.log('Setting up audio player listeners.');
-    this.audioPlayer.on('stateChange', (oldState, newState) => {
+    this.audioPlayer.on('stateChange', async (oldState, newState) => {
       console.log(`State change: ${oldState.status} -> ${newState.status}`);
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
         console.log('Audio player state changed to Idle. Processing queue.');
-        this.processQueue();
+        await this.processQueue();
       } else if (newState.status === AudioPlayerStatus.AutoPaused && oldState.status !== AudioPlayerStatus.AutoPaused) {
         console.log('Audio player state changed to Autopaused. Resuming playback.');
         this.audioPlayer.unpause();
@@ -39,7 +39,6 @@ class MusicPlayer {
       console.error(`Error: ${error.message}`);
     });
   }
-
 
   async joinChannel() {
     console.log('Joining voice channel...');
@@ -76,9 +75,6 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
     this.queue.push(url);
 
-    // This line is new
-    if (wasEmpty) this.currentSong = url;
-
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
       await this.processQueue();
@@ -103,28 +99,24 @@ class MusicPlayer {
       await this.joinChannel();
     }
 
-    // Rest of the code for processing the queue and playing songs
-    // ...
-  }
+    // Process the queue and play songs
+    while (this.queue.length > 0) {
+      this.currentSong = this.queue.shift();
+      console.log('Processing queue. Now playing:', this.currentSong);
 
+      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
+      const resource = createAudioResource(stream);
 
-    // This is new - the current song will always be the one at the front of the queue
-    this.currentSong = this.queue.shift();
-    console.log('Processing queue. Now playing:', this.currentSong);
+      this.audioPlayer.play(resource);
 
-    const stream = ytdl(this.currentSong, { filter: 'audioonly' });
-    const resource = createAudioResource(stream);
+      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-    this.audioPlayer.play(resource);
+      console.log('Now playing:', this.currentSong);
 
-    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
-    console.log('Now playing:', this.currentSong);
-
-    // Introduce a delay before sending the "Now playing" message
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    this.sendNowPlaying(); // Send the "Now playing" message after the delay
+      this.sendNowPlaying();
+    }
   }
 
   sendNowPlaying() {
