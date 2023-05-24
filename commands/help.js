@@ -102,13 +102,13 @@ module.exports = {
           components: [categoryActionRow],
         });
       } else if (collectedInteraction.customId === 'help_back') {
-        await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
+        await interaction.editReply({ embeds: [helpEmbed], components: [actionRow] });
       }
     });
 
-    collector.on('end', async (collected) => {
+    collector.on('end', (collected) => {
       if (collected.size === 0) {
-        await interaction.editReply({
+        interaction.editReply({
           content: 'Category selection expired.',
           embeds: [helpEmbed],
           components: [actionRow],
