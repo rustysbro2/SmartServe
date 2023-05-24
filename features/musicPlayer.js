@@ -83,14 +83,16 @@ class MusicPlayer {
     const stream = ytdl(url, { filter: 'audioonly' });
     const resource = createAudioResource(stream);
 
+    const isPlaying = this.audioPlayer.state.status === AudioPlayerStatus.Playing;
     this.audioPlayer.play(resource);
 
-    // Wait for the player to transition to the "Playing" state
-    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-    // Send the "Now playing" message right before the song starts playing
-    this.sendNowPlaying();
+    // If the player was not already playing, wait for it to transition to the "Playing" state
+    if (!isPlaying) {
+      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+      this.sendNowPlaying();
+    }
   }
+
 
 
   sendNowPlaying() {
