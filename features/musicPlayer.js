@@ -22,6 +22,8 @@ class MusicPlayer {
     this.audioPlayer.on('stateChange', (oldState, newState) => {
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
         this.processQueue();
+      } else if (newState.status === AudioPlayerStatus.Playing) {
+        this.sendNowPlaying();
       }
     });
 
@@ -83,14 +85,10 @@ class MusicPlayer {
     const stream = ytdl(url, { filter: 'audioonly' });
     const resource = createAudioResource(stream);
 
-    const isPlaying = this.audioPlayer.state.status === AudioPlayerStatus.Playing;
     this.audioPlayer.play(resource);
 
-    // If the player was not already playing, wait for it to transition to the "Playing" state
-    if (!isPlaying) {
-      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-      this.sendNowPlaying();
-    }
+    // Wait for the player to transition to the "Playing" state
+    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
   }
 
   sendNowPlaying() {
