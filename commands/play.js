@@ -34,15 +34,20 @@ module.exports = {
     const wasEmpty = musicPlayer.queue.length === 0; // Check if the queue was empty before adding the song
     await musicPlayer.addSong(url);
 
-    // Send the "Added to queue" message
-    await interaction.reply('Added to queue!');
-
     if (wasEmpty) {
-      // If the queue was empty, wait for the player to transition to the "Playing" state
-      await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+      if (musicPlayer.queue.length === 1) {
+        // If the queue was empty and the current song is the first one, wait for the player to transition to the "Playing" state
+        await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-      // Send the "Now playing" message
-      musicPlayer.sendNowPlaying();
+        // Send the "Now playing" message
+        musicPlayer.sendNowPlaying();
+      } else {
+        // If the queue was empty but the current song is not the first one, simply reply with "Added to queue"
+        await interaction.reply('Added to queue!');
+      }
+    } else {
+      // If the queue was not empty, simply reply with "Added to queue"
+      await interaction.reply('Added to queue!');
     }
   },
 };
