@@ -134,15 +134,16 @@ class MusicPlayer {
       throw new Error('The bot is not in a voice channel.');
     }
 
-    const guildMembers = this.connection.joinConfig.guild?.members.cache;
-    if (!guildMembers || guildMembers.size === 1) {
-      if (guildMembers?.size === 1 && guildMembers.first().id === member.id) {
-        console.log('Vote skip successful. Skipping the current song.');
-        this.audioPlayer.stop();
-        this.sendVoteSkipMessage();
-        return;
-      }
-      throw new Error('There are no other members in the voice channel.');
+    const members = this.connection.joinConfig.guild.members.cache;
+    if (!members) {
+      throw new Error('Failed to retrieve members in the voice channel.');
+    }
+
+    if (members.size <= 1) {
+      console.log('Skipping the current song as there are no other members in the voice channel.');
+      this.audioPlayer.stop();
+      this.sendVoteSkipMessage();
+      return;
     }
 
     if (this.voteSkips.has(member.id)) {
@@ -152,7 +153,7 @@ class MusicPlayer {
     this.voteSkips.add(member.id);
 
     const voteCount = this.voteSkips.size;
-    const totalCount = guildMembers.size - 1; // Exclude the bot
+    const totalCount = members.size - 1; // Exclude the bot
 
     const votePercentage = voteCount / totalCount;
     if (votePercentage >= this.voteSkipThreshold) {
@@ -164,6 +165,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
