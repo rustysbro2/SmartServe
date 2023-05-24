@@ -12,7 +12,7 @@ module.exports = {
         .setName('url')
         .setDescription('The YouTube URL of the song to play')
         .setRequired(true)),
-  async execute(interaction, client) {
+async execute(interaction, client) {
     try {
       console.log('Executing /play command...');
       const url = interaction.options.getString('url');
@@ -23,13 +23,14 @@ module.exports = {
       console.log('Channel ID:', channelId);
       const textChannel = interaction.channel;
 
-      // The member who sent the command must be in a voice channel
       if (!channelId) {
         console.log('User not in a voice channel.');
         return await interaction.reply('You must be in a voice channel to play music!');
       }
 
-      // Create or retrieve the music player for this guild
+      // Respond to the interaction right away to avoid a timeout
+      await interaction.reply('Processing your request...');
+
       let musicPlayer = client.musicPlayers.get(guildId);
       if (!musicPlayer) {
         console.log('Creating new MusicPlayer instance.');
@@ -38,7 +39,7 @@ module.exports = {
         await musicPlayer.joinChannel();
       }
 
-      const wasEmpty = musicPlayer.queue.length === 0; // Check if the queue was empty before adding the song
+      const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
       await musicPlayer.addSong(url);
 
@@ -49,13 +50,11 @@ module.exports = {
         console.log('Now playing message sent.');
       }
 
-      // Notify the user
-      console.log('Sending reply message: Added to queue!');
-      await interaction.reply('Added to queue!');
+      // Update the interaction with the completion status
+      await interaction.editReply('Added to queue!');
     } catch (error) {
       console.error(`Error executing /play command: ${error.message}`);
-      // Reply with an error message, making it ephemeral so it doesn't affect the validity of the interaction
-      await interaction.reply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
+      await interaction.editReply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
     }
   },
 };
