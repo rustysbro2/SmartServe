@@ -1,11 +1,4 @@
-const {
-    AudioPlayerStatus,
-    createAudioPlayer,
-    createAudioResource,
-    entersState,
-    joinVoiceChannel,
-    VoiceConnectionStatus,
-} = require('@discordjs/voice');
+const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -32,22 +25,20 @@ class MusicPlayer {
         });
     }
 
-    async join(channelId) {
-        const guild = this.textChannel.guild;
-        const channel = guild.channels.cache.get(channelId);
-
+    async joinChannel() {
+        const channel = this.textChannel.guild.channels.cache.get(this.channelId);
         if (!channel || channel.type !== 'GUILD_VOICE') {
             throw new Error('Invalid voice channel');
         }
 
         this.connection = joinVoiceChannel({
             channelId: channel.id,
-            guildId: guild.id,
-            adapterCreator: guild.voiceAdapterCreator,
+            guildId: this.guildId,
+            adapterCreator: channel.guild.voiceAdapterCreator,
         });
 
         try {
-            await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
+            await entersState(this.connection, VoiceConnectionStatus.Ready, 20e3);
         } catch (error) {
             this.connection.destroy();
             throw error;
@@ -56,7 +47,16 @@ class MusicPlayer {
         this.connection.subscribe(this.audioPlayer);
     }
 
+    isValidYoutubeUrl(url) {
+        const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        return pattern.test(url);
+    }
+
     async addSong(url) {
+        if (!this.isValidYoutubeUrl(url)) {
+            throw new Error('Invalid YouTube URL');
+        }
+
         this.queue.push(url);
         if (this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
             await this.processQueue();
