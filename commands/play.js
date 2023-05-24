@@ -5,9 +5,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('play')
         .setDescription('Play a song from YouTube')
-        .addStringOption(option =>
-            option
-                .setName('url')
+        .addStringOption(option => 
+            option.setName('url')
                 .setDescription('The YouTube URL of the song to play')
                 .setRequired(true)),
     async execute(interaction, client) {
@@ -33,8 +32,7 @@ module.exports = {
             await musicPlayer.addSong(url);
             await interaction.reply('Added to queue!');
         } catch (error) {
-            console.error(error);
-            await interaction.reply('Error: Invalid YouTube URL');
+            await interaction.reply(`Error: ${error.message}`);
         }
     },
 };
