@@ -68,28 +68,31 @@ class MusicPlayer {
     }
   }
 
-  async processQueue() {
-    if (this.queue.length === 0) {
-      if (this.connection) {
-        this.connection.destroy();
-        this.connection = null;
-      }
-      return;
+async processQueue() {
+  if (this.queue.length === 0) {
+    if (this.connection) {
+      this.connection.destroy();
+      this.connection = null;
     }
-
-    const url = this.queue.shift();
-    const stream = ytdl(url, { filter: 'audioonly' });
-    const resource = createAudioResource(stream);
-
-    this.audioPlayer.play(resource);
-
-    await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-    // Delay sending the "Now playing" message for 1 second
-    setTimeout(() => {
-      this.sendNowPlaying();
-    }, 1000);
+    return;
   }
+
+  const url = this.queue.shift();
+  const stream = ytdl(url, { filter: 'audioonly' });
+  const resource = createAudioResource(stream);
+
+  this.audioPlayer.play(resource);
+
+  await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+  return new Promise(resolve => {
+    this.audioPlayer.on('start', () => {
+      this.sendNowPlaying();
+      resolve();
+    });
+  });
+}
+
 
 
   sendNowPlaying() {
