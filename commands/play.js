@@ -1,15 +1,16 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const MusicPlayer = require('../features/musicPlayer.js');
-
+const MusicPlayer = require('../features/MusicPlayer.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('play')
         .setDescription('Play a song from YouTube')
-        .addStringOption(option => 
-            option.setName('url')
+        .addStringOption((option) =>
+            option
+                .setName('url')
                 .setDescription('The YouTube URL of the song to play')
-                .setRequired(true)),
+                .setRequired(true)
+        ),
     async execute(interaction, client) {
         const url = interaction.options.getString('url');
         const guildId = interaction.guildId;
@@ -29,9 +30,12 @@ module.exports = {
             await musicPlayer.joinChannel();
         }
 
-        await musicPlayer.addSong(url);
-
-        // Notify the user
-        await interaction.reply(`Added to queue!`);
+        try {
+            await musicPlayer.addSong(url);
+            // Notify the user
+            await interaction.reply(`Added to queue!`);
+        } catch (error) {
+            await interaction.reply(error.message);
+        }
     },
 };
