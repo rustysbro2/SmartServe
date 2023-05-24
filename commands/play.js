@@ -11,7 +11,8 @@ module.exports = {
         .setName('url')
         .setDescription('The YouTube URL of the song to play')
         .setRequired(true)),
-  async execute(interaction, client) {
+async execute(interaction, client) {
+  try {
     console.log('Executing /play command...');
     const url = interaction.options.getString('url');
     console.log('URL:', url);
@@ -50,5 +51,9 @@ module.exports = {
     // Notify the user
     console.log('Sending reply message: Added to queue!');
     await interaction.reply('Added to queue!');
-  },
-};
+  } catch (error) {
+    console.error(`Error executing /play command: ${error.message}`);
+    await interaction.reply('There was an error while executing this command!');
+  }
+},
+
