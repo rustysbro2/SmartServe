@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const MusicPlayer = require('./musicPlayer.js');
+const MusicPlayer = require('../features/MusicPlayer.js');
+
 
 module.exports = {
     data: new SlashCommandBuilder()
