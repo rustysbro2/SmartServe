@@ -60,7 +60,8 @@ module.exports = {
     await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
 
     // Create a filter to only collect interactions from the original user
-    const filter = (interaction) => interaction.user.id === interaction.user.id;
+    const filter = (collectedInteraction) =>
+      collectedInteraction.user.id === interaction.user.id;
 
     // Create a message component collector
     const collector = interaction.channel.createMessageComponentCollector({
@@ -72,7 +73,9 @@ module.exports = {
     collector.on('collect', async (collectedInteraction) => {
       if (collectedInteraction.customId === 'help_category') {
         const selectedCategory = collectedInteraction.values[0];
-        const categoryCommands = commandCategories.find((category) => category.name === selectedCategory);
+        const categoryCommands = commandCategories.find(
+          (category) => category.name === selectedCategory
+        );
 
         // Create a new embed for the category commands
         const categoryEmbed = new MessageEmbed()
@@ -97,18 +100,23 @@ module.exports = {
         // Create a new action row with the back button
         const categoryActionRow = new MessageActionRow().addComponents(backButton);
 
+        // Update the message with the category commands and back button
         await collectedInteraction.update({
           embeds: [categoryEmbed],
           components: [categoryActionRow],
         });
       } else if (collectedInteraction.customId === 'help_back') {
-        await interaction.editReply({ embeds: [helpEmbed], components: [actionRow] });
+        // Update the message with the main menu again
+        await collectedInteraction.update({
+          embeds: [helpEmbed],
+          components: [actionRow],
+        });
       }
     });
 
     collector.on('end', (collected) => {
       if (collected.size === 0) {
-        interaction.editReply({
+        interaction.followUp({
           content: 'Category selection expired.',
           embeds: [helpEmbed],
           components: [actionRow],
