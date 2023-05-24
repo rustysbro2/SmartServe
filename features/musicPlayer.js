@@ -15,15 +15,15 @@ class MusicPlayer {
     this.textChannel = textChannel;
     this.queue = [];
     this.audioPlayer = createAudioPlayer();
+    this.connection = null;
+    this.isPlaying = false;
     this.setupListeners();
   }
 
   setupListeners() {
-    this.audioPlayer.on('stateChange', (oldState, newState) => {
+    this.audioPlayer.on('stateChange', async (oldState, newState) => {
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
         this.processQueue();
-      } else if (newState.status === AudioPlayerStatus.Playing) {
-        this.sendNowPlaying();
       }
     });
 
@@ -40,10 +40,7 @@ class MusicPlayer {
     });
 
     try {
-      await Promise.race([
-        entersState(this.connection, VoiceConnectionStatus.Ready, 30e3),
-        entersState(this.connection, VoiceConnectionStatus.Signalling, 30e3),
-      ]);
+      await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
     } catch (error) {
       this.connection.destroy();
       throw error;
@@ -65,19 +62,21 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
 
     this.queue.push(url);
-    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+
+    if (!this.isPlaying) {
       await this.processQueue();
     }
   }
 
   async processQueue() {
     if (this.queue.length === 0) {
+      this.isPlaying = false;
+
       if (this.connection) {
-        if (this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
-          this.connection.destroy();
-        }
+        this.connection.destroy();
         this.connection = null;
       }
+
       return;
     }
 
@@ -86,9 +85,12 @@ class MusicPlayer {
     const resource = createAudioResource(stream);
 
     this.audioPlayer.play(resource);
+    this.isPlaying = true;
 
-    // Wait for the player to transition to the "Playing" state
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+    
+    // Send the "Now playing" message after the player transitions to the "Playing" state
+    this.sendNowPlaying();
   }
 
   sendNowPlaying() {
