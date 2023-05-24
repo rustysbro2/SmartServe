@@ -63,14 +63,6 @@ module.exports = {
       time: 60000,
     });
 
-    // Define a function to send the main menu
-    const sendMainMenu = async () => {
-      await interaction.update({
-        embeds: [helpEmbed],
-        components: [actionRow],
-      });
-    };
-
     collector.on('collect', async (collectedInteraction) => {
       if (collectedInteraction.customId === 'help_category') {
         const selectedCategory = collectedInteraction.values[0];
@@ -104,14 +96,22 @@ module.exports = {
           components: [categoryActionRow],
         });
       } else if (collectedInteraction.customId === 'help_back') {
-        await collectedInteraction.deferUpdate();
-        await sendMainMenu();
+        const mainMenuActionRow = new MessageActionRow().addComponents(selectMenu);
+        await collectedInteraction.update({
+          embeds: [helpEmbed],
+          components: [mainMenuActionRow],
+        });
       }
     });
 
     collector.on('end', async (collected) => {
       if (collected.size === 0) {
-        await sendMainMenu();
+        const mainMenuActionRow = new MessageActionRow().addComponents(selectMenu);
+        await interaction.editReply({
+          content: 'Category selection expired.',
+          embeds: [helpEmbed],
+          components: [mainMenuActionRow],
+        });
       }
     });
 
