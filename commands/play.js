@@ -39,7 +39,6 @@ module.exports = {
       await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
       // Send the "Now playing" message
-      console.log('Now playing:', musicPlayer.queue[0]); // Debug statement
       musicPlayer.sendNowPlaying();
     }
 
