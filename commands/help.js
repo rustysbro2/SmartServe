@@ -102,10 +102,7 @@ module.exports = {
           components: [categoryActionRow],
         });
       } else if (collectedInteraction.customId === 'help_back') {
-        await interaction.update({
-          embeds: [helpEmbed],
-          components: [actionRow],
-        });
+        await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
       }
     });
 
