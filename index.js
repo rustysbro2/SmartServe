@@ -6,7 +6,7 @@ const manager = new ShardingManager('./bot.js', { token: token });
 
 manager.on('shardCreate', shard => {
   console.log(`Launched shard ${shard.id}`);
-  voiceStateHandler(shard.client); // Pass the client instance to the voiceStateHandler
+  voiceStateHandler(shard.client); // Pass the client object to the handler
 });
 
 manager.spawn();
