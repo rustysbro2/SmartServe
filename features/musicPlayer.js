@@ -1,11 +1,4 @@
-const {
-  AudioPlayerStatus,
-  createAudioPlayer,
-  createAudioResource,
-  entersState,
-  joinVoiceChannel,
-  VoiceConnectionStatus,
-} = require('@discordjs/voice');
+const { entersState, joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -83,12 +76,21 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
-      // If the bot is already in the voice channel, leave it
-      if (this.connection) {
-        this.connection.destroy();
-        this.connection = null;
-        console.log('Bot left the voice channel.');
+      // If the bot is already in the voice channel and is the only member, leave it
+      if (this.connection && this.connection.joinConfig.channelId) {
+        const channel = this.connection.joinConfig.channelId;
+        const members = this.connection.joinConfig.guildId
+          ? this.connection.joinConfig.guildId.members.cache
+          : null;
+
+        if (channel && members && members.size === 1) {
+          console.log(`Bot is the only member in the voice channel. Leaving channel.`);
+          this.connection.destroy();
+          this.connection = null;
+          return;
+        }
       }
+
       console.log('Queue is empty. Stopping playback.');
       return;
     }
