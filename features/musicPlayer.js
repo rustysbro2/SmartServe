@@ -1,3 +1,5 @@
+// MusicPlayer.js
+
 const {
   AudioPlayerStatus,
   createAudioPlayer,
@@ -21,10 +23,10 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on('stateChange', async (oldState, newState) => {
+    this.audioPlayer.on('stateChange', (oldState, newState) => {
       console.log(`State change: ${oldState.status} -> ${newState.status}`);
       if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-        await this.processQueue();
+        this.processQueue();
       } else if (newState.status === AudioPlayerStatus.Playing && oldState.status !== AudioPlayerStatus.Playing) {
         console.log('Sending Now Playing message...');
         this.sendNowPlaying();
@@ -90,17 +92,16 @@ class MusicPlayer {
     this.audioPlayer.play(resource);
 
     await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+    console.log('Now playing:', url);
     this.sendNowPlaying();
   }
 
   sendNowPlaying() {
     const currentSong = this.queue[0];
     if (currentSong) {
-      console.log('Now playing:', currentSong);
       const message = `Now playing: ${currentSong}`;
-      this.textChannel.send(message)
-        .then(() => console.log('Now playing message sent successfully'))
-        .catch(error => console.error('Failed to send now playing message:', error));
+      this.textChannel.send(message);
     }
   }
 }
