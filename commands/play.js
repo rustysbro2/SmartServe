@@ -34,8 +34,10 @@ module.exports = {
     await musicPlayer.addSong(url);
 
     if (wasEmpty && musicPlayer.queue.length === 1) {
-      // If the queue was empty and the current song is the first one, wait for the player to transition to the "Playing" state
+      // If the queue was empty and the current song is the first one, wait for stability
       await new Promise(resolve => setTimeout(resolve, 500)); // Add a delay for stability
+
+      // Check the player status again
       if (musicPlayer.audioPlayer.state.status === AudioPlayerStatus.Playing) {
         musicPlayer.sendNowPlaying();
       }
