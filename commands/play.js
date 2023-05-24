@@ -1,62 +1,38 @@
-const { Client, Collection, Intents } = require('discord.js');
-const { token } = require('./config.js');
-const inviteTracker = require('./features/inviteTracker.js');
-const fs = require('fs');
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { entersState, AudioPlayerStatus } = require('@discordjs/voice');
+const { createAudioResource, joinVoiceChannel } = require('../musicUtils');
 
-const intents = new Intents([
-  Intents.FLAGS.GUILDS,
-  Intents.FLAGS.GUILD_MESSAGES,
-  Intents.FLAGS.GUILD_MEMBERS,
-  Intents.FLAGS.GUILD_VOICE_STATES,
-]);
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('play')
+    .setDescription('Play a song from YouTube')
+    .addStringOption((option) =>
+      option
+        .setName('url')
+        .setDescription('The YouTube URL of the song to play')
+        .setRequired(true)
+    ),
 
-const client = new Client({ shards: "auto", intents });
+  async execute(interaction) {
+    try {
+      const url = interaction.options.getString('url');
+      const voiceChannel = interaction.member.voice.channel;
 
-client.commands = new Collection();
-client.musicPlayers = new Map();
+      if (!voiceChannel) {
+        return await interaction.reply('You must be in a voice channel to use this command.');
+      }
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
-  client.commands.set(command.data.name, command);
-}
+      const connection = joinVoiceChannel(voiceChannel);
+      const resource = createAudioResource(url);
 
-client.once('ready', async () => {
-  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+      connection.subscribe(resource.audioPlayer);
 
-  inviteTracker.execute(client);
+      await entersState(resource.audioPlayer, AudioPlayerStatus.Playing, 5000);
 
-  const slashCommands = require('./slashCommands.js');
-  await slashCommands(client);
-});
-
-client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isCommand()) return;
-
-  const command = client.commands.get(interaction.commandName);
-
-  if (!command) return;
-
-  try {
-    await command.execute(interaction, client); // Execute the command
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-  }
-});
-
-client.on('voiceStateUpdate', async (oldState, newState) => {
-  if (!oldState.channelId) return;
-  const botInOldChannel = oldState.channel.members.has(client.user.id);
-  if (!botInOldChannel) return;
-
-  if (oldState.channelId !== newState.channelId) {
-    const playCommand = client.commands.get('play');
-    if (playCommand) {
-      await playCommand.execute(oldState, client);
+      await interaction.reply(`Now playing: ${url}`);
+    } catch (error) {
+      console.error('Error executing /play command:', error);
+      await interaction.reply('There was an error while executing this command.');
     }
-  }
-});
-
-client.login(token);
+  },
+};
