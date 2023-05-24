@@ -67,8 +67,11 @@ client.on('voiceStateUpdate', async (oldState, newState) => {
 
   // Handle case where bot is the only member in a voice channel
   if (newState.channelId && newState.channel.members.size === 1) {
+    console.log(`Bot is the only member in the voice channel: ${newState.channel.name}`);
+    console.log(`Channel Members: ${newState.channel.members.size}`);
     const musicPlayer = client.musicPlayers.get(newState.guild.id);
     if (musicPlayer && musicPlayer.connection) {
+      console.log("Destroying connection and leaving voice channel.");
       musicPlayer.connection.destroy();
       client.musicPlayers.delete(newState.guild.id);
     }
