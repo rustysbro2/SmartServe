@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const MusicPlayer = require('../features/musicPlayer.js');
+const { AudioPlayerStatus } = require('@discordjs/voice');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -34,7 +35,7 @@ module.exports = {
 
     if (wasEmpty) {
       // If the queue was empty, wait for the player to transition to the "Playing" state
-      await musicPlayer.audioPlayer.playing();
+      await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
     }
 
     // Notify the user
