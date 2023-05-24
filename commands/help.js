@@ -95,22 +95,31 @@ module.exports = {
           embeds: [categoryEmbed],
           components: [categoryActionRow],
         });
-      } else if (collectedInteraction.customId === 'help_back') {
-        const mainMenuActionRow = new MessageActionRow().addComponents(selectMenu);
+      } else if (
+        collectedInteraction.customId === 'help_back' &&
+        collectedInteraction.channel === interaction.channel
+      ) {
         await collectedInteraction.update({
           embeds: [helpEmbed],
-          components: [mainMenuActionRow],
+          components: [actionRow],
+        });
+      } else if (
+        collectedInteraction.customId === 'help_main_menu' &&
+        collectedInteraction.channel === interaction.channel
+      ) {
+        await collectedInteraction.update({
+          embeds: [helpEmbed],
+          components: [actionRow],
         });
       }
     });
 
     collector.on('end', async (collected) => {
       if (collected.size === 0) {
-        const mainMenuActionRow = new MessageActionRow().addComponents(selectMenu);
         await interaction.editReply({
           content: 'Category selection expired.',
           embeds: [helpEmbed],
-          components: [mainMenuActionRow],
+          components: [actionRow],
         });
       }
     });
