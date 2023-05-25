@@ -1,58 +1,36 @@
-// Import the Discord client
-const { Client } = require('@discordjs/rest');
-
-const { Intents } = require('discord.js');
-
-// Import the bot's token
+// bot.js
+const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.js');
-
-// Import the invite tracker
 const inviteTracker = require('./features/inviteTracker.js');
-
-// Import the file system
 const fs = require('fs');
-
-// Import the voice functionality
 const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
-
-// Import the audio functionality
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
-
-// Import the YouTube download library
 const ytdl = require('ytdl-core');
 
-// Create a new Discord client
-const client = new Client({ shards: 3, intents });
+const intents = new Intents([
+  Intents.FLAGS.GUILDS,
+  Intents.FLAGS.GUILD_MESSAGES,
+  Intents.FLAGS.GUILD_MEMBERS,
+  Intents.FLAGS.GUILD_VOICE_STATES,
+]);
 
-// Create a new collection to store commands
+const client = new Client({ shards: "auto", intents });
+
 client.commands = new Collection();
-
-// Create a new map to store music players
 client.musicPlayers = new Map();
 
-// Get all of the command files
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-
-// For each command file
 for (const file of commandFiles) {
-
-  // Import the command
   const command = require(`./commands/${file}`);
-
-  // Add the command to the collection
   client.commands.set(command.data.name, command);
 }
 
-// Add an event listener for the `ready` event
-client.on('ready', async () => {
+client.once('ready', async () => {
+  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
 
-  // Log the bot's ID and the number of guilds it is in
-  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag} | ${client.guilds.cache.size} servers`);
+  inviteTracker.execute(client);
 
-  // Set the bot's status
-  client.user.setActivity('Playing with Discord.js');
-
-  // Import the slash commands
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
 
@@ -101,3 +79,5 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
   }
 });
+
+client.login(token);
