@@ -63,7 +63,7 @@ module.exports = {
       }));
 
       const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase())
+        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'general')
         .map((c) => ({
           label: c.name,
           value: c.name.toLowerCase(),
@@ -78,12 +78,21 @@ module.exports = {
           ...backButtonOptions,
         ]);
 
-      selectMenu.addOptions({
-        label: category.name,
-        value: category.name.toLowerCase(),
-        description: category.description,
-        options: options,
-      });
+      if (category.name.toLowerCase() === 'general') {
+        selectMenu.addOptions({
+          label: category.name,
+          value: category.name.toLowerCase(),
+          description: category.description,
+          options: options,
+        });
+      } else {
+        selectMenu.addOptions({
+          label: category.name,
+          value: category.name.toLowerCase(),
+          description: category.description,
+          options: options.filter((option) => option.value !== 'help' && option.value !== 'ping'), // Exclude /help and /ping in Music category
+        });
+      }
 
       category.backButton = backButton;
     });
