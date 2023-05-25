@@ -24,6 +24,10 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
+<<<<<<< HEAD
+=======
+const inviteTracker = require('./features/inviteTracker.js');
+>>>>>>> 586403d90037b3579f4fd579ddcf10e33220593f
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
@@ -33,10 +37,6 @@ client.once('ready', async () => {
 
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
-
-  await client.application.commands.set([countingGame.data]); // Register the slash command
-
-  countingGame(client); // Enable the counting game functionality
 
   // Start checking voice channels every second
   setInterval(() => {
