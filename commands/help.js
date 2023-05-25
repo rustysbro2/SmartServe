@@ -62,7 +62,7 @@ module.exports = {
       }));
 
       const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'general')
+        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase())
         .map((c) => ({
           label: c.name,
           value: c.name.toLowerCase(),
@@ -77,20 +77,12 @@ module.exports = {
           ...backButtonOptions,
         ]);
 
-      if (category.name.toLowerCase() === 'general') {
-        selectMenu.addOptions({
-          label: 'Main Menu',
-          value: 'main_menu',
-          description: 'Go back to the main menu',
-        });
-      } else {
-        selectMenu.addOptions({
-          label: category.name,
-          value: category.name.toLowerCase(),
-          description: category.description,
-          options: options,
-        });
-      }
+      selectMenu.addOptions({
+        label: category.name,
+        value: category.name.toLowerCase(),
+        description: category.description,
+        options: options,
+      });
 
       category.backButton = backButton;
     });
