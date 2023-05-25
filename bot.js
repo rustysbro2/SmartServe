@@ -24,8 +24,6 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
-const inviteTracker = require('./features/inviteTracker.js');
-
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
   client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
