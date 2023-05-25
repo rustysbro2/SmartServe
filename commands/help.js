@@ -66,14 +66,38 @@ module.exports = {
         description: command.description,
       }));
 
-      const filteredOptions = options.filter((option) => option.value !== category.name.toLowerCase());
+      const backButtonOptions = commandCategories
+        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'general')
+        .map((c) => ({
+          label: c.name,
+          value: c.name.toLowerCase(),
+          description: `View ${c.name} commands`,
+        }));
 
-      selectMenu.addOptions({
-        label: category.name === 'General' ? 'Main Menu' : category.name,
-        value: category.name.toLowerCase(),
-        description: category.description,
-        options: filteredOptions,
-      });
+      const backButton = new MessageSelectMenu()
+        .setCustomId('help_back')
+        .setPlaceholder('Go back to main menu')
+        .addOptions([
+          { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+          ...backButtonOptions,
+        ]);
+
+      if (category.name.toLowerCase() === 'general') {
+        selectMenu.addOptions({
+          label: 'Main Menu',
+          value: 'main_menu',
+          description: 'Go back to the main menu',
+        });
+      } else {
+        selectMenu.addOptions({
+          label: category.name,
+          value: category.name.toLowerCase(),
+          description: category.description,
+          options: options,
+        });
+
+        category.backButton = backButton;
+      }
     });
 
     const collector = interaction.channel.createMessageComponentCollector({
@@ -88,11 +112,17 @@ module.exports = {
 
         if (category) {
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(mainMenuButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
         }
-      } else if (collected.customId === 'help_main_menu') {
-        const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
-        await collected.update({ embeds: [mainMenuEmbed], components: [selectMenu] });
+      } else if (collected.customId === 'help_back') {
+        if (collected.values[0] === 'main_menu') {
+          const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
+          await collected.update({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(mainMenuButton)] });
+        } else {
+          const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
+          const categoryEmbed = createCategoryEmbed(category);
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
+        }
       }
     });
 
@@ -102,6 +132,6 @@ module.exports = {
 
     const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
 
-    await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
+    await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(mainMenuButton)] });
   },
 };
