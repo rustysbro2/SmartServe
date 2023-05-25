@@ -55,11 +55,13 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
-      const options = category.commands.map((command) => ({
-        label: `/${command.name}`,
-        value: command.name,
-        description: command.description,
-      }));
+      const options = category.commands
+        .filter((command) => command.name !== interaction.commandName)
+        .map((command) => ({
+          label: `/${command.name}`,
+          value: command.name,
+          description: command.description,
+        }));
 
       selectMenu.addOptions({
         label: category.name,
