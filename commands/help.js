@@ -57,45 +57,44 @@ module.exports = {
     const optionsMap = new Map(); // Map to store unique option values
 
     commandCategories.forEach((category) => {
-      const options = category.commands.map((command) => {
-        const optionValue = `${category.name.toLowerCase()}_${command.name.toLowerCase()}`; // Unique option value
-        optionsMap.set(optionValue, true); // Store option value in the map
-        return {
-          label: category.name,
-          value: optionValue,
-          description: command.description,
-        };
-      });
-
-      const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'general')
-        .map((c) => ({
-          label: c.name,
-          value: c.name.toLowerCase(),
-          description: `View ${c.name} commands`,
-        }));
-
-      const backButton = new MessageSelectMenu()
-        .setCustomId('help_back')
-        .setPlaceholder('Go back to main menu')
-        .addOptions([
-          { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-          ...backButtonOptions,
-        ]);
-
       if (category.name.toLowerCase() === 'general') {
+        const options = category.commands.map((command) => {
+          const optionValue = `${category.name.toLowerCase()}_${command.name.toLowerCase()}`; // Unique option value
+          optionsMap.set(optionValue, true); // Store option value in the map
+          return {
+            label: `/${command.name}`,
+            value: optionValue,
+            description: command.description,
+          };
+        });
+
         selectMenu.addOptions(options);
       } else {
-        selectMenu.addOptions({
+        const categoryOption = {
           label: category.name,
           value: category.name.toLowerCase(),
           description: category.description,
-          options: options,
-        });
-      }
+        };
 
-      category.backButton = backButton;
+        selectMenu.addOptions(categoryOption);
+      }
     });
+
+    const backButtonOptions = commandCategories
+      .filter((category) => category.name.toLowerCase() !== 'general')
+      .map((category) => ({
+        label: category.name,
+        value: category.name.toLowerCase(),
+        description: `View ${category.name} commands`,
+      }));
+
+    const backButton = new MessageSelectMenu()
+      .setCustomId('help_back')
+      .setPlaceholder('Go back to main menu')
+      .addOptions([
+        { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+        ...backButtonOptions,
+      ]);
 
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
@@ -111,16 +110,16 @@ module.exports = {
 
         if (category) {
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
           const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
-          await collected.update({ embeds: [mainMenuEmbed], components: [selectMenu] });
+          await collected.update({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       }
     });
