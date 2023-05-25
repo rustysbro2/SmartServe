@@ -32,7 +32,37 @@ client.once('ready', async () => {
 
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
+
+  // Start checking voice channels every second
+  setInterval(() => {
+    checkVoiceChannels();
+  }, 1000); // Check every 1 second
 });
+
+async function checkVoiceChannels() {
+  const botId = client.user.id;
+  const guilds = client.guilds.cache;
+
+  for (const guild of guilds) {
+    const guildId = guild[1].id;
+    const musicPlayer = client.musicPlayers.get(guildId);
+    const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+
+    for (const [channelId, channel] of voiceChannels) {
+      if (channel.members.size === 1 && channel.members.has(botId)) {
+        // Bot is the only member in the voice channel
+        console.log(`Bot is the only member in the voice channel: ${channel.name}`);
+        console.log(`Channel Members: ${channel.members.size}`);
+        
+        if (musicPlayer && musicPlayer.connection) {
+          console.log("Destroying connection and leaving voice channel.");
+          musicPlayer.connection.destroy();
+          client.musicPlayers.delete(guildId);
+        }
+      }
+    }
+  }
+}
 
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isCommand()) return;
@@ -48,32 +78,5 @@ client.on('interactionCreate', async (interaction) => {
     await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
   }
 });
-
-client.on('voiceStateUpdate', async (oldState, newState) => {
-  // Ignore if this update does not involve the bot
-  if (oldState.member.id !== client.user.id && newState.member.id !== client.user.id) {
-    return;
-  }
-
-  // Handle case where bot is disconnected from a voice channel
-  if (oldState.channelId && !newState.channelId) {
-    const musicPlayer = client.musicPlayers.get(oldState.guild.id);
-    if (musicPlayer) {
-      musicPlayer.connection.destroy();
-      client.musicPlayers.delete(oldState.guild.id);
-    }
-    return;
-  }
-
-  // Handle case where bot is the only member in a voice channel
-  if (newState.channelId && newState.channel.members.size === 1) {
-    const musicPlayer = client.musicPlayers.get(newState.guild.id);
-    if (musicPlayer) {
-      musicPlayer.connection.destroy();
-      client.musicPlayers.delete(newState.guild.id);
-    }
-  }
-});
-
 
 client.login(token);
