@@ -24,7 +24,7 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
-const countingGame = require('./features/countingGame');
+const countingGame = require('./features/countingGame.js');
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
