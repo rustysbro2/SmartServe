@@ -1,7 +1,7 @@
 const { Client } = require('@discordjs/rest');
 const { token } = require('./config.js');
 
-const manager = new Client('./bot.js', { token: token });
+const client = Client.create({ token: token });
 
-manager.on('shardCreate', shard => console.log(`Launched shard ${shard.id}`));
-manager.spawn();
+client.on('shardCreate', shard => console.log(`Launched shard ${shard.id}`));
+client.spawn();
