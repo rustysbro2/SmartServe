@@ -77,7 +77,7 @@ module.exports = {
           label: category.name,
           value: category.name.toLowerCase(),
           description: `View ${category.name} commands`,
-        }))),
+        })).filter((option) => option.value !== 'music' && option.value !== 'invite tracker'))),
       ]);
 
     const collector = interaction.channel.createMessageComponentCollector({
@@ -98,9 +98,7 @@ module.exports = {
         if (collected.values[0] === 'main_menu') {
           await collected.update({ embeds: [helpEmbed], components: [selectMenu] });
         } else {
-          const selectedCategory = collected.values[0];
-          const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
-
+          const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
           await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
