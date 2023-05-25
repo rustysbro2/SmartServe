@@ -97,6 +97,47 @@ module.exports = {
           categoryEmbed.addField(command.name, command.description);
         });
 
+        // Create options to go back to the main menu or to the other menu
+        const backButton = new MessageSelectMenu()
+          .setCustomId('help_back')
+          .setPlaceholder('Go back to main menu')
+          .addOptions({
+            label: 'Main Menu',
+            value: 'main_menu',
+            description: 'Go back to the main menu',
+          });
+
+        const otherMenuButton = new MessageSelectMenu()
+          .setCustomId('help_other_menu')
+          .setPlaceholder('Go to other menu')
+          .addOptions({
+            label: 'Other Menu',
+            value: 'other_menu',
+            description: 'Go to the other menu',
+          });
+
+        // Create a new action row with the back button and other menu button
+        const categoryActionRow = new MessageActionRow()
+          .addComponents(backButton, otherMenuButton);
+
+        // Update the message with the category commands and action row
+        await collectedInteraction.update({
+          embeds: [categoryEmbed],
+          components: [categoryActionRow],
+        });
+      } else if (collectedInteraction.customId === 'help_back') {
+        // Update the message with the main menu again
+        await collectedInteraction.update({
+          embeds: [helpEmbed],
+          components: [actionRow],
+        });
+      } else if (collectedInteraction.customId === 'help_other_menu') {
+        // Update the message with the other menu
+        const otherMenuEmbed = new MessageEmbed()
+          .setColor('#0099ff')
+          .setTitle('Other Menu')
+          .setDescription('This is the other menu.');
+
         // Create an option to go back to the main menu
         const backButton = new MessageSelectMenu()
           .setCustomId('help_back')
@@ -108,18 +149,12 @@ module.exports = {
           });
 
         // Create a new action row with the back button
-        const categoryActionRow = new MessageActionRow().addComponents(backButton);
+        const otherMenuActionRow = new MessageActionRow().addComponents(backButton);
 
-        // Update the message with the category commands and back button
+        // Update the message with the other menu and action row
         await collectedInteraction.update({
-          embeds: [categoryEmbed],
-          components: [categoryActionRow],
-        });
-      } else if (collectedInteraction.customId === 'help_back') {
-        // Update the message with the main menu again
-        await collectedInteraction.update({
-          embeds: [helpEmbed],
-          components: [actionRow],
+          embeds: [otherMenuEmbed],
+          components: [otherMenuActionRow],
         });
       }
     });
