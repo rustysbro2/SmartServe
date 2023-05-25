@@ -50,7 +50,6 @@ module.exports = {
       return categoryEmbed;
     };
 
-    const mainMenuEmbed = createCategoryEmbed(commandCategories[0]); // Main menu embed is the same as General category
     const selectMenu = new MessageSelectMenu()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
@@ -80,10 +79,9 @@ module.exports = {
 
       if (category.name.toLowerCase() === 'general') {
         selectMenu.addOptions({
-          label: category.name,
-          value: category.name.toLowerCase(),
-          description: category.description,
-          options: options.filter((option) => option.value !== 'help'), // Exclude /help in General category
+          label: 'Main Menu',
+          value: 'main_menu',
+          description: 'Go back to the main menu',
         });
       } else {
         selectMenu.addOptions({
@@ -113,6 +111,7 @@ module.exports = {
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
+          const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
           await collected.update({ embeds: [mainMenuEmbed], components: [selectMenu] });
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
@@ -125,6 +124,8 @@ module.exports = {
     collector.on('end', () => {
       interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
+
+    const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
 
     await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
