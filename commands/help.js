@@ -27,18 +27,15 @@ module.exports = {
       },
     ];
 
-    // Create the main help embed
     const helpEmbed = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Help')
       .setDescription('Please select a category:');
 
-    // Create the select menu with category options
     const selectMenu = new MessageSelectMenu()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Add options to the select menu based on command categories
     commandCategories.forEach((category) => {
       const options = category.commands.map((command) => ({
         label: command.name,
@@ -54,10 +51,22 @@ module.exports = {
       });
     });
 
-    // Create a message component collector
+    const backButton = new MessageSelectMenu()
+      .setCustomId('help_back')
+      .setPlaceholder('Go back to main menu')
+      .addOptions([
+        { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+        { label: 'Music', value: 'music', description: 'View Music commands' },
+        { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
+      ]);
+
+    const components = [new MessageActionRow().addComponents(selectMenu)];
+
+    await interaction.reply({ embeds: [helpEmbed], components: components });
+
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
-      time: 60000, // 60 seconds
+      time: 60000,
     });
 
     collector.on('collect', async (collected) => {
@@ -75,63 +84,25 @@ module.exports = {
             categoryEmbed.addField(command.name, command.description);
           });
 
-          const backButton = new MessageSelectMenu()
-            .setCustomId('help_back')
-            .setPlaceholder('Go back to main menu')
-            .addOptions([
-              { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-              { label: 'Music', value: 'music', description: 'View Music commands' },
-              { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
-            ]);
-
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+          components[0].components = [backButton];
+          await collected.update({ embeds: [categoryEmbed], components: components });
         }
       } else if (collected.customId === 'help_back') {
-        if (collected.values[0] === 'main_menu') {
-          await interaction.editReply({ embeds: [helpEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
-        } else if (collected.values[0] === 'music') {
+        const selectedValue = collected.values[0];
+        let categoryEmbed;
+
+        if (selectedValue === 'main_menu') {
+          categoryEmbed = helpEmbed;
+        } else if (selectedValue === 'music') {
           const musicCategory = commandCategories.find((c) => c.name === 'Music');
-
-          const musicEmbed = new MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle(`Category: ${musicCategory.name}`)
-            .setDescription(musicCategory.description);
-
-          musicCategory.commands.forEach((command) => {
-            musicEmbed.addField(command.name, command.description);
-          });
-
-          const backButton = new MessageSelectMenu()
-            .setCustomId('help_back')
-            .setPlaceholder('Go back to main menu')
-            .addOptions([
-              { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-              { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
-            ]);
-
-          await interaction.editReply({ embeds: [musicEmbed], components: [new MessageActionRow().addComponents(backButton)] });
-        } else if (collected.values[0] === 'invite_tracker') {
+          categoryEmbed = createCategoryEmbed(musicCategory);
+        } else if (selectedValue === 'invite_tracker') {
           const inviteTrackerCategory = commandCategories.find((c) => c.name === 'Invite Tracker');
-
-          const inviteTrackerEmbed = new MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle(`Category: ${inviteTrackerCategory.name}`)
-            .setDescription(inviteTrackerCategory.description);
-
-          inviteTrackerCategory.commands.forEach((command) => {
-            inviteTrackerEmbed.addField(command.name, command.description);
-          });
-
-          const backButton = new MessageSelectMenu()
-            .setCustomId('help_back')
-            .setPlaceholder('Go back to main menu')
-            .addOptions([
-              { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-              { label: 'Music', value: 'music', description: 'View Music commands' },
-            ]);
-
-          await interaction.editReply({ embeds: [inviteTrackerEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+          categoryEmbed = createCategoryEmbed(inviteTrackerCategory);
         }
+
+        components[0].components = [selectMenu];
+        await collected.update({ embeds: [categoryEmbed], components: components });
       }
     });
 
@@ -139,6 +110,17 @@ module.exports = {
       interaction.editReply({ content: 'Category selection expired.', components: [] });
     });
 
-    await interaction.reply({ embeds: [helpEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
+    function createCategoryEmbed(category) {
+      const categoryEmbed = new MessageEmbed()
+        .setColor('#0099ff')
+        .setTitle(`Category: ${category.name}`)
+        .setDescription(category.description);
+
+      category.commands.forEach((command) => {
+        categoryEmbed.addField(command.name, command.description);
+      });
+
+      return categoryEmbed;
+    }
   },
 };
