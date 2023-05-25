@@ -83,11 +83,11 @@ module.exports = {
         const backButton = new MessageSelectMenu()
           .setCustomId('help_back')
           .setPlaceholder('Go back to main menu')
-          .addOptions([
+          .addOptions(
             { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
             { label: 'Music', value: 'music', description: 'View Music commands' },
-            { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
-          ]);
+            { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' }
+          );
 
         const categoryActionRow = new MessageActionRow().addComponents(backButton);
 
