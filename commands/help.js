@@ -104,7 +104,7 @@ module.exports = {
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
-          await collected.update({ embeds: [helpEmbed], components: [selectMenu] });
+          await collected.update({ embeds: [helpEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
