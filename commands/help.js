@@ -62,7 +62,7 @@ module.exports = {
       }));
 
       const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase())
+        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'main menu')
         .map((c) => ({
           label: c.name,
           value: c.name.toLowerCase(),
@@ -77,17 +77,21 @@ module.exports = {
           ...backButtonOptions,
         ]);
 
-      selectMenu.addOptions({
-        label: category.name,
-        value: category.name.toLowerCase(),
-        description: category.description,
-        options: options,
-      });
+      if (category.name.toLowerCase() !== 'main menu') {
+        selectMenu.addOptions({
+          label: category.name,
+          value: category.name.toLowerCase(),
+          description: category.description,
+          options: options,
+        });
+      }
 
       category.backButton = backButton;
     });
 
-    const collector = interaction.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU' });
+    const collector = interaction.channel.createMessageComponentCollector({
+      componentType: 'SELECT_MENU',
+    });
 
     collector.on('collect', async (collected) => {
       if (collected.customId === 'help_category') {
@@ -100,8 +104,7 @@ module.exports = {
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
-          const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'main menu'));
-          await collected.update({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
+          await collected.update({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
@@ -114,8 +117,6 @@ module.exports = {
       interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
 
-    const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'main menu'));
-
-    await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
+    await interaction.reply({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
 };
