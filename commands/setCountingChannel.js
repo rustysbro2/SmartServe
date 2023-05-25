@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { getGuildCountingChannel, setGuildCountingChannel } = require('../features/countingGame');
+const { getGuildCountingChannel, setGuildCountingChannel } = require('../features/countingGame.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
