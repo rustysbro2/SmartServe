@@ -63,39 +63,20 @@ module.exports = {
           description: command.description,
         }));
 
-      const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase())
-        .map((c) => ({
-          label: c.name,
-          value: c.name.toLowerCase(),
-          description: `View ${c.name} commands`,
-        }));
-
-      const backButton = new MessageSelectMenu()
-        .setCustomId('help_back')
-        .setPlaceholder('Go back to main menu')
-        .addOptions([
-          { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-          ...backButtonOptions,
-        ]);
-
-      if (category.name.toLowerCase() === 'general') {
-        selectMenu.addOptions({
-          label: 'Main Menu',
-          value: 'main_menu',
-          description: 'Go back to the main menu',
-        });
-      } else {
-        selectMenu.addOptions({
-          label: category.name,
-          value: category.name.toLowerCase(),
-          description: category.description,
-          options: options,
-        });
-      }
-
-      category.backButton = backButton;
+      selectMenu.addOptions({
+        label: category.name,
+        value: category.name.toLowerCase(),
+        description: category.description,
+        options: options,
+      });
     });
+
+    const backButton = new MessageSelectMenu()
+      .setCustomId('help_back')
+      .setPlaceholder('Go back to main menu')
+      .addOptions([
+        { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+      ]);
 
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
@@ -109,15 +90,15 @@ module.exports = {
 
         if (category) {
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
-          await collected.update({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
+          await collected.update({ embeds: [mainMenuEmbed], components: [selectMenu] });
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       }
     });
@@ -126,13 +107,7 @@ module.exports = {
       interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
 
-    const currentCategory = commandCategories.find((category) => category.commands.some((command) => command.name === interaction.commandName));
-    const mainMenuEmbed = createCategoryEmbed(currentCategory);
-
-    // Remove the current menu option from the selection menu
-    const filteredOptions = selectMenu.options.filter((option) => option.value !== interaction.commandName);
-
-    selectMenu.options = filteredOptions;
+    const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
 
     await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
