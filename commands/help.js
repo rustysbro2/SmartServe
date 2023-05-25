@@ -117,18 +117,6 @@ module.exports = {
       interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
 
-    const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'main menu'));
-    const mainMenuButton = new MessageSelectMenu()
-      .setCustomId('help_main_menu')
-      .setPlaceholder('Main Menu')
-      .addOptions([
-        {
-          label: 'Main Menu',
-          value: 'main_menu',
-          description: 'Go back to the main menu',
-        },
-      ]);
-
-    await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(mainMenuButton), new MessageActionRow().addComponents(selectMenu)] });
+    await interaction.reply({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
 };
