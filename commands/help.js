@@ -36,21 +36,6 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    commandCategories.forEach((category) => {
-      const options = category.commands.map((command) => ({
-        label: command.name,
-        value: command.name,
-        description: command.description,
-      }));
-
-      selectMenu.addOptions({
-        label: category.name,
-        value: category.name.toLowerCase(),
-        description: category.description,
-        options: options,
-      });
-    });
-
     const createCategoryEmbed = (category) => {
       if (!category) {
         return new MessageEmbed().setColor('#0099ff').setDescription('Invalid category');
@@ -68,21 +53,40 @@ module.exports = {
       return categoryEmbed;
     };
 
-    const backButtonOptions = commandCategories
-      .map((category) => ({
+    commandCategories.forEach((category) => {
+      const options = category.commands.map((command) => ({
+        label: command.name,
+        value: command.name,
+        description: command.description,
+      }));
+
+      const filteredOptions = options.filter((option) => option.value !== category.name.toLowerCase());
+
+      const backButtonOptions = commandCategories
+        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase())
+        .map((c) => ({
+          label: c.name,
+          value: c.name.toLowerCase(),
+          description: `View ${c.name} commands`,
+        }));
+
+      const backButton = new MessageSelectMenu()
+        .setCustomId('help_back')
+        .setPlaceholder('Go back to main menu')
+        .addOptions([
+          { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+          ...backButtonOptions,
+        ]);
+
+      selectMenu.addOptions({
         label: category.name,
         value: category.name.toLowerCase(),
-        description: `View ${category.name} commands`,
-      }))
-      .filter((option) => option.value !== 'music' && option.value !== 'invite tracker');
+        description: category.description,
+        options: filteredOptions,
+      });
 
-    const backButton = new MessageSelectMenu()
-      .setCustomId('help_back')
-      .setPlaceholder('Go back to main menu')
-      .addOptions([
-        { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-        ...backButtonOptions,
-      ]);
+      category.backButton = backButton;
+    });
 
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
@@ -96,7 +100,7 @@ module.exports = {
 
         if (category) {
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
@@ -104,7 +108,7 @@ module.exports = {
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
         }
       }
     });
