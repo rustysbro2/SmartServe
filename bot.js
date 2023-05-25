@@ -14,7 +14,7 @@ const intents = new Intents([
   Intents.FLAGS.GUILD_VOICE_STATES,
 ]);
 
-const client = new Client({ shards: "auto", intents });
+const client = new Client({ shards: "3", intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
