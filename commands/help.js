@@ -88,7 +88,7 @@ module.exports = {
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
-          await collected.update({ embeds: [helpEmbed], components: [selectMenu] });
+          await interaction.editReply({ embeds: [helpEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
         } else if (collected.values[0] === 'music') {
           const musicCategory = commandCategories.find((c) => c.name === 'Music');
 
@@ -109,7 +109,7 @@ module.exports = {
               { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
             ]);
 
-          await collected.update({ embeds: [musicEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+          await interaction.editReply({ embeds: [musicEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         } else if (collected.values[0] === 'invite_tracker') {
           const inviteTrackerCategory = commandCategories.find((c) => c.name === 'Invite Tracker');
 
@@ -130,13 +130,13 @@ module.exports = {
               { label: 'Music', value: 'music', description: 'View Music commands' },
             ]);
 
-          await collected.update({ embeds: [inviteTrackerEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+          await interaction.editReply({ embeds: [inviteTrackerEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       }
     });
 
     collector.on('end', () => {
-      interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
+      interaction.editReply({ content: 'Category selection expired.', components: [] });
     });
 
     await interaction.reply({ embeds: [helpEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
