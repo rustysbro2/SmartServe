@@ -1,6 +1,6 @@
 // config.js
 module.exports = {
-    token: 'MTEwNzAyNTU3ODA0NzA1ODAzMA.G2tLtz.wkRl-GkEoIs-H9RXEWzEEp3IRa6rfoHao1Pfoo',
+    token: 'MTEwNzAyNTU3ODA0NzA1ODAzMA.GCo42S.LkU2jG8GyX15OzZaC3v2tqaG_KVff9DXu3O4A0',
     clientId: '1107025578047058030'	
 };
 
