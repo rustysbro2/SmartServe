@@ -62,7 +62,7 @@ module.exports = {
       }));
 
       const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase())
+        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'general')
         .map((c) => ({
           label: c.name,
           value: c.name.toLowerCase(),
@@ -77,12 +77,16 @@ module.exports = {
           ...backButtonOptions,
         ]);
 
-      selectMenu.addOptions({
-        label: category.name,
-        value: category.name.toLowerCase(),
-        description: category.description,
-        options: options,
-      });
+      if (category.name.toLowerCase() === 'general') {
+        selectMenu.addOptions(options);
+      } else {
+        selectMenu.addOptions({
+          label: category.name,
+          value: category.name.toLowerCase(),
+          description: category.description,
+          options: options,
+        });
+      }
 
       category.backButton = backButton;
     });
