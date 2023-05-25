@@ -1,6 +1,6 @@
 // slashCommands.js
 const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
+const { Routes } = require('discord-api-types/v10');
 const { clientId, token } = require('./config.js');
 const fs = require('fs');
 
@@ -17,13 +17,13 @@ module.exports = async function(client) {
 
     for (const file of commandFiles) {
         const command = require(`./commands/${file}`);
-        commands.push(command.data.toJSON());
+        commands.push(command.data);
     }
 
-    const rest = new REST({ version: '9' }).setToken(token);
+    const rest = new REST({ version: '10' }).setToken(token);
 
     // Loop through each guild the bot is in and register the slash commands
-    client.guilds.cache.each(async (guild) => {
+    client.guilds.cache.forEach(async (guild) => {
         try {
             console.log(`Started refreshing application (/) commands for guild ${guild.id}.`);
 
