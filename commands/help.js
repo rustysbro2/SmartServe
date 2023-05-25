@@ -56,16 +56,6 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new MessageActionRow().addComponents(selectMenu);
 
-    // Keep track of the current menu
-    let currentMenu = 'main_menu';
-
-    // Create an array to store previous menu options for navigation
-    const prevMenuOptions = [
-      { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-      { label: 'Music', value: 'Music', description: 'View Music commands' },
-      { label: 'Invite Tracker', value: 'Invite Tracker', description: 'View Invite Tracker commands' },
-    ];
-
     // Reply with the main menu
     await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
 
@@ -79,6 +69,9 @@ module.exports = {
       componentType: 'SELECT_MENU',
       time: 60000, // 60 seconds
     });
+
+    let currentMenu = 'main_menu';
+    let prevMenuOptions = [];
 
     collector.on('collect', async (collectedInteraction) => {
       if (collectedInteraction.customId === 'help_category') {
@@ -114,7 +107,14 @@ module.exports = {
         if (currentMenu === 'main_menu') {
           menuEmbed = helpEmbed;
           menuOptions = prevMenuOptions;
-        } else if (currentMenu === 'Music' || currentMenu === 'Invite Tracker') {
+        } else if (currentMenu === 'Music') {
+          menuEmbed = helpEmbed;
+          menuOptions = [
+            ...prevMenuOptions,
+            { label: 'Invite Tracker', value: 'Invite Tracker', description: 'View Invite Tracker commands' },
+          ];
+          currentMenu = 'main_menu';
+        } else if (currentMenu === 'Invite Tracker') {
           menuEmbed = helpEmbed;
           menuOptions = prevMenuOptions;
           currentMenu = 'main_menu';
@@ -131,6 +131,24 @@ module.exports = {
           embeds: [menuEmbed],
           components: [menuActionRow],
         });
+
+        if (collectedInteraction.values[0] === 'Invite Tracker') {
+          const inviteEmbed = new MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle('Invite Tracker Commands')
+            .setDescription('Here are the commands for the Invite Tracker category:');
+
+          // Add the invite tracker commands to the embed
+          commandCategories.forEach((category) => {
+            if (category.name === 'Invite Tracker') {
+              category.commands.forEach((command) => {
+                inviteEmbed.addField(command.name, command.description);
+              });
+            }
+          });
+
+          await interaction.followUp({ embeds: [inviteEmbed] });
+        }
       }
     });
 
