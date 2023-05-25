@@ -56,9 +56,9 @@ module.exports = {
 
     commandCategories.forEach((category) => {
       const options = category.commands.map((command) => ({
-        label: `/${command.name}`,
-        value: command.name,
-        description: command.description,
+        label: category.name,
+        value: category.name.toLowerCase(),
+        description: category.description,
       }));
 
       const backButtonOptions = commandCategories
