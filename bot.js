@@ -1,4 +1,4 @@
-const Discord = require('discord.js/lib/client');
+const { Client } = require('@discordjs/rest');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -13,7 +13,7 @@ const intents = new Intents([
   Intents.FLAGS.GUILD_VOICE_STATES,
 ]);
 
-const client = new Discord.Client({ shards: "auto", intents });
+const client = new Client({ shards: 3, intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
@@ -25,8 +25,8 @@ for (const file of commandFiles) {
 }
 
 client.on('ready', async () => {
-  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+  console.log(`Shard ${client.shard.ids} logged in as <span class="math-inline">\{client\.user\.tag\}\!\`\);
+client\.user\.setActivity\(\`</span>{client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
 
   inviteTracker.execute(client);
 
@@ -79,4 +79,3 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-client.login(token);
