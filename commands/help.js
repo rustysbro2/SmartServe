@@ -56,8 +56,18 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new MessageActionRow().addComponents(selectMenu);
 
-    // Reply with the main menu
-    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
+    // Check if the interaction is a command or a message component
+    if (interaction.isCommand()) {
+      // Reply with the main menu
+      await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
+    } else if (interaction.isMessageComponent()) {
+      // Fetch the original message to be edited
+      const { channel, id } = interaction.message;
+      const originalMessage = await channel.messages.fetch(id);
+
+      // Edit the original message with the updated menu
+      await originalMessage.edit({ embeds: [helpEmbed], components: [actionRow] });
+    }
 
     // Create a filter to only collect interactions from the original user
     const filter = (collectedInteraction) =>
@@ -73,40 +83,44 @@ module.exports = {
     collector.on('collect', async (collectedInteraction) => {
       if (collectedInteraction.customId === 'help_category') {
         const selectedCategory = collectedInteraction.values[0];
+        const categoryCommands = commandCategories.find(
+          (category) => category.name === selectedCategory
+        );
 
-        if (selectedCategory === 'Music') {
-          const musicEmbed = new MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle('Music Commands')
-            .setDescription('Here are the commands for the Music category:');
+        // Create a new embed for the category commands
+        const categoryEmbed = new MessageEmbed()
+          .setColor('#0099ff')
+          .setTitle(`Category: ${selectedCategory}`)
+          .setDescription('Here are the commands in this category:');
 
-          // Add the music commands to the embed
-          commandCategories.forEach((category) => {
-            if (category.name === 'Music') {
-              category.commands.forEach((command) => {
-                musicEmbed.addField(command.name, command.description);
-              });
-            }
+        categoryCommands.commands.forEach((command) => {
+          categoryEmbed.addField(command.name, command.description);
+        });
+
+        // Create an option to go back to the main menu
+        const backButton = new MessageSelectMenu()
+          .setCustomId('help_back')
+          .setPlaceholder('Go back to main menu')
+          .addOptions({
+            label: 'Main Menu',
+            value: 'main_menu',
+            description: 'Go back to the main menu',
           });
 
-          await interaction.followUp({ embeds: [musicEmbed] });
-        } else if (selectedCategory === 'Invite Tracker') {
-          const inviteEmbed = new MessageEmbed()
-            .setColor('#0099ff')
-            .setTitle('Invite Tracker Commands')
-            .setDescription('Here are the commands for the Invite Tracker category:');
+        // Create a new action row with the back button
+        const categoryActionRow = new MessageActionRow().addComponents(backButton);
 
-          // Add the invite tracker commands to the embed
-          commandCategories.forEach((category) => {
-            if (category.name === 'Invite Tracker') {
-              category.commands.forEach((command) => {
-                inviteEmbed.addField(command.name, command.description);
-              });
-            }
-          });
-
-          await interaction.followUp({ embeds: [inviteEmbed] });
-        }
+        // Update the message with the category commands and back button
+        await collectedInteraction.update({
+          embeds: [categoryEmbed],
+          components: [categoryActionRow],
+        });
+      } else if (collectedInteraction.customId === 'help_back') {
+        // Update the message with the main menu again
+        await collectedInteraction.update({
+          embeds: [helpEmbed],
+          components: [actionRow],
+        });
       }
     });
 
