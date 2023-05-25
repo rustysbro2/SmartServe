@@ -1,4 +1,3 @@
-// countingGame.js
 const { Collection } = require('discord.js');
 const db = require('../database.js');
 
@@ -51,30 +50,38 @@ module.exports = {
 
 async function getNextExpectedNumber(guildId) {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       SELECT expectedNumber FROM countingGame WHERE guildId = ?
-    `, [guildId], function (error, results) {
-      if (error) return reject(error);
-      if (results.length > 0) {
-        resolve(results[0].expectedNumber + 1);
-      } else {
-        resolve(1);
+      `,
+      [guildId],
+      function (error, results) {
+        if (error) return reject(error);
+        if (results.length > 0) {
+          resolve(results[0].expectedNumber + 1);
+        } else {
+          resolve(1);
+        }
       }
-    });
+    );
   });
 }
 
 async function incrementCount(guildId, currentNumber) {
   return new Promise((resolve, reject) => {
-    db.query(`
+    db.query(
+      `
       INSERT INTO countingGame (guildId, expectedNumber)
       VALUES (?, ?)
       ON DUPLICATE KEY UPDATE
       expectedNumber = GREATEST(expectedNumber, ?)
-    `, [guildId, currentNumber + 1, currentNumber + 1], function (error) {
-      if (error) return reject(error);
-      resolve();
-    });
+      `,
+      [guildId, currentNumber + 1, currentNumber + 1],
+      function (error) {
+        if (error) return reject(error);
+        resolve();
+      }
+    );
   });
 }
 
@@ -84,11 +91,15 @@ async function handleIncorrectNumber(message, expectedNumber) {
   const countingChannel = message.guild.channels.cache.get(channelId);
 
   // Reset counting game for the guild
-  db.query(`
+  db.query(
+    `
     DELETE FROM countingGame WHERE guildId = ?
-  `, [guildId], function (error) {
-    if (error) console.error(`Failed to reset counting game for guild ${guildId}:`, error);
-  });
+    `,
+    [guildId],
+    function (error) {
+      if (error) console.error(`Failed to reset counting game for guild ${guildId}:`, error);
+    }
+  );
 
   // Remove the counting channel from the collection
   countingChannels.delete(guildId);
