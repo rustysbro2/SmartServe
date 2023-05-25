@@ -83,14 +83,14 @@ module.exports = {
           label: category.name,
           value: category.name.toLowerCase(),
           description: category.description,
-          options: options,
+          options: options.filter((option) => option.value !== 'help'), // Exclude /help in General category
         });
       } else {
         selectMenu.addOptions({
           label: category.name,
           value: category.name.toLowerCase(),
           description: category.description,
-          options: options.filter((option) => option.value !== 'help' && option.value !== 'ping'), // Exclude /help and /ping in Music category
+          options: options,
         });
       }
 
