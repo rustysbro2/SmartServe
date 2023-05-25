@@ -1,4 +1,3 @@
-// bot.js
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
@@ -38,7 +37,7 @@ client.once('ready', async () => {
 
   await client.application.commands.set([countingGame.data]); // Register the slash command
 
-  countingGame.execute(client); // Enable the counting game functionality
+  countingGame(client); // Enable the counting game functionality
 
   // Start checking voice channels every second
   setInterval(() => {
