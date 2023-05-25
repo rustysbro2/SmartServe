@@ -56,18 +56,8 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new MessageActionRow().addComponents(selectMenu);
 
-    // Check if the interaction is a command or a message component
-    if (interaction.isCommand()) {
-      // Reply with the main menu
-      await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
-    } else if (interaction.isMessageComponent()) {
-      // Fetch the original message to be edited
-      const { channel, id } = interaction.message;
-      const originalMessage = await channel.messages.fetch(id);
-
-      // Edit the original message with the updated menu
-      await originalMessage.edit({ embeds: [helpEmbed], components: [actionRow] });
-    }
+    // Reply with the main menu
+    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
 
     // Create a filter to only collect interactions from the original user
     const filter = (collectedInteraction) =>
@@ -97,7 +87,7 @@ module.exports = {
           categoryEmbed.addField(command.name, command.description);
         });
 
-        // Create options to go back to the main menu or to the other menu
+        // Create an option to go back to the main menu
         const backButton = new MessageSelectMenu()
           .setCustomId('help_back')
           .setPlaceholder('Go back to main menu')
@@ -107,18 +97,19 @@ module.exports = {
             description: 'Go back to the main menu',
           });
 
-        const otherMenuButton = new MessageSelectMenu()
-          .setCustomId('help_other_menu')
-          .setPlaceholder('Go to other menu')
-          .addOptions({
-            label: 'Other Menu',
-            value: 'other_menu',
-            description: 'Go to the other menu',
-          });
+        // Create an option to go to another menu
+        const menuButton = new MessageSelectMenu()
+          .setCustomId('help_menu')
+          .setPlaceholder('Go to another menu')
+          .addOptions(commandCategories.map((category) => ({
+            label: category.name,
+            value: category.name,
+            description: `Go to ${category.name} menu`,
+          })));
 
-        // Create a new action row with the back button and other menu button
+        // Create a new action row with the back button and menu button
         const categoryActionRow = new MessageActionRow()
-          .addComponents(backButton, otherMenuButton);
+          .addComponents(backButton, menuButton);
 
         // Update the message with the category commands and action row
         await collectedInteraction.update({
@@ -131,12 +122,21 @@ module.exports = {
           embeds: [helpEmbed],
           components: [actionRow],
         });
-      } else if (collectedInteraction.customId === 'help_other_menu') {
-        // Update the message with the other menu
-        const otherMenuEmbed = new MessageEmbed()
+      } else if (collectedInteraction.customId === 'help_menu') {
+        const selectedMenu = collectedInteraction.values[0];
+        const menuCategory = commandCategories.find(
+          (category) => category.name === selectedMenu
+        );
+
+        // Create a new embed for the menu category
+        const menuEmbed = new MessageEmbed()
           .setColor('#0099ff')
-          .setTitle('Other Menu')
-          .setDescription('This is the other menu.');
+          .setTitle(`Category: ${selectedMenu}`)
+          .setDescription('Please select a command:');
+
+        menuCategory.commands.forEach((command) => {
+          menuEmbed.addField(command.name, command.description);
+        });
 
         // Create an option to go back to the main menu
         const backButton = new MessageSelectMenu()
@@ -148,13 +148,24 @@ module.exports = {
             description: 'Go back to the main menu',
           });
 
-        // Create a new action row with the back button
-        const otherMenuActionRow = new MessageActionRow().addComponents(backButton);
+        // Create an option to go to another menu
+        const menuButton = new MessageSelectMenu()
+          .setCustomId('help_menu')
+          .setPlaceholder('Go to another menu')
+          .addOptions(commandCategories.map((category) => ({
+            label: category.name,
+            value: category.name,
+            description: `Go to ${category.name} menu`,
+          })));
 
-        // Update the message with the other menu and action row
+        // Create a new action row with the back button and menu button
+        const menuActionRow = new MessageActionRow()
+          .addComponents(backButton, menuButton);
+
+        // Update the message with the menu commands and action row
         await collectedInteraction.update({
-          embeds: [otherMenuEmbed],
-          components: [otherMenuActionRow],
+          embeds: [menuEmbed],
+          components: [menuActionRow],
         });
       }
     });
