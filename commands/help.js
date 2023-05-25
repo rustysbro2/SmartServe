@@ -9,8 +9,8 @@ module.exports = {
   async execute(interaction) {
     const commandCategories = [
       {
-        name: 'Main Menu',
-        description: 'Main menu commands',
+        name: 'General',
+        description: 'General commands',
         commands: [
           { name: 'help', description: 'List all commands or info about a specific command' },
           { name: 'ping', description: 'Ping the bot' },
@@ -54,38 +54,47 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
+    const optionsMap = new Map(); // Map to store unique option values
+
     commandCategories.forEach((category) => {
-      const options = category.commands.map((command) => ({
-        label: `/${command.name}`,
-        value: command.name,
-        description: command.description,
-      }));
+      if (category.name.toLowerCase() === 'general') {
+        const options = category.commands.map((command) => {
+          const optionValue = `${category.name.toLowerCase()}_${command.name.toLowerCase()}`; // Unique option value
+          optionsMap.set(optionValue, true); // Store option value in the map
+          return {
+            label: `/${command.name}`,
+            value: optionValue,
+            description: command.description,
+          };
+        });
 
-      const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase())
-        .map((c) => ({
-          label: c.name,
-          value: c.name.toLowerCase(),
-          description: `View ${c.name} commands`,
-        }));
+        selectMenu.addOptions(options);
+      } else {
+        const categoryOption = {
+          label: category.name,
+          value: category.name.toLowerCase(),
+          description: category.description,
+        };
 
-      const backButton = new MessageSelectMenu()
-        .setCustomId('help_back')
-        .setPlaceholder('Go back to main menu')
-        .addOptions([
-          { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-          ...backButtonOptions,
-        ]);
+        selectMenu.addOptions(categoryOption);
+      }
+    });
 
-      selectMenu.addOptions({
+    const backButtonOptions = commandCategories
+      .filter((category) => category.name.toLowerCase() !== 'general')
+      .map((category) => ({
         label: category.name,
         value: category.name.toLowerCase(),
-        description: category.description,
-        options: options,
-      });
+        description: `View ${category.name} commands`,
+      }));
 
-      category.backButton = backButton;
-    });
+    const backButton = new MessageSelectMenu()
+      .setCustomId('help_back')
+      .setPlaceholder('Go back to main menu')
+      .addOptions([
+        { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+        ...backButtonOptions,
+      ]);
 
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
@@ -94,21 +103,23 @@ module.exports = {
 
     collector.on('collect', async (collected) => {
       if (collected.customId === 'help_category') {
-        const selectedCategory = collected.values[0];
-        const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
+        const selectedOption = collected.values[0];
+        const [categoryName, commandName] = selectedOption.split('_'); // Extract category and command names
+
+        const category = commandCategories.find((c) => c.name.toLowerCase() === categoryName);
 
         if (category) {
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
-          const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'main menu'));
+          const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
           await collected.update({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       }
     });
@@ -117,7 +128,7 @@ module.exports = {
       interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
 
-    const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'main menu'));
+    const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
 
     await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
