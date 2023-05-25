@@ -38,7 +38,7 @@ client.once('ready', async () => {
 
   await client.application.commands.set([countingGame.data]); // Register the slash command
 
-  countingGame(client); // Enable the counting game functionality
+  countingGame.execute(client); // Enable the counting game functionality
 
   // Start checking voice channels every second
   setInterval(() => {
