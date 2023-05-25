@@ -54,14 +54,17 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
+    const mainMenuButton = new MessageSelectMenu()
+      .setCustomId('help_main_menu')
+      .setPlaceholder('Main Menu')
+      .addOptions([{ label: 'Main Menu', value: 'main_menu' }]);
+
     commandCategories.forEach((category) => {
-      const options = category.commands
-        .filter((command) => command.name !== interaction.commandName)
-        .map((command) => ({
-          label: `/${command.name}`,
-          value: command.name,
-          description: command.description,
-        }));
+      const options = category.commands.map((command) => ({
+        label: `/${command.name}`,
+        value: command.name,
+        description: command.description,
+      }));
 
       selectMenu.addOptions({
         label: category.name,
@@ -70,13 +73,6 @@ module.exports = {
         options: options,
       });
     });
-
-    const backButton = new MessageSelectMenu()
-      .setCustomId('help_back')
-      .setPlaceholder('Go back to main menu')
-      .addOptions([
-        { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-      ]);
 
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
@@ -90,16 +86,10 @@ module.exports = {
 
         if (category) {
           const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(mainMenuButton)] });
         }
-      } else if (collected.customId === 'help_back') {
-        if (collected.values[0] === 'main_menu') {
-          await collected.update({ embeds: [mainMenuEmbed], components: [selectMenu] });
-        } else {
-          const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
-          const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
-        }
+      } else if (collected.customId === 'help_main_menu') {
+        await collected.update({ embeds: [mainMenuEmbed], components: [selectMenu] });
       }
     });
 
