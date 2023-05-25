@@ -69,6 +69,8 @@ module.exports = {
       time: 60000,
     });
 
+    let previousSelection = 'main_menu';
+
     collector.on('collect', async (collected) => {
       if (collected.customId === 'help_category') {
         const selectedCategory = collected.values[0];
@@ -86,6 +88,8 @@ module.exports = {
 
           components[0].components = [backButton];
           await collected.update({ embeds: [categoryEmbed], components: components });
+
+          previousSelection = selectedCategory;
         }
       } else if (collected.customId === 'help_back') {
         const selectedValue = collected.values[0];
@@ -93,16 +97,20 @@ module.exports = {
 
         if (selectedValue === 'main_menu') {
           categoryEmbed = helpEmbed;
+          components[0].components = [selectMenu];
         } else if (selectedValue === 'music') {
           const musicCategory = commandCategories.find((c) => c.name === 'Music');
           categoryEmbed = createCategoryEmbed(musicCategory);
+          components[0].components = [backButton];
         } else if (selectedValue === 'invite_tracker') {
           const inviteTrackerCategory = commandCategories.find((c) => c.name === 'Invite Tracker');
           categoryEmbed = createCategoryEmbed(inviteTrackerCategory);
+          components[0].components = [backButton];
         }
 
-        components[0].components = [selectMenu];
         await collected.update({ embeds: [categoryEmbed], components: components });
+
+        previousSelection = selectedValue;
       }
     });
 
