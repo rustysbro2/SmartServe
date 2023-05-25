@@ -66,11 +66,13 @@ module.exports = {
         description: command.description,
       }));
 
+      const filteredOptions = options.filter((option) => option.value !== category.name.toLowerCase());
+
       selectMenu.addOptions({
         label: category.name,
         value: category.name.toLowerCase(),
         description: category.description,
-        options: options,
+        options: filteredOptions,
       });
     });
 
