@@ -50,14 +50,14 @@ module.exports = {
       return categoryEmbed;
     };
 
-    const selectMenu = new MessageSelectMenu()
-      .setCustomId('help_category')
-      .setPlaceholder('Select a category');
-
     const mainMenuButton = new MessageSelectMenu()
       .setCustomId('help_main_menu')
       .setPlaceholder('Main Menu')
       .addOptions([{ label: 'Main Menu', value: 'main_menu' }]);
+
+    const selectMenu = new MessageSelectMenu()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
       const options = category.commands.map((command) => ({
@@ -69,7 +69,7 @@ module.exports = {
       const filteredOptions = options.filter((option) => option.value !== category.name.toLowerCase());
 
       selectMenu.addOptions({
-        label: category.name,
+        label: category.name === 'General' ? 'Main Menu' : category.name,
         value: category.name.toLowerCase(),
         description: category.description,
         options: filteredOptions,
@@ -91,6 +91,7 @@ module.exports = {
           await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(mainMenuButton)] });
         }
       } else if (collected.customId === 'help_main_menu') {
+        const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
         await collected.update({ embeds: [mainMenuEmbed], components: [selectMenu] });
       }
     });
