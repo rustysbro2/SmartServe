@@ -92,6 +92,9 @@ module.exports = {
       interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
 
-    await interaction.reply({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
+    const currentCategory = commandCategories.find((category) => category.commands.some((command) => command.name === interaction.commandName));
+    const mainMenuEmbed = createCategoryEmbed(currentCategory);
+
+    await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
 };
