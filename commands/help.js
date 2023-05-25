@@ -50,7 +50,7 @@ module.exports = {
       return categoryEmbed;
     };
 
-    const helpEmbed = createCategoryEmbed(commandCategories[0]); // Help embed is the same as General category
+    const mainMenuEmbed = createCategoryEmbed(commandCategories[0]); // Main menu embed is the same as General category
     const selectMenu = new MessageSelectMenu()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
@@ -104,7 +104,7 @@ module.exports = {
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
-          await collected.update({ embeds: [helpEmbed], components: [selectMenu] });
+          await collected.update({ embeds: [mainMenuEmbed], components: [selectMenu] });
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
@@ -117,6 +117,6 @@ module.exports = {
       interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
 
-    await interaction.reply({ embeds: [helpEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
+    await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
 };
