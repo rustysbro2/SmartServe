@@ -7,21 +7,22 @@ module.exports = {
     .setDescription('List all commands or info about a specific command.'),
 
   async execute(interaction) {
-    const commands = interaction.client.commands;
-
-    // Define command categories and their respective commands
     const commandCategories = [
       {
         name: 'Music',
+        description: 'Commands related to music',
         commands: [
-          { name: 'play', description: 'Play a song.' },
-          { name: 'voteskip', description: 'Vote to skip the current song.' },
+          { name: 'play', description: 'Play a song' },
+          { name: 'stop', description: 'Stop the currently playing song' },
+          { name: 'skip', description: 'Skip to the next song' },
         ],
       },
       {
         name: 'Invite Tracker',
+        description: 'Commands related to invite tracking',
         commands: [
-          { name: 'setinvitechannel', description: 'Set the invite tracking channel.' },
+          { name: 'setinvitechannel', description: 'Set the invite tracking channel' },
+          { name: 'trackinvites', description: 'Start tracking invites' },
         ],
       },
     ];
@@ -47,72 +48,42 @@ module.exports = {
 
       selectMenu.addOptions({
         label: category.name,
-        value: category.name,
-        description: `Commands: ${options.map((option) => option.label).join(', ')}`,
+        value: category.name.toLowerCase(),
+        description: category.description,
         options: options,
       });
     });
 
-    // Create a filter to only collect interactions from the original user
-    const filter = (collectedInteraction) =>
-      collectedInteraction.user.id === interaction.user.id;
-
     // Create a message component collector
     const collector = interaction.channel.createMessageComponentCollector({
-      filter,
       componentType: 'SELECT_MENU',
       time: 60000, // 60 seconds
     });
 
-    collector.on('collect', async (collectedInteraction) => {
-      if (collectedInteraction.customId === 'help_category') {
-        const selectedCategory = collectedInteraction.values[0];
-        const categoryCommands = commandCategories.find(
-          (category) => category.name === selectedCategory
-        );
+    collector.on('collect', async (collected) => {
+      if (collected.customId === 'help_category') {
+        const selectedCategory = collected.values[0];
+        const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
 
-        const categoryEmbed = new MessageEmbed()
-          .setColor('#0099ff')
-          .setTitle(`Category: ${selectedCategory}`)
-          .setDescription('Here are the commands in this category:');
+        if (category) {
+          const categoryEmbed = new MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(`Category: ${category.name}`)
+            .setDescription(category.description);
 
-        categoryCommands.commands.forEach((command) => {
-          categoryEmbed.addField(command.name, command.description);
-        });
+          category.commands.forEach((command) => {
+            categoryEmbed.addField(command.name, command.description);
+          });
 
-        const backButton = new MessageSelectMenu()
-          .setCustomId('help_back')
-          .setPlaceholder('Go back to main menu')
-          .addOptions(
-            { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-            { label: 'Music', value: 'music', description: 'View Music commands' },
-            { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' }
-          );
-
-        const categoryActionRow = new MessageActionRow().addComponents(backButton);
-
-        await collectedInteraction.update({
-          embeds: [categoryEmbed],
-          components: [categoryActionRow],
-        });
-      } else if (collectedInteraction.customId === 'help_back') {
-        await collectedInteraction.update({
-          embeds: [helpEmbed],
-          components: [selectMenu],
-        });
+          await collected.update({ embeds: [categoryEmbed] });
+        }
       }
     });
 
-    collector.on('end', (collected) => {
-      if (collected.size === 0) {
-        interaction.followUp({
-          content: 'Category selection expired.',
-          embeds: [helpEmbed],
-          components: [selectMenu],
-        });
-      }
+    collector.on('end', () => {
+      interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
 
-    await interaction.reply({ embeds: [helpEmbed], components: [selectMenu] });
+    await interaction.reply({ embeds: [helpEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
 };
