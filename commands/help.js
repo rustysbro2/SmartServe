@@ -33,15 +33,6 @@ module.exports = {
       },
     ];
 
-    const helpEmbed = new MessageEmbed()
-      .setColor('#0099ff')
-      .setTitle('Help')
-      .setDescription('Please select a category:');
-
-    const selectMenu = new MessageSelectMenu()
-      .setCustomId('help_category')
-      .setPlaceholder('Select a category');
-
     const createCategoryEmbed = (category) => {
       if (!category) {
         return new MessageEmbed().setColor('#0099ff').setDescription('Invalid category');
@@ -58,6 +49,11 @@ module.exports = {
 
       return categoryEmbed;
     };
+
+    const helpEmbed = createCategoryEmbed(commandCategories[0]); // Help embed is the same as General category
+    const selectMenu = new MessageSelectMenu()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
       const options = category.commands.map((command) => ({
