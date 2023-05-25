@@ -132,7 +132,7 @@ module.exports = {
         const menuEmbed = new MessageEmbed()
           .setColor('#0099ff')
           .setTitle(`Category: ${selectedMenu}`)
-          .setDescription('Please select a command:');
+          .setDescription('Here are the commands in this category:');
 
         menuCategory.commands.forEach((command) => {
           menuEmbed.addField(command.name, command.description);
