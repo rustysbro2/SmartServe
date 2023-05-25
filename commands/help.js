@@ -53,12 +53,7 @@ module.exports = {
 
     const backButton = new MessageSelectMenu()
       .setCustomId('help_back')
-      .setPlaceholder('Go back to main menu')
-      .addOptions([
-        { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-        { label: 'Music', value: 'music', description: 'View Music commands' },
-        { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
-      ]);
+      .setPlaceholder('Go back to main menu');
 
     const components = [new MessageActionRow().addComponents(selectMenu)];
 
@@ -86,6 +81,7 @@ module.exports = {
             categoryEmbed.addField(command.name, command.description);
           });
 
+          backButton.addOptions(createBackOptions(previousSelection));
           components[0].components = [backButton];
           await collected.update({ embeds: [categoryEmbed], components: components });
 
@@ -97,17 +93,13 @@ module.exports = {
 
         if (selectedValue === 'main_menu') {
           categoryEmbed = helpEmbed;
-          components[0].components = [selectMenu];
-        } else if (selectedValue === 'music') {
-          const musicCategory = commandCategories.find((c) => c.name === 'Music');
-          categoryEmbed = createCategoryEmbed(musicCategory);
-          components[0].components = [backButton];
-        } else if (selectedValue === 'invite_tracker') {
-          const inviteTrackerCategory = commandCategories.find((c) => c.name === 'Invite Tracker');
-          categoryEmbed = createCategoryEmbed(inviteTrackerCategory);
-          components[0].components = [backButton];
+        } else {
+          const category = commandCategories.find((c) => c.name.toLowerCase() === selectedValue);
+          categoryEmbed = createCategoryEmbed(category);
         }
 
+        backButton.addOptions(createBackOptions(selectedValue));
+        components[0].components = [backButton];
         await collected.update({ embeds: [categoryEmbed], components: components });
 
         previousSelection = selectedValue;
@@ -129,6 +121,16 @@ module.exports = {
       });
 
       return categoryEmbed;
+    }
+
+    function createBackOptions(selectedValue) {
+      const backOptions = [
+        { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+        { label: 'Music', value: 'music', description: 'View Music commands' },
+        { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
+      ];
+
+      return backOptions.filter((option) => option.value !== selectedValue);
     }
   },
 };
