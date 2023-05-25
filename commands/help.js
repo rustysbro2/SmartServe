@@ -75,7 +75,7 @@ module.exports = {
             categoryEmbed.addField(command.name, command.description);
           });
 
-          await collected.update({ embeds: [categoryEmbed] });
+          await interaction.followUp({ embeds: [categoryEmbed] });
         }
       }
     });
