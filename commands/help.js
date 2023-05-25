@@ -53,9 +53,6 @@ module.exports = {
       });
     });
 
-    // Create the action row with the select menu
-    const actionRow = new MessageActionRow().addComponents(selectMenu);
-
     // Create a filter to only collect interactions from the original user
     const filter = (collectedInteraction) =>
       collectedInteraction.user.id === interaction.user.id;
@@ -88,8 +85,8 @@ module.exports = {
           .setPlaceholder('Go back to main menu')
           .addOptions([
             { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-            { label: 'Music', value: 'Music', description: 'View Music commands' },
-            { label: 'Invite Tracker', value: 'Invite Tracker', description: 'View Invite Tracker commands' },
+            { label: 'Music', value: 'music', description: 'View Music commands' },
+            { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
           ]);
 
         const categoryActionRow = new MessageActionRow().addComponents(backButton);
@@ -118,6 +115,6 @@ module.exports = {
       }
     });
 
-    await interaction.reply({ embeds: [helpEmbed], components: [actionRow] });
+    await interaction.reply({ embeds: [helpEmbed], components: [selectMenu] });
   },
 };
