@@ -68,16 +68,20 @@ module.exports = {
       return categoryEmbed;
     };
 
+    const backButtonOptions = commandCategories
+      .map((category) => ({
+        label: category.name,
+        value: category.name.toLowerCase(),
+        description: `View ${category.name} commands`,
+      }))
+      .filter((option) => option.value !== 'music' && option.value !== 'invite tracker');
+
     const backButton = new MessageSelectMenu()
       .setCustomId('help_back')
       .setPlaceholder('Go back to main menu')
       .addOptions([
         { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-        ...(commandCategories.map((category) => ({
-          label: category.name,
-          value: category.name.toLowerCase(),
-          description: `View ${category.name} commands`,
-        })).filter((option) => option.value !== 'music' && option.value !== 'invite tracker'))),
+        ...backButtonOptions,
       ]);
 
     const collector = interaction.channel.createMessageComponentCollector({
