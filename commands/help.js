@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageEmbed, MessageSelectMenu } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageSelectMenu } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -27,18 +27,15 @@ module.exports = {
       },
     ];
 
-    // Create the main help embed
     const helpEmbed = new MessageEmbed()
       .setColor('#0099ff')
       .setTitle('Help')
       .setDescription('Please select a category:');
 
-    // Create the select menu with category options
     const selectMenu = new MessageSelectMenu()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Add options to the select menu based on command categories
     commandCategories.forEach((category) => {
       const options = category.commands.map((command) => ({
         label: command.name,
@@ -54,7 +51,6 @@ module.exports = {
       });
     });
 
-    // Create a message component collector
     const collector = interaction.channel.createMessageComponentCollector({
       componentType: 'SELECT_MENU',
       time: 60000, // 60 seconds
@@ -75,7 +71,10 @@ module.exports = {
             categoryEmbed.addField(command.name, command.description);
           });
 
-          await interaction.followUp({ embeds: [categoryEmbed] });
+          const replyMessage = await interaction.fetchReply();
+          if (replyMessage && replyMessage instanceof Message) {
+            replyMessage.edit({ embeds: [categoryEmbed] });
+          }
         }
       }
     });
