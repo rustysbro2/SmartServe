@@ -6,7 +6,7 @@ let pool = mysql.createPool({
     host: "localhost",
     user: "root",
     password: "",
-    database: "SmartBeta"
+    database: "SmartServe"
 });
 
 module.exports = pool;
