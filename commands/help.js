@@ -81,13 +81,35 @@ module.exports = {
             .addOptions([
               { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
               { label: 'Music', value: 'music', description: 'View Music commands' },
-              { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
             ]);
 
           await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       } else if (collected.customId === 'help_back') {
-        await collected.update({ embeds: [helpEmbed], components: [selectMenu] });
+        if (collected.values[0] === 'main_menu') {
+          await collected.update({ embeds: [helpEmbed], components: [selectMenu] });
+        } else if (collected.values[0] === 'music') {
+          const musicCategory = commandCategories.find((c) => c.name === 'Music');
+
+          const musicEmbed = new MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle(`Category: ${musicCategory.name}`)
+            .setDescription(musicCategory.description);
+
+          musicCategory.commands.forEach((command) => {
+            musicEmbed.addField(command.name, command.description);
+          });
+
+          const backButton = new MessageSelectMenu()
+            .setCustomId('help_back')
+            .setPlaceholder('Go back to main menu')
+            .addOptions([
+              { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
+              { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
+            ]);
+
+          await collected.update({ embeds: [musicEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+        }
       }
     });
 
