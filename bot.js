@@ -25,6 +25,8 @@ for (const file of commandFiles) {
   client.commands.set(command.data.name, command);
 }
 
+const countingGame = require('./features/countingGame');
+
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
   client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
@@ -33,6 +35,10 @@ client.once('ready', async () => {
 
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
+
+  await client.application.commands.set([countingGame.data]); // Register the slash command
+
+  countingGame.execute(client); // Enable the counting game functionality
 
   // Start checking voice channels every second
   setInterval(() => {
