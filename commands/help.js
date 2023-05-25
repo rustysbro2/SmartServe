@@ -163,10 +163,7 @@ module.exports = {
           .addComponents(backButton, menuButton);
 
         // Update the message with the menu commands and action row
-        await collectedInteraction.update({
-          embeds: [menuEmbed],
-          components: [menuActionRow],
-        });
+        await interaction.followUp({ embeds: [menuEmbed], components: [menuActionRow] });
       }
     });
 
