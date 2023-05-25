@@ -82,22 +82,14 @@ module.exports = {
           ...backButtonOptions,
         ]);
 
-      if (category.name.toLowerCase() === 'general') {
-        selectMenu.addOptions({
-          label: 'Main Menu',
-          value: 'main_menu',
-          description: 'Go back to the main menu',
-        });
-      } else {
-        selectMenu.addOptions({
-          label: category.name,
-          value: category.name.toLowerCase(),
-          description: category.description,
-          options: options,
-        });
+      selectMenu.addOptions({
+        label: category.name,
+        value: category.name.toLowerCase(),
+        description: category.description,
+        options: options,
+      });
 
-        category.backButton = backButton;
-      }
+      category.backButton = backButton;
     });
 
     const collector = interaction.channel.createMessageComponentCollector({
@@ -132,6 +124,6 @@ module.exports = {
 
     const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'general'));
 
-    await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(mainMenuButton)] });
+    await interaction.reply({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
   },
 };
