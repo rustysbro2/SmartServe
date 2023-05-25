@@ -96,11 +96,9 @@ module.exports = {
           components: [categoryActionRow],
         });
       } else if (collectedInteraction.customId === 'help_back') {
-        const mainMenuActionRow = new MessageActionRow().addComponents(selectMenu);
-
         await collectedInteraction.update({
           embeds: [helpEmbed],
-          components: [mainMenuActionRow],
+          components: [selectMenu],
         });
       }
     });
@@ -110,7 +108,7 @@ module.exports = {
         interaction.followUp({
           content: 'Category selection expired.',
           embeds: [helpEmbed],
-          components: [actionRow],
+          components: [selectMenu],
         });
       }
     });
