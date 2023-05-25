@@ -73,7 +73,11 @@ module.exports = {
       .setPlaceholder('Go back to main menu')
       .addOptions([
         { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-        { label: 'Invite Tracker', value: 'invite_tracker', description: 'View Invite Tracker commands' },
+        ...(commandCategories.map((category) => ({
+          label: category.name,
+          value: category.name.toLowerCase(),
+          description: `View ${category.name} commands`,
+        }))),
       ]);
 
     const collector = interaction.channel.createMessageComponentCollector({
@@ -93,10 +97,12 @@ module.exports = {
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
           await collected.update({ embeds: [helpEmbed], components: [selectMenu] });
-        } else if (collected.values[0] === 'invite_tracker') {
-          const inviteTrackerCategory = commandCategories.find((c) => c.name === 'Invite Tracker');
-          const inviteTrackerEmbed = createCategoryEmbed(inviteTrackerCategory);
-          await collected.update({ embeds: [inviteTrackerEmbed], components: [new MessageActionRow().addComponents(backButton)] });
+        } else {
+          const selectedCategory = collected.values[0];
+          const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
+
+          const categoryEmbed = createCategoryEmbed(category);
+          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(backButton)] });
         }
       }
     });
