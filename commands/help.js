@@ -70,69 +70,27 @@ module.exports = {
       time: 60000, // 60 seconds
     });
 
-    let currentMenu = 'main_menu';
-    let prevMenuOptions = [];
-
     collector.on('collect', async (collectedInteraction) => {
       if (collectedInteraction.customId === 'help_category') {
         const selectedCategory = collectedInteraction.values[0];
-        const categoryCommands = commandCategories.find(
-          (category) => category.name === selectedCategory
-        );
 
-        const categoryEmbed = new MessageEmbed()
-          .setColor('#0099ff')
-          .setTitle(`Category: ${selectedCategory}`)
-          .setDescription('Here are the commands in this category:');
+        if (selectedCategory === 'Music') {
+          const musicEmbed = new MessageEmbed()
+            .setColor('#0099ff')
+            .setTitle('Music Commands')
+            .setDescription('Here are the commands for the Music category:');
 
-        categoryCommands.commands.forEach((command) => {
-          categoryEmbed.addField(command.name, command.description);
-        });
+          // Add the music commands to the embed
+          commandCategories.forEach((category) => {
+            if (category.name === 'Music') {
+              category.commands.forEach((command) => {
+                musicEmbed.addField(command.name, command.description);
+              });
+            }
+          });
 
-        const backButton = new MessageSelectMenu()
-          .setCustomId('help_back')
-          .setPlaceholder('Go back to main menu')
-          .addOptions(prevMenuOptions);
-
-        const categoryActionRow = new MessageActionRow().addComponents(backButton);
-
-        await collectedInteraction.update({
-          embeds: [categoryEmbed],
-          components: [categoryActionRow],
-        });
-
-        currentMenu = selectedCategory;
-      } else if (collectedInteraction.customId === 'help_back') {
-        let menuEmbed, menuOptions;
-        if (currentMenu === 'main_menu') {
-          menuEmbed = helpEmbed;
-          menuOptions = prevMenuOptions;
-        } else if (currentMenu === 'Music') {
-          menuEmbed = helpEmbed;
-          menuOptions = [
-            ...prevMenuOptions,
-            { label: 'Invite Tracker', value: 'Invite Tracker', description: 'View Invite Tracker commands' },
-          ];
-          currentMenu = 'main_menu';
-        } else if (currentMenu === 'Invite Tracker') {
-          menuEmbed = helpEmbed;
-          menuOptions = prevMenuOptions;
-          currentMenu = 'main_menu';
-        }
-
-        const backButton = new MessageSelectMenu()
-          .setCustomId('help_back')
-          .setPlaceholder('Go back to main menu')
-          .addOptions(menuOptions);
-
-        const menuActionRow = new MessageActionRow().addComponents(backButton);
-
-        await collectedInteraction.update({
-          embeds: [menuEmbed],
-          components: [menuActionRow],
-        });
-
-        if (collectedInteraction.values[0] === 'Invite Tracker') {
+          await interaction.followUp({ embeds: [musicEmbed] });
+        } else if (selectedCategory === 'Invite Tracker') {
           const inviteEmbed = new MessageEmbed()
             .setColor('#0099ff')
             .setTitle('Invite Tracker Commands')
