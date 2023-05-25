@@ -1,4 +1,3 @@
-// bot.js
 const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
@@ -6,6 +5,7 @@ const fs = require('fs');
 const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
+const { incrementNumber, resetNumber, getCurrentNumber } = require('./features/countingLogic');
 
 const intents = new Intents([
   Intents.FLAGS.GUILDS,
@@ -54,7 +54,7 @@ async function checkVoiceChannels() {
         // Bot is the only member in the voice channel
         console.log(`Bot is the only member in the voice channel: ${channel.name}`);
         console.log(`Channel Members: ${channel.members.size}`);
-        
+
         if (musicPlayer && musicPlayer.connection) {
           console.log("Destroying connection and leaving voice channel.");
           musicPlayer.connection.destroy();
@@ -77,6 +77,27 @@ client.on('interactionCreate', async (interaction) => {
   } catch (error) {
     console.error(error);
     await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+  }
+});
+
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  // Check if the message is a valid counting number
+  const content = message.content.trim();
+  const count = parseInt(content);
+
+  if (!isNaN(count)) {
+    const currentNumber = getCurrentNumber();
+
+    if (count === currentNumber + 1) {
+      // Valid counting number, increment the count
+      incrementNumber();
+    } else {
+      // Invalid counting number, reset the count
+      resetNumber();
+      message.reply('Oops! The counting got messed up. Let\'s start over!');
+    }
   }
 });
 
