@@ -1,6 +1,8 @@
 // Import the Discord client
 const { Client } = require('@discordjs/rest');
 
+const { Intents } = require('discord.js');
+
 // Import the bot's token
 const { token } = require('./config.js');
 
