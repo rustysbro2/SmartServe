@@ -54,12 +54,18 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
+    const optionsMap = new Map(); // Map to store unique option values
+
     commandCategories.forEach((category) => {
-      const options = category.commands.map((command) => ({
-        label: category.name,
-        value: category.name.toLowerCase(),
-        description: category.description,
-      }));
+      const options = category.commands.map((command) => {
+        const optionValue = `${category.name.toLowerCase()}_${command.name.toLowerCase()}`; // Unique option value
+        optionsMap.set(optionValue, true); // Store option value in the map
+        return {
+          label: category.name,
+          value: optionValue,
+          description: command.description,
+        };
+      });
 
       const backButtonOptions = commandCategories
         .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'general')
@@ -98,8 +104,10 @@ module.exports = {
 
     collector.on('collect', async (collected) => {
       if (collected.customId === 'help_category') {
-        const selectedCategory = collected.values[0];
-        const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
+        const selectedOption = collected.values[0];
+        const [categoryName, commandName] = selectedOption.split('_'); // Extract category and command names
+
+        const category = commandCategories.find((c) => c.name.toLowerCase() === categoryName);
 
         if (category) {
           const categoryEmbed = createCategoryEmbed(category);
