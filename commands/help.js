@@ -77,12 +77,14 @@ module.exports = {
           ...backButtonOptions,
         ]);
 
-      selectMenu.addOptions({
-        label: category.name,
-        value: category.name.toLowerCase(),
-        description: category.description,
-        options: options,
-      });
+      if (category.name.toLowerCase() !== 'main menu') {
+        selectMenu.addOptions({
+          label: category.name,
+          value: category.name.toLowerCase(),
+          description: category.description,
+          options: options,
+        });
+      }
 
       category.backButton = backButton;
     });
@@ -103,8 +105,7 @@ module.exports = {
         }
       } else if (collected.customId === 'help_back') {
         if (collected.values[0] === 'main_menu') {
-          const mainMenuEmbed = createCategoryEmbed(commandCategories.find((c) => c.name.toLowerCase() === 'main menu'));
-          await collected.update({ embeds: [mainMenuEmbed], components: [new MessageActionRow().addComponents(selectMenu)] });
+          await collected.update({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
         } else {
           const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
           const categoryEmbed = createCategoryEmbed(category);
