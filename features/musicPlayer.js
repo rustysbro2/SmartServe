@@ -123,7 +123,7 @@ class MusicPlayer {
   }
 
   sendNowPlaying() {
-    if (this.currentSong && this.textChannel) {
+    if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
       const message = `Now playing: ${this.currentSong}`;
       this.textChannel
@@ -135,9 +135,10 @@ class MusicPlayer {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
     } else {
-      console.log('No current song to send Now Playing message or textChannel is undefined.');
+      console.log('No song is currently playing.');
     }
   }
+
 
 
 
