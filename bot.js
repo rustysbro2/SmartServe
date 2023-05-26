@@ -17,7 +17,7 @@ const client = new client({
     ],
 });
 
-const client = new client({ shards: "auto", intents });
+client = new client({ shards: "auto", intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
