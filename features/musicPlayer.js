@@ -1,13 +1,6 @@
-const {
-  AudioPlayerStatus,
-  createAudioPlayer,
-  createAudioResource,
-  entersState,
-  joinVoiceChannel,
-  VoiceConnectionStatus,
-} = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
+const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
 const { EmbedBuilder } = require('discord.js');
+const ytdl = require('ytdl-core');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -19,7 +12,7 @@ class MusicPlayer {
     this.connection = null;
     this.currentSong = null;
     this.voteSkips = new Set();
-    this.voteSkipThreshold = 0.5; // Change this value to set the required percentage of votes to skip a song
+    this.voteSkipThreshold = 0.5;
 
     this.setupListeners();
   }
@@ -119,7 +112,7 @@ class MusicPlayer {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
       const embed = new EmbedBuilder()
-        .setColor('#00ff00')
+        .setColor(0x00ff00)
         .setTitle('Now Playing')
         .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
 
@@ -183,7 +176,7 @@ class MusicPlayer {
     }
 
     const embed = new EmbedBuilder()
-      .setColor('#00ff00')
+      .setColor(0x00ff00)
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
 
