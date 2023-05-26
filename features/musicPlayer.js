@@ -6,7 +6,7 @@ const {
   joinVoiceChannel,
   VoiceConnectionStatus,
 } = require('@discordjs/voice');
-const ytdl = require('ytdl-core-discord');
+const ytdl = require('ytdl-core');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -92,7 +92,7 @@ class MusicPlayer {
       console.log('Processing queue. Now playing:', this.currentSong);
 
       try {
-        const stream = await ytdl(this.currentSong);
+        const stream = ytdl(this.currentSong, { filter: 'audioonly' });
         const resource = createAudioResource(stream);
         this.audioPlayer.play(resource);
 
