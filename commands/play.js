@@ -1,5 +1,6 @@
-// commands/play.js
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { createAudioResource, StreamType } = require('@discordjs/voice');
+const { createReadStream } = require('fs');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus } = require('@discordjs/voice');
 const { entersState } = require('@discordjs/voice');
@@ -13,7 +14,7 @@ module.exports = {
         .setName('url')
         .setDescription('The YouTube URL of the song to play')
         .setRequired(true)),
-async execute(interaction, client) {
+  async execute(interaction, client) {
     try {
       console.log('Executing /play command...');
       const url = interaction.options.getString('url');
@@ -42,7 +43,14 @@ async execute(interaction, client) {
 
       const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
-      await musicPlayer.addSong(url);
+      
+      // Create the audio resource from the provided URL
+      const stream = createReadStream(url);
+      const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
+      
+      // Play the audio resource
+      await musicPlayer.audioPlayer.play(resource);
+      console.log('Song added to the queue.');
 
       if (wasEmpty && musicPlayer.queue.length === 1) {
         console.log('Waiting for AudioPlayer to transition to "Playing" state...');
