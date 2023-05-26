@@ -1,6 +1,6 @@
 const { InteractionType } = require('discord.js');
 // bot.js
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { Client, Collection, GatewayIntents } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
