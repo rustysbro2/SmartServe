@@ -8,7 +8,7 @@ const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@
 const ytdl = require('ytdl-core');
 
 const client = new Client({
-  shards: "10",
+  shards: "auto",
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
