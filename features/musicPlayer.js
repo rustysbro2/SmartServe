@@ -24,14 +24,15 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on(AudioPlayerStatus.Idle, async () => {
-      console.log('Audio player state changed to Idle. Processing queue.');
-      await this.processQueue();
-    });
-
-    this.audioPlayer.on(AudioPlayerStatus.AutoPaused, () => {
-      console.log('Audio player state changed to Autopaused. Resuming playback.');
-      this.audioPlayer.unpause();
+    this.audioPlayer.on('stateChange', async (oldState, newState) => {
+      console.log(`State change: ${oldState.status} -> ${newState.status}`);
+      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+        console.log('Audio player state changed to Idle. Processing queue.');
+        await this.processQueue();
+      } else if (newState.status === AudioPlayerStatus.AutoPaused && oldState.status !== AudioPlayerStatus.AutoPaused) {
+        console.log('Audio player state changed to Autopaused. Resuming playback.');
+        this.audioPlayer.unpause();
+      }
     });
 
     this.audioPlayer.on('error', (error) => {
@@ -63,7 +64,7 @@ class MusicPlayer {
     return pattern.test(url);
   }
 
-  async addSong(url) {
+  addSong(url) {
     if (!this.isValidYoutubeUrl(url)) {
       throw new Error('Invalid YouTube URL');
     }
@@ -73,7 +74,9 @@ class MusicPlayer {
 
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
-      await this.processQueue();
+      this.processQueue().catch((error) => {
+        console.error(`Error while processing queue: ${error.message}`);
+      });
     }
   }
 
