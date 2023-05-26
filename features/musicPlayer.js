@@ -1,5 +1,5 @@
-const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
-const { EmbedBuilder } = require('discord.js');
+const { entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -8,31 +8,8 @@ class MusicPlayer {
     this.channelId = channelId;
     this.textChannel = textChannel;
     this.queue = [];
-    this.audioPlayer = createAudioPlayer();
     this.connection = null;
     this.currentSong = null;
-    this.voteSkips = new Set();
-    this.voteSkipThreshold = 0.5;
-    this.isNewSong = false;
-
-    this.setupListeners();
-  }
-
-  setupListeners() {
-    this.audioPlayer.on('stateChange', async (oldState, newState) => {
-      console.log(`State change: ${oldState.status} -> ${newState.status}`);
-      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-        console.log('Audio player state changed to Idle. Processing queue.');
-        await this.processQueue();
-      } else if (newState.status === AudioPlayerStatus.AutoPaused && oldState.status !== AudioPlayerStatus.AutoPaused) {
-        console.log('Audio player state changed to Autopaused. Resuming playback.');
-        this.audioPlayer.unpause();
-      }
-    });
-
-    this.audioPlayer.on('error', (error) => {
-      console.error(`Error: ${error.message}`);
-    });
   }
 
   async joinChannel() {
@@ -50,8 +27,6 @@ class MusicPlayer {
       this.connection.destroy();
       throw error;
     }
-
-    this.connection.subscribe(this.audioPlayer);
   }
 
   isValidYoutubeUrl(url) {
@@ -64,149 +39,69 @@ class MusicPlayer {
       throw new Error('Invalid YouTube URL');
     }
 
-    if (this.currentSong) {
-      // A song is already playing, enqueue the new song
-      this.queue.push(url);
-      console.log('Song enqueued:', url);
+    const song = {
+      url: url,
+      requester: this.textChannel.guild.me.user.tag,
+    };
+
+    this.queue.push(song);
+
+    if (!this.currentSong) {
+      this.playNext();
     } else {
-      // No song is currently playing, start playing the new song
-      this.currentSong = url;
-      console.log('Now playing:', this.currentSong);
-
-      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
-      const resource = createAudioResource(stream);
-      this.audioPlayer.play(resource);
-
-      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-      // Check isNewSong flag and send the "Now Playing" message
-      if (this.isNewSong) {
-        this.sendNowPlaying();
-      }
-
-      await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
-      this.currentSong = null; // Reset the current song
-      await this.processQueue(); // Process the queue for the next song
-    }
-  }
-
-  async processQueue() {
-    if (this.queue.length === 0) {
-      if (this.connection) {
-        this.connection.destroy();
-        this.connection = null;
-        console.log('Bot left the voice channel.');
-      }
-      console.log('Queue is empty. Stopping playback.');
-      return;
-    }
-
-    if (!this.connection) {
-      await this.joinChannel();
-    }
-
-    while (this.queue.length > 0) {
-      const isNewSong = this.queue.length === 1;
-
-      this.currentSong = this.queue.shift();
-      console.log('Processing queue. Now playing:', this.currentSong);
-
-      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
-      const resource = createAudioResource(stream);
-      this.audioPlayer.play(resource);
-
-      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-      console.log('Now playing:', this.currentSong);
-
-      if (isNewSong) {
-        this.sendNowPlaying();
-      }
-
-      await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
-    }
-  }
-
-  sendNowPlaying() {
-    if (this.currentSong) {
-      console.log('Sending Now Playing message:', this.currentSong);
-
       const embed = new EmbedBuilder()
         .setColor(0x00ff00)
-        .setTitle('Now Playing')
-        .setDescription(this.currentSong);
+        .setTitle('Song Queued')
+        .setDescription(`[${song.url}](${song.url})`)
+        .addField('Requested by', song.requester);
 
-      this.textChannel
-        .send({ embeds: [embed] })
+      this.textChannel.send({ embeds: [embed] })
         .then(() => {
-          console.log('Now Playing message sent:', this.currentSong);
+          console.log('Song queued:', song.url);
         })
         .catch((error) => {
-          console.error(`Failed to send Now Playing message: ${error.message}`);
+          console.error(`Failed to send song queued message: ${error.message}`);
         });
     }
   }
 
-  async voteSkip(member) {
-    if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
-      throw new Error('There is no song currently playing.');
+  playNext() {
+    if (this.queue.length === 0) {
+      // Queue is empty, disconnect from the voice channel
+      this.connection.disconnect();
+      this.connection = null;
+      this.currentSong = null;
+      console.log('Bot left the voice channel.');
+      return;
     }
 
-    const voiceChannel = this.connection.joinConfig.channelId;
-    if (!voiceChannel) {
-      throw new Error('The bot is not in a voice channel.');
-    }
+    const song = this.queue.shift();
+    this.currentSong = song.url;
 
-    const guild = this.textChannel.guild;
-    if (!guild) {
-      throw new Error('Failed to retrieve the guild.');
-    }
+    const stream = ytdl(song.url, { filter: 'audioonly' });
+    const resource = createAudioResource(stream);
 
-    const members = guild.members.cache;
-    if (!members || members.size === 1) {
-      throw new Error('There are no other members in the voice channel.');
-    }
+    resource.playStream.on('end', () => {
+      console.log('Finished playing:', this.currentSong);
+      this.currentSong = null;
+      this.playNext();
+    });
 
-    if (this.voteSkips.has(member.id)) {
-      throw new Error('You have already voted to skip the current song.');
-    }
-
-    this.voteSkips.add(member.id);
-
-    const voteCount = this.voteSkips.size;
-    const totalCount = members.size - 1; // Exclude the bot
-
-    const votePercentage = voteCount / totalCount;
-    if (votePercentage >= this.voteSkipThreshold) {
-      console.log('Vote skip threshold reached. Skipping the current song.');
-      this.audioPlayer.stop();
-      this.sendVoteSkipMessage();
-    } else {
-      console.log(`Received vote skip from ${member.user.tag}. Vote count: ${voteCount}/${totalCount}`);
-      this.sendVoteSkipMessage();
-    }
-  }
-
-  sendVoteSkipMessage() {
-    const voteCount = this.voteSkips.size;
-    const totalCount = this.textChannel.guild?.members.cache.size - 1; // Exclude the bot
-
-    if (totalCount === undefined) {
-      throw new Error('Failed to retrieve the total count of members.');
-    }
+    this.connection.subscribe(resource);
+    this.connection.play(resource);
 
     const embed = new EmbedBuilder()
       .setColor(0x00ff00)
-      .setTitle('Vote Skip')
-      .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
+      .setTitle('Now Playing')
+      .setDescription(`[${song.url}](${song.url})`)
+      .addField('Requested by', song.requester);
 
-    this.textChannel
-      .send({ embeds: [embed] })
+    this.textChannel.send({ embeds: [embed] })
       .then(() => {
-        console.log('Vote skip message sent.');
+        console.log('Now Playing message sent:', song.url);
       })
       .catch((error) => {
-        console.error(`Failed to send vote skip message: ${error.message}`);
+        console.error(`Failed to send Now Playing message: ${error.message}`);
       });
   }
 }
