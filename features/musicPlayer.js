@@ -64,15 +64,32 @@ class MusicPlayer {
       throw new Error('Invalid YouTube URL');
     }
 
-    const wasEmpty = this.queue.length === 0;
-    this.queue.push(url);
+    if (this.currentSong) {
+      // A song is already playing, enqueue the new song
+      this.queue.push(url);
+      console.log('Song enqueued:', url);
+    } else {
+      // No song is currently playing, start playing the new song
+      this.currentSong = url;
+      console.log('Now playing:', this.currentSong);
 
-    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
-      console.log('Queue was empty and audio player is not playing. Processing queue.');
-      this.isNewSong = true;
-      await this.processQueue();
+      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
+      const resource = createAudioResource(stream);
+      this.audioPlayer.play(resource);
+
+      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+      // Check isNewSong flag and send the "Now Playing" message
+      if (this.isNewSong) {
+        this.sendNowPlaying();
+      }
+
+      await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
+      this.currentSong = null; // Reset the current song
+      await this.processQueue(); // Process the queue for the next song
     }
   }
+
 
   async processQueue() {
     if (this.queue.length === 0) {
