@@ -92,8 +92,8 @@ class MusicPlayer {
       console.log('Processing queue. Now playing:', this.currentSong);
 
       try {
-        const stream = ytdl(this.currentSong, { filter: 'audioonly' });
-        const resource = createAudioResource(stream);
+        const stream = ytdl(this.currentSong, { filter: 'audioonly', quality: 'highestaudio' });
+        const resource = createAudioResource(stream, { inputType: 'stream' });
         this.audioPlayer.play(resource);
 
         await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
