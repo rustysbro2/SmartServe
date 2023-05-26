@@ -69,6 +69,16 @@ class MusicPlayer {
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
       await this.processQueue();
+    } else if (!wasEmpty) {
+      console.log('Song added to the queue.');
+      const addedToQueueMessage = `Added to Queue: ${url}`;
+      this.textChannel.send(addedToQueueMessage)
+        .then(() => {
+          console.log('Added to Queue message sent:', url);
+        })
+        .catch((error) => {
+          console.error(`Failed to send Added to Queue message: ${error.message}`);
+        });
     }
   }
 
@@ -99,7 +109,7 @@ class MusicPlayer {
 
       console.log('Now playing:', this.currentSong);
       this.sendNowPlaying();
-
+      
       // Reset voteSkips set
       this.voteSkips.clear();
 
@@ -109,38 +119,23 @@ class MusicPlayer {
   }
 
   sendNowPlaying() {
-      if (this.currentSong) {
-          console.log('Sending Now Playing message:', this.currentSong);
-
-          const embed = new EmbedBuilder()
-              .setColor(0x00ff00)
-              .setTitle('Now Playing');
-
-          this.textChannel
-              .send({ embeds: [embed] })
-              .then(() => {
-                  console.log('Now Playing message sent:', this.currentSong);
-              })
-              .catch((error) => {
-                  console.error(`Failed to send Now Playing message: ${error.message}`);
-              });
-
-          const nowPlayingMessage = `Now playing: ${this.currentSong}`;
-          this.textChannel
-              .send(nowPlayingMessage)
-              .then(() => {
-                  console.log('Video link sent as a normal message:', this.currentSong);
-              })
-              .catch((error) => {
-                  console.error(`Failed to send video link as a normal message: ${error.message}`);
-              });
-      }
+    if (this.currentSong) {
+      console.log('Sending Now Playing message:', this.currentSong);
+      
+      const embed = new EmbedBuilder()
+        .setColor(0x00ff00)
+        .setTitle('Now Playing')
+        .addField('Now playing:', `[${this.currentSong}](${this.currentSong})`);
+        
+      this.textChannel.send({ embeds: [embed] })
+        .then(() => {
+          console.log('Now Playing message sent:', this.currentSong);
+        })
+        .catch((error) => {
+          console.error(`Failed to send Now Playing message: ${error.message}`);
+        });
+    }
   }
-
-
-
-
-
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
@@ -195,8 +190,7 @@ class MusicPlayer {
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
 
-    this.textChannel
-      .send({ embeds: [embed] })
+    this.textChannel.send({ embeds: [embed] })
       .then(() => {
         console.log('Vote skip message sent.');
       })
