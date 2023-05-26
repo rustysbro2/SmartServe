@@ -1,5 +1,5 @@
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -69,16 +69,6 @@ class MusicPlayer {
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
       await this.processQueue();
-    } else if (!wasEmpty) {
-      console.log('Song added to the queue.');
-      const addedToQueueMessage = `Added to Queue: ${url}`;
-      this.textChannel.send(addedToQueueMessage)
-        .then(() => {
-          console.log('Added to Queue message sent:', url);
-        })
-        .catch((error) => {
-          console.error(`Failed to send Added to Queue message: ${error.message}`);
-        });
     }
   }
 
@@ -109,6 +99,7 @@ class MusicPlayer {
 
       console.log('Now playing:', this.currentSong);
       this.sendNowPlaying();
+      this.sendAddedToQueue();
 
       // Reset voteSkips set
       this.voteSkips.clear();
@@ -122,13 +113,32 @@ class MusicPlayer {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
 
-      const nowPlayingMessage = `Now playing: [${this.currentSong}](${this.currentSong})`;
-      this.textChannel.send(nowPlayingMessage)
+      const nowPlayingEmbed = new EmbedBuilder()
+        .setColor(0x00ff00)
+        .setTitle('Now Playing')
+        .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
+
+      this.textChannel.send({ embeds: [nowPlayingEmbed] })
         .then(() => {
           console.log('Now Playing message sent:', this.currentSong);
         })
         .catch((error) => {
           console.error(`Failed to send Now Playing message: ${error.message}`);
+        });
+    }
+  }
+
+  sendAddedToQueue() {
+    if (this.currentSong) {
+      console.log('Sending Added to Queue message:', this.currentSong);
+
+      const addedToQueueMessage = `Added to Queue: ${this.currentSong}`;
+      this.textChannel.send(addedToQueueMessage)
+        .then(() => {
+          console.log('Added to Queue message sent:', this.currentSong);
+        })
+        .catch((error) => {
+          console.error(`Failed to send Added to Queue message: ${error.message}`);
         });
     }
   }
@@ -181,12 +191,13 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(0x00ff00)
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
 
-    this.textChannel.send({ embeds: [embed] })
+    this.textChannel
+      .send({ embeds: [embed] })
       .then(() => {
         console.log('Vote skip message sent.');
       })
