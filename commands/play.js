@@ -59,14 +59,8 @@ module.exports = {
         console.log('Now playing message sent.');
       }
 
-      // Create the embed for the completion message
-      const embed = new EmbedBuilder()
-        .setColor(0x00ff00)
-        .setTitle('Added to Queue')
-        .setDescription('The song has been added to the queue.');
-
       // Update the interaction with the completion status
-      await interaction.editReply({ embeds: [embed] });
+      await interaction.editReply('Added to queue!');
     } catch (error) {
       console.error(`Error executing /play command: ${error.message}`);
       await interaction.editReply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
