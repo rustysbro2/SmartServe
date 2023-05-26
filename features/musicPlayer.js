@@ -118,7 +118,6 @@ class MusicPlayer {
       const embed = new EmbedBuilder()
         .setColor(0x00ff00)
         .setTitle('Now Playing')
-        .setDescription(this.currentSong);
 
       this.textChannel
         .send({ embeds: [embed] })
