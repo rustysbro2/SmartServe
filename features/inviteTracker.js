@@ -1,6 +1,6 @@
 // features/inviteTracker.js
 const db = require('../database.js');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 let invites = {};
 
@@ -77,7 +77,7 @@ module.exports = {
                     }
                 }
 
-                const embed = new MessageEmbed()
+                const embed = new EmbedBuilder()
                     .setTitle(member.user.bot ? "Bot Joined!" : "New Member Joined!")
                     .setDescription(`<@${member.user.id}> has joined the server. ${joinMethod}`)
                     .setColor("#32CD32");
