@@ -90,6 +90,8 @@ class MusicPlayer {
     }
 
     while (this.queue.length > 0) {
+      const isNewSong = this.queue.length === 1;
+
       this.currentSong = this.queue.shift();
       console.log('Processing queue. Now playing:', this.currentSong);
 
@@ -101,9 +103,8 @@ class MusicPlayer {
 
       console.log('Now playing:', this.currentSong);
 
-      if (this.isNewSong) {
+      if (isNewSong) {
         this.sendNowPlaying();
-        this.isNewSong = false;
       }
 
       await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
@@ -114,28 +115,24 @@ class MusicPlayer {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
 
-      const isNewSong = this.queue.length === 1;
-
-      if (isNewSong) {
-        const embed = new EmbedBuilder()
-          .setColor(0x00ff00)
-          .setTitle('Now Playing')
-          .setDescription(this.currentSong);
-
-        this.textChannel
-          .send({ embeds: [embed] })
-          .then(() => {
-            console.log('Now Playing message sent:', this.currentSong);
-          })
-          .catch((error) => {
-            console.error(`Failed to send Now Playing message: ${error.message}`);
-          });
-      }
-
-      const nowPlayingMessage = isNewSong ? `Now playing: ${this.currentSong}` : this.currentSong;
+      const embed = new EmbedBuilder()
+        .setColor(0x00ff00)
+        .setTitle('Now Playing')
+        .setDescription(this.currentSong);
 
       this.textChannel
-        .send(nowPlayingMessage, { embeds: [] })
+        .send({ embeds: [embed] })
+        .then(() => {
+          console.log('Now Playing message sent:', this.currentSong);
+        })
+        .catch((error) => {
+          console.error(`Failed to send Now Playing message: ${error.message}`);
+        });
+
+      const nowPlayingMessage = `Now playing: ${this.currentSong}`;
+
+      this.textChannel
+        .send(nowPlayingMessage)
         .then(() => {
           console.log('Video link sent as a normal message:', this.currentSong);
         })
@@ -144,10 +141,6 @@ class MusicPlayer {
         });
     }
   }
-
-
-
-
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
