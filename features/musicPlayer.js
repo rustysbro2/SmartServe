@@ -115,7 +115,7 @@ class MusicPlayer {
           const embed = new EmbedBuilder()
               .setColor(0x00ff00)
               .setTitle('Now Playing')
-              .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
+              .addField('Now playing:', `[${this.currentSong}](${this.currentSong})`);
 
           this.textChannel
               .send({ embeds: [embed] })
@@ -137,6 +137,7 @@ class MusicPlayer {
               });
       }
   }
+
 
 
 
