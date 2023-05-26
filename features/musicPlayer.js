@@ -111,8 +111,13 @@ class MusicPlayer {
   sendNowPlaying() {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong.url);
+      const embed = new EmbedBuilder()
+        .setColor(0x00ff00)
+        .setTitle('Now Playing')
+        .setDescription(`**Now playing:** ${this.currentSong.url}`);
+
       this.textChannel
-        .send(`Now playing: ${this.currentSong.url}`)
+        .send({ embeds: [embed] })
         .then(() => {
           console.log('Now Playing message sent:', this.currentSong.url);
         })
@@ -121,6 +126,7 @@ class MusicPlayer {
         });
     }
   }
+
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
