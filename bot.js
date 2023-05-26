@@ -7,6 +7,8 @@ const fs = require('fs');
 const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
+const client = new Client();
+
 
 const client = new client({
     intents: [
