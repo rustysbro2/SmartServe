@@ -114,35 +114,37 @@ class MusicPlayer {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
 
-      const embed = new EmbedBuilder()
-        .setColor(0x00ff00)
-        .setTitle('Now Playing');
+      const isNewSong = this.queue.length === 1;
 
-      this.textChannel
-        .send({ embeds: [embed] })
-        .then(() => {
-          console.log('Now Playing message sent:', this.currentSong);
-        })
-        .catch((error) => {
-          console.error(`Failed to send Now Playing message: ${error.message}`);
-        });
-
-      if (this.isNewSong) {
-        const nowPlayingMessage = this.currentSong;
+      if (isNewSong) {
+        const embed = new EmbedBuilder()
+          .setColor(0x00ff00)
+          .setTitle('Now Playing')
+          .setDescription(this.currentSong);
 
         this.textChannel
-          .send(nowPlayingMessage)
+          .send({ embeds: [embed] })
           .then(() => {
-            console.log('Video link sent as a normal message:', this.currentSong);
+            console.log('Now Playing message sent:', this.currentSong);
           })
           .catch((error) => {
-            console.error(`Failed to send video link as a normal message: ${error.message}`);
+            console.error(`Failed to send Now Playing message: ${error.message}`);
           });
-
-        this.isNewSong = false;
       }
+
+      const nowPlayingMessage = this.currentSong;
+
+      this.textChannel
+        .send(nowPlayingMessage)
+        .then(() => {
+          console.log('Video link sent as a normal message:', this.currentSong);
+        })
+        .catch((error) => {
+          console.error(`Failed to send video link as a normal message: ${error.message}`);
+        });
     }
   }
+
 
 
   async voteSkip(member) {
