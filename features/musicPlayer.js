@@ -105,11 +105,11 @@ class MusicPlayer {
     }
   }
 
-  sendNowPlaying() {
+  sendNowPlaying(textChannel) {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
       const message = `Now playing: ${this.currentSong}`;
-      this.textChannel
+      textChannel
         .send(message)
         .then(() => {
           console.log('Now Playing message sent:', this.currentSong);
@@ -119,6 +119,7 @@ class MusicPlayer {
         });
     }
   }
+
 
 
   async voteSkip(member) {
