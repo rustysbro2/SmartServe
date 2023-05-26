@@ -116,9 +116,11 @@ class MusicPlayer {
         .setTitle('Now Playing')
         .setDescription(`Now playing: [${this.currentSong.url}](${this.currentSong.url})`)
         .setThumbnail('https://i.imgur.com/AfFp7pu.png')
-        .addFields({ name: '\u200B', value: '\u200B' }) // Add empty field for spacing
-        .addField('Author', 'Some Author', true) // Example field
-        .addField('Duration', '3:25', true); // Example field
+        .addFields(
+          { name: '\u200B', value: '\u200B' }, // Add empty field for spacing
+          { name: 'Author', value: 'Some Author', inline: true }, // Example field
+          { name: 'Duration', value: '3:25', inline: true } // Example field
+        );
 
       this.textChannel
         .send({ embeds: [embed] })
