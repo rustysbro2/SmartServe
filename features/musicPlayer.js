@@ -116,7 +116,7 @@ class MusicPlayer {
 
       const embed = new EmbedBuilder()
         .setColor(0x00ff00)
-        .setTitle('Now Playing');
+        .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
 
       this.textChannel
         .send({ embeds: [embed] })
@@ -127,9 +127,8 @@ class MusicPlayer {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
 
-      const nowPlayingMessage = `${this.currentSong}`;
       this.textChannel
-        .send(nowPlayingMessage)
+        .send(this.currentSong)
         .then(() => {
           console.log('Video link sent as a normal message:', this.currentSong);
         })
@@ -138,6 +137,7 @@ class MusicPlayer {
         });
     }
   }
+
 
 
 
