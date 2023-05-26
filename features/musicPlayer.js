@@ -1,4 +1,5 @@
 const { entersState, joinVoiceChannel, VoiceConnectionStatus, createAudioResource } = require('@discordjs/voice');
+const { AudioPlayerStatus } = require('@discordjs/voice');
 const { EmbedBuilder } = require('discord.js');
 const ytdl = require('ytdl-core');
 
@@ -13,11 +14,13 @@ class MusicPlayer {
   }
 
   async joinChannel() {
-    this.connection = joinVoiceChannel({
+    this.connection = await joinVoiceChannel({
       channelId: this.channelId,
       guildId: this.guildId,
       adapterCreator: this.textChannel.guild.voiceAdapterCreator,
     });
+
+    this.connection.subscribe(this.audioPlayer);
 
     try {
       await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
@@ -27,8 +30,6 @@ class MusicPlayer {
       this.connection.destroy();
       throw error;
     }
-
-    this.connection.subscribe(this.audioPlayer);
   }
 
 
