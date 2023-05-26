@@ -6,6 +6,7 @@ const {
   joinVoiceChannel,
   VoiceConnectionStatus,
 } = require('@discordjs/voice');
+const { MessageEmbed } = require('discord.js');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -64,7 +65,7 @@ class MusicPlayer {
     return pattern.test(url);
   }
 
-  addSong(url) {
+  async addSong(url) {
     if (!this.isValidYoutubeUrl(url)) {
       throw new Error('Invalid YouTube URL');
     }
@@ -74,9 +75,7 @@ class MusicPlayer {
 
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
-      this.processQueue().catch((error) => {
-        console.error(`Error while processing queue: ${error.message}`);
-      });
+      await this.processQueue();
     }
   }
 
@@ -99,35 +98,34 @@ class MusicPlayer {
       this.currentSong = this.queue.shift();
       console.log('Processing queue. Now playing:', this.currentSong);
 
-      try {
-        const stream = ytdl(this.currentSong, { filter: 'audioonly' });
-        const resource = createAudioResource(stream);
-        this.audioPlayer.play(resource);
+      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
+      const resource = createAudioResource(stream);
+      this.audioPlayer.play(resource);
 
-        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-        console.log('Now playing:', this.currentSong);
-        this.sendNowPlaying();
+      console.log('Now playing:', this.currentSong);
+      this.sendNowPlaying();
 
-        // Reset voteSkips set
-        this.voteSkips.clear();
+      // Reset voteSkips set
+      this.voteSkips.clear();
 
-        // Wait for the song to finish playing
-        await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
-
-      } catch (error) {
-        console.error('Error while processing queue:', error.message);
-      }
+      // Wait for the song to finish playing
+      await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
     }
   }
-
 
   sendNowPlaying() {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
-      const message = `Now playing: ${this.currentSong}`;
+      
+      const embed = new MessageEmbed()
+        .setColor('#00ff00')
+        .setTitle('Now Playing')
+        .setDescription(`[${this.currentSong}](${this.currentSong})`);
+
       this.textChannel
-        .send(message)
+        .send({ embeds: [embed] })
         .then(() => {
           console.log('Now Playing message sent:', this.currentSong);
         })
