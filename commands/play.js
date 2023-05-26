@@ -1,5 +1,7 @@
-const { SlashCommandBuilder } = require('discord.js');
+// commands/play.js
+const { SlashCommandBuilder } = require('@discordjs/builders');
 const MusicPlayer = require('../features/musicPlayer.js');
+const { AudioPlayerStatus, entersState } = require('@discordjs/voice');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -15,7 +17,7 @@ module.exports = {
       console.log('Executing /play command...');
       const url = interaction.options.getString('url');
       console.log('URL:', url);
-      const guildId = interaction.guildId;
+      const guildId = interaction.guild.id;
       console.log('Guild ID:', guildId);
       const channelId = interaction.member.voice.channelId;
       console.log('Channel ID:', channelId);
@@ -39,12 +41,17 @@ module.exports = {
 
       const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
-
-      await musicPlayer.addSong(url, interaction.member.user.tag);
+      await musicPlayer.addSong(url);
 
       if (wasEmpty && musicPlayer.queue.length === 1) {
-        musicPlayer.playNext();
+        console.log('Waiting for AudioPlayer to transition to "Playing" state...');
+        await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+        musicPlayer.sendNowPlaying();
+        console.log('Now playing message sent.');
       }
+
+      // Update the interaction with the completion status
+      await interaction.editReply('Added to queue!');
     } catch (error) {
       console.error(`Error executing /play command: ${error.message}`);
       await interaction.editReply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
