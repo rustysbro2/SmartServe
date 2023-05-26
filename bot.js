@@ -1,4 +1,3 @@
-// bot.js
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
