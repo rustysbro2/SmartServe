@@ -119,7 +119,7 @@ class MusicPlayer {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
       const embed = new EmbedBuilder()
-        .setColor(0x00ff00)
+        .setColor('#00ff00')
         .setTitle('Now Playing')
         .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
 
@@ -183,7 +183,7 @@ class MusicPlayer {
     }
 
     const embed = new EmbedBuilder()
-      .setColor(0x00ff00)
+      .setColor('#00ff00')
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
 
