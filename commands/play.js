@@ -2,8 +2,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus, entersState } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -48,7 +46,7 @@ module.exports = {
       if (wasEmpty && musicPlayer.queue.length === 1) {
         console.log('Waiting for AudioPlayer to transition to "Playing" state...');
         await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-        musicPlayer.sendNowPlaying();
+        musicPlayer.sendNowPlaying(textChannel);
         console.log('Now playing message sent.');
       }
 
