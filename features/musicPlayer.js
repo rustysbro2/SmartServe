@@ -117,7 +117,7 @@ class MusicPlayer {
         .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
 
       this.textChannel
-        .send({ embeds: [embed.build()] })
+        .send({ embeds: [embed] })
         .then(() => {
           console.log('Now Playing message sent:', this.currentSong);
         })
@@ -125,69 +125,6 @@ class MusicPlayer {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
     }
-  }
-
-  async voteSkip(member) {
-    if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
-      throw new Error('There is no song currently playing.');
-    }
-
-    const voiceChannel = this.connection.joinConfig.channelId;
-    if (!voiceChannel) {
-      throw new Error('The bot is not in a voice channel.');
-    }
-
-    const guild = this.textChannel.guild;
-    if (!guild) {
-      throw new Error('Failed to retrieve the guild.');
-    }
-
-    const members = guild.members.cache;
-    if (!members || members.size === 1) {
-      throw new Error('There are no other members in the voice channel.');
-    }
-
-    if (this.voteSkips.has(member.id)) {
-      throw new Error('You have already voted to skip the current song.');
-    }
-
-    this.voteSkips.add(member.id);
-
-    const voteCount = this.voteSkips.size;
-    const totalCount = members.size - 1; // Exclude the bot
-
-    const votePercentage = voteCount / totalCount;
-    if (votePercentage >= this.voteSkipThreshold) {
-      console.log('Vote skip threshold reached. Skipping the current song.');
-      this.audioPlayer.stop();
-      this.sendVoteSkipMessage();
-    } else {
-      console.log(`Received vote skip from ${member.user.tag}. Vote count: ${voteCount}/${totalCount}`);
-      this.sendVoteSkipMessage();
-    }
-  }
-
-  sendVoteSkipMessage() {
-    const voteCount = this.voteSkips.size;
-    const totalCount = this.textChannel.guild?.members.cache.size - 1; // Exclude the bot
-
-    if (totalCount === undefined) {
-      throw new Error('Failed to retrieve the total count of members.');
-    }
-
-    const embed = new EmbedBuilder()
-      .setColor(0x00ff00)
-      .setTitle('Vote Skip')
-      .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
-
-    this.textChannel
-      .send({ embeds: [embed] })
-      .then(() => {
-        console.log('Vote skip message sent.');
-      })
-      .catch((error) => {
-        console.error(`Failed to send vote skip message: ${error.message}`);
-      });
   }
 }
 
