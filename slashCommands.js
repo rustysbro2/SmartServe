@@ -1,65 +1,72 @@
-// slashCommands.js
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v10');
-const { clientId, token } = require('./config.js');
-const fs = require('fs');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const ytdl = require('ytdl-core');
+const MusicPlayer = require('../features/musicPlayer.js');
+const { AudioPlayerStatus } = require('@discordjs/voice');
+const { entersState } = require('@discordjs/voice');
 
-function commandHasChanged(oldCommand, newCommand) {
-    return oldCommand.name !== newCommand.name ||
-        oldCommand.description !== newCommand.description ||
-        (oldCommand.options && newCommand.options && 
-        JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options));
-}
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('play')
+    .setDescription('Play a song from YouTube')
+    .addStringOption(option =>
+      option
+        .setName('url')
+        .setDescription('The YouTube URL of the song to play')
+        .setRequired(true)),
+  async execute(interaction, client) {
+    try {
+      console.log('Executing /play command...');
+      const url = interaction.options.getString('url');
+      console.log('URL:', url);
+      const guildId = interaction.guildId;
+      console.log('Guild ID:', guildId);
+      const channelId = interaction.member.voice.channelId;
+      console.log('Channel ID:', channelId);
+      const textChannel = interaction.channel;
 
-module.exports = async function(client) {
-    const commands = [];
-    const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+      if (!channelId) {
+        console.log('User not in a voice channel.');
+        return await interaction.reply('You must be in a voice channel to play music!');
+      }
 
-    for (const file of commandFiles) {
-        const command = require(`./commands/${file}`);
-        commands.push(command.data);
+      // Respond to the interaction right away to avoid a timeout
+      await interaction.reply('Processing your request...');
+
+      let musicPlayer = client.musicPlayers.get(guildId);
+      if (!musicPlayer) {
+        console.log('Creating new MusicPlayer instance.');
+        musicPlayer = new MusicPlayer(guildId, channelId, textChannel);
+        client.musicPlayers.set(guildId, musicPlayer);
+        await musicPlayer.joinChannel();
+      }
+
+      const wasEmpty = musicPlayer.queue.length === 0;
+      console.log('Queue was empty before adding song:', wasEmpty);
+
+      // Fetch the audio stream from the YouTube URL using ytdl-core
+      const stream = ytdl(url, { filter: 'audioonly' });
+
+      // Add the song to the queue
+      await musicPlayer.addSong(url);
+
+      if (wasEmpty && musicPlayer.queue.length === 1) {
+        console.log('Waiting for AudioPlayer to transition to "Playing" state...');
+        await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+        musicPlayer.sendNowPlaying();
+        console.log('Now playing message sent.');
+      }
+
+      // Create the embed with the YouTube URL as a regular link in the description
+      const embed = new EmbedBuilder()
+        .setColor(0x00ff00)
+        .setTitle('Added to Queue')
+        .setDescription(`[${url}](${url})`);
+
+      // Update the interaction with the embed
+      await interaction.editReply({ embeds: [embed] });
+    } catch (error) {
+      console.error(`Error executing /play command: ${error.message}`);
+      await interaction.editReply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
     }
-
-    const rest = new REST({ version: '10' }).setToken(token);
-
-    // Loop through each guild the bot is in and register the slash commands
-    client.guilds.cache.forEach(async (guild) => {
-        try {
-            console.log(`Started refreshing application (/) commands for guild ${guild.id}.`);
-
-            // Get existing slash commands in the guild
-            const existingCommands = await rest.get(
-                Routes.applicationGuildCommands(clientId, guild.id)
-            );
-
-            // Remove old commands and update changed commands
-            for (const command of existingCommands) {
-                const newCommand = commands.find(cmd => cmd.name === command.name);
-                if (!newCommand) {
-                    await rest.delete(
-                        Routes.applicationGuildCommand(clientId, guild.id, command.id)
-                    );
-                } else if (commandHasChanged(command, newCommand)) {
-                    await rest.patch(
-                        Routes.applicationGuildCommand(clientId, guild.id, command.id),
-                        { body: newCommand }
-                    );
-                }
-            }
-
-            // Add new commands
-            for (const command of commands) {
-                if (!existingCommands.find(cmd => cmd.name === command.name)) {
-                    await rest.post(
-                        Routes.applicationGuildCommands(clientId, guild.id),
-                        { body: command },
-                    );
-                }
-            }
-
-            console.log(`Successfully reloaded application (/) commands for guild ${guild.id}.`);
-        } catch (error) {
-            console.error(`Error while refreshing application (/) commands for guild ${guild.id}.`, error);
-        }
-    });
+  },
 };
