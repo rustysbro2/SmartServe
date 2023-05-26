@@ -134,10 +134,10 @@ class MusicPlayer {
       this.textChannel
         .send(nowPlayingMessage)
         .then(() => {
-          console.log('Video link sent as a normal message:', this.currentSong);
+          console.log('Now Playing link sent:', this.currentSong);
         })
         .catch((error) => {
-          console.error(`Failed to send video link as a normal message: ${error.message}`);
+          console.error(`Failed to send Now Playing link: ${error.message}`);
         });
     }
   }
