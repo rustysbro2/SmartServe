@@ -24,9 +24,15 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on(AudioPlayerStatus.Idle, async () => {
-      console.log('Audio player state changed to Idle. Processing queue.');
-      await this.processQueue();
+    this.audioPlayer.on('stateChange', async (oldState, newState) => {
+      console.log(`State change: ${oldState.status} -> ${newState.status}`);
+      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+        console.log('Audio player state changed to Idle. Processing queue.');
+        await this.processQueue();
+      } else if (newState.status === AudioPlayerStatus.AutoPaused && oldState.status !== AudioPlayerStatus.AutoPaused) {
+        console.log('Audio player state changed to Autopaused. Resuming playback.');
+        this.audioPlayer.unpause();
+      }
     });
 
     this.audioPlayer.on('error', (error) => {
@@ -91,21 +97,17 @@ class MusicPlayer {
       this.currentSong = this.queue.shift();
       console.log('Processing queue. Now playing:', this.currentSong);
 
-      try {
-        const stream = ytdl(this.currentSong, { filter: 'audioonly', quality: 'highestaudio' });
-        const resource = createAudioResource(stream, { inputType: 'stream' });
-        this.audioPlayer.play(resource);
+      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
+      const resource = createAudioResource(stream);
+      this.audioPlayer.play(resource);
 
-        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-        console.log('Now playing:', this.currentSong);
-        this.sendNowPlaying();
+      console.log('Now playing:', this.currentSong);
+      this.sendNowPlaying();
 
-        // Reset voteSkips set
-        this.voteSkips.clear();
-      } catch (error) {
-        console.error(`Failed to play the song: ${error.message}`);
-      }
+      // Reset voteSkips set
+      this.voteSkips.clear();
     }
   }
 
