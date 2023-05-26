@@ -6,11 +6,11 @@ const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@disco
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 
-const intents = new GatewayIntentBits([
-  GatewayIntentBits.GUILDS,
-  GatewayIntentBits.GUILD_MESSAGES,
-  GatewayIntentBits.GUILD_MEMBERS,
-  GatewayIntentBits.GUILD_VOICE_STATES,
+const intents = new GatewayIntents([
+  GatewayIntents.GUILDS,
+  GatewayIntents.GUILD_MESSAGES,
+  GatewayIntents.GUILD_MEMBERS,
+  GatewayIntents.GUILD_VOICE_STATES,
 ]);
 
 const client = new Client({ shards: "auto", intents });
