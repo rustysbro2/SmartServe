@@ -6,12 +6,12 @@ dotenv.config();
 
 // Create a new Discord client object
 const client = new Discord.Client({
-  intents: [
-    "guilds",
-    "channels",
-    "messages",
-    "presences",
-  ],
+  intents: new Discord.GatewayIntentBits({
+    guilds: true,
+    channels: true,
+    messages: true,
+    presences: true,
+  }),
 });
 
 // Create a new ShardingManager object
