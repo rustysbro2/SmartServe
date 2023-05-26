@@ -1,5 +1,5 @@
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
-const { EmbedBuilder, Video } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -91,7 +91,7 @@ class MusicPlayer {
       this.currentSong = this.queue.shift();
       console.log('Processing queue. Now playing:', this.currentSong);
 
-      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
+      const stream = ytdl(this.currentSong.url, { filter: 'audioonly' });
       const resource = createAudioResource(stream);
       this.audioPlayer.play(resource);
 
@@ -111,15 +111,13 @@ class MusicPlayer {
   sendNowPlaying() {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
-
-      const videoUrl = `https://www.youtube.com/watch?v=${this.currentSong}`;
-      const video = new Video(videoUrl);
-
       const embed = new EmbedBuilder()
         .setColor(0x00ff00)
         .setTitle('Now Playing')
-        .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`)
-        .setVideo(video);
+        .setDescription(`Now playing: ${this.currentSong.title}`)
+        .setThumbnail(this.currentSong.thumbnail)
+        .addField('Duration', this.currentSong.duration)
+        .addField('Uploader', this.currentSong.uploader);
 
       this.textChannel
         .send({ embeds: [embed] })
