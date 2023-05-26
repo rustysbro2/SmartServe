@@ -108,8 +108,17 @@ class MusicPlayer {
 
       // Reset voteSkips set
       this.voteSkips.clear();
+
+      // Wait for the song to finish playing
+      await new Promise((resolve) => {
+        this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
+          console.log('Song finished playing.');
+          resolve();
+        });
+      });
     }
   }
+
 
   sendNowPlaying() {
     if (this.currentSong) {
