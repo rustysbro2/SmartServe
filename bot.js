@@ -1,4 +1,5 @@
-const { Client } = require('discord.js');
+// bot.js
+const { Client, Collection, Intents } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -6,11 +7,14 @@ const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@disco
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 
-// Import the discord.js library
-const discord = require('discord.js');
+const intents = new Intents([
+  Intents.FLAGS.GUILDS,
+  Intents.FLAGS.GUILD_MESSAGES,
+  Intents.FLAGS.GUILD_MEMBERS,
+  Intents.FLAGS.GUILD_VOICE_STATES,
+]);
 
-// Create a new Client object
-const client = new discord.Client({ shards: "auto", intents: discord.Intents.default });
+const client = new Client({ shards: "auto", intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
