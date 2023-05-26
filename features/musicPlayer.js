@@ -127,16 +127,23 @@ class MusicPlayer {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
 
-      this.textChannel
-        .send(this.currentSong)
-        .then(() => {
-          console.log('Video link sent as a normal message:', this.currentSong);
-        })
-        .catch((error) => {
-          console.error(`Failed to send video link as a normal message: ${error.message}`);
-        });
+      if (this.isNewSong) {
+        const nowPlayingMessage = this.currentSong;
+
+        this.textChannel
+          .send(nowPlayingMessage)
+          .then(() => {
+            console.log('Video link sent as a normal message:', this.currentSong);
+          })
+          .catch((error) => {
+            console.error(`Failed to send video link as a normal message: ${error.message}`);
+          });
+
+        this.isNewSong = false;
+      }
     }
   }
+
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
