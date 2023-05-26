@@ -135,7 +135,7 @@ class MusicPlayer {
       const nowPlayingMessage = isNewSong ? `Now playing: ${this.currentSong}` : this.currentSong;
 
       this.textChannel
-        .send(nowPlayingMessage)
+        .send(nowPlayingMessage, { embeds: [] })
         .then(() => {
           console.log('Video link sent as a normal message:', this.currentSong);
         })
@@ -144,6 +144,7 @@ class MusicPlayer {
         });
     }
   }
+
 
 
 
