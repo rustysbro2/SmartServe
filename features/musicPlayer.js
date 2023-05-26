@@ -127,7 +127,7 @@ class MusicPlayer {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
 
-      const nowPlayingMessage = `Now playing: ${this.currentSong}`;
+      const nowPlayingMessage = `${this.currentSong}`;
       this.textChannel
         .send(nowPlayingMessage)
         .then(() => {
@@ -138,6 +138,7 @@ class MusicPlayer {
         });
     }
   }
+
 
 
   async voteSkip(member) {
