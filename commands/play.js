@@ -62,8 +62,11 @@ module.exports = {
         .setTitle('Added to Queue')
         .setDescription(`[${url}](${url})`);
 
-      // Update the interaction with the embed
-      await interaction.editReply({ embeds: [embed] });
+      // Send the embed as a reply to the interaction
+      await interaction.channel.send({ embeds: [embed] });
+
+      // Send the link as a normal message
+      await interaction.channel.send(url);
     } catch (error) {
       console.error(`Error executing /play command: ${error.message}`);
       await interaction.editReply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
