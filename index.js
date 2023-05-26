@@ -15,13 +15,10 @@ const client = new Discord.Client({
 });
 
 // Create a new ShardingManager object
-const shardingManager = new Discord.ShardingManager(client);
-
-// Set the ShardingManager's options
-shardingManager.options = {
+const shardingManager = new Discord.ShardingManager(client, {
   shardCount: 10,
   shardThreshold: 1000,
-};
+});
 
 // Start the ShardingManager
 shardingManager.start();
