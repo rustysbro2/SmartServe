@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { createAudioResource, StreamType } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 const MusicPlayer = require('../features/musicPlayer.js');
@@ -43,16 +43,11 @@ module.exports = {
 
       const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
-
+      
       // Fetch the audio stream from the YouTube URL using ytdl-core
       const stream = ytdl(url, { filter: 'audioonly' });
       const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
-
-      musicPlayer.audioPlayer.on('error', (error) => {
-        console.error(`Error in audio player: ${error.message}`);
-        musicPlayer.processQueue();
-      });
-
+      
       // Play the audio resource
       await musicPlayer.audioPlayer.play(resource);
       console.log('Song added to the queue.');
@@ -64,8 +59,14 @@ module.exports = {
         console.log('Now playing message sent.');
       }
 
+      // Create the embed for the completion message
+      const embed = new EmbedBuilder()
+        .setColor(0x00ff00)
+        .setTitle('Added to Queue')
+        .setDescription('The song has been added to the queue.');
+
       // Update the interaction with the completion status
-      await interaction.editReply('Added to queue!');
+      await interaction.editReply({ embeds: [embed] });
     } catch (error) {
       console.error(`Error executing /play command: ${error.message}`);
       await interaction.editReply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
