@@ -18,6 +18,21 @@ const client = new client({
 });
 
 
+
+const { Client, ShardingManager } = require('discord.js');
+
+const client = new Client({
+  shards: 10,
+});
+
+const manager = new ShardingManager(client);
+
+manager.createShards();
+
+manager.assignDocumentsToShards();
+
+manager.queryShards();
+
 client.commands = new Collection();
 client.musicPlayers = new Map();
 
