@@ -59,6 +59,9 @@ module.exports = {
         console.log('Now playing message sent.');
       }
 
+      // Wait for the song to finish playing
+      await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Idle, 5e3);
+
       // Update the interaction with the completion status
       await interaction.editReply('Added to queue!');
     } catch (error) {
