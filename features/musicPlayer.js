@@ -34,14 +34,14 @@ class MusicPlayer {
     return pattern.test(url);
   }
 
-  async addSong(url) {
+  async addSong(url, requester) {
     if (!this.isValidYoutubeUrl(url)) {
       throw new Error('Invalid YouTube URL');
     }
 
     const song = {
       url: url,
-      requester: this.textChannel.guild.me.user.tag,
+      requester: requester,
     };
 
     this.queue.push(song);
@@ -65,7 +65,7 @@ class MusicPlayer {
     }
   }
 
-  async playNext() {
+  playNext() {
     if (this.queue.length === 0) {
       // Queue is empty, disconnect from the voice channel
       this.connection.disconnect();
