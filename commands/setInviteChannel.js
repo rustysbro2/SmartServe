@@ -8,8 +8,7 @@ module.exports = {
     .addChannelOption(option =>
       option.setName('channel')
         .setDescription('The channel to send messages in')
-        .setRequired(true)
-        .setAutocomplete(true)),
+        .setRequired(true)),
   async execute(interaction) {
     const channel = interaction.options.getChannel('channel');
     inviteTracker.setInviteChannel(interaction.guildId, channel.id);
