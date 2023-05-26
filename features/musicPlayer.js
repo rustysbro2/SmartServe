@@ -99,22 +99,28 @@ class MusicPlayer {
       this.currentSong = this.queue.shift();
       console.log('Processing queue. Now playing:', this.currentSong);
 
-      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
-      const resource = createAudioResource(stream);
-      this.audioPlayer.play(resource);
+      try {
+        const stream = ytdl(this.currentSong, { filter: 'audioonly' });
+        const resource = createAudioResource(stream);
+        this.audioPlayer.play(resource);
 
-      await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-      console.log('Now playing:', this.currentSong);
-      this.sendNowPlaying();
+        console.log('Now playing:', this.currentSong);
+        this.sendNowPlaying();
 
-      // Reset voteSkips set
-      this.voteSkips.clear();
+        // Reset voteSkips set
+        this.voteSkips.clear();
 
-      // Wait for the song to finish playing
-      await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
+        // Wait for the song to finish playing
+        await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
+
+      } catch (error) {
+        console.error('Error while processing queue:', error.message);
+      }
     }
   }
+
 
   sendNowPlaying() {
     if (this.currentSong) {
