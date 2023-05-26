@@ -98,7 +98,7 @@ class MusicPlayer {
       await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
       console.log('Now playing:', this.currentSong.url);
-      this.sendNowPlaying();
+      this.sendNowPlayingEmbed();
 
       // Reset voteSkips set
       this.voteSkips.clear();
@@ -108,13 +108,13 @@ class MusicPlayer {
     }
   }
 
-  sendNowPlaying() {
+  sendNowPlayingEmbed() {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong.url);
       const embed = new EmbedBuilder()
         .setColor(0x00ff00)
         .setTitle('Now Playing')
-        .setDescription(`**Now playing:** ${this.currentSong.url}`);
+        .setDescription(`Now playing: [${this.currentSong.url}](${this.currentSong.url})`);
 
       this.textChannel
         .send({ embeds: [embed] })
@@ -126,6 +126,21 @@ class MusicPlayer {
         });
     }
   }
+
+  sendNowPlayingText() {
+    if (this.currentSong) {
+      console.log('Sending Now Playing message:', this.currentSong.url);
+      this.textChannel
+        .send(`Now playing: ${this.currentSong.url}`)
+        .then(() => {
+          console.log('Now Playing message sent:', this.currentSong.url);
+        })
+        .catch((error) => {
+          console.error(`Failed to send Now Playing message: ${error.message}`);
+        });
+    }
+  }
+
 
 
   async voteSkip(member) {
