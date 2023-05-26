@@ -87,6 +87,8 @@ class MusicPlayer {
       await this.joinChannel();
     }
 
+    let isFirstSong = this.audioPlayer.state.status !== AudioPlayerStatus.Playing && this.queue.length === 1;
+
     while (this.queue.length > 0) {
       this.currentSong = this.queue.shift();
       console.log('Processing queue. Now playing:', this.currentSong);
@@ -98,8 +100,8 @@ class MusicPlayer {
       await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
       console.log('Now playing:', this.currentSong);
-      this.sendNowPlaying();
-      this.sendAddedToQueue();
+      this.sendNowPlaying(isFirstSong);
+      isFirstSong = false;
 
       // Reset voteSkips set
       this.voteSkips.clear();
@@ -109,13 +111,17 @@ class MusicPlayer {
     }
   }
 
-  sendNowPlaying() {
+  sendNowPlaying(isFirstSong) {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
 
       const nowPlayingEmbed = new EmbedBuilder()
         .setColor(0x00ff00)
         .setTitle('Now Playing');
+
+      if (!isFirstSong) {
+        nowPlayingEmbed.setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
+      }
 
       this.textChannel.send({ embeds: [nowPlayingEmbed] })
         .then(() => {
@@ -125,30 +131,16 @@ class MusicPlayer {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
 
-      const nowPlayingMessage = `Now playing: ${this.currentSong}`;
-      this.textChannel.send(nowPlayingMessage)
-        .then(() => {
-          console.log('Video link sent as a normal message:', this.currentSong);
-        })
-        .catch((error) => {
-          console.error(`Failed to send video link as a normal message: ${error.message}`);
-        });
-    }
-  }
-
-
-  sendAddedToQueue() {
-    if (this.currentSong) {
-      console.log('Sending Added to Queue message:', this.currentSong);
-
-      const addedToQueueMessage = `Added to Queue: ${this.currentSong}`;
-      this.textChannel.send(addedToQueueMessage)
-        .then(() => {
-          console.log('Added to Queue message sent:', this.currentSong);
-        })
-        .catch((error) => {
-          console.error(`Failed to send Added to Queue message: ${error.message}`);
-        });
+      if (isFirstSong) {
+        const nowPlayingMessage = `Now playing: ${this.currentSong}`;
+        this.textChannel.send(nowPlayingMessage)
+          .then(() => {
+            console.log('Video link sent as a normal message:', this.currentSong);
+          })
+          .catch((error) => {
+            console.error(`Failed to send video link as a normal message: ${error.message}`);
+          });
+      }
     }
   }
 
