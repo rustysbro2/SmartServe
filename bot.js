@@ -1,6 +1,6 @@
 const { InteractionType } = require('discord.js');
 // bot.js
-const { Client, Collection, GatewayIntents } = require('discord.js');
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -8,12 +8,14 @@ const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@disco
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 
-const intents = new GatewayIntents([
-  GatewayIntents.GUILDS,
-  GatewayIntents.GUILD_MESSAGES,
-  GatewayIntents.GUILD_MEMBERS,
-  GatewayIntents.GUILD_VOICE_STATES,
-]);
+const client = new Client({
+	intents: [
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.GuildMembers,
+	],
+});
 
 const client = new Client({ shards: "auto", intents });
 
