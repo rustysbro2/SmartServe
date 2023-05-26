@@ -21,7 +21,7 @@ const client = new client({
 
 const {ShardingManager } = require('discord.js');
 
-const client = new Client({
+client = new Client({
   shards: 10,
 });
 
