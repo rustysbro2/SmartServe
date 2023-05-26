@@ -1,5 +1,4 @@
-// bot.js
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { Client } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -7,14 +6,7 @@ const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@disco
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 
-const intents = new GatewayIntentBits([
-  GatewayIntentBits.GUILDS,
-  GatewayIntentBits.GUILD_MESSAGES,
-  GatewayIntentBits.GUILD_MEMBERS,
-  GatewayIntentBits.GUILD_VOICE_STATES,
-]);
-
-const client = new Client({ shards: "auto", intents });
+const client = new Client({ shards: "auto" });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
@@ -26,8 +18,8 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', async () => {
-  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+  console.log(`Shard ${client.shard.ids} logged in as <span class="math-inline">\{client\.user\.tag\}\!\`\);
+client\.user\.setActivity\(\`</span>{client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
 
   inviteTracker.execute(client);
 
