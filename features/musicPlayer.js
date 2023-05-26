@@ -24,15 +24,14 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on('stateChange', async (oldState, newState) => {
-      console.log(`State change: ${oldState.status} -> ${newState.status}`);
-      if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
-        console.log('Audio player state changed to Idle. Processing queue.');
-        await this.processQueue();
-      } else if (newState.status === AudioPlayerStatus.AutoPaused && oldState.status !== AudioPlayerStatus.AutoPaused) {
-        console.log('Audio player state changed to Autopaused. Resuming playback.');
-        this.audioPlayer.unpause();
-      }
+    this.audioPlayer.on(AudioPlayerStatus.Idle, async () => {
+      console.log('Audio player state changed to Idle. Processing queue.');
+      await this.processQueue();
+    });
+
+    this.audioPlayer.on(AudioPlayerStatus.AutoPaused, () => {
+      console.log('Audio player state changed to Autopaused. Resuming playback.');
+      this.audioPlayer.unpause();
     });
 
     this.audioPlayer.on('error', (error) => {
@@ -113,7 +112,6 @@ class MusicPlayer {
       await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
     }
   }
-
 
   sendNowPlaying() {
     if (this.currentSong) {
