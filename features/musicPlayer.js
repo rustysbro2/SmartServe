@@ -89,7 +89,7 @@ class MusicPlayer {
     });
 
     const resource = createAudioResource(stream, {
-      inputType: demuxProbe(stream),
+      inputType: StreamType.Arbitrary,
     });
 
     this.audioPlayer.play(resource);
@@ -100,6 +100,7 @@ class MusicPlayer {
     // Reset voteSkips set
     this.voteSkips.clear();
   }
+
 
   sendNowPlaying() {
     if (this.currentSong) {
