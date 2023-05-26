@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageEmbed } = require('discord.js');
 const inviteTracker = require('../features/inviteTracker.js');
 
 module.exports = {
@@ -12,6 +12,13 @@ module.exports = {
   async execute(interaction) {
     const channel = interaction.options.getChannel('channel');
     inviteTracker.setInviteChannel(interaction.guildId, channel.id);
-    await interaction.reply({ content: `Invite tracking messages will be sent in ${channel.name}`, ephemeral: true });
+
+    const embed = new MessageEmbed()
+      .setColor('#00ff00')
+      .setTitle('Invite Channel Set')
+      .setDescription(`Invite tracking messages will be sent in ${channel}`)
+      .setImage(interaction.client.user.displayAvatarURL());
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   },
 };
