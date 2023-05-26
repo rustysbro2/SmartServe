@@ -1,24 +1,19 @@
 const Discord = require('discord.js');
+const client = new Discord.Client();
+const env = require('dotenv').config();
+const { ShardingManager } = require('discord.js'); 
+const manager = new ShardingManager('./bot.js', { token: process.env.TOKEN, totalShards: 1 }); 
 
-const ShardingManager = require('discord.js').ShardingManager;
-
-const { TOKEN } = require('./.env');
-
-const bot = new ShardingManager({
-  clientOptions: {
-    token: TOKEN,
-  },
-  shardCount: 10, // The number of shards to create.
+client.on('ready', () => {  
+    console.log('Bot is ready.');
 });
 
-bot.on('ready', () => {
-  console.log('Bot is ready!');
+client.on('message', message => {  
+    if (message.content === 'Hi!') {
+        message.channel.send('Hello!');
+    }
 });
 
-bot.on('message', (message) => {
-  if (message.content === 'ping') {
-    message.channel.send('pong');
-  }
-});
-
-bot.login(); // This will automatically spawn the shards.
+manager.spawn();
+manager.on('shardCreate', shard => console.log(`Launched shard ${shard.id}`));
+client.login(process.env.TOKEN);
