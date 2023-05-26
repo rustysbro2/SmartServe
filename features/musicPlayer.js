@@ -115,8 +115,7 @@ class MusicPlayer {
 
       const nowPlayingEmbed = new EmbedBuilder()
         .setColor(0x00ff00)
-        .setTitle('Now Playing')
-        .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
+        .setTitle('Now Playing');
 
       this.textChannel.send({ embeds: [nowPlayingEmbed] })
         .then(() => {
@@ -125,8 +124,18 @@ class MusicPlayer {
         .catch((error) => {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
+
+      const nowPlayingMessage = `Now playing: ${this.currentSong}`;
+      this.textChannel.send(nowPlayingMessage)
+        .then(() => {
+          console.log('Video link sent as a normal message:', this.currentSong);
+        })
+        .catch((error) => {
+          console.error(`Failed to send video link as a normal message: ${error.message}`);
+        });
     }
   }
+
 
   sendAddedToQueue() {
     if (this.currentSong) {
