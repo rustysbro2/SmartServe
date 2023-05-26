@@ -1,8 +1,5 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const ytdl = require('ytdl-core');
+const { SlashCommandBuilder } = require('discord.js');
 const MusicPlayer = require('../features/musicPlayer.js');
-const { AudioPlayerStatus } = require('@discordjs/voice');
-const { entersState, GatewayIntentBits, Partials, ApplicationCommandType, ApplicationCommandOptionType, ButtonStyle } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -43,30 +40,11 @@ module.exports = {
       const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
 
-      // Fetch the audio stream from the YouTube URL using ytdl-core
-      const stream = ytdl(url, { filter: 'audioonly' });
-
-      // Add the song to the queue
-      await musicPlayer.addSong(url);
+      await musicPlayer.addSong(url, interaction.member.user.tag);
 
       if (wasEmpty && musicPlayer.queue.length === 1) {
-        console.log('Waiting for AudioPlayer to transition to "Playing" state...');
-        await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-        musicPlayer.sendNowPlaying();
-        console.log('Now playing message sent.');
+        musicPlayer.playNext();
       }
-
-      // Create the embed with the YouTube URL as a regular link in the description
-      const embed = new EmbedBuilder()
-        .setColor(0x00ff00)
-        .setTitle('Added to Queue')
-        .setDescription(`[${url}](${url})`);
-
-      // Send the embed as a reply to the interaction
-      await interaction.channel.send({ embeds: [embed] });
-
-      // Send the link as a normal message
-      await interaction.channel.send(url);
     } catch (error) {
       console.error(`Error executing /play command: ${error.message}`);
       await interaction.editReply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
