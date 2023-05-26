@@ -132,7 +132,7 @@ class MusicPlayer {
           });
       }
 
-      const nowPlayingMessage = this.currentSong;
+      const nowPlayingMessage = isNewSong ? `Now playing: ${this.currentSong}` : this.currentSong;
 
       this.textChannel
         .send(nowPlayingMessage)
@@ -144,6 +144,7 @@ class MusicPlayer {
         });
     }
   }
+
 
 
 
