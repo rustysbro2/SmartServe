@@ -90,7 +90,6 @@ class MusicPlayer {
     }
   }
 
-
   async processQueue() {
     if (this.queue.length === 0) {
       if (this.connection) {
