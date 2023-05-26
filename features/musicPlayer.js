@@ -134,8 +134,11 @@ class MusicPlayer {
         .catch((error) => {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
+    } else {
+      console.log('No current song to send Now Playing message.');
     }
   }
+
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
