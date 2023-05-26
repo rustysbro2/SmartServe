@@ -6,13 +6,18 @@ const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@disco
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
 
-const intents = new Intents();
-intents.add(Intents.GUILDS);
-intents.add(Intents.GUILD_MESSAGES);
-intents.add(Intents.GUILD_MEMBERS);
-intents.add(Intents.GUILD_VOICE_STATES);
+// Import the discord.js library
+const discord = require('discord.js');
 
-const client = new Client({ shards: "auto", intents });
+// Create a new Intents object
+const intents = new discord.Intents();
+intents.add(discord.Intents.GUILDS);
+intents.add(discord.Intents.GUILD_MESSAGES);
+intents.add(discord.Intents.GUILD_MEMBERS);
+intents.add(discord.Intents.GUILD_VOICE_STATES);
+
+// Create a new Client object
+const client = new discord.Client({ shards: "auto", intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
