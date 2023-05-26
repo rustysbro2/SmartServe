@@ -122,6 +122,7 @@ class MusicPlayer {
     }
   }
 
+
   sendNowPlaying() {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
