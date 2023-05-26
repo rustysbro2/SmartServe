@@ -1,4 +1,3 @@
-// play.js
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { createAudioResource, StreamType } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
