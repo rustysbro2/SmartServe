@@ -1,36 +1,21 @@
-const Discord = require("discord.js");
+const { Client, Events, GatewayIntentBits } = require('discord.js');
 const dotenv = require("dotenv");
 
 // Load environment variables from .env file
 dotenv.config();
 
-// Create a new Discord client object
-const client = new Discord.Client({
-  intents: new Discord.GatewayIntentBits({
-    guilds: true,
-    channels: true,
-    messages: true,
-    presences: true,
-  }),
-});
+// Create a new Client object
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// Create a new ShardingManager object
-const shardingManager = new Discord.ShardingManager(client, {
-  shardCount: 10,
-  shardThreshold: 1000,
-});
+// Listen for the InteractionCreate event
+client.on(Events.InteractionCreate, interaction => {
+  if (!interaction.isChatInputCommand()) return;
 
-// Start the ShardingManager
-shardingManager.start();
+  const { commandName } = interaction;
 
-// Listen for the ready event
-client.on("ready", () => {
-  console.log("Bot is ready!");
-});
-
-// Listen for the message event
-client.on("message", (message) => {
-  // Do something with the message
+  if (commandName === 'stats') {
+    return interaction.reply(`Server count: ${client.guilds.cache.size}.`);
+  }
 });
 
 // Login with the bot's token
