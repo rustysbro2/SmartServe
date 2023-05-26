@@ -13,6 +13,7 @@ class MusicPlayer {
     this.currentSong = null;
     this.voteSkips = new Set();
     this.voteSkipThreshold = 0.5;
+    this.isNewSong = false;
 
     this.setupListeners();
   }
@@ -68,6 +69,7 @@ class MusicPlayer {
 
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
+      this.isNewSong = true;
       await this.processQueue();
     }
   }
@@ -99,13 +101,11 @@ class MusicPlayer {
 
       console.log('Now playing:', this.currentSong);
 
-      // Send Now Playing message
-      this.sendNowPlaying();
+      if (this.isNewSong) {
+        this.sendNowPlaying();
+        this.isNewSong = false;
+      }
 
-      // Reset voteSkips set
-      this.voteSkips.clear();
-
-      // Wait for the song to finish playing
       await entersState(this.audioPlayer, AudioPlayerStatus.Idle, 5e3);
     }
   }
@@ -116,8 +116,7 @@ class MusicPlayer {
 
       const embed = new EmbedBuilder()
         .setColor(0x00ff00)
-        .setTitle('Now Playing')
-        .setDescription(this.currentSong);
+        .setTitle('Now Playing');
 
       this.textChannel
         .send({ embeds: [embed] })
@@ -138,14 +137,6 @@ class MusicPlayer {
         });
     }
   }
-
-
-
-
-
-
-
-
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
