@@ -117,7 +117,7 @@ class MusicPlayer {
         .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
 
       this.textChannel
-        .send({ embeds: [embed] })
+        .send({ embeds: [embed.build()] })
         .then(() => {
           console.log('Now Playing message sent:', this.currentSong);
         })
