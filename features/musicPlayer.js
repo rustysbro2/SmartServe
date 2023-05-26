@@ -64,7 +64,7 @@ class MusicPlayer {
     }
 
     const wasEmpty = this.queue.length === 0;
-    this.queue.push({ url });
+    this.queue.push(url);
 
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
@@ -89,16 +89,16 @@ class MusicPlayer {
 
     while (this.queue.length > 0) {
       this.currentSong = this.queue.shift();
-      console.log('Processing queue. Now playing:', this.currentSong.url);
+      console.log('Processing queue. Now playing:', this.currentSong);
 
-      const stream = ytdl(this.currentSong.url, { filter: 'audioonly' });
+      const stream = ytdl(this.currentSong, { filter: 'audioonly' });
       const resource = createAudioResource(stream);
       this.audioPlayer.play(resource);
 
       await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-      console.log('Now playing:', this.currentSong.url);
-      this.sendNowPlayingEmbed();
+      console.log('Now playing:', this.currentSong);
+      this.sendNowPlaying();
 
       // Reset voteSkips set
       this.voteSkips.clear();
@@ -108,40 +108,34 @@ class MusicPlayer {
     }
   }
 
-  sendNowPlayingEmbed() {
+  sendNowPlaying() {
     if (this.currentSong) {
-      console.log('Sending Now Playing message:', this.currentSong.url);
+      console.log('Sending Now Playing message:', this.currentSong);
       const embed = new EmbedBuilder()
         .setColor(0x00ff00)
         .setTitle('Now Playing')
-        .setDescription(`Now playing: [${this.currentSong.url}](${this.currentSong.url})`);
+        .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
 
       this.textChannel
         .send({ embeds: [embed] })
         .then(() => {
-          console.log('Now Playing message sent:', this.currentSong.url);
+          console.log('Now Playing message sent:', this.currentSong);
         })
         .catch((error) => {
           console.error(`Failed to send Now Playing message: ${error.message}`);
         });
-    }
-  }
 
-  sendNowPlayingText() {
-    if (this.currentSong) {
-      console.log('Sending Now Playing message:', this.currentSong.url);
+      const nowPlayingMessage = `Now playing: ${this.currentSong}`;
       this.textChannel
-        .send(`Now playing: ${this.currentSong.url}`)
+        .send(nowPlayingMessage)
         .then(() => {
-          console.log('Now Playing message sent:', this.currentSong.url);
+          console.log('Video link sent as a normal message:', this.currentSong);
         })
         .catch((error) => {
-          console.error(`Failed to send Now Playing message: ${error.message}`);
+          console.error(`Failed to send video link as a normal message: ${error.message}`);
         });
     }
   }
-
-
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
@@ -191,8 +185,13 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
+    const embed = new EmbedBuilder()
+      .setColor(0x00ff00)
+      .setTitle('Vote Skip')
+      .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
+
     this.textChannel
-      .send(`Vote skip: ${voteCount}/${totalCount}`)
+      .send({ embeds: [embed] })
       .then(() => {
         console.log('Vote skip message sent.');
       })
