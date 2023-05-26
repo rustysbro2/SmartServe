@@ -20,23 +20,20 @@ class MusicPlayer {
     });
 
     try {
-      this.connection.on(VoiceConnectionStatus.Ready, () => {
-        console.log('Voice connection established.');
-      });
-
-      this.connection.on(VoiceConnectionStatus.Disconnected, () => {
-        console.log('Voice connection disconnected.');
-        this.currentSong = null;
-        this.queue = [];
-      });
-
       await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
+      console.log('Voice connection established.');
     } catch (error) {
       console.error(`Failed to join voice channel: ${error.message}`);
       this.connection.destroy();
       throw error;
     }
+
+    const subscription = this.connection.subscribe(this.audioPlayer);
+    subscription.on('error', (error) => {
+      console.error(`Error subscribing to connection: ${error.message}`);
+    });
   }
+
 
 
   isValidYoutubeUrl(url) {
