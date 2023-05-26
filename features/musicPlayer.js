@@ -59,12 +59,12 @@ class MusicPlayer {
   }
 
   async addSong(url) {
-    if (!this.isValidYoutubeUrl(url)) {
+    if (!url || !this.isValidYoutubeUrl(url.trim())) {
       throw new Error('Invalid YouTube URL');
     }
 
     const wasEmpty = this.queue.length === 0;
-    this.queue.push(url);
+    this.queue.push({ url: url.trim() });
 
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
