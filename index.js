@@ -1,4 +1,4 @@
-const Discord = require("discord.js");
+const { Client, Intents } = require('discord.js');
 const dotenv = require("dotenv");
 
 // Load environment variables from .env file
