@@ -5,7 +5,14 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 // Create a new Discord client object
-const client = new Discord.Client();
+const client = new Discord.Client({
+  intents: [
+    "guilds",
+    "channels",
+    "messages",
+    "presences",
+  ],
+});
 
 // Create a new ShardingManager object
 const shardingManager = new Discord.ShardingManager(client);
