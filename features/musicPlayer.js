@@ -59,12 +59,12 @@ class MusicPlayer {
   }
 
   async addSong(url) {
-    if (!url || !this.isValidYoutubeUrl(url.trim())) {
+    if (!this.isValidYoutubeUrl(url)) {
       throw new Error('Invalid YouTube URL');
     }
 
     const wasEmpty = this.queue.length === 0;
-    this.queue.push({ url: url.trim() });
+    this.queue.push({ url });
 
     if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
@@ -89,7 +89,7 @@ class MusicPlayer {
 
     while (this.queue.length > 0) {
       this.currentSong = this.queue.shift();
-      console.log('Processing queue. Now playing:', this.currentSong);
+      console.log('Processing queue. Now playing:', this.currentSong.url);
 
       const stream = ytdl(this.currentSong.url, { filter: 'audioonly' });
       const resource = createAudioResource(stream);
@@ -97,7 +97,7 @@ class MusicPlayer {
 
       await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-      console.log('Now playing:', this.currentSong);
+      console.log('Now playing:', this.currentSong.url);
       this.sendNowPlaying();
 
       // Reset voteSkips set
@@ -110,20 +110,9 @@ class MusicPlayer {
 
   sendNowPlaying() {
     if (this.currentSong) {
-      console.log('Sending Now Playing message:', this.currentSong);
-      const embed = new EmbedBuilder()
-        .setColor(0x00ff00)
-        .setTitle('Now Playing')
-        .setDescription(`Now playing: [${this.currentSong.url}](${this.currentSong.url})`)
-        .setThumbnail('https://i.imgur.com/AfFp7pu.png')
-        .addFields(
-          { name: '\u200B', value: '\u200B' }, // Add empty field for spacing
-          { name: 'Author', value: 'Some Author', inline: true }, // Example field
-          { name: 'Duration', value: '3:25', inline: true } // Example field
-        );
-
+      console.log('Sending Now Playing message:', this.currentSong.url);
       this.textChannel
-        .send({ embeds: [embed] })
+        .send(`Now playing: ${this.currentSong.url}`)
         .then(() => {
           console.log('Now Playing message sent:', this.currentSong.url);
         })
@@ -181,13 +170,8 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
-    const embed = new EmbedBuilder()
-      .setColor(0x00ff00)
-      .setTitle('Vote Skip')
-      .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
-
     this.textChannel
-      .send({ embeds: [embed] })
+      .send(`Vote skip: ${voteCount}/${totalCount}`)
       .then(() => {
         console.log('Vote skip message sent.');
       })
