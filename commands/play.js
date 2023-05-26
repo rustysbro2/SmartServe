@@ -2,6 +2,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus, entersState } = require('@discordjs/voice');
+const ytdl = require('ytdl-core');
+
 
 module.exports = {
   data: new SlashCommandBuilder()
