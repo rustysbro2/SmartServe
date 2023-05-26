@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { createAudioResource, StreamType } = require('@discordjs/voice');
-const { createReadStream } = require('fs');
+const ytdl = require('ytdl-core');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus } = require('@discordjs/voice');
 const { entersState } = require('@discordjs/voice');
@@ -44,8 +44,8 @@ module.exports = {
       const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
       
-      // Create the audio resource from the provided URL
-      const stream = createReadStream(url);
+      // Fetch the audio stream from the YouTube URL using ytdl-core
+      const stream = ytdl(url, { filter: 'audioonly' });
       const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
       
       // Play the audio resource
