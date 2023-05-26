@@ -109,33 +109,35 @@ class MusicPlayer {
   }
 
   sendNowPlaying() {
-    if (this.currentSong) {
-      console.log('Sending Now Playing message:', this.currentSong);
-      const embed = new EmbedBuilder()
-        .setColor(0x00ff00)
-        .setTitle('Now Playing')
-        .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
+      if (this.currentSong) {
+        console.log('Sending Now Playing message:', this.currentSong);
 
-      this.textChannel
-        .send({ embeds: [embed] })
-        .then(() => {
-          console.log('Now Playing message sent:', this.currentSong);
-        })
-        .catch((error) => {
-          console.error(`Failed to send Now Playing message: ${error.message}`);
-        });
+        const embed = new EmbedBuilder()
+          .setColor(0x00ff00)
+          .setTitle('Now Playing')
+          .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
 
-      const nowPlayingMessage = `Now playing: ${this.currentSong}`;
-      this.textChannel
-        .send(nowPlayingMessage)
-        .then(() => {
-          console.log('Video link sent as a normal message:', this.currentSong);
-        })
-        .catch((error) => {
-          console.error(`Failed to send video link as a normal message: ${error.message}`);
-        });
-    }
+        this.textChannel
+          .send({ embeds: [embed] })
+          .then(() => {
+            console.log('Now Playing message sent:', this.currentSong);
+          })
+          .catch((error) => {
+            console.error(`Failed to send Now Playing message: ${error.message}`);
+          });
+
+        const nowPlayingMessage = `Now playing: ${this.currentSong}`;
+        this.textChannel
+          .send(nowPlayingMessage)
+          .then(() => {
+            console.log('Video link sent as a normal message:', this.currentSong);
+          })
+          .catch((error) => {
+            console.error(`Failed to send video link as a normal message: ${error.message}`);
+          });
+      }
   }
+
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
