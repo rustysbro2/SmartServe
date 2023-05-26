@@ -6,9 +6,7 @@ const {
   joinVoiceChannel,
   VoiceConnectionStatus,
 } = require('@discordjs/voice');
-const { demuxProbe } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
-const { Readable } = require('stream');
+const ytdl = require('ytdl-core-discord');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -20,22 +18,15 @@ class MusicPlayer {
     this.connection = null;
     this.currentSong = null;
     this.voteSkips = new Set();
-    this.voteSkipThreshold = 0.5;
+    this.voteSkipThreshold = 0.5; // Change this value to set the required percentage of votes to skip a song
 
     this.setupListeners();
   }
 
   setupListeners() {
     this.audioPlayer.on(AudioPlayerStatus.Idle, async () => {
-      if (this.queue.length === 0) {
-        console.log('Queue is empty. Stopping playback.');
-        await this.connection.destroy();
-        this.connection = null;
-        this.currentSong = null;
-        return;
-      }
-
-      await this.playNextSong();
+      console.log('Audio player state changed to Idle. Processing queue.');
+      await this.processQueue();
     });
 
     this.audioPlayer.on('error', (error) => {
@@ -62,45 +53,61 @@ class MusicPlayer {
     this.connection.subscribe(this.audioPlayer);
   }
 
+  isValidYoutubeUrl(url) {
+    const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
+    return pattern.test(url);
+  }
+
   async addSong(url) {
-    if (!ytdl.validateURL(url)) {
+    if (!this.isValidYoutubeUrl(url)) {
       throw new Error('Invalid YouTube URL');
     }
 
+    const wasEmpty = this.queue.length === 0;
     this.queue.push(url);
+
+    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+      console.log('Queue was empty and audio player is not playing. Processing queue.');
+      await this.processQueue();
+    }
+  }
+
+  async processQueue() {
+    if (this.queue.length === 0) {
+      if (this.connection) {
+        this.connection.destroy();
+        this.connection = null;
+        console.log('Bot left the voice channel.');
+      }
+      console.log('Queue is empty. Stopping playback.');
+      return;
+    }
 
     if (!this.connection) {
       await this.joinChannel();
     }
 
-    if (this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-      await this.playNextSong();
+    while (this.queue.length > 0) {
+      this.currentSong = this.queue.shift();
+      console.log('Processing queue. Now playing:', this.currentSong);
+
+      try {
+        const stream = await ytdl(this.currentSong);
+        const resource = createAudioResource(stream);
+        this.audioPlayer.play(resource);
+
+        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+        console.log('Now playing:', this.currentSong);
+        this.sendNowPlaying();
+
+        // Reset voteSkips set
+        this.voteSkips.clear();
+      } catch (error) {
+        console.error(`Failed to play the song: ${error.message}`);
+      }
     }
   }
-
-  async playNextSong() {
-    this.currentSong = this.queue.shift();
-    console.log('Processing queue. Now playing:', this.currentSong);
-
-    const stream = ytdl(this.currentSong, {
-      filter: 'audioonly',
-      quality: 'highestaudio',
-      highWaterMark: 1 << 25, // 32MB
-    });
-
-    const resource = createAudioResource(stream, {
-      inputType: StreamType.Arbitrary,
-    });
-
-    this.audioPlayer.play(resource);
-
-    console.log('Now playing:', this.currentSong);
-    this.sendNowPlaying();
-
-    // Reset voteSkips set
-    this.voteSkips.clear();
-  }
-
 
   sendNowPlaying() {
     if (this.currentSong) {
