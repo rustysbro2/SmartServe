@@ -9,15 +9,8 @@ const ytdl = require('ytdl-core');
 // Import the discord.js library
 const discord = require('discord.js');
 
-// Create a new Intents object
-const intents = new discord.Intents();
-intents.add(discord.Intents.GUILDS);
-intents.add(discord.Intents.GUILD_MESSAGES);
-intents.add(discord.Intents.GUILD_MEMBERS);
-intents.add(discord.Intents.GUILD_VOICE_STATES);
-
 // Create a new Client object
-const client = new discord.Client({ shards: "auto", intents });
+const client = new discord.Client({ shards: "auto", intents: discord.Intents.default });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
