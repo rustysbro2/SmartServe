@@ -111,13 +111,17 @@ class MusicPlayer {
 
       // Wait for the song to finish playing
       await new Promise((resolve) => {
-        this.audioPlayer.on(AudioPlayerStatus.Idle, () => {
-          console.log('Song finished playing.');
-          resolve();
+        this.audioPlayer.on('stateChange', (oldState, newState) => {
+          console.log(`State change: ${oldState.status} -> ${newState.status}`);
+          if (newState.status === AudioPlayerStatus.Idle && oldState.status !== AudioPlayerStatus.Idle) {
+            console.log('Song finished playing.');
+            resolve();
+          }
         });
       });
     }
   }
+
 
 
   sendNowPlaying() {
