@@ -48,8 +48,12 @@ module.exports = {
       const stream = ytdl(url, { filter: 'audioonly' });
       const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
 
+      musicPlayer.audioPlayer.on('error', (error) => {
+        console.error(`Error in audio player: ${error.message}`);
+        musicPlayer.processQueue();
+      });
+
       // Play the audio resource
-      musicPlayer.addSong(url);
       await musicPlayer.audioPlayer.play(resource);
       console.log('Song added to the queue.');
 
