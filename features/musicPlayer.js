@@ -1,5 +1,5 @@
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
-const { EmbedBuilder } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -109,7 +109,7 @@ class MusicPlayer {
 
       console.log('Now playing:', this.currentSong);
       this.sendNowPlaying();
-      
+
       // Reset voteSkips set
       this.voteSkips.clear();
 
@@ -121,13 +121,9 @@ class MusicPlayer {
   sendNowPlaying() {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
-      
-      const embed = new EmbedBuilder()
-        .setColor(0x00ff00)
-        .setTitle('Now Playing')
-        .addField('Now playing:', `[${this.currentSong}](${this.currentSong})`);
-        
-      this.textChannel.send({ embeds: [embed] })
+
+      const nowPlayingMessage = `Now playing: [${this.currentSong}](${this.currentSong})`;
+      this.textChannel.send(nowPlayingMessage)
         .then(() => {
           console.log('Now Playing message sent:', this.currentSong);
         })
@@ -185,7 +181,7 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setColor(0x00ff00)
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount}`);
