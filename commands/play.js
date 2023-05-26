@@ -43,12 +43,13 @@ module.exports = {
 
       const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
-      
+
       // Fetch the audio stream from the YouTube URL using ytdl-core
       const stream = ytdl(url, { filter: 'audioonly' });
       const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
-      
+
       // Play the audio resource
+      musicPlayer.addSong(url);
       await musicPlayer.audioPlayer.play(resource);
       console.log('Song added to the queue.');
 
@@ -58,9 +59,6 @@ module.exports = {
         musicPlayer.sendNowPlaying();
         console.log('Now playing message sent.');
       }
-
-      // Wait for the song to finish playing
-      await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Idle, 5e3);
 
       // Update the interaction with the completion status
       await interaction.editReply('Added to queue!');
