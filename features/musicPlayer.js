@@ -28,11 +28,9 @@ class MusicPlayer {
       throw error;
     }
 
-    const subscription = this.connection.subscribe(this.audioPlayer);
-    subscription.on('error', (error) => {
-      console.error(`Error subscribing to connection: ${error.message}`);
-    });
+    this.connection.subscribe(this.audioPlayer);
   }
+
 
 
 
