@@ -1,5 +1,5 @@
-const { entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { entersState, joinVoiceChannel, VoiceConnectionStatus, createAudioResource } = require('@discordjs/voice');
+const { EmbedBuilder } = require('discord.js');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -65,7 +65,7 @@ class MusicPlayer {
     }
   }
 
-  playNext() {
+  async playNext() {
     if (this.queue.length === 0) {
       // Queue is empty, disconnect from the voice channel
       this.connection.disconnect();
