@@ -1,18 +1,12 @@
 const { Client } = require('discord.js');
 
-
 const client = new Client({
-  intents: {
-    GUILDS: true,
-    GUILD_MESSAGES: true,
-    GUILD_MEMBERS: true,
-    GUILD_VOICE_STATES: true,
-  },
-});
-
-const client = new Client({
-  shards: 10,
-  autoSharding: true,
+  intents: [
+    GatewayIntentBits.GUILDS,
+    GatewayIntentBits.GUILD_MESSAGES,
+    GatewayIntentBits.GUILD_MEMBERS,
+    GatewayIntentBits.GUILD_VOICE_STATES,
+  ],
 });
 
 client.on('ready', async () => {
