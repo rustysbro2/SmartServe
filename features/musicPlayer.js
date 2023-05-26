@@ -1,5 +1,5 @@
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, Video } = require('discord.js');
 const ytdl = require('ytdl-core');
 
 class MusicPlayer {
@@ -111,10 +111,15 @@ class MusicPlayer {
   sendNowPlaying() {
     if (this.currentSong) {
       console.log('Sending Now Playing message:', this.currentSong);
+
+      const videoUrl = `https://www.youtube.com/watch?v=${this.currentSong}`;
+      const video = new Video(videoUrl);
+
       const embed = new EmbedBuilder()
         .setColor(0x00ff00)
         .setTitle('Now Playing')
-        .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`);
+        .setDescription(`Now playing: [${this.currentSong}](${this.currentSong})`)
+        .setVideo(video);
 
       this.textChannel
         .send({ embeds: [embed] })
