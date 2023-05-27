@@ -66,6 +66,9 @@ module.exports = {
       }
     }
 
+    // Log the command categories to check for duplicates
+    console.log('Command Categories:', commandCategories);
+
     // Create the string select menu and add options for each command category
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
@@ -94,6 +97,9 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
+
+    // Log the select menu options to check for duplicates
+    console.log('Select Menu Options:', selectMenu.toJSON());
 
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
