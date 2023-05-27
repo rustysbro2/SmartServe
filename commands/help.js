@@ -20,7 +20,7 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     // Add the commands as fields in the embed
     category.commands.forEach((command) => {
-      categoryEmbed.addField(command.name, command.description);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     try {
@@ -39,6 +39,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 
 
