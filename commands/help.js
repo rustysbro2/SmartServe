@@ -120,6 +120,9 @@ module.exports = {
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
+    // Debug statement: Log the initial embed
+    console.log('Initial Embed:', initialEmbed.toJSON());
+
     // Send the initial embed with the action row and select menu
     await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
 
