@@ -68,7 +68,7 @@ module.exports = {
     commandCategories.forEach((category) => {
       const options = category.commands.map((command) => {
         return new StringSelectMenuOptionBuilder()
-          .setLabel(`/${command.name}`)
+          .setLabel(`/${category.name}`)
           .setDescription(command.description)
           .setValue(command.name);
       });
