@@ -24,34 +24,28 @@ module.exports = async function (client) {
 
   const rest = new REST({ version: '10' }).setToken(token);
 
-  // Loop through each guild the bot is in and register the slash commands
-  client.guilds.cache.forEach(async (guild) => {
-    try {
-      console.log(`Started refreshing application (/) commands for guild ${guild.id}.`);
+  try {
+    const guilds = client.guilds.cache.map((guild) => guild.id);
 
-      // Get existing slash commands in the guild
-      const existingCommands = await rest.get(
-        Routes.applicationGuildCommands(clientId, guild.id)
-      );
+    console.log('Started refreshing application (/) commands for all guilds.');
 
-      // Remove old commands
-      for (const command of existingCommands) {
-        await rest.delete(
-          Routes.applicationGuildCommand(clientId, guild.id, command.id)
-        );
-      }
+    // Get existing global slash commands
+    const existingCommands = await rest.get(Routes.applicationCommands(clientId));
 
-      // Register updated commands
-      for (const command of commands) {
-        await rest.post(
-          Routes.applicationGuildCommands(clientId, guild.id),
-          { body: command },
-        );
-      }
+    // Remove old global commands
+    const deletePromises = existingCommands.map((command) =>
+      rest.delete(Routes.applicationCommand(clientId, command.id))
+    );
+    await Promise.all(deletePromises);
 
-      console.log(`Successfully reloaded application (/) commands for guild ${guild.id}.`);
-    } catch (error) {
-      console.error(`Error while refreshing application (/) commands for guild ${guild.id}.`, error);
-    }
-  });
+    // Register updated global commands
+    const registerPromises = guilds.map((guildId) =>
+      rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
+    );
+    await Promise.all(registerPromises);
+
+    console.log('Successfully reloaded application (/) commands for all guilds.');
+  } catch (error) {
+    console.error('Error while refreshing application (/) commands.', error);
+  }
 };
