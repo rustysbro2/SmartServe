@@ -1,4 +1,4 @@
-const { createAudioResource, createAudioPlayer, StreamType, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
+const { joinVoiceChannel, createAudioPlayer, createAudioResource, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
 
 class MusicPlayer {
@@ -89,7 +89,7 @@ class MusicPlayer {
 
       try {
         const stream = await ytdl(this.currentSong);
-        const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
+        const resource = createAudioResource(stream);
 
         resource.playStream.on('end', () => {
           console.log('Finished playing:', this.currentSong);
