@@ -1,17 +1,18 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('ping')
-    .setDescription('Replies with Pong!')
-    .addStringOption(option =>
-      option.setName('category')
-        .setDescription('Command category')
-        .setRequired(true)),
+    .setDescription('Check the bot\'s ping'),
+
+  category: 'Utility',
 
   async execute(interaction) {
-    await interaction.reply('Pong!');
+    const startTime = Date.now();
+    const reply = await interaction.reply({ content: 'Pinging...', ephemeral: true });
+    const endTime = Date.now();
+    const ping = endTime - startTime;
+
+    reply.edit(`Pong! Latency: ${ping}ms, API Latency: ${interaction.client.ws.ping}ms`);
   },
-  category: 'Main Menu', // Set the command category
-  categoryDescription: 'Main menu commands' // Set the category description
 };
