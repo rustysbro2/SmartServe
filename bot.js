@@ -66,22 +66,24 @@ async function checkVoiceChannels() {
 }
 
 client.on('interactionCreate', async (interaction) => {
-  if (!interaction.isCommand()) return;
+  if (interaction.isSelectMenu() && interaction.customId === 'help_category') {
+    await helpCommand.handleSelectMenu(interaction, client, commandCategories);
+  } else if (interaction.isCommand()) {
+    const { commandName } = interaction;
 
-  const { commandName } = interaction;
+    if (commandName === 'help') {
+      await helpCommand.execute(interaction, client);
+    } else {
+      const command = client.commands.get(commandName);
 
-  if (commandName === 'help') {
-    await helpCommand.execute(interaction, client);
-  } else {
-    const command = client.commands.get(commandName);
+      if (!command) return;
 
-    if (!command) return;
-
-    try {
-      await command.execute(interaction, client); // Execute the command
-    } catch (error) {
-      console.error(error);
-      await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+      try {
+        await command.execute(interaction, client); // Execute the command
+      } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+      }
     }
   }
 });
