@@ -1,30 +1,25 @@
-const { Client } = require('discord.js');
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v10');
-const { clientId, token } = require('./config.js');
+const { Client, GatewayIntentBits } = require('discord.js');
+const { clientId, token } = require('./config.json');
 
-const client = new Client();
-const rest = new REST({ version: '10' }).setToken(token);
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-(async () => {
+client.once('ready', async () => {
+  console.log(`Ready! Logged in as ${client.user.tag}`);
+
   try {
-    console.log('Deleting all commands...');
+    const commands = await client.application.commands.fetch();
 
-    await client.login(token);
-    const guilds = client.guilds.cache.map((guild) => guild.id);
-
-    for (const guildId of guilds) {
-      await rest.put(
-        Routes.applicationGuildCommands(clientId, guildId),
-        { body: [] }
-      );
-
-      console.log(`All commands deleted for guild ${guildId}.`);
+    for (const command of commands.values()) {
+      await command.delete();
+      console.log(`Deleted command "${command.name}"`);
     }
 
-    console.log('All commands deleted successfully.');
-    client.destroy();
+    console.log('All global commands deleted successfully.');
   } catch (error) {
-    console.error('Error deleting commands:', error);
+    console.error('Error deleting global commands:', error);
   }
-})();
+
+  client.destroy();
+});
+
+client.login(token);
