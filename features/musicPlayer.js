@@ -11,7 +11,7 @@ class MusicPlayer {
     this.connection = null;
     this.currentSong = null;
     this.voteSkips = new Set();
-    this.voteSkipThreshold = 0.5; // Change this value to set the required percentage of votes to skip a song
+    this.voteSkipThreshold = 0.5;
 
     this.setupListeners();
   }
