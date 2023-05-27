@@ -27,8 +27,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       const channel = interaction.channel;
       if (channel) {
         // Fetch the original message
-        const messages = await channel.messages.fetch(interaction.message.id);
-        const originalMessage = messages.get(interaction.message.id);
+        const originalMessage = await channel.messages.fetch(interaction.message.id);
 
         // If the original message exists, edit it with the updated embed
         if (originalMessage) {
