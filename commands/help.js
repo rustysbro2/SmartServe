@@ -156,9 +156,8 @@ module.exports = {
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
-
-    // Exported handleSelectMenu function
-    module.exports.handleSelectMenu = handleSelectMenu;
   },
 };
 
+// Export the handleSelectMenu function
+module.exports.handleSelectMenu = handleSelectMenu;
