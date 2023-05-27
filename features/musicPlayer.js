@@ -69,57 +69,56 @@ class MusicPlayer {
   }
 
   async processQueue() {
-  if (this.queue.length === 0) {
-    if (this.connection) {
-      this.connection.destroy();
-      this.connection = null;
-      console.log('Bot left the voice channel.');
+    if (this.queue.length === 0) {
+      if (this.connection) {
+        this.connection.destroy();
+        this.connection = null;
+        console.log('Bot left the voice channel.');
+      }
+      console.log('Queue is empty. Stopping playback.');
+      return;
     }
-    console.log('Queue is empty. Stopping playback.');
-    return;
-  }
 
-  if (!this.connection) {
-    await this.joinChannel();
-  }
+    if (!this.connection) {
+      await this.joinChannel();
+    }
 
-  while (this.queue.length > 0) {
-    this.currentSong = this.queue.shift();
-    console.log('Processing queue. Now playing:', this.currentSong);
+    while (this.queue.length > 0) {
+      this.currentSong = this.queue.shift();
+      console.log('Processing queue. Now playing:', this.currentSong);
 
-    try {
-      const stream = await ytdl(this.currentSong);
-      const resource = createAudioResource(stream);
+      try {
+        const stream = await ytdl(this.currentSong);
+        const resource = createAudioResource(stream);
 
-      resource.volume.setVolume(0.5); // Adjust the volume if needed
+        resource.playStream.on('end', () => {
+          console.log('Finished playing:', this.currentSong);
+          this.currentSong = null;
+          this.processQueue(); // Continue to the next song
+        });
 
-      resource.playStream.on('end', () => {
-        console.log('Finished playing:', this.currentSong);
+        resource.playStream.on('error', (error) => {
+          console.error('Error occurred while playing the song:', error);
+          this.currentSong = null;
+          this.processQueue(); // Continue to the next song
+        });
+
+        this.audioPlayer.play(resource);
+        await entersState(this.audioPlayer, VoiceConnectionStatus.Playing, 5e3);
+
+        console.log('Now playing:', this.currentSong);
+        this.sendNowPlaying();
+
+        // Reset voteSkips set
+        this.voteSkips.clear();
+      } catch (error) {
+        console.error(`Failed to play the song: ${error.message}`);
         this.currentSong = null;
         this.processQueue(); // Continue to the next song
-      });
-
-      resource.playStream.on('error', (error) => {
-        console.error('Error occurred while playing the song:', error);
-        this.currentSong = null;
-        this.processQueue(); // Continue to the next song
-      });
-
-      this.audioPlayer.play(resource);
-      await entersState(this.audioPlayer, VoiceConnectionStatus.Playing, 5e3);
-
-      console.log('Now playing:', this.currentSong);
-      this.sendNowPlaying();
-
-      // Reset voteSkips set
-      this.voteSkips.clear();
-    } catch (error) {
-      console.error(`Failed to play the song: ${error.message}`);
-      this.currentSong = null;
-      this.processQueue(); // Continue to the next song
+      }
     }
   }
-}
+
 
 
 
