@@ -5,7 +5,7 @@ const fs = require('fs');
 const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
-const helpCommand = require('./commands/help');
+const { handleSelectMenu } = require('./commands/help');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -99,13 +99,13 @@ async function checkVoiceChannels() {
 }
 
 client.on('interactionCreate', async (interaction) => {
-  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-    await helpCommand.handleSelectMenu(interaction, commandCategories);
+  if (interaction.isSelectMenu() && interaction.customId === 'help_category') {
+    await handleSelectMenu(interaction, commandCategories);
   } else if (interaction.isCommand()) {
     const { commandName } = interaction;
 
     if (commandName === 'help') {
-      await helpCommand.execute(interaction, client);
+      await client.commands.get('help').execute(interaction, client);
     } else {
       const command = client.commands.get(commandName);
 
@@ -120,6 +120,5 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 });
-
 
 client.login(token);
