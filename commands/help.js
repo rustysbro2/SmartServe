@@ -7,7 +7,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client) {
+  async execute(interaction) {
     const commandCategories = [];
     const defaultCategory = 'Uncategorized'; // Specify the default category name
 
@@ -37,7 +37,7 @@ module.exports = {
         } else {
           // Create a new category and add the command to it
           const newCategory = {
-            name: `${command.category}_${commandFiles.indexOf(file)}`, // Add a unique identifier
+            name: command.category,
             commands: [
               {
                 name: command.data.name,
@@ -114,11 +114,12 @@ module.exports = {
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
-    try {
-      // Edit the initial reply with the action row and select menu
-      await interaction.editReply({ embeds: [initialEmbed], components: [actionRow] });
-    } catch (error) {
-      console.error('Error editing initial reply:', error);
+    // Send the initial embed with the action row and select menu
+    const initialReply = await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+
+    if (!initialReply) {
+      console.error('Initial reply has not been sent.');
+      return;
     }
 
     // Execute the command
