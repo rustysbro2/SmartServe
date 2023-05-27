@@ -17,9 +17,13 @@ module.exports = {
     // Read all command modules from the commands directory
     const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
 
+    // Set to keep track of processed command files
+    const processedFiles = new Set();
+
     // Loop through each command module
     for (const file of commandFiles) {
       if (file === 'help.js') continue; // Skip the help command file
+      if (processedFiles.has(file)) continue; // Skip the already processed command file
 
       const command = require(path.join(commandsDirectory, file));
 
@@ -64,6 +68,9 @@ module.exports = {
           description: command.data.description,
         });
       }
+
+      // Add the file to the processed files set
+      processedFiles.add(file);
     }
 
     // Log the command categories to check for duplicates
