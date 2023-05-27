@@ -74,18 +74,16 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
-      category.commands.forEach((cmd) => {
-        const optionBuilder = new StringSelectMenuOptionBuilder()
-          .setLabel(cmd.name)
-          .setValue(cmd.name); // Use the command name as the unique option value
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(category.name); // Use the category name as the unique option value
 
-        // Set the description only if it exists and is not empty
-        if (cmd.hasOwnProperty('description') && cmd.description.length > 0) {
-          optionBuilder.setDescription(cmd.description);
-        }
+      // Set the description only if it exists and is not empty
+      if (category.hasOwnProperty('description') && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
 
-        selectMenu.addOptions(optionBuilder);
-      });
+      selectMenu.addOptions(optionBuilder);
     });
 
     // Create the action row with the select menu
