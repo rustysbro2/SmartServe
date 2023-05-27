@@ -73,7 +73,7 @@ module.exports = {
       processedFiles.add(file);
     }
 
-    // Log the command categories to check for duplicates
+    // Debug statement: Log the command categories
     console.log('Command Categories:', commandCategories);
 
     // Create the string select menu and add options for each command category
@@ -105,7 +105,7 @@ module.exports = {
       selectMenu.addOptions(optionBuilder);
     });
 
-    // Log the select menu options to check for duplicates
+    // Debug statement: Log the select menu options
     console.log('Select Menu Options:', selectMenu.toJSON());
 
     // Create the action row with the select menu
