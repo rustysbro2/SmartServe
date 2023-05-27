@@ -1,57 +1,50 @@
-// commands/help.js
-
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageEmbed, MessageSelectMenu } = require('discord.js');
+const { MessageActionRow, MessageSelectMenu } = require('discord.js');
+const fs = require('fs');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('List all commands or info about a specific command.'),
+    .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction) {
-    const commandCategories = [
-      {
-        name: 'Main Menu',
-        description: 'Main menu commands',
-        commands: [
-          { name: 'help', description: 'List all commands or info about a specific command' },
-          { name: 'ping', description: 'Ping the bot' },
-        ],
-      },
-      {
-        name: 'Music',
-        description: 'Commands related to music',
-        commands: [
-          { name: 'play', description: 'Play a song' },
-          { name: 'voteskip', description: 'Vote to skip the currently playing song' },
-        ],
-      },
-      {
-        name: 'Invite Tracker',
-        description: 'Commands related to invite tracking',
-        commands: [
-          { name: 'setinvitechannel', description: 'Set the invite tracking channel' },
-        ],
-      },
-    ];
+    const commandCategories = [];
 
-    const createCategoryEmbed = (category) => {
-      if (!category) {
-        return new MessageEmbed().setColor('#0099ff').setDescription('Invalid category');
+    // Read all command modules from the commands directory
+    const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+
+    // Loop through each command module
+    for (const file of commandFiles) {
+      const command = require(`./commands/${file}`);
+
+      // Check if the command module has a category property
+      if (command.category) {
+        // Check if the category already exists in the commandCategories array
+        const category = commandCategories.find((category) => category.name === command.category);
+
+        if (category) {
+          // Add the command to the existing category
+          category.commands.push({
+            name: command.data.name,
+            description: command.data.description,
+          });
+        } else {
+          // Create a new category and add the command to it
+          commandCategories.push({
+            name: command.category,
+            description: command.categoryDescription,
+            commands: [
+              {
+                name: command.data.name,
+                description: command.data.description,
+              },
+            ],
+          });
+        }
       }
+    }
 
-      const categoryEmbed = new MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle(`Category: ${category.name}`)
-        .setDescription(category.description);
-
-      category.commands.forEach((command) => {
-        categoryEmbed.addField(command.name, command.description);
-      });
-
-      return categoryEmbed;
-    };
-
+    // Create the select menu and add options for each command category
     const selectMenu = new MessageSelectMenu()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
@@ -63,55 +56,27 @@ module.exports = {
         description: command.description,
       }));
 
-      const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'main menu')
-        .map((c) => ({
-          label: c.name,
-          value: c.name.toLowerCase(),
-          description: `View ${c.name} commands`,
-        }));
-
-      const backButton = new MessageSelectMenu()
-        .setCustomId('help_back')
-        .setPlaceholder('Go back to main menu')
-        .addOptions([
-          { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-          ...backButtonOptions,
-        ]);
-
-      if (category.name.toLowerCase() !== 'main menu') {
-        selectMenu.addOptions({
-          label: category.name,
-          value: category.name.toLowerCase(),
-          description: category.description,
-          options: options,
-        });
-      }
-
-      category.backButton = backButton;
+      selectMenu.addOptions({
+        label: category.name,
+        value: category.name.toLowerCase(),
+        description: category.description,
+        options: options,
+      });
     });
 
-    const collector = interaction.channel.createMessageComponentCollector({
-      componentType: 'SELECT_MENU',
-    });
+    // Create the message component collector
+    const collector = interaction.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU' });
 
     collector.on('collect', async (collected) => {
-      if (collected.customId === 'help_category') {
-        const selectedCategory = collected.values[0];
-        const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
+      const selectedCategory = collected.values[0];
+      const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
 
-        if (category) {
-          const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
-        }
-      } else if (collected.customId === 'help_back') {
-        if (collected.values[0] === 'main_menu') {
-          await collected.update({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
-        } else {
-          const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
-          const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
-        }
+      if (category) {
+        // Create the category embed
+        const categoryEmbed = createCategoryEmbed(category);
+
+        // Update the message with the category embed and the back button
+        await collected.update({ embeds: [categoryEmbed], components: [createBackButton()] });
       }
     });
 
@@ -119,6 +84,31 @@ module.exports = {
       interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
     });
 
-    await interaction.reply({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
+    // Create and send the initial message with the first category
+    await interaction.reply({ embeds: [createCategoryEmbed(commandCategories[0])], components: [selectMenu] });
   },
 };
+
+// Helper function to create a category embed
+function createCategoryEmbed(category) {
+  const embed = new MessageEmbed()
+    .setColor('#0099ff')
+    .setTitle(`Category: ${category.name}`)
+    .setDescription(category.description);
+
+  category.commands.forEach((command) => {
+    embed.addField(command.name, command.description);
+  });
+
+  return embed;
+}
+
+// Helper function to create the back button
+function createBackButton() {
+  const backButton = new MessageSelectMenu()
+    .setCustomId('help_back')
+    .setPlaceholder('Go back to main menu')
+    .addOptions([{ label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' }]);
+
+  return new MessageActionRow().addComponents(backButton);
+}
