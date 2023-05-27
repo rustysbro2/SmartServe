@@ -68,14 +68,12 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
-      const options = category.commands.map((command) => {
-        return new StringSelectMenuOptionBuilder()
-          .setLabel(`/${command.name}`)
-          .setDescription(command.description)
-          .setValue(command.name);
-      });
-
-      selectMenu.addOptions(options);
+      selectMenu.addOption(
+        new StringSelectMenuOptionBuilder()
+          .setLabel(category.name)
+          .setDescription(category.description)
+          .setValue(category.name)
+      );
     });
 
     // Create the action row with the select menu
