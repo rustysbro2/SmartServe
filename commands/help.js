@@ -17,14 +17,14 @@ module.exports = {
       // Handle the select menu interaction
       const selectedCategory = interaction.values[0];
       // Add your logic to fetch and display commands for the selected category
-      
+
       // Example code to reply to the select menu interaction
       await interaction.reply(`You selected the category: ${selectedCategory}`);
       return;
     }
 
     const commandCategories = [];
-    const defaultCategory = 'Uncategorized'; // Specify the default category name
+    const defaultCategoryName = 'Uncategorized'; // Specify the default category name
 
     // Get the absolute path to the commands directory (same directory as help.js)
     const commandsDirectory = path.join(__dirname);
@@ -39,14 +39,14 @@ module.exports = {
       const command = require(path.join(commandsDirectory, file));
 
       // Check if the command module has a category property
-      if (command.data.category) {
+      if (command.category) {
         // Check if the category already exists in the commandCategories array
-        let category = commandCategories.find((category) => category.name === command.data.category);
+        let category = commandCategories.find((category) => category.name === command.category);
 
         if (!category) {
           // Create a new category if it doesn't exist
           category = {
-            name: command.data.category,
+            name: command.category,
             description: '', // Initialize the description as an empty string
             commands: [],
           };
@@ -61,7 +61,7 @@ module.exports = {
         });
       } else {
         // Assign the command to the default category
-        let defaultCategory = commandCategories.find((category) => category.name === defaultCategory);
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
 
         if (!defaultCategory) {
           // Create the default category if it doesn't exist
@@ -99,34 +99,37 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
-      selectMenu.addOptions(optionBuilder);
+      selectMenu.addOption(optionBuilder);
     });
 
-    // Function to generate a unique option value
-    function generateUniqueOptionValue(categoryName) {
-      let optionValue = categoryName.toLowerCase().replace(/\s+/g, '_');
-
-      while (usedOptionValues.has(optionValue)) {
-        optionValue += '_';
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
-
-    // Create the action row with the select menu
-    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+    // Create the action row and add the select menu component
+    const actionRow = new ActionRowBuilder().addComponent(selectMenu);
 
     // Create the initial embed with the action row and select menu
     const initialEmbed = new EmbedBuilder()
-      .setTitle('Command Categories')
-      .setDescription('Please select a category to view commands')
-      .setColor('#ff0000'); // Set your desired embed color
+      .setTitle('Help')
+      .setDescription('Select a category to view the available commands')
+      .setColor('#0099ff');
 
-    // Reply to the interaction with the initial embed and action row
+    // Send the initial embed with the action row and select menu
     await interaction.reply({
       embeds: [initialEmbed],
       components: [actionRow],
     });
   },
 };
+
+// Helper function to generate a unique option value
+function generateUniqueOptionValue(categoryName) {
+  let optionValue = categoryName.toLowerCase().replace(/\s+/g, '_'); // Convert category name to lowercase and replace spaces with underscores
+
+  // If the generated option value is already used, append a unique suffix
+  let counter = 2;
+  while (usedOptionValues.has(optionValue)) {
+    optionValue = `${optionValue}_${counter}`;
+    counter++;
+  }
+
+  usedOptionValues.add(optionValue);
+  return optionValue;
+}
