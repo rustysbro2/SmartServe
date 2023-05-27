@@ -1,5 +1,6 @@
 const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, SlashCommandBuilder, ActionRowBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
+const path = require('path');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -9,12 +10,15 @@ module.exports = {
   async execute(interaction) {
     const commandCategories = [];
 
+    // Get the absolute path to the commands directory
+    const commandsDirectory = path.join(__dirname, '..');
+
     // Read all command modules from the commands directory
-    const commandFiles = fs.readdirSync('.').filter((file) => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
 
     // Loop through each command module
     for (const file of commandFiles) {
-      const command = require(`./${file}`);
+      const command = require(path.join(commandsDirectory, file));
 
       // Check if the command module has a category property
       if (command.category) {
