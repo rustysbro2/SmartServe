@@ -16,15 +16,13 @@ async function handleSelectMenu(interaction, commandCategories) {
     // Create the embed with the category's commands
     const categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.description || 'No description available')
-      .setColor('#0099ff');
+      .setDescription(category.description || 'No description available');
 
     // Add the commands as fields in the embed
     category.commands.forEach((command) => {
       categoryEmbed.addFields({
         name: command.name,
         value: command.description,
-        inline: false,
       });
     });
 
@@ -109,41 +107,25 @@ module.exports = {
       }
     }
 
-    const usedOptionValues = new Set(); // Track used option values
+    // Create the select menu options
+    const selectMenuOptions = commandCategories.map((category) =>
+      new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(category.name.toLowerCase().replace(/\s/g, '_'))
+    );
 
-    // Create the string select menu and add options for each command category
+    // Create the select menu component
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
-      .setPlaceholder('Select a category');
-
-    commandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name)); // Generate a unique option value
-
-      // Set the description only if it exists and is not empty
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
-      }
-
-      selectMenu.addOptions(optionBuilder);
-    });
+      .setPlaceholder('Select a category')
+      .addOptions(selectMenuOptions);
 
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    // Create the initial embed with the category information
-    const initialEmbed = new EmbedBuilder()
-      .setTitle('Command Categories')
-      .setDescription('Please select a category from the dropdown menu.')
-      .setColor('#0099ff');
-
-    try {
-      // Send the initial embed with the action row and select menu
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-    } catch (error) {
-      console.error('Error replying to interaction:', error);
-    }
+    // Create the initial reply message
+    await interaction.reply({ content: 'Please select a category:', components: [actionRow] });
   },
+
   handleSelectMenu,
 };
