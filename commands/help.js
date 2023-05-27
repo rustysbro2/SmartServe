@@ -18,33 +18,54 @@ module.exports = {
     const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
 
     // Loop through each command module
-    for (const file of commandFiles) {
+    for (for (const file of commandFiles) {
       if (file === 'help.js') continue; // Skip the help command file
 
       const command = require(path.join(commandsDirectory, file));
 
       // Check if the command module has a category property
       if (command.category) {
-        // Check if the category already exists in the commandCategories array
-        const category = commandCategories.find((category) => category.name === command.category);
+        let category = commandCategories.find((category) => category.name === command.category);
 
-        if (category) {
-          // Add the command to the existing category
-          category.commands.push({
-            name: command.data.name,
-            description: command.data.description,
-          });
-        } else {
-          // Create a new category and add the command to it
-          const newCategory = {
+        if (!category) {
+          // Create a new category if it doesn't exist
+          category = {
             name: command.category,
-            commands: [
-              {
-                name: command.data.name,
-                description: command.data.description,
-              },
-            ],
+            description: '', // Initialize the description as an empty string
+            commands: [],
           };
+
+          commandCategories.push(category);
+        }
+
+        // Add the command to the category
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      } else {
+        // Assign the command to the default category
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+
+        if (!defaultCategory) {
+          // Create the default category if it doesn't exist
+          defaultCategory = {
+            name: defaultCategoryName,
+            description: 'Commands that do not belong to any specific category',
+            commands: [],
+          };
+
+          commandCategories.push(defaultCategory);
+        }
+
+        // Add the command to the default category
+        defaultCategory.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      }
+    }
+
 
           // Check if the category has a description property and it is not empty
           if (command.hasOwnProperty('categoryDescription') && command.categoryDescription.length > 0) {
