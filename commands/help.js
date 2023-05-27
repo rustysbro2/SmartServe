@@ -83,7 +83,7 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
-      selectMenu.addOption(optionBuilder);
+      selectMenu.addOptions([optionBuilder]);
     });
 
     // Create the action row with the select menu
@@ -95,7 +95,7 @@ module.exports = {
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
-    // Send the initial embed with the action row
+    // Send the initial embed with the action row and select menu
     await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
   },
 };
