@@ -20,15 +20,18 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     // Add the commands as fields in the embed
     category.commands.forEach((command) => {
-      categoryEmbed.addFields({
-        name: command.name,
-        value: command.description,
-      });
+      categoryEmbed.addField(command.name, command.description);
     });
 
     try {
-      // Update the original reply with the category embed
-      await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+      // Check if the interaction has been replied to
+      if (interaction.replied) {
+        // Edit the original reply with the category embed
+        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+      } else {
+        // Reply to the interaction with the category embed
+        await interaction.reply({ embeds: [categoryEmbed], components: [] });
+      }
     } catch (error) {
       console.error('Error editing interaction reply:', error);
     }
@@ -159,8 +162,7 @@ module.exports = {
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
-
-    // Exported handleSelectMenu function
-    module.exports.handleSelectMenu = handleSelectMenu;
   },
+
+  handleSelectMenu,
 };
