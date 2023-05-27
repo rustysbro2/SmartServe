@@ -1,124 +1,132 @@
-// commands/help.js
-
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageEmbed, MessageSelectMenu } = require('discord.js');
+const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, SlashCommandBuilder, ActionRowBuilder, EmbedBuilder } = require('discord.js');
+const fs = require('fs');
+const path = require('path');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('List all commands or info about a specific command.'),
+    .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction) {
-    const commandCategories = [
-      {
-        name: 'Main Menu',
-        description: 'Main menu commands',
-        commands: [
-          { name: 'help', description: 'List all commands or info about a specific command' },
-          { name: 'ping', description: 'Ping the bot' },
-        ],
-      },
-      {
-        name: 'Music',
-        description: 'Commands related to music',
-        commands: [
-          { name: 'play', description: 'Play a song' },
-          { name: 'voteskip', description: 'Vote to skip the currently playing song' },
-        ],
-      },
-      {
-        name: 'Invite Tracker',
-        description: 'Commands related to invite tracking',
-        commands: [
-          { name: 'setinvitechannel', description: 'Set the invite tracking channel' },
-        ],
-      },
-    ];
+    const commandCategories = [];
+    const defaultCategoryName = 'Uncategorized'; // Specify the default category name
 
-    const createCategoryEmbed = (category) => {
-      if (!category) {
-        return new MessageEmbed().setColor('#0099ff').setDescription('Invalid category');
-      }
+    // Get the absolute path to the commands directory (same directory as help.js)
+    const commandsDirectory = path.join(__dirname);
 
-      const categoryEmbed = new MessageEmbed()
-        .setColor('#0099ff')
-        .setTitle(`Category: ${category.name}`)
-        .setDescription(category.description);
+    // Read all command modules from the commands directory
+    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
 
-      category.commands.forEach((command) => {
-        categoryEmbed.addField(command.name, command.description);
-      });
+    // Set to keep track of processed command files
+    const processedFiles = new Set();
 
-      return categoryEmbed;
-    };
+    // Loop through each command module
+    for (const file of commandFiles) {
+      if (file === 'help.js') continue; // Skip the help command file
+      if (processedFiles.has(file)) continue; // Skip the already processed command file
 
-    const selectMenu = new MessageSelectMenu()
-      .setCustomId('help_category')
-      .setPlaceholder('Select a category');
+      const command = require(path.join(commandsDirectory, file));
 
-    commandCategories.forEach((category) => {
-      const options = category.commands.map((command) => ({
-        label: `/${command.name}`,
-        value: command.name,
-        description: command.description,
-      }));
+      // Check if the command module has a category property
+      if (command.category) {
+        let category = commandCategories.find((category) => category.name === command.category);
 
-      const backButtonOptions = commandCategories
-        .filter((c) => c.name.toLowerCase() !== category.name.toLowerCase() && c.name.toLowerCase() !== 'main menu')
-        .map((c) => ({
-          label: c.name,
-          value: c.name.toLowerCase(),
-          description: `View ${c.name} commands`,
-        }));
+        if (!category) {
+          // Create a new category if it doesn't exist
+          category = {
+            name: command.category,
+            description: '', // Initialize the description as an empty string
+            commands: [],
+          };
 
-      const backButton = new MessageSelectMenu()
-        .setCustomId('help_back')
-        .setPlaceholder('Go back to main menu')
-        .addOptions([
-          { label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' },
-          ...backButtonOptions,
-        ]);
+          commandCategories.push(category);
+        }
 
-      if (category.name.toLowerCase() !== 'main menu') {
-        selectMenu.addOptions({
-          label: category.name,
-          value: category.name.toLowerCase(),
-          description: category.description,
-          options: options,
+        // Add the command to the category
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      } else {
+        // Assign the command to the default category
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+
+        if (!defaultCategory) {
+          // Create the default category if it doesn't exist
+          defaultCategory = {
+            name: defaultCategoryName,
+            description: 'Commands that do not belong to any specific category',
+            commands: [],
+          };
+
+          commandCategories.push(defaultCategory);
+        }
+
+        // Add the command to the default category
+        defaultCategory.commands.push({
+          name: command.data.name,
+          description: command.data.description,
         });
       }
 
-      category.backButton = backButton;
-    });
+      // Add the file to the processed files set
+      processedFiles.add(file);
+    }
 
-    const collector = interaction.channel.createMessageComponentCollector({
-      componentType: 'SELECT_MENU',
-    });
+    // Log the command categories to check for duplicates
+    console.log('Command Categories:', commandCategories);
 
-    collector.on('collect', async (collected) => {
-      if (collected.customId === 'help_category') {
-        const selectedCategory = collected.values[0];
-        const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
+    // Create the string select menu and add options for each command category
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
 
-        if (category) {
-          const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
-        }
-      } else if (collected.customId === 'help_back') {
-        if (collected.values[0] === 'main_menu') {
-          await collected.update({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
-        } else {
-          const category = commandCategories.find((c) => c.name.toLowerCase() === collected.values[0]);
-          const categoryEmbed = createCategoryEmbed(category);
-          await collected.update({ embeds: [categoryEmbed], components: [new MessageActionRow().addComponents(category.backButton)] });
-        }
+    // Create a set to keep track of used option values
+    const usedOptionValues = new Set();
+
+    commandCategories.forEach((category) => {
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(category.name);
+
+      // Generate a unique option value if it is already used
+      while (usedOptionValues.has(optionBuilder.value)) {
+        optionBuilder.setValue(optionBuilder.value + '_'); // Append an underscore to the value
       }
+
+      // Add the option value to the set
+      usedOptionValues.add(optionBuilder.value);
+
+      // Set the description only if it exists and is not empty
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
+
+      selectMenu.addOptions(optionBuilder);
     });
 
-    collector.on('end', () => {
-      interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
-    });
+    // Log the select menu options to check for duplicates
+    console.log('Select Menu Options:', selectMenu.toJSON());
 
-    await interaction.reply({ embeds: [createCategoryEmbed(commandCategories[0])], components: [new MessageActionRow().addComponents(selectMenu)] });
+    // Create the action row with the select menu
+    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+
+    // Debug statement: Log the action row
+    console.log('Action Row:', actionRow.toJSON());
+
+    // Create the initial embed with the category information
+    const initialEmbed = new EmbedBuilder()
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
+      .setColor('#0099ff');
+
+    // Send the initial embed with the action row and select menu
+    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+
+    // Debug statement: Log the interaction reply
+    console.log('Replying to interaction...');
+
+    // Debug statement: Log successful interaction reply
+    console.log('Interaction replied successfully.');
   },
 };
