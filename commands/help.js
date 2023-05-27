@@ -68,6 +68,9 @@ module.exports = {
       }
     }
 
+    // Debug statement: Log the command categories
+    console.log('Command Categories:', commandCategories);
+
     const usedOptionValues = new Set(); // Track used option values
 
     // Create the string select menu and add options for each command category
@@ -105,8 +108,14 @@ module.exports = {
       return optionValue;
     }
 
+    // Debug statement: Log the select menu options
+    console.log('Select Menu Options:', selectMenu.toJSON());
+
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+
+    // Debug statement: Log the action row
+    console.log('Action Row:', actionRow.toJSON());
 
     // Create the initial embed with the category information
     const initialEmbed = new EmbedBuilder()
@@ -114,7 +123,30 @@ module.exports = {
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
+    // Debug statement: Log the initial embed
+    console.log('Initial Embed:', initialEmbed.toJSON());
+
     // Send the initial embed with the action row and select menu
+    console.log('Replying to interaction...');
     await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    console.log('Interaction replied successfully.');
+
+    // Execute the command
+    const commandName = interaction.commandName;
+    console.log('Executing command:', commandName);
+
+    const command = client.commands.get(commandName);
+    if (!command) {
+      console.log('Command not found:', commandName);
+      return;
+    }
+
+    try {
+      await command.execute(interaction, client);
+      console.log('Command executed successfully:', commandName);
+    } catch (error) {
+      console.error('Error executing command:', error);
+      await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
   },
 };
