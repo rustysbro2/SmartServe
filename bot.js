@@ -20,12 +20,43 @@ client.commands = new Collection();
 client.musicPlayers = new Map();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandCategories = []; // Define the commandCategories array
+
 for (const file of commandFiles) {
   const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
   client.commands.set(command.data.name, command);
-}
 
-const commandCategories = []; // Define the commandCategories array
+  // Populate the commandCategories array
+  if (command.category) {
+    let category = commandCategories.find(category => category.name === command.category);
+    if (!category) {
+      category = {
+        name: command.category,
+        description: '',
+        commands: []
+      };
+      commandCategories.push(category);
+    }
+    category.commands.push({
+      name: command.data.name,
+      description: command.data.description
+    });
+  } else {
+    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
+    if (!defaultCategory) {
+      defaultCategory = {
+        name: 'Uncategorized',
+        description: 'Commands that do not belong to any specific category',
+        commands: []
+      };
+      commandCategories.push(defaultCategory);
+    }
+    defaultCategory.commands.push({
+      name: command.data.name,
+      description: command.data.description
+    });
+  }
+}
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
