@@ -126,7 +126,7 @@ module.exports = {
     }
   },
 
-  async handleSelectMenu(interaction, client) {
+  async handleSelectMenu(interaction, client, commandCategories) {
     const selectedCategory = interaction.values[0];
 
     // Find the category based on the selected value
