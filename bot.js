@@ -1,125 +1,168 @@
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.js');
-const inviteTracker = require('./features/inviteTracker.js');
+const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
-const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
-const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
-const helpCommand = require('./commands/help');
+const path = require('path');
 
-const intents = [
-  GatewayIntentBits.Guilds,
-  GatewayIntentBits.GuildMessages,
-  GatewayIntentBits.GuildMembers,
-  GatewayIntentBits.GuildVoiceStates
-];
+// Function to handle select menu interaction
+async function handleSelectMenu(interaction, commandCategories) {
+  const selectedCategory = interaction.values[0];
 
-const client = new Client({ shards: "auto", intents });
+  // Find the category based on the selected value
+  const category = commandCategories.find(
+    (category) =>
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+  );
 
-client.commands = new Collection();
-client.musicPlayers = new Map();
+  if (category) {
+    // Create the embed with the category's commands
+    const categoryEmbed = new EmbedBuilder()
+      .setTitle(`Commands - ${category.name}`)
+      .setDescription(category.description || 'No description available');
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const commandCategories = []; // Define the commandCategories array
-
-for (const file of commandFiles) {
-  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
-  client.commands.set(command.data.name, command);
-
-  // Populate the commandCategories array
-  if (command.category) {
-    let category = commandCategories.find(category => category.name === command.category);
-    if (!category) {
-      category = {
-        name: command.category,
-        description: '',
-        commands: []
-      };
-      commandCategories.push(category);
-    }
-    category.commands.push({
-      name: command.data.name,
-      description: command.data.description
+    // Add the commands as fields in the embed
+    category.commands.forEach((command) => {
+      categoryEmbed.addField(command.name, command.description);
     });
+
+    try {
+      // Check if the interaction has been replied to
+      if (interaction.replied) {
+        // Edit the original reply with the category embed
+        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+      } else {
+        // Reply to the interaction with the category embed
+        await interaction.reply({ embeds: [categoryEmbed], components: [] });
+      }
+    } catch (error) {
+      console.error('Error editing interaction reply:', error);
+    }
   } else {
-    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
-    if (!defaultCategory) {
-      defaultCategory = {
-        name: 'Uncategorized',
-        description: 'Commands that do not belong to any specific category',
-        commands: []
-      };
-      commandCategories.push(defaultCategory);
-    }
-    defaultCategory.commands.push({
-      name: command.data.name,
-      description: command.data.description
-    });
+    console.error(`Category '${selectedCategory}' not found.`);
   }
 }
 
-client.once('ready', async () => {
-  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('help')
+    .setDescription('List all commands or info about a specific command'),
 
-  inviteTracker.execute(client);
+  async execute(interaction, client) {
+    if (interaction.deferred || interaction.replied) {
+      // Interaction has already been replied to or deferred
+      return;
+    }
 
-  const slashCommands = require('./slashCommands.js');
-  await slashCommands(client);
+    const commandCategories = [];
+    const defaultCategoryName = 'Uncategorized'; // Specify the default category name
 
-  // Start checking voice channels every second
-  setInterval(() => {
-    checkVoiceChannels();
-  }, 1000); // Check every 1 second
-});
+    // Get the absolute path to the commands directory (same directory as help.js)
+    const commandsDirectory = path.join(__dirname, '../commands');
 
-async function checkVoiceChannels() {
-  const botId = client.user.id;
-  const guilds = client.guilds.cache;
+    // Read all command modules from the commands directory
+    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
 
-  for (const guild of guilds) {
-    const guildId = guild[1].id;
-    const musicPlayer = client.musicPlayers.get(guildId);
-    const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+    // Loop through each command module
+    for (const file of commandFiles) {
+      if (file === 'help.js') continue; // Skip the help command file
 
-    for (const [channelId, channel] of voiceChannels) {
-      if (channel.members.size === 1 && channel.members.has(botId)) {
-        // Bot is the only member in the voice channel
-        console.log(`Bot is the only member in the voice channel: ${channel.name}`);
-        console.log(`Channel Members: ${channel.members.size}`);
+      const command = require(path.join(commandsDirectory, file));
 
-        if (musicPlayer && musicPlayer.connection) {
-          console.log("Destroying connection and leaving voice channel.");
-          musicPlayer.connection.destroy();
-          client.musicPlayers.delete(guildId);
+      // Check if the command module has a category property
+      if (command.category) {
+        // Check if the category already exists in the commandCategories array
+        let category = commandCategories.find((category) => category.name === command.category);
+
+        if (!category) {
+          // Create a new category if it doesn't exist
+          category = {
+            name: command.category,
+            description: '', // Initialize the description as an empty string
+            commands: [],
+          };
+
+          commandCategories.push(category);
         }
+
+        // Add the command to the category
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      } else {
+        // Assign the command to the default category
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+
+        if (!defaultCategory) {
+          // Create the default category if it doesn't exist
+          defaultCategory = {
+            name: defaultCategoryName,
+            description: 'Commands that do not belong to any specific category',
+            commands: [],
+          };
+
+          commandCategories.push(defaultCategory);
+        }
+
+        // Add the command to the default category
+        defaultCategory.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
       }
     }
-  }
-}
 
-client.on('interactionCreate', async (interaction) => {
-  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-    await helpCommand.handleSelectMenu(interaction, commandCategories);
-  } else if (interaction.isCommand()) {
-    const { commandName } = interaction;
+    const usedOptionValues = new Set(); // Track used option values
 
-    if (commandName === 'help') {
-      await helpCommand.execute(interaction, client);
-    } else {
-      const command = client.commands.get(commandName);
+    // Create the string select menu and add options for each command category
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
 
-      if (!command) return;
+    commandCategories.forEach((category) => {
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(generateUniqueOptionValue(category.name)); // Generate a unique option value
 
-      try {
-        await command.execute(interaction, client); // Execute the command
-      } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+      // Set the description only if it exists and is not empty
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
       }
+
+      selectMenu.addOptions(optionBuilder);
+    });
+
+    // Function to generate a unique option value
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCategoryName;
+      let index = 1;
+
+      // Append a number to the option value until it becomes unique
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCategoryName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
     }
-  }
-});
 
+    // Create the action row with the select menu
+    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-client.login(token);
+    // Create the initial embed with the category information
+    const initialEmbed = new EmbedBuilder()
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
+      .setColor('#0099ff');
+
+    try {
+      // Send the initial embed with the action row and select menu
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    } catch (error) {
+      console.error('Error replying to interaction:', error);
+    }
+  },
+
+  handleSelectMenu,
+};
