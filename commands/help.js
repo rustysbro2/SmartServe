@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageSelectMenu } = require('discord.js');
+const { MessageActionRow, MessageSelectMenu, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 
 module.exports = {
@@ -91,7 +91,7 @@ module.exports = {
 
 // Helper function to create a category embed
 function createCategoryEmbed(category) {
-  const embed = new MessageEmbed()
+  const embed = new EmbedBuilder()
     .setColor('#0099ff')
     .setTitle(`Category: ${category.name}`)
     .setDescription(category.description);
