@@ -5,6 +5,7 @@ const fs = require('fs');
 const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
 const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
+const helpCommand = require('./commands/help');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -53,7 +54,7 @@ async function checkVoiceChannels() {
         // Bot is the only member in the voice channel
         console.log(`Bot is the only member in the voice channel: ${channel.name}`);
         console.log(`Channel Members: ${channel.members.size}`);
-        
+
         if (musicPlayer && musicPlayer.connection) {
           console.log("Destroying connection and leaving voice channel.");
           musicPlayer.connection.destroy();
@@ -67,15 +68,21 @@ async function checkVoiceChannels() {
 client.on('interactionCreate', async (interaction) => {
   if (!interaction.isCommand()) return;
 
-  const command = client.commands.get(interaction.commandName);
+  const { commandName } = interaction;
 
-  if (!command) return;
+  if (commandName === 'help') {
+    await helpCommand.execute(interaction, client);
+  } else {
+    const command = client.commands.get(commandName);
 
-  try {
-    await command.execute(interaction, client); // Execute the command
-  } catch (error) {
-    console.error(error);
-    await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    if (!command) return;
+
+    try {
+      await command.execute(interaction, client); // Execute the command
+    } catch (error) {
+      console.error(error);
+      await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
   }
 });
 
