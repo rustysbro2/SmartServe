@@ -83,7 +83,7 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
-      selectMenu.addOption(optionBuilder);
+      selectMenu.addOptions(optionBuilder);
     });
 
     // Create the action row with the select menu
