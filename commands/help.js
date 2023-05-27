@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder } = require('discord.js');
+const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, SlashCommandBuilder, ActionRowBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -68,24 +68,23 @@ module.exports = {
       }
     }
 
-    // Create an array of select menu options for each command category
-    const selectOptions = commandCategories.map((category) => {
-      const option = new StringSelectMenuOptionBuilder()
+    // Create the string select menu and add options for each command category
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
+
+    commandCategories.forEach((category) => {
+      const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(category.name);
 
-      if (category.description) {
-        option.setDescription(category.description);
+      // Set the description only if it exists and is not empty
+      if (category.hasOwnProperty('description') && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
       }
 
-      return option;
+      selectMenu.addOptions(optionBuilder);
     });
-
-    // Create the select menu with the options
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('help_category')
-      .setPlaceholder('Select a category')
-      .addOptions(selectOptions);
 
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
