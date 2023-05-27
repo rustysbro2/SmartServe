@@ -131,5 +131,23 @@ module.exports = {
 
     // Debug statement: Log successful interaction reply
     console.log('Interaction replied successfully.');
+
+    // Execute the command
+    const commandName = interaction.commandName;
+    console.log('Executing command:', commandName);
+
+    const command = client.commands.get(commandName);
+    if (!command) {
+      console.log('Command not found:', commandName);
+      return;
+    }
+
+    try {
+      await command.execute(interaction, client);
+      console.log('Command executed successfully:', commandName);
+    } catch (error) {
+      console.error('Error executing command:', error);
+      await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+    }
   },
 };
