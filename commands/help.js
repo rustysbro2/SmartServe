@@ -125,4 +125,31 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+  async handleSelectMenu(interaction, client) {
+    const selectedCategory = interaction.values[0];
+
+    // Find the category based on the selected value
+    const category = commandCategories.find((category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory);
+
+    if (category) {
+      // Create the embed with the category's commands
+      const categoryEmbed = new EmbedBuilder()
+        .setTitle(`Commands - ${category.name}`)
+        .setDescription(category.description || 'No description available');
+
+      // Add the commands as fields in the embed
+      category.commands.forEach((command) => {
+        categoryEmbed.addField(command.name, command.description);
+      });
+
+      try {
+        // Edit the original reply with the category embed
+        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+      } catch (error) {
+        console.error('Error editing interaction reply:', error);
+      }
+    } else {
+      console.error(`Category '${selectedCategory}' not found.`);
+    }
+  },
 };
