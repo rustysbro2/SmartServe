@@ -99,7 +99,7 @@ async function checkVoiceChannels() {
 }
 
 client.on('interactionCreate', async (interaction) => {
-  if (interaction.isSelectMenu() && interaction.customId === 'help_category') {
+  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
     await handleSelectMenu(interaction, commandCategories);
   } else if (interaction.isCommand()) {
     const { commandName } = interaction;
