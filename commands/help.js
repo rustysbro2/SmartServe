@@ -29,46 +29,45 @@ module.exports = {
       const command = require(path.join(commandsDirectory, file));
 
       // Check if the command module has a category property
-      if (command.category) {
+      if (command.data.category) {
         // Check if the category already exists in the commandCategories array
-        const category = commandCategories.find((category) => category.name === command.category);
+        let category = commandCategories.find((category) => category.name === command.data.category);
 
-        if (category) {
-          // Add the command to the existing category
-          category.commands.push({
-            name: command.data.name,
-            description: command.data.description,
-          });
-        } else {
-          // Create a new category and add the command to it
-          const newCategory = {
-            name: command.category,
-            commands: [
-              {
-                name: command.data.name,
-                description: command.data.description,
-              },
-            ],
+        if (!category) {
+          // Create a new category if it doesn't exist
+          category = {
+            name: command.data.category,
+            description: '', // Initialize the description as an empty string
+            commands: [],
           };
 
-          // Check if the category has a description property and it is not empty
-          if (command.hasOwnProperty('categoryDescription') && command.categoryDescription.length > 0) {
-            newCategory.description = command.categoryDescription;
-          }
-
-          commandCategories.push(newCategory);
+          commandCategories.push(category);
         }
+
+        // Add the command to the category
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
       } else {
         // Assign the command to the default category
-        commandCategories.push({
-          name: defaultCategory,
-          description: 'Commands that do not belong to any specific category',
-          commands: [
-            {
-              name: command.data.name,
-              description: command.data.description,
-            },
-          ],
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+
+        if (!defaultCategory) {
+          // Create the default category if it doesn't exist
+          defaultCategory = {
+            name: defaultCategoryName,
+            description: 'Commands that do not belong to any specific category',
+            commands: [],
+          };
+
+          commandCategories.push(defaultCategory);
+        }
+
+        // Add the command to the default category
+        defaultCategory.commands.push({
+          name: command.data.name,
+          description: command.data.description,
         });
       }
     }
@@ -86,7 +85,7 @@ module.exports = {
         .setValue(generateUniqueOptionValue(category.name)); // Generate a unique option value
 
       // Set the description only if it exists and is not empty
-      if (category.hasOwnProperty('description') && category.description.length > 0) {
+      if (category.description && category.description.length > 0) {
         optionBuilder.setDescription(category.description);
       }
 
@@ -119,7 +118,11 @@ module.exports = {
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
-    // Send the initial embed with the action row and select menu
-    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    try {
+      // Send the initial embed with the action row and select menu
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    } catch (error) {
+      console.error('Error replying to interaction:', error);
+    }
   },
 };
