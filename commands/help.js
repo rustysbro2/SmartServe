@@ -1,5 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageSelectMenu, EmbedBuilder } = require('discord.js');
+const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, SlashCommandBuilder, ActionRowBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 
 module.exports = {
@@ -11,11 +10,11 @@ module.exports = {
     const commandCategories = [];
 
     // Read all command modules from the commands directory
-    const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync(__dirname).filter((file) => file.endsWith('.js'));
 
     // Loop through each command module
     for (const file of commandFiles) {
-      const command = require(`./commands/${file}`);
+      const command = require(`./${file}`);
 
       // Check if the command module has a category property
       if (command.category) {
@@ -44,71 +43,32 @@ module.exports = {
       }
     }
 
-    // Create the select menu and add options for each command category
-    const selectMenu = new MessageSelectMenu()
+    // Create the string select menu and add options for each command category
+    const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
-      const options = category.commands.map((command) => ({
-        label: `/${command.name}`,
-        value: command.name,
-        description: command.description,
-      }));
-
-      selectMenu.addOptions({
-        label: category.name,
-        value: category.name.toLowerCase(),
-        description: category.description,
-        options: options,
+      const options = category.commands.map((command) => {
+        return new StringSelectMenuOptionBuilder()
+          .setLabel(`/${command.name}`)
+          .setDescription(command.description)
+          .setValue(command.name);
       });
+
+      selectMenu.addOptions(options);
     });
 
-    // Create the message component collector
-    const collector = interaction.channel.createMessageComponentCollector({ componentType: 'SELECT_MENU' });
+    // Create the action row with the select menu
+    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    collector.on('collect', async (collected) => {
-      const selectedCategory = collected.values[0];
-      const category = commandCategories.find((c) => c.name.toLowerCase() === selectedCategory);
+    // Create the initial embed with the first category
+    const initialEmbed = new EmbedBuilder()
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
+      .setColor('#0099ff');
 
-      if (category) {
-        // Create the category embed
-        const categoryEmbed = createCategoryEmbed(category);
-
-        // Update the message with the category embed and the back button
-        await collected.update({ embeds: [categoryEmbed], components: [createBackButton()] });
-      }
-    });
-
-    collector.on('end', () => {
-      interaction.followUp({ content: 'Category selection expired.', ephemeral: true });
-    });
-
-    // Create and send the initial message with the first category
-    await interaction.reply({ embeds: [createCategoryEmbed(commandCategories[0])], components: [selectMenu] });
+    // Send the initial embed with the action row
+    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
   },
 };
-
-// Helper function to create a category embed
-function createCategoryEmbed(category) {
-  const embed = new EmbedBuilder()
-    .setColor('#0099ff')
-    .setTitle(`Category: ${category.name}`)
-    .setDescription(category.description);
-
-  category.commands.forEach((command) => {
-    embed.addField(command.name, command.description);
-  });
-
-  return embed;
-}
-
-// Helper function to create the back button
-function createBackButton() {
-  const backButton = new MessageSelectMenu()
-    .setCustomId('help_back')
-    .setPlaceholder('Go back to main menu')
-    .addOptions([{ label: 'Main Menu', value: 'main_menu', description: 'Go back to the main menu' }]);
-
-  return new MessageActionRow().addComponents(backButton);
-}
