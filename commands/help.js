@@ -7,7 +7,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction) {
+  async execute(interaction, client) {
     const commandCategories = [];
     const defaultCategoryName = 'Uncategorized'; // Specify the default category name
 
@@ -124,12 +124,8 @@ module.exports = {
     console.log('Initial Embed:', initialEmbed.toJSON());
 
     // Send the initial embed with the action row and select menu
-    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-
-    // Debug statement: Log the interaction reply
     console.log('Replying to interaction...');
-
-    // Debug statement: Log successful interaction reply
+    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
     console.log('Interaction replied successfully.');
 
     // Execute the command
