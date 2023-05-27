@@ -51,7 +51,7 @@ module.exports = {
         });
       } else {
         // Assign the command to the default category
-        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategory);
 
         if (!defaultCategory) {
           // Create the default category if it doesn't exist
