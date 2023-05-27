@@ -73,10 +73,12 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
+    let optionIndex = 0; // Variable to keep track of the option index
+
     commandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
-        .setValue(category.name); // Use the category name as the unique option value
+        .setValue(`category_${optionIndex}`); // Use a unique value for each category option
 
       // Set the description only if it exists and is not empty
       if (category.hasOwnProperty('description') && category.description.length > 0) {
@@ -84,7 +86,10 @@ module.exports = {
       }
 
       selectMenu.addOptions(optionBuilder);
+
+      optionIndex++; // Increment the option index for the next category
     });
+
 
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
