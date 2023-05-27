@@ -14,7 +14,7 @@ module.exports = {
     }
 
     const commandCategories = [];
-    const defaultCategoryName = 'Uncategorized'; // Specify the default category name
+    const defaultCategory = 'Uncategorized'; // Specify the default category name
 
     // Get the absolute path to the commands directory (same directory as help.js)
     const commandsDirectory = path.join(__dirname);
@@ -51,12 +51,12 @@ module.exports = {
         });
       } else {
         // Assign the command to the default category
-        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategory);
 
         if (!defaultCategory) {
           // Create the default category if it doesn't exist
           defaultCategory = {
-            name: defaultCategoryName,
+            name: defaultCategory,
             description: 'Commands that do not belong to any specific category',
             commands: [],
           };
