@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Function to handle select menu interaction
+// Function to handle select menu interaction
 async function handleSelectMenu(interaction, commandCategories) {
   const selectedCategory = interaction.values[0];
 
@@ -24,27 +25,20 @@ async function handleSelectMenu(interaction, commandCategories) {
     });
 
     try {
-      const channel = interaction.channel;
-      if (channel) {
-        // Fetch the original message
-        const originalMessage = await channel.messages.fetch(interaction.message.id);
-
-        // If the original message exists, edit it with the updated embed
-        if (originalMessage) {
-          await originalMessage.edit({ embeds: [categoryEmbed] });
-        } else {
-          console.error('Original message not found.');
-        }
+      if (interaction.message) {
+        // If the interaction has a message, update the original embed
+        await interaction.message.edit({ embeds: [categoryEmbed] });
       } else {
-        console.error('Interaction does not have a channel.');
+        console.error('Interaction does not have a message.');
       }
     } catch (error) {
-      console.error('Error editing original message:', error);
+      console.error('Error editing interaction message:', error);
     }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
