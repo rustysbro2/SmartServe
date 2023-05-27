@@ -11,7 +11,7 @@ module.exports = {
     const commandCategories = [];
     const defaultCategory = 'Uncategorized'; // Specify the default category name
 
-    // Get the absolute path to the commands directory
+    // Get the absolute path to the commands directory (same directory as help.js)
     const commandsDirectory = path.join(__dirname);
 
     // Read all command modules from the commands directory
@@ -83,7 +83,7 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
-      selectMenu.addOptions([optionBuilder]);
+      selectMenu.addOption(optionBuilder);
     });
 
     // Create the action row with the select menu
