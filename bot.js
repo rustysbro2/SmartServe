@@ -99,26 +99,26 @@ async function checkVoiceChannels() {
 }
 
 client.on('interactionCreate', async (interaction) => {
-  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-    await handleSelectMenu(interaction, commandCategories);
-  } else if (interaction.isCommand()) {
-    const { commandName } = interaction;
+  try {
+    if (interaction.isSelectMenu() && interaction.customId === 'help_category') {
+      await handleSelectMenu(interaction, commandCategories);
+    } else if (interaction.isCommand()) {
+      const { commandName } = interaction;
 
-    if (commandName === 'help') {
-      await client.commands.get('help').execute(interaction, client);
-    } else {
-      const command = client.commands.get(commandName);
+      if (commandName === 'help') {
+        await client.commands.get('help').execute(interaction, client);
+      } else {
+        const command = client.commands.get(commandName);
 
-      if (!command) return;
+        if (!command) return;
 
-      try {
         await command.execute(interaction, client); // Execute the command
-      } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
       }
     }
+  } catch (error) {
+    console.error('Error during interaction handling:', error);
   }
 });
+
 
 client.login(token);
