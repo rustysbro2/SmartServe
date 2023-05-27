@@ -12,13 +12,15 @@ module.exports = {
     const defaultCategory = 'Uncategorized'; // Specify the default category name
 
     // Get the absolute path to the commands directory
-    const commandsDirectory = path.join(__dirname, '..');
+    const commandsDirectory = path.join(__dirname);
 
     // Read all command modules from the commands directory
     const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
 
     // Loop through each command module
     for (const file of commandFiles) {
+      if (file === 'help.js') continue; // Skip the help command file
+
       const command = require(path.join(commandsDirectory, file));
 
       // Check if the command module has a category property
