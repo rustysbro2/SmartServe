@@ -42,6 +42,9 @@ async function handleSelectMenu(interaction, commandCategories) {
     } catch (error) {
       console.error('Error editing original message:', error);
     }
+  } else {
+    console.error(`Category '${selectedCategory}' not found.`);
+  }
 }
 
 module.exports = {
@@ -162,7 +165,7 @@ module.exports = {
 
     try {
       // Send the initial embed with the action row and select menu
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow], ephemeral: true });
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
