@@ -8,8 +8,11 @@ module.exports = {
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client) {
+    console.log('Executing help command...');
+
     if (interaction.deferred || interaction.replied) {
       // Interaction has already been replied to or deferred
+      console.log('Interaction has already been replied to or deferred.');
       return;
     }
 
@@ -119,19 +122,26 @@ module.exports = {
       .setColor('#0099ff');
 
     try {
+      console.log('Sending initial embed with the action row and select menu...');
       // Send the initial embed with the action row and select menu
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      console.log('Initial embed sent successfully.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
+
   async handleSelectMenu(interaction, client) {
+    console.log('Handling select menu interaction...');
+
     const selectedCategory = interaction.values[0];
+    console.log(`Selected category: ${selectedCategory}`);
 
     // Find the category based on the selected value
     const category = commandCategories.find((category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory);
 
     if (category) {
+      console.log(`Category '${category.name}' found.`);
       // Create the embed with the category's commands
       const categoryEmbed = new EmbedBuilder()
         .setTitle(`Commands - ${category.name}`)
@@ -143,8 +153,10 @@ module.exports = {
       });
 
       try {
+        console.log('Editing original reply with the category embed...');
         // Edit the original reply with the category embed
         await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+        console.log('Original reply edited successfully.');
       } catch (error) {
         console.error('Error editing interaction reply:', error);
       }
