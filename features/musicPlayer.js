@@ -24,12 +24,9 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on('stateChange', async (oldState, newState) => {
-      console.log(`State change: ${oldState.status} -> ${newState.status}`);
-      if (newState.status === VoiceConnectionStatus.Idle && oldState.status !== VoiceConnectionStatus.Idle) {
-        console.log('Audio player state changed to Idle. Processing queue.');
-        await this.processQueue();
-      }
+    this.audioPlayer.on(AudioPlayerStatus.Idle, async () => {
+      console.log('Audio player state changed to Idle. Processing queue.');
+      await this.processQueue();
     });
 
     this.audioPlayer.on('error', (error) => {
@@ -69,7 +66,7 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
     this.queue.push(url);
 
-    if (wasEmpty && this.audioPlayer.state.status !== VoiceConnectionStatus.Playing) {
+    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
       await this.processQueue();
     }
@@ -77,6 +74,11 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
+      if (this.connection) {
+        this.connection.destroy();
+        this.connection = null;
+        console.log('Bot left the voice channel.');
+      }
       console.log('Queue is empty. Stopping playback.');
       return;
     }
@@ -85,27 +87,15 @@ class MusicPlayer {
       await this.joinChannel();
     }
 
-    if (!this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    while (this.queue.length > 0) {
       this.currentSong = this.queue.shift();
       console.log('Processing queue. Now playing:', this.currentSong);
 
       try {
         const stream = await ytdl(this.currentSong);
         const resource = createAudioResource(stream);
-
-        resource.playStream.on('end', () => {
-          console.log('Finished playing:', this.currentSong);
-          this.currentSong = null;
-          this.processQueue(); // Continue to the next song
-        });
-
-        resource.playStream.on('error', (error) => {
-          console.error('Error occurred while playing the song:', error);
-          this.currentSong = null;
-          this.processQueue(); // Continue to the next song
-        });
-
         this.audioPlayer.play(resource);
+
         await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
         console.log('Now playing:', this.currentSong);
@@ -115,15 +105,24 @@ class MusicPlayer {
         this.voteSkips.clear();
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
-        this.currentSong = null;
-        this.processQueue(); // Continue to the next song
       }
     }
   }
 
+  sendNowPlaying() {
+    const message = `Now playing: ${this.currentSong}`;
+    this.textChannel
+      .send(message)
+      .then(() => {
+        console.log('Now Playing message sent:', this.currentSong);
+      })
+      .catch((error) => {
+        console.error(`Failed to send Now Playing message: ${error.message}`);
+      });
+  }
 
   async voteSkip(member) {
-    if (!this.connection || this.audioPlayer.state.status !== VoiceConnectionStatus.Playing) {
+    if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       throw new Error('There is no song currently playing.');
     }
 
