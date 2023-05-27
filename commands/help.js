@@ -46,8 +46,8 @@ module.exports = {
             ],
           };
 
-          // Check if the category has a description property
-          if (command.hasOwnProperty('categoryDescription')) {
+          // Check if the category has a description property and it is not empty
+          if (command.hasOwnProperty('categoryDescription') && command.categoryDescription.length > 0) {
             newCategory.description = command.categoryDescription;
           }
 
@@ -74,12 +74,16 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
-      selectMenu.addOption(
-        new StringSelectMenuOptionBuilder()
-          .setLabel(category.name)
-          .setDescription(category.hasOwnProperty('description') ? category.description : '')
-          .setValue(category.name)
-      );
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(category.name);
+
+      // Set the description only if it exists and is not empty
+      if (category.hasOwnProperty('description') && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
+
+      selectMenu.addOption(optionBuilder);
     });
 
     // Create the action row with the select menu
