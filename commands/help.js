@@ -7,7 +7,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction) {
+  async execute(interaction, client) {
     const commandCategories = [];
     const defaultCategory = 'Uncategorized'; // Specify the default category name
 
@@ -37,7 +37,7 @@ module.exports = {
         } else {
           // Create a new category and add the command to it
           const newCategory = {
-            name: command.category,
+            name: `${command.category}_${commandFiles.indexOf(file)}`, // Add a unique identifier
             commands: [
               {
                 name: command.data.name,
@@ -67,9 +67,6 @@ module.exports = {
         });
       }
     }
-
-    // Debug statement: Log the command categories
-    console.log('Command Categories:', commandCategories);
 
     const usedOptionValues = new Set(); // Track used option values
 
@@ -108,14 +105,8 @@ module.exports = {
       return optionValue;
     }
 
-    // Debug statement: Log the select menu options
-    console.log('Select Menu Options:', selectMenu.toJSON());
-
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
-
-    // Debug statement: Log the action row
-    console.log('Action Row:', actionRow.toJSON());
 
     // Create the initial embed with the category information
     const initialEmbed = new EmbedBuilder()
@@ -123,13 +114,12 @@ module.exports = {
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
-    // Debug statement: Log the initial embed
-    console.log('Initial Embed:', initialEmbed.toJSON());
-
-    // Send the initial embed with the action row and select menu
-    console.log('Replying to interaction...');
-    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-    console.log('Interaction replied successfully.');
+    try {
+      // Edit the initial reply with the action row and select menu
+      await interaction.editReply({ embeds: [initialEmbed], components: [actionRow] });
+    } catch (error) {
+      console.error('Error editing initial reply:', error);
+    }
 
     // Execute the command
     const commandName = interaction.commandName;
