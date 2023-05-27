@@ -21,7 +21,7 @@ client.musicPlayers = new Map();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
-  const command = require(`./commands/${file}`);
+  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
   client.commands.set(command.data.name, command);
 }
 
