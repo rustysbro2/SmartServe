@@ -177,8 +177,6 @@ class MusicPlayer {
         console.error(`Failed to send vote skip message: ${error.message}`);
       });
   }
-
-  // Other methods of the MusicPlayer class...
 }
 
 module.exports = MusicPlayer;
