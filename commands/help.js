@@ -26,17 +26,22 @@ async function handleSelectMenu(interaction, commandCategories) {
     try {
       if (interaction.message) {
         // If the interaction has a message, update the original embed
-        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+        await interaction.message.edit({ embeds: [categoryEmbed] });
       } else {
         console.error('Interaction does not have a message.');
       }
     } catch (error) {
-      console.error('Error editing interaction reply:', error);
+      console.error('Error editing interaction message:', error);
     }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
+
+
+
+
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -156,9 +161,9 @@ module.exports = {
 
     try {
       // Send the initial embed with the action row and select menu
-      await interaction.editReply({ embeds: [initialEmbed], components: [actionRow] });
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
     } catch (error) {
-      console.error('Error editing interaction reply:', error);
+      console.error('Error replying to interaction:', error);
     }
   },
 
