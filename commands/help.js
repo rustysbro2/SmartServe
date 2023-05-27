@@ -24,14 +24,8 @@ async function handleSelectMenu(interaction, commandCategories) {
     });
 
     try {
-      // Check if the interaction has been replied to
-      if (interaction.replied) {
-        // Edit the original reply with the category embed
-        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
-      } else {
-        // Reply to the interaction with the category embed
-        await interaction.reply({ embeds: [categoryEmbed], components: [] });
-      }
+      // Edit the original interaction reply with the category embed
+      await interaction.editReply({ embeds: [categoryEmbed], components: [] });
     } catch (error) {
       console.error('Error editing interaction reply:', error);
     }
@@ -39,6 +33,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 
 
