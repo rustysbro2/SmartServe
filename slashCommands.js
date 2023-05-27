@@ -32,6 +32,12 @@ module.exports = async function (client) {
     // Get existing global slash commands
     const existingCommands = await rest.get(Routes.applicationCommands(clientId));
 
+    // Filter out commands that haven't changed
+    const updatedCommands = commands.filter((newCommand) => {
+      const existingCommand = existingCommands.find((command) => command.name === newCommand.name);
+      return !existingCommand || commandHasChanged(existingCommand, newCommand);
+    });
+
     // Remove old global commands
     const deletePromises = existingCommands.map((command) =>
       rest.delete(Routes.applicationCommand(clientId, command.id))
@@ -40,7 +46,7 @@ module.exports = async function (client) {
 
     // Register updated global commands
     const registerPromises = guilds.map((guildId) =>
-      rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
+      rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: updatedCommands })
     );
     await Promise.all(registerPromises);
 
@@ -49,3 +55,4 @@ module.exports = async function (client) {
     console.error('Error while refreshing application (/) commands.', error);
   }
 };
+
