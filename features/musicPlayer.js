@@ -7,6 +7,8 @@ const {
   VoiceConnectionStatus,
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
+const { EmbedBuilder } = require('discord.js');
+
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -172,9 +174,14 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
-    const message = `Vote skip: ${voteCount}/${totalCount}`;
+    const votePercentage = (voteCount / totalCount) * 100;
+    const embed = new EmbedBuilder()
+      .setTitle('Vote Skip')
+      .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
+      .setColor(0x0099FF);
+
     this.textChannel
-      .send(message)
+      .send({ embeds: [embed] })
       .then(() => {
         console.log('Vote skip message sent.');
       })
@@ -182,6 +189,5 @@ class MusicPlayer {
         console.error(`Failed to send vote skip message: ${error.message}`);
       });
   }
-}
 
 module.exports = MusicPlayer;
