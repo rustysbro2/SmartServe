@@ -98,8 +98,10 @@ class MusicPlayer {
 
         await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
-        console.log('Now playing:', this.currentSong);
-        this.sendNowPlaying();
+        if (this.currentSong !== this.queue[0]) {
+          console.log('Now playing:', this.currentSong);
+          this.sendNowPlaying();
+        }
 
         // Reset voteSkips set
         this.voteSkips.clear();
@@ -108,6 +110,7 @@ class MusicPlayer {
       }
     }
   }
+
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
