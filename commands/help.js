@@ -17,7 +17,7 @@ module.exports = {
     const defaultCategoryName = 'Uncategorized'; // Specify the default category name
 
     // Get the absolute path to the commands directory (same directory as help.js)
-    const commandsDirectory = path.join(__dirname);
+    const commandsDirectory = path.join(__dirname, '../commands');
 
     // Read all command modules from the commands directory
     const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
