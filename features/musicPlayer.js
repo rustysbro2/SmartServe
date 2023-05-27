@@ -89,35 +89,24 @@ class MusicPlayer {
 
       try {
         const stream = await ytdl(this.currentSong);
-        const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
-
-        resource.playStream.on('end', () => {
-          console.log('Finished playing:', this.currentSong);
-          this.currentSong = null;
-          this.processQueue(); // Continue to the next song
-        });
-
-        resource.playStream.on('error', (error) => {
-          console.error('Error occurred while playing the song:', error);
-          this.currentSong = null;
-          this.processQueue(); // Continue to the next song
-        });
-
+        const resource = createAudioResource(stream);
         this.audioPlayer.play(resource);
-        await entersState(this.audioPlayer, VoiceConnectionStatus.Playing, 5e3);
 
-        console.log('Now playing:', this.currentSong);
-        this.sendNowPlaying();
+        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+        if (this.currentSong !== this.queue[0]) {
+          console.log('Now playing:', this.currentSong);
+          this.sendNowPlaying();
+        }
 
         // Reset voteSkips set
         this.voteSkips.clear();
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
-        this.currentSong = null;
-        this.processQueue(); // Continue to the next song
       }
     }
   }
+
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== VoiceConnectionStatus.Playing) {
