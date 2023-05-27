@@ -7,7 +7,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction) {
+  async execute(interaction, client) {
     const commandCategories = [];
     const defaultCategory = 'Uncategorized'; // Specify the default category name
 
@@ -115,12 +115,7 @@ module.exports = {
       .setColor('#0099ff');
 
     // Send the initial embed with the action row and select menu
-    const initialReply = await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-
-    if (!initialReply) {
-      console.error('Initial reply has not been sent.');
-      return;
-    }
+    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
 
     // Execute the command
     const commandName = interaction.commandName;
