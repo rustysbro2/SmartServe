@@ -125,11 +125,14 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
   async handleSelectMenu(interaction, client) {
     const selectedCategory = interaction.values[0];
 
     // Find the category based on the selected value
-    const category = commandCategories.find((category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory);
+    const category = commandCategories.find(
+      (category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+    );
 
     if (category) {
       // Create the embed with the category's commands
