@@ -70,11 +70,6 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
-      if (this.connection) {
-        this.connection.destroy();
-        this.connection = null;
-        console.log('Bot left the voice channel.');
-      }
       console.log('Queue is empty. Stopping playback.');
       return;
     }
@@ -83,7 +78,7 @@ class MusicPlayer {
       await this.joinChannel();
     }
 
-    while (this.queue.length > 0) {
+    if (!this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       this.currentSong = this.queue.shift();
       console.log('Processing queue. Now playing:', this.currentSong);
 
@@ -104,9 +99,10 @@ class MusicPlayer {
         });
 
         this.audioPlayer.play(resource);
-        await entersState(this.audioPlayer, VoiceConnectionStatus.Playing, 5e3);
+        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
 
         console.log('Now playing:', this.currentSong);
+        this.sendNowPlaying();
 
         // Reset voteSkips set
         this.voteSkips.clear();
@@ -117,6 +113,7 @@ class MusicPlayer {
       }
     }
   }
+
 
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== VoiceConnectionStatus.Playing) {
