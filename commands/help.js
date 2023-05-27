@@ -38,7 +38,7 @@ module.exports = {
           // Create a new category and add the command to it
           commandCategories.push({
             name: command.category,
-            description: command.categoryDescription,
+            description: command.categoryDescription || '', // Provide a default empty description
             commands: [
               {
                 name: command.data.name,
