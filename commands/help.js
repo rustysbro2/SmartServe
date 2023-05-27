@@ -9,6 +9,7 @@ module.exports = {
 
   async execute(interaction) {
     const commandCategories = [];
+    const defaultCategory = 'Uncategorized'; // Specify the default category name
 
     // Get the absolute path to the commands directory
     const commandsDirectory = path.join(__dirname, '..');
@@ -44,6 +45,18 @@ module.exports = {
             ],
           });
         }
+      } else {
+        // Assign the command to the default category
+        commandCategories.push({
+          name: defaultCategory,
+          description: 'Commands that do not belong to any specific category',
+          commands: [
+            {
+              name: command.data.name,
+              description: command.data.description,
+            },
+          ],
+        });
       }
     }
 
