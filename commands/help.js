@@ -36,16 +36,22 @@ module.exports = {
           });
         } else {
           // Create a new category and add the command to it
-          commandCategories.push({
+          const newCategory = {
             name: command.category,
-            description: command.categoryDescription || '', // Provide a default empty description
             commands: [
               {
                 name: command.data.name,
                 description: command.data.description,
               },
             ],
-          });
+          };
+
+          // Check if the category has a description property
+          if (command.hasOwnProperty('categoryDescription')) {
+            newCategory.description = command.categoryDescription;
+          }
+
+          commandCategories.push(newCategory);
         }
       } else {
         // Assign the command to the default category
@@ -71,7 +77,7 @@ module.exports = {
       selectMenu.addOption(
         new StringSelectMenuOptionBuilder()
           .setLabel(category.name)
-          .setDescription(category.description)
+          .setDescription(category.hasOwnProperty('description') ? category.description : '')
           .setValue(category.name)
       );
     });
