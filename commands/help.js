@@ -16,22 +16,21 @@ async function handleSelectMenu(interaction, commandCategories) {
     // Create the embed with the category's commands
     const categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.description || 'No description available');
+      .setDescription(category.description || 'No description available')
+      .setColor('#0099ff');
 
     // Add the commands as fields in the embed
     category.commands.forEach((command) => {
-      categoryEmbed.addField(command.name, command.description);
+      categoryEmbed.addFields({
+        name: command.name,
+        value: command.description,
+        inline: false,
+      });
     });
 
     try {
-      // Check if the interaction has been replied to
-      if (interaction.replied) {
-        // Edit the original reply with the category embed
-        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
-      } else {
-        // Reply to the interaction with the category embed
-        await interaction.reply({ embeds: [categoryEmbed], components: [] });
-      }
+      // Update the original reply with the category embed
+      await interaction.editReply({ embeds: [categoryEmbed], components: [] });
     } catch (error) {
       console.error('Error editing interaction reply:', error);
     }
@@ -129,23 +128,6 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
-
-    // Function to generate a unique option value
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      // Append a number to the option value until it becomes unique
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
 
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
