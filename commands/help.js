@@ -111,6 +111,9 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
+    // Debug statement: Log the action row
+    console.log('Action Row:', actionRow.toJSON());
+
     // Create the initial embed with the category information
     const initialEmbed = new EmbedBuilder()
       .setTitle('Command Categories')
@@ -118,8 +121,12 @@ module.exports = {
       .setColor('#0099ff');
 
     // Send the initial embed with the action row and select menu
-    console.log('Sending initial embed with action row and select menu...');
     await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-    console.log('Initial embed sent successfully.');
+
+    // Debug statement: Log the interaction reply
+    console.log('Replying to interaction...');
+
+    // Debug statement: Log successful interaction reply
+    console.log('Interaction replied successfully.');
   },
 };
