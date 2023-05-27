@@ -24,14 +24,23 @@ async function handleSelectMenu(interaction, commandCategories) {
     });
 
     try {
-      if (interaction.message) {
-        // If the interaction has a message, update the original embed
-        await interaction.message.editReply({ embeds: [categoryEmbed] });
+      const channel = interaction.channel;
+      if (channel) {
+        // Fetch the original message
+        const messages = await channel.messages.fetch(interaction.message.id);
+        const originalMessage = messages.first();
+
+        // If the original message exists, edit it with the updated embed
+        if (originalMessage) {
+          await originalMessage.edit({ embeds: [categoryEmbed] });
+        } else {
+          console.error('Original message not found.');
+        }
       } else {
-        console.error('Interaction does not have a message.');
+        console.error('Interaction does not have a channel.');
       }
     } catch (error) {
-      console.error('Error editing interaction message:', error);
+      console.error('Error editing original message:', error);
     }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
@@ -156,9 +165,9 @@ module.exports = {
 
     try {
       // Send the initial embed with the action row and select menu
-      await interaction.editReply({ embeds: [initialEmbed], components: [actionRow] });
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow], ephemeral: true });
     } catch (error) {
-      console.error('Error editing interaction reply:', error);
+      console.error('Error replying to interaction:', error);
     }
   },
 
