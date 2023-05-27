@@ -24,15 +24,20 @@ async function handleSelectMenu(interaction, commandCategories) {
     });
 
     try {
-      // Edit the original interaction reply with the category embed
-      await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+      if (interaction.message) {
+        // If the interaction has a message, update the original embed
+        await interaction.message.edit({ embeds: [categoryEmbed] });
+      } else {
+        console.error('Interaction does not have a message.');
+      }
     } catch (error) {
-      console.error('Error editing interaction reply:', error);
+      console.error('Error editing interaction message:', error);
     }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 
 
