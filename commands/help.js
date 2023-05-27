@@ -26,12 +26,12 @@ async function handleSelectMenu(interaction, commandCategories) {
     try {
       if (interaction.message) {
         // If the interaction has a message, update the original embed
-        await interaction.message.edit({ embeds: [categoryEmbed] });
+        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
       } else {
         console.error('Interaction does not have a message.');
       }
     } catch (error) {
-      console.error('Error editing interaction message:', error);
+      console.error('Error editing interaction reply:', error);
     }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
