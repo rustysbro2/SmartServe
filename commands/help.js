@@ -8,6 +8,11 @@ module.exports = {
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client) {
+    if (interaction.deferred || interaction.replied) {
+      // Interaction has already been replied to or deferred
+      return;
+    }
+
     const commandCategories = [];
     const defaultCategory = 'Uncategorized'; // Specify the default category name
 
@@ -116,23 +121,5 @@ module.exports = {
 
     // Send the initial embed with the action row and select menu
     await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-
-    // Execute the command
-    const commandName = interaction.commandName;
-    console.log('Executing command:', commandName);
-
-    const command = client.commands.get(commandName);
-    if (!command) {
-      console.log('Command not found:', commandName);
-      return;
-    }
-
-    try {
-      await command.execute(interaction, client);
-      console.log('Command executed successfully:', commandName);
-    } catch (error) {
-      console.error('Error executing command:', error);
-      await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-    }
   },
 };
