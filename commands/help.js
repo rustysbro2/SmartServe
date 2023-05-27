@@ -20,15 +20,18 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     // Add the commands as fields in the embed
     category.commands.forEach((command) => {
-      categoryEmbed.addFields({
-        name: command.name,
-        value: command.description,
-      });
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     try {
-      // Update the original reply with the category embed
-      await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+      // Check if the interaction has been replied to
+      if (interaction.replied) {
+        // Edit the original reply with the category embed
+        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+      } else {
+        // Reply to the interaction with the category embed
+        await interaction.reply({ embeds: [categoryEmbed], components: [] });
+      }
     } catch (error) {
       console.error('Error editing interaction reply:', error);
     }
@@ -107,24 +110,58 @@ module.exports = {
       }
     }
 
-    // Create the select menu options
-    const selectMenuOptions = commandCategories.map((category) =>
-      new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(category.name.toLowerCase().replace(/\s/g, '_'))
-    );
+    const usedOptionValues = new Set(); // Track used option values
 
-    // Create the select menu component
+    // Create the string select menu and add options for each command category
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
-      .setPlaceholder('Select a category')
-      .addOptions(selectMenuOptions);
+      .setPlaceholder('Select a category');
+
+    commandCategories.forEach((category) => {
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(generateUniqueOptionValue(category.name)); // Generate a unique option value
+
+      // Set the description only if it exists and is not empty
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
+
+      selectMenu.addOptions(optionBuilder);
+    });
+
+    // Function to generate a unique option value
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCategoryName;
+      let index = 1;
+
+      // Append a number to the option value until it becomes unique
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCategoryName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
+    }
 
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    // Create the initial reply message
-    await interaction.reply({ content: 'Please select a category:', components: [actionRow] });
+    // Create the initial embed with the category information
+    const initialEmbed = new EmbedBuilder()
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
+      .setColor('#0099ff');
+
+    try {
+      // Send the initial embed with the action row and select menu
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    } catch (error) {
+      console.error('Error replying to interaction:', error);
+    }
   },
 
   handleSelectMenu,
