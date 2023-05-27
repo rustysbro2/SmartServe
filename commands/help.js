@@ -68,8 +68,6 @@ module.exports = {
       }
     }
 
-    const usedOptionValues = new Set(); // Track used option values
-
     // Create the string select menu and add options for each command category
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
@@ -78,7 +76,7 @@ module.exports = {
     commandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name)); // Generate a unique option value
+        .setValue(category.name);
 
       // Set the description only if it exists and is not empty
       if (category.hasOwnProperty('description') && category.description.length > 0) {
@@ -87,23 +85,6 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
-
-    // Function to generate a unique option value
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      // Append a number to the option value until it becomes unique
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
 
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
@@ -114,7 +95,13 @@ module.exports = {
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
-    // Send the initial embed with the action row and select menu
-    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    try {
+      // Send the initial embed with the action row and select menu
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    } catch (error) {
+      console.error('An error occurred while executing the help command:');
+      console.error(error);
+      await interaction.reply('An error occurred while executing the help command.');
+    }
   },
 };
