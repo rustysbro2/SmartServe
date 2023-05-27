@@ -28,7 +28,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       if (channel) {
         // Fetch the original message
         const messages = await channel.messages.fetch(interaction.message.id);
-        const originalMessage = messages.first();
+        const originalMessage = messages.get(interaction.message.id);
 
         // If the original message exists, edit it with the updated embed
         if (originalMessage) {
@@ -42,9 +42,6 @@ async function handleSelectMenu(interaction, commandCategories) {
     } catch (error) {
       console.error('Error editing original message:', error);
     }
-  } else {
-    console.error(`Category '${selectedCategory}' not found.`);
-  }
 }
 
 module.exports = {
