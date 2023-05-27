@@ -14,7 +14,7 @@ module.exports = {
     }
 
     const commandCategories = [];
-    const defaultCategoryName = 'Uncategorized'; // Specify the default category name
+    const defaultCategory = 'Uncategorized'; // Specify the default category name
 
     // Get the absolute path to the commands directory (same directory as help.js)
     const commandsDirectory = path.join(__dirname);
@@ -29,14 +29,14 @@ module.exports = {
       const command = require(path.join(commandsDirectory, file));
 
       // Check if the command module has a category property
-      if (command.data.category) {
+      if (command.category) {
         // Check if the category already exists in the commandCategories array
-        let category = commandCategories.find((category) => category.name === command.data.category);
+        let category = commandCategories.find((category) => category.name === command.category);
 
         if (!category) {
           // Create a new category if it doesn't exist
           category = {
-            name: command.data.category,
+            name: command.category,
             description: '', // Initialize the description as an empty string
             commands: [],
           };
@@ -51,12 +51,12 @@ module.exports = {
         });
       } else {
         // Assign the command to the default category
-        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategory);
 
         if (!defaultCategory) {
           // Create the default category if it doesn't exist
           defaultCategory = {
-            name: defaultCategoryName,
+            name: defaultCategory,
             description: 'Commands that do not belong to any specific category',
             commands: [],
           };
