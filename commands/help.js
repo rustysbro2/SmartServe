@@ -12,7 +12,7 @@ module.exports = {
     const defaultCategory = 'Uncategorized'; // Specify the default category name
 
     // Get the absolute path to the commands directory
-    const commandsDirectory = path.join(__dirname, '..');
+    const commandsDirectory = path.join(__dirname);
 
     // Read all command modules from the commands directory
     const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
