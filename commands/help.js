@@ -20,7 +20,10 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     // Add the commands as fields in the embed
     category.commands.forEach((command) => {
-      categoryEmbed.addFields({ name: command.name, value: command.description });
+      categoryEmbed.addFields({
+        name: command.name,
+        value: command.description,
+      });
     });
 
     try {
@@ -156,6 +159,8 @@ module.exports = {
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
+
+    // Exported handleSelectMenu function
+    module.exports.handleSelectMenu = handleSelectMenu;
   },
-  handleSelectMenu, // Export the updated handleSelectMenu function
 };
