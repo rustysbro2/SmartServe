@@ -8,19 +8,26 @@ module.exports = {
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client) {
-    console.log('Executing help command...');
-
     if (interaction.deferred || interaction.replied) {
       // Interaction has already been replied to or deferred
-      console.log('Interaction has already been replied to or deferred.');
+      return;
+    }
+
+    if (interaction.isSelectMenu()) {
+      // Handle the select menu interaction
+      const selectedCategory = interaction.values[0];
+      // Add your logic to fetch and display commands for the selected category
+      
+      // Example code to reply to the select menu interaction
+      await interaction.reply(`You selected the category: ${selectedCategory}`);
       return;
     }
 
     const commandCategories = [];
-    const defaultCategoryName = 'Uncategorized'; // Specify the default category name
+    const defaultCategory = 'Uncategorized'; // Specify the default category name
 
     // Get the absolute path to the commands directory (same directory as help.js)
-    const commandsDirectory = path.join(__dirname, '../commands');
+    const commandsDirectory = path.join(__dirname);
 
     // Read all command modules from the commands directory
     const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
@@ -32,14 +39,14 @@ module.exports = {
       const command = require(path.join(commandsDirectory, file));
 
       // Check if the command module has a category property
-      if (command.category) {
+      if (command.data.category) {
         // Check if the category already exists in the commandCategories array
-        let category = commandCategories.find((category) => category.name === command.category);
+        let category = commandCategories.find((category) => category.name === command.data.category);
 
         if (!category) {
           // Create a new category if it doesn't exist
           category = {
-            name: command.category,
+            name: command.data.category,
             description: '', // Initialize the description as an empty string
             commands: [],
           };
@@ -54,7 +61,7 @@ module.exports = {
         });
       } else {
         // Assign the command to the default category
-        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategory);
 
         if (!defaultCategory) {
           // Create the default category if it doesn't exist
@@ -97,15 +104,10 @@ module.exports = {
 
     // Function to generate a unique option value
     function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+      let optionValue = categoryName.toLowerCase().replace(/\s+/g, '_');
 
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      // Append a number to the option value until it becomes unique
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
+        optionValue += '_';
       }
 
       usedOptionValues.add(optionValue);
@@ -115,53 +117,16 @@ module.exports = {
     // Create the action row with the select menu
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    // Create the initial embed with the category information
+    // Create the initial embed with the action row and select menu
     const initialEmbed = new EmbedBuilder()
       .setTitle('Command Categories')
-      .setDescription('Please select a category from the dropdown menu.')
-      .setColor('#0099ff');
+      .setDescription('Please select a category to view commands')
+      .setColor('#ff0000'); // Set your desired embed color
 
-    try {
-      console.log('Sending initial embed with the action row and select menu...');
-      // Send the initial embed with the action row and select menu
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-      console.log('Initial embed sent successfully.');
-    } catch (error) {
-      console.error('Error replying to interaction:', error);
-    }
-  },
-
-  async handleSelectMenu(interaction, client) {
-    console.log('Handling select menu interaction...');
-
-    const selectedCategory = interaction.values[0];
-    console.log(`Selected category: ${selectedCategory}`);
-
-    // Find the category based on the selected value
-    const category = commandCategories.find((category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory);
-
-    if (category) {
-      console.log(`Category '${category.name}' found.`);
-      // Create the embed with the category's commands
-      const categoryEmbed = new EmbedBuilder()
-        .setTitle(`Commands - ${category.name}`)
-        .setDescription(category.description || 'No description available');
-
-      // Add the commands as fields in the embed
-      category.commands.forEach((command) => {
-        categoryEmbed.addField(command.name, command.description);
-      });
-
-      try {
-        console.log('Editing original reply with the category embed...');
-        // Edit the original reply with the category embed
-        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
-        console.log('Original reply edited successfully.');
-      } catch (error) {
-        console.error('Error editing interaction reply:', error);
-      }
-    } else {
-      console.error(`Category '${selectedCategory}' not found.`);
-    }
+    // Reply to the interaction with the initial embed and action row
+    await interaction.reply({
+      embeds: [initialEmbed],
+      components: [actionRow],
+    });
   },
 };
