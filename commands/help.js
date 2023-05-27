@@ -5,6 +5,8 @@ const path = require('path');
 // Function to handle select menu interaction
 // Function to handle select menu interaction
 async function handleSelectMenu(interaction, commandCategories) {
+  console.log('Select menu interaction received:', interaction);
+
   const selectedCategory = interaction.values[0];
 
   // Find the category based on the selected value
@@ -28,6 +30,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       if (interaction.message) {
         // If the interaction has a message, update the original embed
         await interaction.message.edit({ embeds: [categoryEmbed] });
+        console.log('Interaction message updated.');
       } else {
         console.error('Interaction does not have a message.');
       }
@@ -46,6 +49,8 @@ module.exports = {
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client) {
+    console.log('Help command interaction received:', interaction);
+
     if (interaction.deferred || interaction.replied) {
       // Interaction has already been replied to or deferred
       return;
@@ -159,6 +164,7 @@ module.exports = {
     try {
       // Send the initial embed with the action row and select menu
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      console.log('Initial embed sent.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
