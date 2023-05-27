@@ -1,4 +1,4 @@
-const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, SlashCommandBuilder, ActionRowBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, SelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -72,45 +72,20 @@ module.exports = {
       }
     }
 
-    const usedOptionValues = new Set(); // Track used option values
-
-    // Create the string select menu and add options for each command category
-    const selectMenu = new StringSelectMenuBuilder()
+    // Create the select menu and add options for each command category
+    const selectMenu = new SelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name)); // Generate a unique option value
-
-      // Set the description only if it exists and is not empty
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
-      }
-
-      selectMenu.addOptions(optionBuilder);
+      selectMenu.addOption({
+        label: category.name,
+        value: category.name,
+      });
     });
 
-    // Function to generate a unique option value
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      // Append a number to the option value until it becomes unique
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
-
     // Create the action row with the select menu
-    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+    const actionRow = new ActionRowBuilder().addComponent(selectMenu);
 
     // Create the initial embed with the category information
     const initialEmbed = new EmbedBuilder()
@@ -126,33 +101,33 @@ module.exports = {
     }
   },
 
-  async handleSelectMenu(interaction, client, commandCategories) {
-    const selectedCategory = interaction.values[0];
+  async handleSelectMenu(interaction, client) {
+    if (interaction.customId === 'help_category') {
+      const selectedCategory = interaction.values[0];
 
-    // Find the category based on the selected value
-    const category = commandCategories.find(
-      (category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
-    );
+      // Find the category based on the selected value
+      const category = commandCategories.find((category) => category.name === selectedCategory);
 
-    if (category) {
-      // Create the embed with the category's commands
-      const categoryEmbed = new EmbedBuilder()
-        .setTitle(`Commands - ${category.name}`)
-        .setDescription(category.description || 'No description available');
+      if (category) {
+        // Create the embed with the category's commands
+        const categoryEmbed = new EmbedBuilder()
+          .setTitle(`Commands - ${category.name}`)
+          .setDescription(category.description || 'No description available');
 
-      // Add the commands as fields in the embed
-      category.commands.forEach((command) => {
-        categoryEmbed.addField(command.name, command.description);
-      });
+        // Add the commands as fields in the embed
+        category.commands.forEach((command) => {
+          categoryEmbed.addField(command.name, command.description);
+        });
 
-      try {
-        // Edit the original reply with the category embed
-        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
-      } catch (error) {
-        console.error('Error editing interaction reply:', error);
+        try {
+          // Edit the original reply with the category embed
+          await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+        } catch (error) {
+          console.error('Error editing interaction reply:', error);
+        }
+      } else {
+        console.error(`Category '${selectedCategory}' not found.`);
       }
-    } else {
-      console.error(`Category '${selectedCategory}' not found.`);
     }
   },
 };
