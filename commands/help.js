@@ -69,8 +69,8 @@ module.exports = {
       const options = category.commands.map((command) => {
         return new StringSelectMenuOptionBuilder()
           .setLabel(`/${category.name}`)
-          .setDescription(command.description)
-          .setValue(command.name);
+          .setDescription(category.description)
+          .setValue(category.name);
       });
 
       selectMenu.addOptions(options);
