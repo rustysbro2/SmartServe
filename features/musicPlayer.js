@@ -1,11 +1,4 @@
-const {
-  AudioPlayerStatus,
-  createAudioPlayer,
-  createAudioResource,
-  entersState,
-  joinVoiceChannel,
-  VoiceConnectionStatus,
-} = require('@discordjs/voice');
+const { createAudioResource, createAudioPlayer, StreamType, entersState, joinVoiceChannel, VoiceConnectionStatus } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
 
 class MusicPlayer {
@@ -24,9 +17,12 @@ class MusicPlayer {
   }
 
   setupListeners() {
-    this.audioPlayer.on(AudioPlayerStatus.Idle, async () => {
-      console.log('Audio player state changed to Idle. Processing queue.');
-      await this.processQueue();
+    this.audioPlayer.on('stateChange', async (oldState, newState) => {
+      console.log(`State change: ${oldState.status} -> ${newState.status}`);
+      if (newState.status === VoiceConnectionStatus.Idle && oldState.status !== VoiceConnectionStatus.Idle) {
+        console.log('Audio player state changed to Idle. Processing queue.');
+        await this.processQueue();
+      }
     });
 
     this.audioPlayer.on('error', (error) => {
@@ -66,7 +62,7 @@ class MusicPlayer {
     const wasEmpty = this.queue.length === 0;
     this.queue.push(url);
 
-    if (wasEmpty && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    if (wasEmpty && this.audioPlayer.state.status !== VoiceConnectionStatus.Playing) {
       console.log('Queue was empty and audio player is not playing. Processing queue.');
       await this.processQueue();
     }
@@ -93,10 +89,22 @@ class MusicPlayer {
 
       try {
         const stream = await ytdl(this.currentSong);
-        const resource = createAudioResource(stream);
-        this.audioPlayer.play(resource);
+        const resource = createAudioResource(stream, { inputType: StreamType.Arbitrary });
 
-        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+        resource.playStream.on('end', () => {
+          console.log('Finished playing:', this.currentSong);
+          this.currentSong = null;
+          this.processQueue(); // Continue to the next song
+        });
+
+        resource.playStream.on('error', (error) => {
+          console.error('Error occurred while playing the song:', error);
+          this.currentSong = null;
+          this.processQueue(); // Continue to the next song
+        });
+
+        this.audioPlayer.play(resource);
+        await entersState(this.audioPlayer, VoiceConnectionStatus.Playing, 5e3);
 
         console.log('Now playing:', this.currentSong);
         this.sendNowPlaying();
@@ -105,27 +113,14 @@ class MusicPlayer {
         this.voteSkips.clear();
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
+        this.currentSong = null;
+        this.processQueue(); // Continue to the next song
       }
     }
   }
 
-  sendNowPlaying() {
-    if (this.currentSong) {
-      console.log('Sending Now Playing message:', this.currentSong);
-      const message = `Now playing: ${this.currentSong}`;
-      this.textChannel
-        .send(message)
-        .then(() => {
-          console.log('Now Playing message sent:', this.currentSong);
-        })
-        .catch((error) => {
-          console.error(`Failed to send Now Playing message: ${error.message}`);
-        });
-    }
-  }
-
   async voteSkip(member) {
-    if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    if (!this.connection || this.audioPlayer.state.status !== VoiceConnectionStatus.Playing) {
       throw new Error('There is no song currently playing.');
     }
 
@@ -161,6 +156,21 @@ class MusicPlayer {
     } else {
       console.log(`Received vote skip from ${member.user.tag}. Vote count: ${voteCount}/${totalCount}`);
       this.sendVoteSkipMessage();
+    }
+  }
+
+  sendNowPlaying() {
+    if (this.currentSong) {
+      console.log('Sending Now Playing message:', this.currentSong);
+      const message = `Now playing: ${this.currentSong}`;
+      this.textChannel
+        .send(message)
+        .then(() => {
+          console.log('Now Playing message sent:', this.currentSong);
+        })
+        .catch((error) => {
+          console.error(`Failed to send Now Playing message: ${error.message}`);
+        });
     }
   }
 
