@@ -46,7 +46,7 @@ module.exports = {
       if (wasEmpty && musicPlayer.queue.length === 1) {
         console.log('Waiting for AudioPlayer to transition to "Playing" state...');
         await entersState(musicPlayer.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-        musicPlayer.sendNowPlaying(textChannel);
+        // Removed the sendNowPlaying call here
         console.log('Now playing message sent.');
       }
 
