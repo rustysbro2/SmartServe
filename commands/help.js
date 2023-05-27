@@ -38,11 +38,6 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 }
 
-
-
-
-
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
@@ -161,9 +156,9 @@ module.exports = {
 
     try {
       // Send the initial embed with the action row and select menu
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      await interaction.editReply({ embeds: [initialEmbed], components: [actionRow] });
     } catch (error) {
-      console.error('Error replying to interaction:', error);
+      console.error('Error editing interaction reply:', error);
     }
   },
 
