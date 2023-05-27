@@ -119,9 +119,6 @@ class MusicPlayer {
     }
   }
 
-
-
-
   async voteSkip(member) {
     if (!this.connection || this.audioPlayer.state.status !== VoiceConnectionStatus.Playing) {
       throw new Error('There is no song currently playing.');
@@ -180,6 +177,8 @@ class MusicPlayer {
         console.error(`Failed to send vote skip message: ${error.message}`);
       });
   }
+
+  // Other methods of the MusicPlayer class...
 }
 
 module.exports = MusicPlayer;
