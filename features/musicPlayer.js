@@ -9,7 +9,6 @@ const {
 const ytdl = require('ytdl-core-discord');
 const { EmbedBuilder } = require('discord.js');
 
-
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
     this.guildId = guildId;
@@ -113,7 +112,6 @@ class MusicPlayer {
     }
   }
 
-
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
     this.textChannel
@@ -155,7 +153,7 @@ class MusicPlayer {
     const voteCount = this.voteSkips.size;
     const totalCount = members.size - 1; // Exclude the bot
 
-    const votePercentage = voteCount / totalCount;
+    const votePercentage = (voteCount / totalCount) * 100;
     if (votePercentage >= this.voteSkipThreshold) {
       console.log('Vote skip threshold reached. Skipping the current song.');
       this.audioPlayer.stop();
@@ -189,5 +187,6 @@ class MusicPlayer {
         console.error(`Failed to send vote skip message: ${error.message}`);
       });
   }
+}
 
 module.exports = MusicPlayer;
