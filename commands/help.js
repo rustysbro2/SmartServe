@@ -118,6 +118,8 @@ module.exports = {
       .setColor('#0099ff');
 
     // Send the initial embed with the action row and select menu
+    console.log('Sending initial embed with action row and select menu...');
     await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    console.log('Initial embed sent successfully.');
   },
 };
