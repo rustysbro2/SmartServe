@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder } = require('discord.js');
+const { StringSelectMenuBuilder, StringSelectMenuOptionBuilder, SlashCommandBuilder, ActionRowBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -13,80 +13,143 @@ module.exports = {
       return;
     }
 
-    const commandCategories = []; // Array to store command categories
+    const commandCategories = [];
+    const defaultCategoryName = 'Uncategorized'; // Specify the default category name
 
-    // Read command files from the commands directory
-    const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+    // Get the absolute path to the commands directory (same directory as help.js)
+    const commandsDirectory = path.join(__dirname, '../commands');
 
-    // Loop through each command file
-    commandFiles.forEach((file) => {
-      const command = require(`./${file}`);
-      const category = command.category || 'Uncategorized';
+    // Read all command modules from the commands directory
+    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
 
-      // Find the category in the commandCategories array
-      const categoryData = commandCategories.find((category) => category.name === category);
+    // Loop through each command module
+    for (const file of commandFiles) {
+      if (file === 'help.js') continue; // Skip the help command file
 
-      if (categoryData) {
-        // Category already exists, add the command to it
-        categoryData.commands.push(command.data.toJSON());
-      } else {
-        // Category doesn't exist, create a new category and add the command to it
-        const newCategory = {
-          name: category,
-          commands: [command.data.toJSON()],
-        };
-        commandCategories.push(newCategory);
-      }
-    });
+      const command = require(path.join(commandsDirectory, file));
 
-    const selectMenuOptions = commandCategories.map((category) => {
-      return new StringSelectMenuBuilder().setLabel(category.name).setValue(category.name).setDescription(`View ${category.name} commands`);
-    });
+      // Check if the command module has a category property
+      if (command.category) {
+        // Check if the category already exists in the commandCategories array
+        let category = commandCategories.find((category) => category.name === command.category);
 
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('categorySelect')
-      .setPlaceholder('Select a category')
-      .addOptions(selectMenuOptions);
+        if (!category) {
+          // Create a new category if it doesn't exist
+          category = {
+            name: command.category,
+            description: '', // Initialize the description as an empty string
+            commands: [],
+          };
 
-    const actionRow = new ActionRowBuilder().addComponent(selectMenu);
-
-    // Send the initial embed with the action row and select menu
-    await interaction.reply({
-      content: 'Please select a category to view the commands:',
-      components: [actionRow],
-    });
-
-    // Handle the select menu interaction
-    client.on('interactionCreate', async (interaction) => {
-      if (interaction.isSelectMenu() && interaction.customId === 'categorySelect') {
-        const selectedCategory = interaction.values[0];
-
-        // Find the selected category in the commandCategories array
-        const categoryData = commandCategories.find((category) => category.name === selectedCategory);
-
-        if (categoryData) {
-          const embed = new EmbedBuilder()
-            .setTitle(`Commands - ${categoryData.name}`)
-            .setDescription('Here are the commands for the selected category:');
-
-          categoryData.commands.forEach((command) => {
-            embed.addField(command.name, command.description);
-          });
-
-          // Edit the original reply with the embed
-          await interaction.update({
-            content: 'Selected category:',
-            components: [],
-            embeds: [embed],
-          });
-        } else {
-          // Invalid category selected
-          await interaction.update({
-            content: 'Invalid category selected.',
-            components: [],
-          });
+          commandCategories.push(category);
         }
+
+        // Add the command to the category
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      } else {
+        // Assign the command to the default category
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+
+        if (!defaultCategory) {
+          // Create the default category if it doesn't exist
+          defaultCategory = {
+            name: defaultCategoryName,
+            description: 'Commands that do not belong to any specific category',
+            commands: [],
+          };
+
+          commandCategories.push(defaultCategory);
+        }
+
+        // Add the command to the default category
+        defaultCategory.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
       }
+    }
+
+    const usedOptionValues = new Set(); // Track used option values
+
+    // Create the string select menu and add options for each command category
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
+
+    commandCategories.forEach((category) => {
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(generateUniqueOptionValue(category.name)); // Generate a unique option value
+
+      // Set the description only if it exists and is not empty
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
+
+      selectMenu.addOptions(optionBuilder);
     });
+
+    // Function to generate a unique option value
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCategoryName;
+      let index = 1;
+
+      // Append a number to the option value until it becomes unique
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCategoryName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
+    }
+
+    // Create the action row with the select menu
+    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+
+    // Create the initial embed with the category information
+    const initialEmbed = new EmbedBuilder()
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
+      .setColor('#0099ff');
+
+    try {
+      // Send the initial embed with the action row and select menu
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    } catch (error) {
+      console.error('Error replying to interaction:', error);
+    }
+  },
+  async handleSelectMenu(interaction, client) {
+    const selectedCategory = interaction.values[0];
+
+    // Find the category based on the selected value
+    const category = commandCategories.find((category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory);
+
+    if (category) {
+      // Create the embed with the category's commands
+      const categoryEmbed = new EmbedBuilder()
+        .setTitle(`Commands - ${category.name}`)
+        .setDescription(category.description || 'No description available');
+
+      // Add the commands as fields in the embed
+      category.commands.forEach((command) => {
+        categoryEmbed.addField(command.name, command.description);
+      });
+
+      try {
+        // Edit the original reply with the category embed
+        await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+      } catch (error) {
+        console.error('Error editing interaction reply:', error);
+      }
+    } else {
+      console.error(`Category '${selectedCategory}' not found.`);
+    }
   },
 };
