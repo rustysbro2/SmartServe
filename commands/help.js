@@ -48,7 +48,6 @@ module.exports = {
         category.commands.push({
           name: command.data.name,
           description: command.data.description,
-          category: command.data.category, // Add the category property to the command
         });
       } else {
         // Assign the command to the default category
@@ -69,7 +68,6 @@ module.exports = {
         defaultCategory.commands.push({
           name: command.data.name,
           description: command.data.description,
-          category: defaultCategoryName, // Add the category property to the command
         });
       }
     }
