@@ -74,16 +74,18 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(category.name);
+      category.commands.forEach((cmd) => {
+        const optionBuilder = new StringSelectMenuOptionBuilder()
+          .setLabel(cmd.name)
+          .setValue(cmd.name); // Use the command name as the unique option value
 
-      // Set the description only if it exists and is not empty
-      if (category.hasOwnProperty('description') && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
-      }
+        // Set the description only if it exists and is not empty
+        if (cmd.hasOwnProperty('description') && cmd.description.length > 0) {
+          optionBuilder.setDescription(cmd.description);
+        }
 
-      selectMenu.addOptions(optionBuilder);
+        selectMenu.addOptions(optionBuilder);
+      });
     });
 
     // Create the action row with the select menu
@@ -95,8 +97,8 @@ module.exports = {
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
+    // Send the initial embed with the action row and select menu
     try {
-      // Send the initial embed with the action row and select menu
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
     } catch (error) {
       console.error('An error occurred while executing the help command:');
