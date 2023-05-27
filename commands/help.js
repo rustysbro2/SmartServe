@@ -2,6 +2,38 @@ const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSe
 const fs = require('fs');
 const path = require('path');
 
+// Function to handle select menu interaction
+async function handleSelectMenu(interaction, commandCategories) {
+  const selectedCategory = interaction.values[0];
+
+  // Find the category based on the selected value
+  const category = commandCategories.find(
+    (category) =>
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+  );
+
+  if (category) {
+    // Create the embed with the category's commands
+    const categoryEmbed = new EmbedBuilder()
+      .setTitle(`Commands - ${category.name}`)
+      .setDescription(category.description || 'No description available');
+
+    // Add the commands as fields in the embed
+    category.commands.forEach((command) => {
+      categoryEmbed.addField(command.name, command.description);
+    });
+
+    try {
+      // Update the original reply with the category embed
+      await interaction.editReply({ embeds: [categoryEmbed], components: [] });
+    } catch (error) {
+      console.error('Error editing interaction reply:', error);
+    }
+  } else {
+    console.error(`Category '${selectedCategory}' not found.`);
+  }
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
@@ -120,54 +152,13 @@ module.exports = {
 
     try {
       // Send the initial embed with the action row and select menu
-      const reply = await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-
-      // Store the message ID for future reference
-      const messageId = reply.id;
-
-      // Store the channel ID for future reference
-      const channelId = interaction.channelId;
-
-      // Function to handle select menu interaction
-      async function handleSelectMenu(interaction, commandCategories) {
-        const selectedCategory = interaction.values[0];
-
-        // Find the category based on the selected value
-        const category = commandCategories.find(
-          (category) =>
-            category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
-        );
-
-        if (category) {
-          // Create the embed with the category's commands
-          const categoryEmbed = new EmbedBuilder()
-            .setTitle(`Commands - ${category.name}`)
-            .setDescription(category.description || 'No description available');
-
-          // Add the commands as fields in the embed
-          category.commands.forEach((command) => {
-            categoryEmbed.addField(command.name, command.description);
-          });
-
-          try {
-            // Update the original reply with the category embed
-            await client.channels.cache.get(channelId).messages.fetch(messageId)
-              .then((message) => message.edit({ embeds: [categoryEmbed], components: [] }));
-          } catch (error) {
-            console.error('Error updating interaction reply:', error);
-          }
-        } else {
-          console.error(`Category '${selectedCategory}' not found.`);
-        }
-      }
-
-      // Usage in select menu interaction handler
-      await handleSelectMenu(interaction, commandCategories);
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
+
+    // Exported handleSelectMenu function
+    module.exports.handleSelectMenu = handleSelectMenu;
   },
 };
 
-// Export handleSelectMenu function for usage in other parts of the code
-module.exports.handleSelectMenu = handleSelectMenu;
