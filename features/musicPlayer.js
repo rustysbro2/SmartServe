@@ -89,12 +89,20 @@ class MusicPlayer {
           // Handle empty queue and no songs playing
           if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
             console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
-            this.connection.on(VoiceConnectionStatus.Destroyed, () => {
-              console.log('Voice connection destroyed.');
+
+            // Check if the bot is the only member in the voice channel
+            const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(this.connection.joinConfig?.channelId);
+            if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)) {
+              console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+
+              // Stop playback and leave the voice channel
+              this.audioPlayer.stop();
+              this.connection.destroy();
               this.connection = null;
-            });
-            this.audioPlayer.stop();
-            this.connection.destroy();
+            } else {
+              // Stop playback
+              this.audioPlayer.stop();
+            }
           }
           break;
         }
@@ -121,17 +129,6 @@ class MusicPlayer {
 
           // Reset voteSkips set
           this.voteSkips.clear();
-
-          // Check if the bot is the only member in the voice channel
-          const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(this.connection.joinConfig?.channelId);
-          if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)) {
-            console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
-
-            // Stop playback and leave the voice channel
-            this.audioPlayer.stop();
-            this.connection.destroy();
-            this.connection = null;
-          }
         }
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
