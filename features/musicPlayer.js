@@ -40,9 +40,7 @@ class MusicPlayer {
     this.connection = joinVoiceChannel({
       channelId: this.channelId,
       guildId: this.guildId,
-      adapterCreator: this.textChannel.guild.voiceAdapterCreator.bind(null, {
-        userId: this.textChannel.client.user.id,
-      }),
+      adapterCreator: this.textChannel.guild.voiceAdapterCreator,
     });
 
     try {
@@ -53,6 +51,10 @@ class MusicPlayer {
       this.connection.destroy();
       throw error;
     }
+
+    // Store the bot's user ID for later use
+    const botId = this.textChannel.client.user.id;
+    this.connection.joinConfig.adapterCreator.setUserId(botId);
 
     this.connection.subscribe(this.audioPlayer);
   }
@@ -132,11 +134,38 @@ class MusicPlayer {
     return members.size === 1 && botMember !== undefined;
   }
 
+
+
+
+
+
+
+
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
     this.textChannel
       .send(message)
-      .then(() => {
+      .then(() => {isBotAlone() {
+  const voiceChannelId = this.connection.joinConfig?.channelId;
+  const guild = this.textChannel.guild;
+  const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+
+  if (!voiceChannel) {
+    console.log('Voice channel is undefined.');
+    return false;
+  }
+
+  const members = voiceChannel.members;
+  if (!members) {
+    console.log('Members are undefined.');
+    return false;
+  }
+
+  const botId = this.textChannel.client.user.id;
+  const botMember = members.get(botId);
+  return members.size === 1 && botMember !== undefined;
+}
+
         console.log('Now Playing message sent:', this.currentSong);
       })
       .catch((error) => {
