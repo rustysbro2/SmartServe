@@ -154,7 +154,7 @@ class MusicPlayer {
     if (!voiceChannel) return;
 
     const members = voiceChannel.members;
-    if (!members || members.size === 1) {
+    if (members && members.size > 0 && members.size === 1 && members.has(guild.me.id)) {
       console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
 
       // Stop playback and leave the voice channel
@@ -163,6 +163,7 @@ class MusicPlayer {
       this.connection = null;
     }
   }
+
 
 
 
