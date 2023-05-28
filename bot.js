@@ -20,13 +20,12 @@ client.commands = new Collection();
 client.musicPlayers = new Map();
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const commandCategories = []; // Define the commandCategories array
+const commandCategories = [];
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
   client.commands.set(command.data.name, command);
 
-  // Populate the commandCategories array
   if (command.category) {
     let category = commandCategories.find(category => category.name === command.category);
     if (!category) {
@@ -67,43 +66,43 @@ client.once('ready', async () => {
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
 
-  // Start checking voice channels every minute (adjust the interval as needed)
+  // Start checking voice channels every second
   setInterval(() => {
     checkVoiceChannels();
-  }, 1000); // Check every 1 minute
+  }, 1000); // Check every 1 second
 });
 
-  async function checkVoiceChannels() {
-    const botId = client.user.id;
-    const guilds = client.guilds.cache;
+async function checkVoiceChannels() {
+  const botId = client.user.id;
+  const guilds = client.guilds.cache;
 
-    console.log('Checking voice channels at', new Date().toLocaleTimeString());
+  console.log(`Checking voice channels at ${new Date().toLocaleTimeString()}`);
 
-    for (const guild of guilds) {
-      const guildId = guild[1].id;
-      const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+  for (const guild of guilds) {
+    const guildId = guild[1].id;
+    const musicPlayer = client.musicPlayers.get(guildId);
+    const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
 
-      console.log(`Guild: ${guildId}, Voice Channels: ${voiceChannels.size}`);
+    console.log(`Guild: ${guildId}, Voice Channels: ${voiceChannels.size}`);
 
-      for (const [channelId, channel] of voiceChannels) {
-        console.log(`Channel: ${channelId}, Members: ${channel.members?.size ?? 0}`); // Access channel.members instead of channel.members.size
+    for (const [channelId, channel] of voiceChannels) {
+      const members = channel.members.filter(member => !member.user.bot);
 
-        if ((channel.members?.size ?? 0) === 1 && channel.members?.first().id === botId) { // Check if the bot is the only member in the voice channel
-          // Bot is the only member in the voice channel
-          console.log(`Bot is the only member in the voice channel: ${channel.name}`);
+      console.log(`Channel: ${channelId}, Members: ${members.size}, Member IDs: ${members.map(member => member.id).join(', ')}`);
 
-          // Check if the bot has an active music player for the guild
-          const musicPlayer = client.musicPlayers.get(guildId);
-          if (musicPlayer && musicPlayer.connection) {
-            console.log("Destroying connection and leaving voice channel.");
-            musicPlayer.connection.destroy();
-            client.musicPlayers.delete(guildId);
-          }
+      if (members.size === 0 && channel.members.has(botId)) {
+        // Bot is the only member in the voice channel
+        console.log(`Bot is the only member in the voice channel: ${channel.name}`);
+
+        if (musicPlayer && musicPlayer.connection) {
+          console.log("Destroying connection and leaving voice channel.");
+          musicPlayer.connection.destroy();
+          client.musicPlayers.delete(guildId);
         }
       }
     }
+  }
 }
-
 
 client.on('interactionCreate', async (interaction) => {
   console.log('Interaction received:', interaction);
@@ -127,7 +126,7 @@ client.on('interactionCreate', async (interaction) => {
 
       try {
         console.log(`Executing ${commandName} command...`);
-        await command.execute(interaction, client); // Execute the command
+        await command.execute(interaction, client);
         console.log(`${commandName} command executed.`);
       } catch (error) {
         console.error(error);
