@@ -109,26 +109,25 @@ class MusicPlayer {
   }
 
   isBotAlone() {
-      const voiceChannelId = this.connection.joinConfig?.channelId;
-      const guild = this.textChannel.guild;
-      const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+    const voiceChannelId = this.connection.joinConfig?.channelId;
+    const guild = this.textChannel.guild;
+    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
 
-      if (!voiceChannel) {
-        console.log('Voice channel is undefined.');
-        return false;
-      }
+    if (!voiceChannel) {
+      console.log('Voice channel is undefined.');
+      return false;
+    }
 
-      const members = voiceChannel.members;
-      if (!members) {
-        console.log('Members are undefined.');
-        return false;
-      }
+    const members = voiceChannel.members;
+    if (!members) {
+      console.log('Members are undefined.');
+      return false;
+    }
 
-      const botId = this.connection.joinConfig.adapterCreator.userId;
-      const botMember = members.find(member => member.user.id === botId);
-      return members.size === 1 && botMember !== null;
+    const botId = this.connection.joinConfig.adapterCreator.userId;
+    const botMember = members.find((member) => member.user.id === botId);
+    return members.size === 1 && botMember !== null;
   }
-
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
@@ -213,33 +212,33 @@ class MusicPlayer {
   }
 
   checkVoiceChannel() {
-      if (!this.connection) {
-          console.log('Bot is not connected to a voice channel.');
-          return;
-      }
+    if (!this.connection) {
+      console.log('Bot is not connected to a voice channel.');
+      return;
+    }
 
-      const voiceChannelId = this.connection.joinConfig?.channelId;
-      const guild = this.textChannel.guild;
-      const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+    const voiceChannelId = this.connection.joinConfig?.channelId;
+    const guild = this.textChannel.guild;
+    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
 
-      if (!voiceChannel) {
-          console.log('Voice channel is undefined or bot is not in a voice channel.');
-          return;
-      }
+    if (!voiceChannel) {
+      console.log('Voice channel is undefined or bot is not in a voice channel.');
+      return;
+    }
 
-      const members = voiceChannel.members;
+    const members = voiceChannel.members;
 
-      if (!members) {
-          console.log('Members are undefined.');
-          return;
-      }
+    if (!members) {
+      console.log('Members are undefined.');
+      return;
+    }
 
-      if (members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
-          console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
-          this.audioPlayer.stop();
-          this.connection.destroy();
-          this.connection = null;
-      }
+    if (members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
+      console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
+      this.audioPlayer.stop();
+      this.connection.destroy();
+      this.connection = null;
+    }
   }
 }
 
