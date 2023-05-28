@@ -227,4 +227,4 @@ class MusicPlayer {
   }
 }
 
-module.exports = Music
+module.exports = MusicPlayer;
