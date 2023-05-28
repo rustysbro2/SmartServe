@@ -109,14 +109,26 @@ class MusicPlayer {
   }
 
   isBotAlone() {
-    const voiceChannel = this.connection.joinConfig?.channelId;
-    if (!voiceChannel) {
-      return false;
-    }
+      const voiceChannelId = this.connection.joinConfig?.channelId;
+      const guild = this.textChannel.guild;
+      const voiceChannel = guild?.channels.cache.get(voiceChannelId);
 
-    const members = this.textChannel.guild?.channels.cache.get(voiceChannel)?.members;
-    return members?.size === 1 && members.has(this.audioPlayer.joinConfig.adapterCreator.userId);
+      if (!voiceChannel) {
+        console.log('Voice channel is undefined.');
+        return false;
+      }
+
+      const members = voiceChannel.members;
+      if (!members) {
+        console.log('Members are undefined.');
+        return false;
+      }
+
+      const botId = this.connection.joinConfig.adapterCreator.userId;
+      const botMember = members.find(member => member.user.id === botId);
+      return members.size === 1 && botMember !== null;
   }
+
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
