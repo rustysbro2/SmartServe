@@ -41,10 +41,12 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the guild.');
     }
 
-    const voiceChannel = guild.channels.cache.get(this.channelId);
-    if (!voiceChannel || voiceChannel.type !== 'GUILD_VOICE') {
-      throw new Error('Invalid voice channel.');
+    const voiceChannel = guild.me.voice.channel;
+    if (!voiceChannel) {
+      throw new Error('The bot is not in a voice channel.');
     }
+
+    this.channelId = voiceChannel.id; // Update the channelId property with the actual voice channel ID
 
     try {
       this.connection = joinVoiceChannel({
@@ -63,6 +65,7 @@ class MusicPlayer {
 
     this.connection.subscribe(this.audioPlayer);
   }
+
 
   isValidYoutubeUrl(url) {
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
