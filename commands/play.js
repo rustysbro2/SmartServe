@@ -39,7 +39,6 @@ module.exports = {
         await musicPlayer.joinChannel(); // Call joinChannel method here
       }
 
-
       const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
       await musicPlayer.addSong(url);
