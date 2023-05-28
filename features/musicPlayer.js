@@ -139,12 +139,14 @@ class MusicPlayer {
   checkVoiceChannel() {
     if (!this.connection) return;
 
-    const voiceChannel = this.connection.joinConfig?.channelId;
+    const voiceChannelId = this.connection.joinConfig?.channelId;
+    const voiceChannel = this.connection.joinConfig?.guild.channels.cache.get(voiceChannelId);
+
     if (!voiceChannel) return;
 
-    const members = this.connection.joinConfig?.channel?.members;
+    const members = voiceChannel.members;
     if (!members || members.size === 1) {
-      console.log(`Bot is the only member in the voice channel: ${voiceChannel}`);
+      console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
 
       // Stop playback and leave the voice channel
       this.audioPlayer.stop();
@@ -152,6 +154,7 @@ class MusicPlayer {
       this.connection = null;
     }
   }
+
 
 
 
