@@ -66,9 +66,6 @@ class MusicPlayer {
     this.connection.subscribe(this.audioPlayer);
   }
 
-
-
-
   isValidYoutubeUrl(url) {
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
     return pattern.test(url);
@@ -132,7 +129,7 @@ class MusicPlayer {
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
-    const embed = new EmbedBuilder().setDescription(message).setColor('#0099FF');
+    const embed = new MessageEmbed().setDescription(message).setColor('#0099FF');
 
     this.textChannel
       .send({ embeds: [embed] })
@@ -193,7 +190,7 @@ class MusicPlayer {
     }
 
     const votePercentage = (voteCount / totalCount) * 100;
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
       .setColor('#0099FF');
