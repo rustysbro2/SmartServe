@@ -7,7 +7,7 @@ const {
   VoiceConnectionStatus,
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -114,7 +114,7 @@ class MusicPlayer {
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
-    const embed = new MessageEmbed().setDescription(message).setColor('#0099FF');
+    const embed = new EmbedBuilder().setDescription(message).setColor('#0099FF');
 
     this.textChannel
       .send({ embeds: [embed] })
@@ -175,7 +175,7 @@ class MusicPlayer {
     }
 
     const votePercentage = (voteCount / totalCount) * 100;
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
       .setColor('#0099FF');
