@@ -93,7 +93,7 @@ class MusicPlayer {
       return;
     }
 
-    if (!this.connection || this.connection.state.status === VoiceConnectionStatus.Destroyed) {
+    if (!this.connection) {
       await this.joinChannel();
     }
 
@@ -117,8 +117,8 @@ class MusicPlayer {
         this.voteSkips.clear();
 
         // Check if the bot is the only member in the voice channel
-        const voiceChannel = this.textChannel.guild.channels.cache.get(this.channelId);
-        if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig.adapterCreator.userId)) {
+        const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(this.connection.joinConfig?.channelId);
+        if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)) {
           console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
 
           // Stop playback and leave the voice channel
@@ -133,6 +133,7 @@ class MusicPlayer {
       }
     }
   }
+
 
 
   startVoiceChannelCheckInterval() {
