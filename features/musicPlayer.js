@@ -154,6 +154,7 @@ isBotAlone() {
 
 
 
+
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
     this.textChannel
