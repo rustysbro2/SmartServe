@@ -144,16 +144,8 @@ class MusicPlayer {
     if (!this.connection) return;
 
     const voiceChannelId = this.connection.joinConfig?.channelId;
-    const guildId = this.connection.joinConfig?.guildId;
-    const guild = this.connection.joinConfig?.adapterCreator.cache.guilds.get(guildId) ||
-      this.textChannel.guild;
-
-    if (!guild) {
-      console.log('Guild is undefined.');
-      return;
-    }
-
-    const voiceChannel = guild.channels.cache.get(voiceChannelId);
+    const guild = this.textChannel.guild;
+    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
 
     if (!voiceChannel) {
       console.log('Voice channel is undefined.');
@@ -175,6 +167,7 @@ class MusicPlayer {
       this.connection = null;
     }
   }
+
 
 
 
