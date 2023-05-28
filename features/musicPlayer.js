@@ -235,8 +235,8 @@ class MusicPlayer {
     const botId = this.connection.joinConfig.adapterCreator.userId;
     const botMember = members.get(botId);
 
-    if (!botMember || members.size <= 1) {
-      console.log('Bot is not present in the voice channel or is the only member.');
+    if (!botMember && members.size > 1) {
+      console.log('Bot is not present in the voice channel but there are other members.');
       this.audioPlayer.stop();
       this.connection.destroy();
       this.connection = null;
