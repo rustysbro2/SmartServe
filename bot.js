@@ -82,16 +82,20 @@ client.once('ready', async () => {
     for (const guild of guilds) {
       const guildId = guild[1].id;
       const musicPlayer = client.musicPlayers.get(guildId);
-      const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+      const guildObj = await guild[1].fetch(); // Fetch the guild object
 
-      console.log(`Guild: ${guildId}, Voice Channels: ${voiceChannels.size}`);
+      console.log(`Guild: ${guildId}, Voice Channels: ${guildObj.channels.cache.size}`);
+
+      const voiceChannels = guildObj.channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
 
       for (const [channelId, channel] of voiceChannels) {
-        console.log(`Channel: ${channelId}, Members: ${channel.members?.size ?? 0}`); // Access channel.members instead of channel.members.size
+        const voiceChannel = await guildObj.channels.fetch(channelId); // Fetch the voice channel object
+        await voiceChannel.members.fetch(); // Fetch the members in the voice channel
+        console.log(`Channel: ${channelId}, Members: ${voiceChannel.members.size}`);
 
-        if ((channel.members?.size ?? 0) === 1 && channel.members?.has(botId)) { // Access channel.members instead of channel.members.size
+        if (voiceChannel.members.size === 1 && voiceChannel.members.has(botId)) {
           // Bot is the only member in the voice channel
-          console.log(`Bot is the only member in the voice channel: ${channel.name}`);
+          console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
 
           if (musicPlayer && musicPlayer.connection) {
             console.log("Destroying connection and leaving voice channel.");
@@ -102,6 +106,7 @@ client.once('ready', async () => {
       }
     }
   }
+
 
 
 
