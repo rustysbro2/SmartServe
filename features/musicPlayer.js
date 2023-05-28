@@ -145,7 +145,7 @@ class MusicPlayer {
 
     const voiceChannelId = this.connection.joinConfig?.channelId;
     const guildId = this.connection.joinConfig?.guildId;
-    const guild = this.connection.joinConfig?.guild;
+    const guild = this.connection.joinConfig?.adapterCreator.cache.guilds.get(guildId);
 
     if (!guild) {
       console.log('Guild is undefined.');
@@ -174,6 +174,7 @@ class MusicPlayer {
       this.connection = null;
     }
   }
+
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
