@@ -73,35 +73,36 @@ client.once('ready', async () => {
   }, 1000); // Check every 1 second
 });
 
-async function checkVoiceChannels() {
-  const botId = client.user.id;
-  const guilds = client.guilds.cache;
+  async function checkVoiceChannels() {
+    const botId = client.user.id;
+    const guilds = client.guilds.cache;
 
-  console.log('Checking voice channels...');
+    console.log('Checking voice channels...');
 
-  for (const guild of guilds) {
-    const guildId = guild[1].id;
-    const musicPlayer = client.musicPlayers.get(guildId);
-    const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+    for (const guild of guilds) {
+      const guildId = guild[1].id;
+      const musicPlayer = client.musicPlayers.get(guildId);
+      const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
 
-    console.log(`Guild: ${guildId}, Voice Channels: ${voiceChannels.size}`);
+      console.log(`Guild: ${guildId}, Voice Channels: ${voiceChannels.size}`);
 
-    for (const [channelId, channel] of voiceChannels) {
-      console.log(`Channel: ${channelId}, Members: ${channel.members.size}`);
+      for (const [channelId, channel] of voiceChannels) {
+        console.log(`Channel: ${channelId}, Members: ${channel.members?.size ?? 0}`); // Access channel.members instead of channel.members.size
 
-      if (channel.members.size === 1 && channel.members.has(botId)) {
-        // Bot is the only member in the voice channel
-        console.log(`Bot is the only member in the voice channel: ${channel.name}`);
+        if ((channel.members?.size ?? 0) === 1 && channel.members?.has(botId)) { // Access channel.members instead of channel.members.size
+          // Bot is the only member in the voice channel
+          console.log(`Bot is the only member in the voice channel: ${channel.name}`);
 
-        if (musicPlayer && musicPlayer.connection) {
-          console.log("Destroying connection and leaving voice channel.");
-          musicPlayer.connection.destroy();
-          client.musicPlayers.delete(guildId);
+          if (musicPlayer && musicPlayer.connection) {
+            console.log("Destroying connection and leaving voice channel.");
+            musicPlayer.connection.destroy();
+            client.musicPlayers.delete(guildId);
+          }
         }
       }
     }
   }
-}
+
 
 
 
