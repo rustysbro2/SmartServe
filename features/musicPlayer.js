@@ -92,7 +92,8 @@ class MusicPlayer {
           this.currentSong = this.queue.shift();
           console.log('Processing queue. Now playing:', this.currentSong);
 
-          const resource = createAudioResource(ytdl(this.currentSong), { inlineVolume: true });
+          const stream = await ytdl(this.currentSong, { filter: 'audioonly' });
+          const resource = createAudioResource(stream, { inlineVolume: true });
           this.audioPlayer.play(resource);
 
           await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
@@ -110,6 +111,7 @@ class MusicPlayer {
       }
     }
   }
+
 
 
   startVoiceChannelCheckInterval() {
