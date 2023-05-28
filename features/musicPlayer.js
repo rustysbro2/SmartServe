@@ -243,26 +243,19 @@ isBotAlone() {
       return;
     }
 
-    const botId = this.connection.joinConfig.adapterCreator.userId;
+    const botId = this.textChannel.client.user.id;
     const botMember = members.get(botId);
 
     if (!botMember) {
       console.log('Bot is not present in the voice channel.');
-      console.log('Bot ID:', botId);
-      console.log('Voice Channel ID:', voiceChannelId);
-      console.log('Voice Channel Members:', members.size);
       return;
     }
 
-    const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
-
-    if (otherMembers.size === 0 && !botMember.voice?.selfDeaf) {
-      console.log('Bot is alone in the voice channel. Leaving the channel.');
+    if (members.size === 1 && botMember !== null) {
+      console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
       this.audioPlayer.stop();
       this.connection.destroy();
       this.connection = null;
-      console.log('Voice Channel Members:', members.size);
-      console.log('Bot ID:', botId);
     }
   }
 }
