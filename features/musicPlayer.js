@@ -21,6 +21,8 @@ class MusicPlayer {
     this.currentSong = null;
     this.voteSkips = new Set();
     this.voteSkipThreshold = 0.5; // Change this value to set the required percentage of votes to skip a song
+    this.voiceChannelCheckInterval = null; // Initialize the property
+
 
     this.setupListeners();
     this.startVoiceChannelCheckInterval();
