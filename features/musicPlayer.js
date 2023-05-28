@@ -1,13 +1,13 @@
 const {
-  AudioPlayerStatus,
-  createAudioPlayer,
-  createAudioResource,
   entersState,
   joinVoiceChannel,
   VoiceConnectionStatus,
+  createAudioPlayer,
+  AudioPlayerStatus,
 } = require('@discordjs/voice');
-const ytdl = require('ytdl-core-discord');
-const { EmbedBuilder } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
+const ytdl = require('ytdl-core');
+const { createAudioResource } = require('@discordjs/opus');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -22,6 +22,7 @@ class MusicPlayer {
     this.voteSkipThreshold = 0.5; // Change this value to set the required percentage of votes to skip a song
 
     this.setupListeners();
+    this.startVoiceChannelCheckInterval();
   }
 
   setupListeners() {
@@ -36,11 +37,13 @@ class MusicPlayer {
   }
 
   async joinChannel() {
-    this.connection = joinVoiceChannel({
+    const connectionData = {
       channelId: this.channelId,
       guildId: this.guildId,
       adapterCreator: this.textChannel.guild.voiceAdapterCreator,
-    });
+    };
+
+    this.connection = joinVoiceChannel(connectionData);
 
     try {
       await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
@@ -51,6 +54,7 @@ class MusicPlayer {
       throw error;
     }
 
+    this.connection.joinConfig = connectionData;
     this.connection.subscribe(this.audioPlayer);
   }
 
@@ -74,41 +78,72 @@ class MusicPlayer {
   }
 
   async processQueue() {
-    if (this.queue.length === 0) {
-      if (this.connection) {
-        this.connection.destroy();
-        this.connection = null;
-        console.log('Bot left the voice channel.');
-      }
-      console.log('Queue is empty. Stopping playback.');
-      return;
-    }
-
     if (!this.connection) {
       await this.joinChannel();
     }
 
-    while (this.queue.length > 0) {
-      this.currentSong = this.queue.shift();
-      console.log('Processing queue. Now playing:', this.currentSong);
-
+    while (true) {
       try {
-        const stream = await ytdl(this.currentSong);
-        const resource = createAudioResource(stream);
-        this.audioPlayer.play(resource);
-
-        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-        if (this.currentSong !== this.queue[0]) {
-          console.log('Now playing:', this.currentSong);
-          this.sendNowPlaying();
+        if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
+          break;
         }
 
-        // Reset voteSkips set
-        this.voteSkips.clear();
+        if (this.queue.length > 0) {
+          this.currentSong = this.queue.shift();
+          console.log('Processing queue. Now playing:', this.currentSong);
+
+          const stream = await ytdl(this.currentSong, { filter: 'audioonly' });
+          const resource = createAudioResource(stream, { inlineVolume: true });
+          this.audioPlayer.play(resource);
+
+          await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+          if (this.currentSong !== this.queue[0]) {
+            console.log('Now playing:', this.currentSong);
+            this.sendNowPlaying();
+          }
+
+          this.voteSkips.clear();
+        }
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
+        break;
       }
+    }
+  }
+
+  startVoiceChannelCheckInterval() {
+    setInterval(() => {
+      this.checkVoiceChannel();
+    }, 1000);
+  }
+
+  checkVoiceChannel() {
+    if (!this.connection) return;
+
+    const voiceChannelId = this.connection.joinConfig?.channelId;
+    const guild = this.textChannel.guild;
+    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+
+    if (!voiceChannel) {
+      console.log('Voice channel is undefined.');
+      return;
+    }
+
+    const members = voiceChannel.members;
+    if (!members) {
+      console.log('Members are undefined.');
+      return;
+    }
+
+    if (
+      members.size === 1 &&
+      members.has(this.connection.joinConfig.adapterCreator.userId)
+    ) {
+      console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
+      this.audioPlayer.stop();
+      this.connection.destroy();
+      this.connection = null;
     }
   }
 
@@ -173,20 +208,23 @@ class MusicPlayer {
     }
 
     const votePercentage = (voteCount / totalCount) * 100;
-    const embed = new EmbedBuilder()
+    const message = new MessageEmbed()
+      .setColor('#FF0000')
       .setTitle('Vote Skip')
-      .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
-      .setColor(0x0099FF);
+      .setDescription(`Vote skip initiated. Votes: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
+      .setTimestamp();
 
-    this.textChannel
-      .send({ embeds: [embed] })
-      .then(() => {
-        console.log('Vote skip message sent.');
-      })
-      .catch((error) => {
-        console.error(`Failed to send vote skip message: ${error.message}`);
-      });
+    this.textChannel.send({ embeds: [message] });
+  }
+
+  clearQueue() {
+    if (this.queue.length === 0) {
+      throw new Error('The queue is already empty.');
+    }
+
+    this.queue = [];
+    console.log('Queue cleared.');
   }
 }
 
-module.exports = MusicPlayer;
+module.exports = Music
