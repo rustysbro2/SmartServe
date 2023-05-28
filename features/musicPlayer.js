@@ -256,8 +256,11 @@ class MusicPlayer {
     if (otherMembers.size === 0 && !botMember.voice?.selfDeaf) {
       console.log('Bot is alone in the voice channel. Leaving the channel.');
       this.leaveVoiceChannel(); // Leave the voice channel if the bot is alone
+    } else {
+      console.log('Bot is in a voice channel.'); // Debug statement when the bot is in a voice channel
     }
   }
+
 
 
   leaveVoiceChannel() {
