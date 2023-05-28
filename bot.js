@@ -54,7 +54,7 @@ async function checkVoiceChannels() {
         // Bot is the only member in the voice channel
         console.log(`Bot is the only member in the voice channel: ${channel.name}`);
         console.log(`Channel Members: ${channel.members.size}`);
-        
+
         if (musicPlayer && musicPlayer.connection) {
           console.log("Destroying connection and leaving voice channel.");
           musicPlayer.connection.destroy();
