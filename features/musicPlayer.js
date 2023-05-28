@@ -226,10 +226,25 @@ class MusicPlayer {
       return;
     }
 
-    const botMember = voiceChannel.members.find(member => member.user.id === this.connection.joinConfig.adapterCreator.userId);
+    const members = voiceChannel.members;
+    if (!members) {
+      console.log('Members are undefined.');
+      return;
+    }
+
+    const botId = this.connection.joinConfig.adapterCreator.userId;
+    const botMember = members.get(botId);
 
     if (!botMember) {
-      console.log(`Bot is not present in the voice channel: ${voiceChannelId}`);
+      console.log('Bot is not present in the voice channel.');
+      return;
+    }
+
+    const userMembers = members.filter(member => !member.user.bot);
+    const userCount = userMembers.size;
+
+    if (userCount === 0) {
+      console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
       this.audioPlayer.stop();
       this.connection.destroy();
       this.connection = null;
