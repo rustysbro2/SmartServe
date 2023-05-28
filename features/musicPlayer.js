@@ -48,7 +48,6 @@ class MusicPlayer {
     try {
       await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
       console.log('Voice connection established.');
-      this.connection.subscribe(this.audioPlayer);
     } catch (error) {
       console.error(`Failed to join voice channel: ${error.message}`);
       this.connection.destroy();
@@ -56,6 +55,7 @@ class MusicPlayer {
     }
 
     this.connection.joinConfig = connectionData;
+    this.connection.subscribe(this.audioPlayer);
   }
 
   isValidYoutubeUrl(url) {
@@ -84,11 +84,6 @@ class MusicPlayer {
 
     while (true) {
       try {
-        if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-          // Remove the condition to stop processing queue when it's empty
-          // break;
-        }
-
         if (this.queue.length > 0) {
           this.currentSong = this.queue.shift();
           console.log('Processing queue. Now playing:', this.currentSong);
@@ -109,30 +104,6 @@ class MusicPlayer {
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
         break;
-      }
-    }
-  }
-
-
-    if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-      if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
-        console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
-
-        const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(
-          this.connection.joinConfig?.channelId
-        );
-        if (
-          voiceChannel &&
-          voiceChannel.members.size === 1 &&
-          voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)
-        ) {
-          console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
-          this.audioPlayer.stop();
-          this.connection.destroy();
-          this.connection = null;
-        } else {
-          this.audioPlayer.stop();
-        }
       }
     }
   }
