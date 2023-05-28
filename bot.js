@@ -65,7 +65,7 @@ client.once('ready', async () => {
 
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
-
+});
 
 client.on('interactionCreate', async (interaction) => {
   console.log('Interaction received:', interaction);
