@@ -129,11 +129,11 @@ isBotAlone() {
     return false;
   }
 
-  const botId = this.connection.joinConfig.adapterCreator.userId;
-  const botMember = members.get(botId);
-  const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
-  return otherMembers.size === 0 && botMember !== undefined;
+  const botId = this.connection.joinConfig.guildId;
+  const botMember = members.find(member => member.user.id === botId);
+  return members.size === 1 && botMember !== null;
 }
+
 
 
 
