@@ -7,7 +7,7 @@ const {
   AudioPlayerStatus,
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
-const { EmbedBuilder } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -231,7 +231,7 @@ class MusicPlayer {
     }
 
     const votePercentage = (voteCount / totalCount) * 100;
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
       .setColor(0x0099FF);
