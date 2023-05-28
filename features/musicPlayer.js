@@ -126,7 +126,7 @@ class MusicPlayer {
 
     const botId = this.connection.joinConfig.adapterCreator.userId;
     const botMember = members.get(botId);
-    return members.size === 1 && botMember !== undefined;
+    return members.size === 1 && botMember !== undefined && botMember.user.id === botId;
   }
 
 
