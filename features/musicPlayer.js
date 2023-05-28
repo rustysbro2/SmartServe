@@ -75,12 +75,12 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
-      if (this.connection) {
+      if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
+        console.log('Queue is empty. Stopping playback and leaving voice channel.');
+        this.audioPlayer.stop();
         this.connection.destroy();
         this.connection = null;
-        console.log('Bot left the voice channel.');
       }
-      console.log('Queue is empty. Stopping playback.');
       return;
     }
 
