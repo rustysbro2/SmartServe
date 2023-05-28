@@ -52,8 +52,13 @@ class MusicPlayer {
       throw error;
     }
 
+    // Store the bot's user ID for later use
+    const botId = this.textChannel.client.user.id;
+    this.connection.joinConfig.adapterCreator.setUserId(botId);
+
     this.connection.subscribe(this.audioPlayer);
   }
+
 
   isValidYoutubeUrl(url) {
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
