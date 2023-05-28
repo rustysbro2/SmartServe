@@ -213,29 +213,34 @@ class MusicPlayer {
   }
 
   checkVoiceChannel() {
-    if (!this.connection) return;
+      if (!this.connection) {
+          console.log('Bot is not connected to a voice channel.');
+          return;
+      }
 
-    const voiceChannelId = this.connection.joinConfig?.channelId;
-    const guild = this.textChannel.guild;
-    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+      const guild = this.textChannel.guild;
+      const voiceChannel = guild?.channels.cache.get(this.connection.joinConfig?.channelId);
 
-    if (!voiceChannel) {
-      console.log('Voice channel is undefined.');
-      return;
-    }
+      if (!voiceChannel) {
+          console.log('Voice channel is undefined or bot is not in a voice channel.');
+          return;
+      }
 
-    const members = voiceChannel.members;
-    if (!members) {
-      console.log('Members are undefined.');
-      return;
-    }
+      const members = voiceChannel.members;
 
-    if (this.isBotAlone()) {
-      console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
-      this.audioPlayer.stop();
-      this.connection.destroy();
-      this.connection = null;
-    }
+      if (!members) {
+          console.log('Members are undefined.');
+          return;
+      }
+
+      const botMember = members.get(this.connection.joinConfig.adapterCreator.userId);
+
+      if (members.size === 1 && botMember) {
+          console.log(`Bot is the only member in the voice channel: ${voiceChannel.id}`);
+          this.audioPlayer.stop();
+          this.connection.destroy();
+          this.connection = null;
+      }
   }
 }
 
