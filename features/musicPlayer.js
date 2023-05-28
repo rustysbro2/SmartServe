@@ -7,7 +7,7 @@ const {
   VoiceConnectionStatus,
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
-const { EmbedBuilder } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -114,8 +114,8 @@ class MusicPlayer {
         // Check if the bot is the only member in the voice channel
         const voiceChannel = this.connection.joinConfig.channelId;
         if (voiceChannel) {
-          const members = voiceChannel.guild.members.cache;
-          if (members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
+          const members = voiceChannel.members;
+          if (members?.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
             console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
 
             // Stop playback and leave the voice channel
