@@ -214,8 +214,6 @@ class MusicPlayer {
     this.checkVoiceChannel(); // Call the method immediately
   }
 
-
-
   checkVoiceChannel() {
     if (!this.connection) {
       console.log('Bot is not connected to a voice channel.');
@@ -228,6 +226,7 @@ class MusicPlayer {
 
     if (!voiceChannel) {
       console.log('Voice channel is undefined or bot is not in a voice channel.');
+      this.leaveVoiceChannel(); // Leave the voice channel if the bot is not in a valid voice channel
       return;
     }
 
