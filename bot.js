@@ -79,10 +79,9 @@ client.once('ready', async () => {
 
     console.log('Checking voice channels...');
 
-    for (const guild of guilds) {
-      const guildId = guild[1].id;
+    for (const [guildId, guild] of guilds) {
       const musicPlayer = client.musicPlayers.get(guildId);
-      const voiceChannel = guild[1].me?.voice.channel;
+      const voiceChannel = guild.me?.voice.channel;
 
       if (!voiceChannel) {
         continue; // Bot is not in a voice channel, skip to the next guild
@@ -91,7 +90,7 @@ client.once('ready', async () => {
       await voiceChannel.members.fetch(); // Fetch the members in the voice channel
       console.log(`Guild: ${guildId}, Voice Channel: ${voiceChannel.name}, Members: ${voiceChannel.members.size}`);
 
-      if (voiceChannel.members.size === 0) {
+      if (voiceChannel.members.size === 1 && voiceChannel.members.has(botId)) {
         // Bot is the only member in the voice channel
         console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
 
@@ -103,6 +102,7 @@ client.once('ready', async () => {
       }
     }
   }
+
 
 
 
