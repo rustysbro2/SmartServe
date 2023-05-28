@@ -111,6 +111,7 @@ client.once('ready', async () => {
 
 
 
+
 client.on('interactionCreate', async (interaction) => {
   console.log('Interaction received:', interaction);
 
