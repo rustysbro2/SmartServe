@@ -9,9 +9,6 @@ const {
 const ytdl = require('ytdl-core-discord');
 const { EmbedBuilder } = require('discord.js');
 
-const config = require('../config.js');
-const botId = config.clientId;
-
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
     this.guildId = guildId;
@@ -127,6 +124,7 @@ class MusicPlayer {
       return false;
     }
 
+    const botId = this.connection.joinConfig.adapterCreator.userId;
     const botMember = members.get(botId);
     const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
     return otherMembers.size === 0 && botMember !== undefined;
@@ -236,6 +234,7 @@ class MusicPlayer {
       return;
     }
 
+    const botId = this.connection.joinConfig.adapterCreator.userId;
     const botMember = members.get(botId);
 
     if (!botMember) {
@@ -243,23 +242,26 @@ class MusicPlayer {
       console.log('Bot ID:', botId);
       console.log('Voice Channel ID:', voiceChannelId);
       console.log('Voice Channel Members:', members.size);
+      // Leave the voice channel
+      this.leaveVoiceChannel();
       return;
     }
 
     const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
 
-  if (otherMembers.size === 0 && !botMember.voice?.selfDeaf) {
-    console.log('Bot is alone in the voice channel. Leaving the channel.');
+    if (otherMembers.size === 0 && !botMember.voice?.selfDeaf) {
+      console.log('Bot is alone in the voice channel. Leaving the channel.');
+      // Leave the voice channel
+      this.leaveVoiceChannel();
+      return;
+    }
+  }
+
+  leaveVoiceChannel() {
     this.audioPlayer.stop();
     this.connection.destroy();
     this.connection = null;
-    console.log('Voice Channel Members:', members.size);
-    console.log('Bot ID:', botId);
-
-    // Additional code to handle bot leaving the voice channel
-    if (voiceChannel.guild.me.voice.channelId === voiceChannelId) {
-      voiceChannel.guild.me.voice.disconnect();
-    }
+    console.log('Bot left the voice channel.');
   }
 }
 
