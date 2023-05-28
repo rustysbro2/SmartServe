@@ -130,9 +130,10 @@ isBotAlone() {
   }
 
   const botId = this.textChannel.client.user.id;
-  const botMember = members.find(member => member.user.id === botId);
-  return members.size === 1 && botMember !== null;
+  const botMember = members.get(botId);
+  return members.size === 1 && botMember !== undefined;
 }
+
 
 
 
@@ -144,7 +145,27 @@ isBotAlone() {
     const message = `Now playing: ${this.currentSong}`;
     this.textChannel
       .send(message)
-      .then(() => {
+      .then(() => {isBotAlone() {
+  const voiceChannelId = this.connection.joinConfig?.channelId;
+  const guild = this.textChannel.guild;
+  const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+
+  if (!voiceChannel) {
+    console.log('Voice channel is undefined.');
+    return false;
+  }
+
+  const members = voiceChannel.members;
+  if (!members) {
+    console.log('Members are undefined.');
+    return false;
+  }
+
+  const botId = this.textChannel.client.user.id;
+  const botMember = members.get(botId);
+  return members.size === 1 && botMember !== undefined;
+}
+
         console.log('Now Playing message sent:', this.currentSong);
       })
       .catch((error) => {
