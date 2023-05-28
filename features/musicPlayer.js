@@ -1,3 +1,24 @@
+isBotAlone() {
+  const voiceChannelId = this.connection.joinConfig?.channelId;
+  const guild = this.textChannel.guild;
+  const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+
+  if (!voiceChannel) {
+    console.log('Voice channel is undefined.');
+    return false;
+  }
+
+  const members = voiceChannel.members;
+  if (!members) {
+    console.log('Members are undefined.');
+    return false;
+  }
+
+  const botId = this.connection.joinConfig.adapterCreator.userId;
+  const botMember = members.get(botId);
+  const otherMembers = members.filter(member => member.id !== botId);
+  return otherMembers.size === 0 && botMember !== undefined;
+}
 const {
   AudioPlayerStatus,
   createAudioPlayer,
@@ -126,8 +147,10 @@ class MusicPlayer {
 
     const botId = this.connection.joinConfig.adapterCreator.userId;
     const botMember = members.get(botId);
-    return members.size === 1 && botMember !== undefined && botMember.user.id === botId;
+    const otherMembers = members.filter(member => member.id !== botId);
+    return otherMembers.size === 0 && botMember !== undefined;
   }
+
 
 
   sendNowPlaying() {
