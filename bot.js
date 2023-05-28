@@ -78,10 +78,9 @@ async function checkVoiceChannels() {
 
   console.log(`Checking voice channels at ${new Date().toLocaleTimeString()}`);
 
-  for (const guild of guilds) {
-    const guildId = guild[1].id;
+  for (const [guildId, guild] of guilds) {
     const musicPlayer = client.musicPlayers.get(guildId);
-    const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+    const voiceChannels = guild.channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
 
     console.log(`Guild: ${guildId}, Voice Channels: ${voiceChannels.size}`);
 
