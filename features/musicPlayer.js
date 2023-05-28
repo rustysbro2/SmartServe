@@ -48,6 +48,7 @@ class MusicPlayer {
     try {
       await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
       console.log('Voice connection established.');
+      this.connection.subscribe(this.audioPlayer);
     } catch (error) {
       console.error(`Failed to join voice channel: ${error.message}`);
       this.connection.destroy();
@@ -55,7 +56,6 @@ class MusicPlayer {
     }
 
     this.connection.joinConfig = connectionData;
-    this.connection.subscribe(this.audioPlayer);
   }
 
   isValidYoutubeUrl(url) {
@@ -92,8 +92,8 @@ class MusicPlayer {
           this.currentSong = this.queue.shift();
           console.log('Processing queue. Now playing:', this.currentSong);
 
-          const stream = await ytdl(this.currentSong);
-          const resource = createAudioResource(stream);
+          const stream = ytdl(this.currentSong, { filter: 'audioonly' });
+          const resource = createAudioResource.fromStream(stream);
           this.audioPlayer.play(resource);
 
           await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
