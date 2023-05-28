@@ -113,23 +113,24 @@ class MusicPlayer {
 
         // Check if the bot is the only member in the voice channel
         const voiceChannel = this.connection.joinConfig.channelId;
-        if (voiceChannel && voiceChannel.members && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig.adapterCreator.userId)) {
-          console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+        if (voiceChannel) {
+          const members = voiceChannel.guild.members.cache;
+          if (members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
+            console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
 
-          // Stop playback and leave the voice channel
-          this.audioPlayer.stop();
-          this.connection.destroy();
-          this.connection = null;
+            // Stop playback and leave the voice channel
+            this.audioPlayer.stop();
+            this.connection.destroy();
+            this.connection = null;
 
-          break;
+            break;
+          }
         }
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
       }
     }
   }
-
-
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
@@ -192,7 +193,7 @@ class MusicPlayer {
     }
 
     const votePercentage = (voteCount / totalCount) * 100;
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
       .setColor(0x0099FF);
