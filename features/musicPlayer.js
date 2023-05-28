@@ -36,25 +36,13 @@ class MusicPlayer {
   }
 
   async joinChannel() {
-    const guild = this.textChannel.guild;
-    if (!guild) {
-      throw new Error('Failed to retrieve the guild.');
-    }
-
-    const voiceChannel = guild.me?.voice.channel || guild.channels.cache.get(this.channelId);
-    if (!voiceChannel || voiceChannel.type !== 'GUILD_VOICE') {
-      throw new Error('Invalid voice channel.');
-    }
-
-    this.channelId = voiceChannel.id; // Update the channelId property with the actual voice channel ID
+    this.connection = joinVoiceChannel({
+      channelId: this.channelId,
+      guildId: this.guildId,
+      adapterCreator: this.textChannel.guild.voiceAdapterCreator,
+    });
 
     try {
-      this.connection = joinVoiceChannel({
-        channelId: this.channelId,
-        guildId: this.guildId,
-        adapterCreator: guild.voiceAdapterCreator,
-      });
-
       await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
       console.log('Voice connection established.');
     } catch (error) {
@@ -87,15 +75,12 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
-      if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
-        console.log('Queue is empty. Stopping playback and leaving voice channel.');
-        this.audioPlayer.stop();
-        this.connection.on(VoiceConnectionStatus.Destroyed, () => {
-          console.log('Voice connection destroyed.');
-          this.connection = null;
-        });
+      if (this.connection) {
         this.connection.destroy();
+        this.connection = null;
+        console.log('Bot left the voice channel.');
       }
+      console.log('Queue is empty. Stopping playback.');
       return;
     }
 
@@ -129,10 +114,8 @@ class MusicPlayer {
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
-    const embed = new MessageEmbed().setDescription(message).setColor('#0099FF');
-
     this.textChannel
-      .send({ embeds: [embed] })
+      .send(message)
       .then(() => {
         console.log('Now Playing message sent:', this.currentSong);
       })
@@ -190,10 +173,10 @@ class MusicPlayer {
     }
 
     const votePercentage = (voteCount / totalCount) * 100;
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
-      .setColor('#0099FF');
+      .setColor(0x0099FF);
 
     this.textChannel
       .send({ embeds: [embed] })
