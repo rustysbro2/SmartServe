@@ -208,8 +208,10 @@ class MusicPlayer {
   }
 
   startVoiceChannelCheckInterval() {
+    this.checkVoiceChannel(); // Call the method immediately
+
     setInterval(() => {
-      this.checkVoiceChannel();
+      this.checkVoiceChannel(); // Call the method periodically
     }, 1000);
   }
 
