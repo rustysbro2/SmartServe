@@ -84,12 +84,15 @@ class MusicPlayer {
 
     while (true) {
       try {
+        if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
+          break;
+        }
+
         if (this.queue.length > 0) {
           this.currentSong = this.queue.shift();
           console.log('Processing queue. Now playing:', this.currentSong);
 
-          const stream = await ytdl(this.currentSong);
-          const resource = createAudioResource(stream);
+          const resource = createAudioResource(ytdl(this.currentSong), { inlineVolume: true });
           this.audioPlayer.play(resource);
 
           await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
@@ -107,6 +110,7 @@ class MusicPlayer {
       }
     }
   }
+
 
   startVoiceChannelCheckInterval() {
     setInterval(() => {
