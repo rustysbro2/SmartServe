@@ -8,7 +8,7 @@ const {
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
 const { EmbedBuilder } = require('discord.js');
-const config = require('./config.js');
+const config = require('../config.js');
 
 
 class MusicPlayer {
