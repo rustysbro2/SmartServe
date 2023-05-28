@@ -145,8 +145,11 @@ class MusicPlayer {
 
     const voiceChannelId = this.connection.joinConfig?.channelId;
     const guildId = this.connection.joinConfig?.guildId;
-    const guild = this.connection.joinConfig?.adapterCreator.cache.guilds.get(guildId);
-    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
+    const guild = this.connection.joinConfig?.guild;
+
+    if (!guild) return;
+
+    const voiceChannel = guild.channels.cache.get(voiceChannelId);
 
     if (!voiceChannel) return;
 
@@ -160,6 +163,7 @@ class MusicPlayer {
       this.connection = null;
     }
   }
+
 
 
 
