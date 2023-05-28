@@ -7,7 +7,7 @@ const {
   AudioPlayerStatus,
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core');
-const { EmbedBuilder } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
