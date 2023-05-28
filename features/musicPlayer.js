@@ -154,7 +154,7 @@ class MusicPlayer {
     if (!voiceChannel) return;
 
     const members = voiceChannel.members;
-    if (members && members.size > 0 && members.size === 1 && members.has(guild.me.id)) {
+    if (members && members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
       console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
 
       // Stop playback and leave the voice channel
@@ -163,12 +163,6 @@ class MusicPlayer {
       this.connection = null;
     }
   }
-
-
-
-
-
-
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
