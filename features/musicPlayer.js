@@ -75,12 +75,16 @@ class MusicPlayer {
 
   async processQueue() {
     if (this.queue.length === 0) {
-      if (this.connection) {
+      // Handle empty queue
+      if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
+        console.log('Queue is empty. Stopping playback and leaving voice channel.');
+        this.audioPlayer.stop();
+        this.connection.on(VoiceConnectionStatus.Destroyed, () => {
+          console.log('Voice connection destroyed.');
+          this.connection = null;
+        });
         this.connection.destroy();
-        this.connection = null;
-        console.log('Bot left the voice channel.');
       }
-      console.log('Queue is empty. Stopping playback.');
       return;
     }
 
@@ -106,11 +110,25 @@ class MusicPlayer {
 
         // Reset voteSkips set
         this.voteSkips.clear();
+
+        // Check if the bot is the only member in the voice channel
+        const voiceChannel = this.connection.joinConfig.channelId;
+        if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig.adapterCreator.userId)) {
+          console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+
+          // Stop playback and leave the voice channel
+          this.audioPlayer.stop();
+          this.connection.destroy();
+          this.connection = null;
+
+          break;
+        }
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
       }
     }
   }
+
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
