@@ -144,7 +144,7 @@ class MusicPlayer {
 
     const members = this.connection.joinConfig?.channel?.members;
     if (!members || members.size === 1) {
-      console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+      console.log(`Bot is the only member in the voice channel: ${voiceChannel}`);
 
       // Stop playback and leave the voice channel
       this.audioPlayer.stop();
@@ -152,6 +152,7 @@ class MusicPlayer {
       this.connection = null;
     }
   }
+
 
 
   sendNowPlaying() {
