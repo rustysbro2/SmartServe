@@ -9,7 +9,7 @@ const {
 const ytdl = require('ytdl-core-discord');
 const { EmbedBuilder } = require('discord.js');
 
-const config = require('./config.js');
+const config = require('../config.js');
 const botId = config.clientId;
 
 class MusicPlayer {
