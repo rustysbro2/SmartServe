@@ -147,14 +147,25 @@ class MusicPlayer {
     const guildId = this.connection.joinConfig?.guildId;
     const guild = this.connection.joinConfig?.guild;
 
-    if (!guild) return;
+    if (!guild) {
+      console.log('Guild is undefined.');
+      return;
+    }
 
     const voiceChannel = guild.channels.cache.get(voiceChannelId);
 
-    if (!voiceChannel) return;
+    if (!voiceChannel) {
+      console.log('Voice channel is undefined.');
+      return;
+    }
 
     const members = voiceChannel.members;
-    if (members && members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
+    if (!members) {
+      console.log('Members are undefined.');
+      return;
+    }
+
+    if (members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
       console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
 
       // Stop playback and leave the voice channel
