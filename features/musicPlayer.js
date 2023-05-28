@@ -248,8 +248,8 @@ isBotAlone() {
 
     const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
 
-    if (otherMembers.size === 0 && botMember.voice?.selfDeaf) {
-      console.log('Bot is alone in the voice channel and self-deafened. Leaving the channel.');
+    if (otherMembers.size === 0 && !botMember.voice?.selfDeaf) {
+      console.log('Bot is alone in the voice channel. Leaving the channel.');
       this.audioPlayer.stop();
       this.connection.destroy();
       this.connection = null;
