@@ -28,13 +28,15 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     try {
       if (interaction.message) {
+        await interaction.deferUpdate();
+        console.log('Interaction deferred.');
         await interaction.message.edit({ embeds: [categoryEmbed] });
         console.log('Interaction message updated.');
       } else {
         console.error('Interaction does not have a message.');
       }
     } catch (error) {
-      console.error('Error editing interaction message:', error);
+      console.error('Error deferring or editing interaction:', error);
     }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
