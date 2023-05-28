@@ -8,8 +8,7 @@ const {
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
 const { EmbedBuilder } = require('discord.js');
-const config = require('../config.js');
-
+const config = require('./config.js');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -126,7 +125,7 @@ class MusicPlayer {
       return false;
     }
 
-    const botId = this.connection.joinConfig.adapterCreator.userId;
+    const botId = config.clientId; // Use the client ID from config.js
     const botMember = members.get(botId);
     const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
     return otherMembers.size === 0 && botMember !== undefined;
@@ -244,8 +243,7 @@ class MusicPlayer {
       console.log('Bot ID:', botId);
       console.log('Voice Channel ID:', voiceChannelId);
       console.log('Voice Channel Members:', members.size);
-      // Leave the voice channel
-      this.leaveVoiceChannel();
+      this.leaveVoiceChannel(); // Leave the voice channel if the bot is not present
       return;
     }
 
@@ -253,17 +251,17 @@ class MusicPlayer {
 
     if (otherMembers.size === 0 && !botMember.voice?.selfDeaf) {
       console.log('Bot is alone in the voice channel. Leaving the channel.');
-      // Leave the voice channel
-      this.leaveVoiceChannel();
-      return;
+      this.leaveVoiceChannel(); // Leave the voice channel if the bot is alone
     }
   }
 
   leaveVoiceChannel() {
-    this.audioPlayer.stop();
-    this.connection.destroy();
-    this.connection = null;
-    console.log('Bot left the voice channel.');
+    if (this.connection) {
+      this.audioPlayer.stop();
+      this.connection.destroy();
+      this.connection = null;
+      console.log('Bot left the voice channel.');
+    }
   }
 }
 
