@@ -37,11 +37,13 @@ class MusicPlayer {
   }
 
   async joinChannel() {
-    this.connection = joinVoiceChannel({
+    const connectionData = {
       channelId: this.channelId,
       guildId: this.guildId,
       adapterCreator: this.textChannel.guild.voiceAdapterCreator,
-    });
+    };
+
+    this.connection = joinVoiceChannel(connectionData);
 
     try {
       await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
@@ -52,8 +54,10 @@ class MusicPlayer {
       throw error;
     }
 
+    this.connection.joinConfig = connectionData;
     this.connection.subscribe(this.audioPlayer);
   }
+
 
   isValidYoutubeUrl(url) {
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
