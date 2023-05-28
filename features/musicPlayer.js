@@ -79,60 +79,65 @@ class MusicPlayer {
   }
 
   async processQueue() {
-    if (this.queue.length === 0) {
-      // Handle empty queue
-      if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
-        console.log('Queue is empty. Stopping playback and leaving voice channel.');
-        this.audioPlayer.stop();
-        this.connection.on(VoiceConnectionStatus.Destroyed, () => {
-          console.log('Voice connection destroyed.');
-          this.connection = null;
-        });
-        this.connection.destroy();
-      }
-      return;
-    }
-
     if (!this.connection) {
       await this.joinChannel();
     }
 
-    while (this.queue.length > 0) {
-      this.currentSong = this.queue.shift();
-      console.log('Processing queue. Now playing:', this.currentSong);
-
-      try {
-        const stream = await ytdl(this.currentSong);
-        const resource = createAudioResource(stream);
-        this.audioPlayer.play(resource);
-
-        await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
-
-        if (this.currentSong !== this.queue[0]) {
-          console.log('Now playing:', this.currentSong);
-          this.sendNowPlaying();
-        }
-
-        // Reset voteSkips set
-        this.voteSkips.clear();
-
-        // Check if the bot is the only member in the voice channel
-        const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(this.connection.joinConfig?.channelId);
-        if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)) {
-          console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
-
-          // Stop playback and leave the voice channel
-          this.audioPlayer.stop();
+    while (true) {
+      if (this.queue.length === 0 && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+        // Handle empty queue and no songs playing
+        if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
+          console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
+          this.connection.on(VoiceConnectionStatus.Destroyed, () => {
+            console.log('Voice connection destroyed.');
+            this.connection = null;
+          });
           this.connection.destroy();
-          this.connection = null;
-
-          break;
         }
-      } catch (error) {
-        console.error(`Failed to play the song: ${error.message}`);
+        break;
+      }
+
+      if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Playing) {
+        // No more songs in queue, but current song is playing
+        break;
+      }
+
+      if (this.queue.length > 0) {
+        this.currentSong = this.queue.shift();
+        console.log('Processing queue. Now playing:', this.currentSong);
+
+        try {
+          const stream = await ytdl(this.currentSong);
+          const resource = createAudioResource(stream);
+          this.audioPlayer.play(resource);
+
+          await entersState(this.audioPlayer, AudioPlayerStatus.Playing, 5e3);
+
+          if (this.currentSong !== this.queue[0]) {
+            console.log('Now playing:', this.currentSong);
+            this.sendNowPlaying();
+          }
+
+          // Reset voteSkips set
+          this.voteSkips.clear();
+
+          // Check if the bot is the only member in the voice channel
+          const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(this.connection.joinConfig?.channelId);
+          if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)) {
+            console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+
+            // Stop playback and leave the voice channel
+            this.audioPlayer.stop();
+            this.connection.destroy();
+            this.connection = null;
+          }
+        } catch (error) {
+          console.error(`Failed to play the song: ${error.message}`);
+        }
       }
     }
   }
+
 
 
 
