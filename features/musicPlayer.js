@@ -125,9 +125,10 @@ class MusicPlayer {
     }
 
     const botId = this.connection.joinConfig.adapterCreator.userId;
-    const botMember = members.find((member) => member.user.id === botId);
-    return members.size === 1 && botMember !== null;
+    const botMember = members.get(botId);
+    return members.size === 1 && botMember !== undefined;
   }
+
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
