@@ -83,8 +83,10 @@ async function checkVoiceChannels() {
     const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
 
     for (const [channelId, channel] of voiceChannels) {
-      if (channel.members.size === 0) {
-        // No members in the voice channel
+      const membersInChannel = channel.members.filter(member => !member.user.bot);
+      
+      if (membersInChannel.size === 0) {
+        // No non-bot members in the voice channel
         console.log(`No members in the voice channel: ${channel.name}`);
         console.log(`Channel Members: ${channel.members.size}`);
 
@@ -93,8 +95,8 @@ async function checkVoiceChannels() {
           musicPlayer.connection.destroy();
           client.musicPlayers.delete(guildId);
         }
-      } else if (channel.members.size === 1 && channel.members.has(botId)) {
-        // Bot is the only member in the voice channel
+      } else if (membersInChannel.size === 1 && membersInChannel.has(botId)) {
+        // Bot is the only non-bot member in the voice channel
         console.log(`Bot is the only member in the voice channel: ${channel.name}`);
         console.log(`Channel Members: ${channel.members.size}`);
 
@@ -107,6 +109,7 @@ async function checkVoiceChannels() {
     }
   }
 }
+
 
 
 client.on('interactionCreate', async (interaction) => {
