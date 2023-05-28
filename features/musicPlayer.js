@@ -226,14 +226,15 @@ class MusicPlayer {
       return;
     }
 
-    const members = voiceChannel.members;
+    const botId = this.connection.joinConfig.adapterCreator.userId;
+    const botMember = voiceChannel.members.find((member) => member.id === botId);
 
-    if (!members) {
-      console.log('Members are undefined.');
+    if (!botMember) {
+      console.log('Bot is not present in the voice channel.');
       return;
     }
 
-    if (members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
+    if (voiceChannel.members.size === 1 && botMember) {
       console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
       this.audioPlayer.stop();
       this.connection.destroy();
