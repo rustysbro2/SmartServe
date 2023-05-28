@@ -84,30 +84,30 @@ class MusicPlayer {
     }
 
     while (true) {
-      if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-        // Handle empty queue and no songs playing
-        if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
-          console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
-          this.connection.on(VoiceConnectionStatus.Destroyed, () => {
-            console.log('Voice connection destroyed.');
-            this.connection = null;
-          });
-          this.audioPlayer.stop();
-          this.connection.destroy();
+      try {
+        if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
+          // Handle empty queue and no songs playing
+          if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
+            console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
+            this.connection.on(VoiceConnectionStatus.Destroyed, () => {
+              console.log('Voice connection destroyed.');
+              this.connection = null;
+            });
+            this.audioPlayer.stop();
+            this.connection.destroy();
+          }
+          break;
         }
-        break;
-      }
 
-      if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Playing) {
-        // No more songs in queue, but current song is playing
-        break;
-      }
+        if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Playing) {
+          // No more songs in queue, but current song is playing
+          break;
+        }
 
-      if (this.queue.length > 0) {
-        this.currentSong = this.queue.shift();
-        console.log('Processing queue. Now playing:', this.currentSong);
+        if (this.queue.length > 0) {
+          this.currentSong = this.queue.shift();
+          console.log('Processing queue. Now playing:', this.currentSong);
 
-        try {
           const stream = await ytdl(this.currentSong);
           const resource = createAudioResource(stream);
           this.audioPlayer.play(resource);
@@ -132,12 +132,14 @@ class MusicPlayer {
             this.connection.destroy();
             this.connection = null;
           }
-        } catch (error) {
-          console.error(`Failed to play the song: ${error.message}`);
         }
+      } catch (error) {
+        console.error(`Failed to play the song: ${error.message}`);
+        break;
       }
     }
   }
+
 
 
 
