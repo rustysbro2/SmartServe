@@ -86,29 +86,7 @@ class MusicPlayer {
     while (true) {
       try {
         if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-          // Handle empty queue and no songs playing
-          if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
-            console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
-
-            // Check if the bot is the only member in the voice channel
-            const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(this.connection.joinConfig?.channelId);
-            if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)) {
-              console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
-
-              // Stop playback and leave the voice channel
-              this.audioPlayer.stop();
-              this.connection.destroy();
-              this.connection = null;
-            } else {
-              // Stop playback
-              this.audioPlayer.stop();
-            }
-          }
-          break;
-        }
-
-        if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Playing) {
-          // No more songs in queue, but current song is playing
+          // No more songs in queue and current song finished playing
           break;
         }
 
@@ -135,12 +113,28 @@ class MusicPlayer {
         break;
       }
     }
+
+    if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
+      // Queue is empty and no songs are playing
+      if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
+        console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
+
+        // Check if the bot is the only member in the voice channel
+        const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(this.connection.joinConfig?.channelId);
+        if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)) {
+          console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+
+          // Stop playback and leave the voice channel
+          this.audioPlayer.stop();
+          this.connection.destroy();
+          this.connection = null;
+        } else {
+          // Stop playback
+          this.audioPlayer.stop();
+        }
+      }
+    }
   }
-
-
-
-
-
 
   startVoiceChannelCheckInterval() {
     setInterval(() => {
@@ -175,9 +169,6 @@ class MusicPlayer {
       this.connection = null;
     }
   }
-
-
-
 
   sendNowPlaying() {
     const message = `Now playing: ${this.currentSong}`;
