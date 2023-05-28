@@ -67,32 +67,31 @@ client.once('ready', async () => {
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
 
-  // Start checking voice channels every second
+  // Start checking voice channels every minute (adjust the interval as needed)
   setInterval(() => {
     checkVoiceChannels();
-  }, 1000); // Check every 1 second
+  }, 1000); // Check every 1 minute
 });
 
-  async function checkVoiceChannels() {
-    const botId = client.user.id;
-    const guilds = client.guilds.cache;
+async function checkVoiceChannels() {
+  const botId = client.user.id;
+  const guilds = client.guilds.cache;
 
-    console.log('Checking voice channels...');
+  console.log('Checking voice channels at', new Date().toLocaleTimeString());
 
-    for (const [guildId, guild] of guilds) {
-      const musicPlayer = client.musicPlayers.get(guildId);
-      const voiceChannel = guild.me?.voice.channel;
+  for (const guild of guilds) {
+    const guildId = guild[1].id;
+    const musicPlayer = client.musicPlayers.get(guildId);
+    const voiceChannels = guild[1].channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
 
-      if (!voiceChannel) {
-        continue; // Bot is not in a voice channel, skip to the next guild
-      }
+    console.log(`Guild: ${guildId}, Voice Channels: ${voiceChannels.size}`);
 
-      await voiceChannel.members.fetch(); // Fetch the members in the voice channel
-      console.log(`Guild: ${guildId}, Voice Channel: ${voiceChannel.name}, Members: ${voiceChannel.members.size}`);
+    for (const [channelId, channel] of voiceChannels) {
+      console.log(`Channel: ${channelId}, Members: ${channel.members?.size ?? 0}`); // Access channel.members instead of channel.members.size
 
-      if (voiceChannel.members.size === 1 && voiceChannel.members.has(botId)) {
+      if ((channel.members?.size ?? 0) === 1 && channel.members?.has(botId)) { // Access channel.members instead of channel.members.size
         // Bot is the only member in the voice channel
-        console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+        console.log(`Bot is the only member in the voice channel: ${channel.name}`);
 
         if (musicPlayer && musicPlayer.connection) {
           console.log("Destroying connection and leaving voice channel.");
@@ -102,20 +101,12 @@ client.once('ready', async () => {
       }
     }
   }
-
-
-
-
-
-
-
-
-
+}
 
 client.on('interactionCreate', async (interaction) => {
   console.log('Interaction received:', interaction);
 
-  if (interaction.isSelectMenu() && interaction.customId === 'help_category') {
+  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
     console.log('Select menu interaction received:', interaction);
     await handleSelectMenu(interaction, commandCategories);
   } else if (interaction.isCommand()) {
