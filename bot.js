@@ -82,30 +82,28 @@ client.once('ready', async () => {
     for (const guild of guilds) {
       const guildId = guild[1].id;
       const musicPlayer = client.musicPlayers.get(guildId);
-      const guildObj = await guild[1].fetch(); // Fetch the guild object
+      const voiceChannel = guild[1].me?.voice.channel;
 
-      console.log(`Guild: ${guildId}, Voice Channels: ${guildObj.channels.cache.size}`);
+      if (!voiceChannel) {
+        continue; // Bot is not in a voice channel, skip to the next guild
+      }
 
-      const voiceChannels = guildObj.channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
+      await voiceChannel.members.fetch(); // Fetch the members in the voice channel
+      console.log(`Guild: ${guildId}, Voice Channel: ${voiceChannel.name}, Members: ${voiceChannel.members.size}`);
 
-      for (const [channelId, channel] of voiceChannels) {
-        const voiceChannel = await guildObj.channels.fetch(channelId); // Fetch the voice channel object
-        await voiceChannel.members.fetch(); // Fetch the members in the voice channel
-        console.log(`Channel: ${channelId}, Members: ${voiceChannel.members.size}`);
+      if (voiceChannel.members.size === 1 && voiceChannel.members.has(botId)) {
+        // Bot is the only member in the voice channel
+        console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
 
-        if (voiceChannel.members.size === 1 && voiceChannel.members.has(botId)) {
-          // Bot is the only member in the voice channel
-          console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
-
-          if (musicPlayer && musicPlayer.connection) {
-            console.log("Destroying connection and leaving voice channel.");
-            musicPlayer.connection.destroy();
-            client.musicPlayers.delete(guildId);
-          }
+        if (musicPlayer && musicPlayer.connection) {
+          console.log("Destroying connection and leaving voice channel.");
+          musicPlayer.connection.destroy();
+          client.musicPlayers.delete(guildId);
         }
       }
     }
   }
+
 
 
 
