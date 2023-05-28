@@ -35,34 +35,34 @@ class MusicPlayer {
     });
   }
 
-async joinChannel() {
-  const guild = this.textChannel.guild;
-  if (!guild) {
-    throw new Error('Failed to retrieve the guild.');
+  async joinChannel() {
+    const guild = this.textChannel.guild;
+    if (!guild) {
+      throw new Error('Failed to retrieve the guild.');
+    }
+
+    const voiceChannel = guild.channels.cache.get(this.channelId);
+    if (!voiceChannel || voiceChannel.type !== 'GUILD_VOICE') {
+      throw new Error('Invalid voice channel.');
+    }
+
+    try {
+      this.connection = joinVoiceChannel({
+        channelId: this.channelId,
+        guildId: this.guildId,
+        adapterCreator: guild.voiceAdapterCreator,
+      });
+
+      await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
+      console.log('Voice connection established.');
+    } catch (error) {
+      console.error(`Failed to join voice channel: ${error.message}`);
+      this.connection.destroy();
+      throw error;
+    }
+
+    this.connection.subscribe(this.audioPlayer);
   }
-
-  const voiceChannel = guild.channels.cache.get(this.channelId);
-  if (!voiceChannel || voiceChannel.type !== 'GUILD_VOICE') {
-    throw new Error('Invalid voice channel.');
-  }
-
-  try {
-    this.connection = joinVoiceChannel({
-      channelId: this.channelId,
-      guildId: this.guildId,
-      adapterCreator: guild.voiceAdapterCreator,
-    });
-
-    await entersState(this.connection, VoiceConnectionStatus.Ready, 30e3);
-    console.log('Voice connection established.');
-  } catch (error) {
-    console.error(`Failed to join voice channel: ${error.message}`);
-    this.connection.destroy();
-    throw error;
-  }
-
-  this.connection.subscribe(this.audioPlayer);
-}
 
   isValidYoutubeUrl(url) {
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
