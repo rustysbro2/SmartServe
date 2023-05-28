@@ -84,7 +84,7 @@ class MusicPlayer {
     }
 
     while (true) {
-      if (this.queue.length === 0 && this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+      if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
         // Handle empty queue and no songs playing
         if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
           console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
@@ -92,6 +92,7 @@ class MusicPlayer {
             console.log('Voice connection destroyed.');
             this.connection = null;
           });
+          this.audioPlayer.stop();
           this.connection.destroy();
         }
         break;
@@ -137,6 +138,7 @@ class MusicPlayer {
       }
     }
   }
+
 
 
 
