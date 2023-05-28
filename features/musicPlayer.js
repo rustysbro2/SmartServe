@@ -243,6 +243,9 @@ isBotAlone() {
 
     if (!botMember) {
       console.log('Bot is not present in the voice channel.');
+      console.log('Bot ID:', botId);
+      console.log('Voice Channel ID:', voiceChannelId);
+      console.log('Voice Channel Members:', members.size);
       return;
     }
 
@@ -253,6 +256,8 @@ isBotAlone() {
       this.audioPlayer.stop();
       this.connection.destroy();
       this.connection = null;
+      console.log('Voice Channel Members:', members.size);
+      console.log('Bot ID:', botId);
     }
   }
 }
