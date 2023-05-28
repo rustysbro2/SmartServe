@@ -240,10 +240,9 @@ class MusicPlayer {
       return;
     }
 
-    const userMembers = members.filter(member => !member.user.bot);
-    const userCount = userMembers.size;
+    const totalMembers = members.size;
 
-    if (userCount === 0) {
+    if (totalMembers === 1) {
       console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
       this.audioPlayer.stop();
       this.connection.destroy();
