@@ -78,8 +78,11 @@ class MusicPlayer {
       if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
         console.log('Queue is empty. Stopping playback and leaving voice channel.');
         this.audioPlayer.stop();
+        this.connection.on(VoiceConnectionStatus.Destroyed, () => {
+          console.log('Voice connection destroyed.');
+          this.connection = null;
+        });
         this.connection.destroy();
-        this.connection = null;
       }
       return;
     }
