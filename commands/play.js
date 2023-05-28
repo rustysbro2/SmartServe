@@ -36,8 +36,9 @@ module.exports = {
         console.log('Creating new MusicPlayer instance.');
         musicPlayer = new MusicPlayer(guildId, channelId, textChannel);
         client.musicPlayers.set(guildId, musicPlayer);
-        await musicPlayer.joinChannel();
+        await musicPlayer.joinChannel(); // Call joinChannel method here
       }
+
 
       const wasEmpty = musicPlayer.queue.length === 0;
       console.log('Queue was empty before adding song:', wasEmpty);
