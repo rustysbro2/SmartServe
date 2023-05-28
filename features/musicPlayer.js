@@ -40,7 +40,9 @@ class MusicPlayer {
     this.connection = joinVoiceChannel({
       channelId: this.channelId,
       guildId: this.guildId,
-      adapterCreator: this.textChannel.guild.voiceAdapterCreator,
+      adapterCreator: this.textChannel.guild.voiceAdapterCreator.bind(null, {
+        userId: this.textChannel.client.user.id,
+      }),
     });
 
     try {
@@ -52,12 +54,9 @@ class MusicPlayer {
       throw error;
     }
 
-    // Store the bot's user ID for later use
-    const botId = this.textChannel.client.user.id;
-    this.connection.joinConfig.adapterCreator.setUserId(botId);
-
     this.connection.subscribe(this.audioPlayer);
   }
+
 
   isValidYoutubeUrl(url) {
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
