@@ -6,8 +6,8 @@ const {
   createAudioResource,
   AudioPlayerStatus,
 } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
 const { MessageEmbed } = require('discord.js');
+const ytdl = require('ytdl-core');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -19,7 +19,7 @@ class MusicPlayer {
     this.connection = null;
     this.currentSong = null;
     this.voteSkips = new Set();
-    this.voteSkipThreshold = 0.5; // Change this value to set the required percentage of votes to skip a song
+    this.voteSkipThreshold = 0.5;
 
     this.setupListeners();
     this.startVoiceChannelCheckInterval();
@@ -58,7 +58,6 @@ class MusicPlayer {
     this.connection.subscribe(this.audioPlayer);
   }
 
-
   isValidYoutubeUrl(url) {
     const pattern = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
     return pattern.test(url);
@@ -86,7 +85,6 @@ class MusicPlayer {
     while (true) {
       try {
         if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-          // No more songs in queue and current song finished playing
           break;
         }
 
@@ -105,7 +103,6 @@ class MusicPlayer {
             this.sendNowPlaying();
           }
 
-          // Reset voteSkips set
           this.voteSkips.clear();
         }
       } catch (error) {
@@ -115,21 +112,22 @@ class MusicPlayer {
     }
 
     if (this.queue.length === 0 && this.audioPlayer.state.status === AudioPlayerStatus.Idle) {
-      // Queue is empty and no songs are playing
       if (this.connection && this.connection.state.status !== VoiceConnectionStatus.Destroyed) {
         console.log('Queue is empty and no songs are playing. Stopping playback and leaving voice channel.');
 
-        // Check if the bot is the only member in the voice channel
-        const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(this.connection.joinConfig?.channelId);
-        if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)) {
+        const voiceChannel = this.connection.joinConfig?.guild?.channels.cache.get(
+          this.connection.joinConfig?.channelId
+        );
+        if (
+          voiceChannel &&
+          voiceChannel.members.size === 1 &&
+          voiceChannel.members.has(this.connection.joinConfig?.adapterCreator.userId)
+        ) {
           console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
-
-          // Stop playback and leave the voice channel
           this.audioPlayer.stop();
           this.connection.destroy();
           this.connection = null;
         } else {
-          // Stop playback
           this.audioPlayer.stop();
         }
       }
@@ -160,10 +158,11 @@ class MusicPlayer {
       return;
     }
 
-    if (members.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
+    if (
+      members.size === 1 &&
+      members.has(this.connection.joinConfig.adapterCreator.userId)
+    ) {
       console.log(`Bot is the only member in the voice channel: ${voiceChannelId}`);
-
-      // Stop playback and leave the voice channel
       this.audioPlayer.stop();
       this.connection.destroy();
       this.connection = null;
@@ -231,19 +230,22 @@ class MusicPlayer {
     }
 
     const votePercentage = (voteCount / totalCount) * 100;
-    const embed = new MessageEmbed()
+    const message = new MessageEmbed()
+      .setColor('#FF0000')
       .setTitle('Vote Skip')
-      .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
-      .setColor(0x0099FF);
+      .setDescription(`Vote skip initiated. Votes: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
+      .setTimestamp();
 
-    this.textChannel
-      .send({ embeds: [embed] })
-      .then(() => {
-        console.log('Vote skip message sent.');
-      })
-      .catch((error) => {
-        console.error(`Failed to send vote skip message: ${error.message}`);
-      });
+    this.textChannel.send({ embeds: [message] });
+  }
+
+  clearQueue() {
+    if (this.queue.length === 0) {
+      throw new Error('The queue is already empty.');
+    }
+
+    this.queue = [];
+    console.log('Queue cleared.');
   }
 }
 
