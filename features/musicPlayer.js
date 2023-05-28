@@ -259,6 +259,7 @@ class MusicPlayer {
     }
   }
 
+
   leaveVoiceChannel() {
     if (this.connection) {
       this.audioPlayer.stop();
