@@ -1,13 +1,13 @@
 const {
-  AudioPlayerStatus,
-  createAudioPlayer,
-  createAudioResource,
   entersState,
   joinVoiceChannel,
   VoiceConnectionStatus,
+  createAudioPlayer,
+  createAudioResource,
+  AudioPlayerStatus,
 } = require('@discordjs/voice');
-const ytdl = require('ytdl-core-discord');
-const { MessageEmbed } = require('discord.js');
+const ytdl = require('ytdl-core');
+const { EmbedBuilder } = require('discord.js');
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -22,6 +22,7 @@ class MusicPlayer {
     this.voteSkipThreshold = 0.5; // Change this value to set the required percentage of votes to skip a song
 
     this.setupListeners();
+    this.startVoiceChannelCheckInterval();
   }
 
   setupListeners() {
@@ -113,22 +114,39 @@ class MusicPlayer {
 
         // Check if the bot is the only member in the voice channel
         const voiceChannel = this.connection.joinConfig.channelId;
-        if (voiceChannel) {
-          const members = voiceChannel.members;
-          if (members?.size === 1 && members.has(this.connection.joinConfig.adapterCreator.userId)) {
-            console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+        if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig.adapterCreator.userId)) {
+          console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
 
-            // Stop playback and leave the voice channel
-            this.audioPlayer.stop();
-            this.connection.destroy();
-            this.connection = null;
+          // Stop playback and leave the voice channel
+          this.audioPlayer.stop();
+          this.connection.destroy();
+          this.connection = null;
 
-            break;
-          }
+          break;
         }
       } catch (error) {
         console.error(`Failed to play the song: ${error.message}`);
       }
+    }
+  }
+
+  startVoiceChannelCheckInterval() {
+    setInterval(() => {
+      this.checkVoiceChannel();
+    }, 1000);
+  }
+
+  checkVoiceChannel() {
+    if (!this.connection) return;
+
+    const voiceChannel = this.connection.joinConfig.channelId;
+    if (voiceChannel && voiceChannel.members.size === 1 && voiceChannel.members.has(this.connection.joinConfig.adapterCreator.userId)) {
+      console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
+
+      // Stop playback and leave the voice channel
+      this.audioPlayer.stop();
+      this.connection.destroy();
+      this.connection = null;
     }
   }
 
@@ -193,7 +211,7 @@ class MusicPlayer {
     }
 
     const votePercentage = (voteCount / totalCount) * 100;
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle('Vote Skip')
       .setDescription(`Vote skip: ${voteCount}/${totalCount} (${votePercentage.toFixed(2)}%)`)
       .setColor(0x0099FF);
