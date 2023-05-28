@@ -91,7 +91,7 @@ client.once('ready', async () => {
       await voiceChannel.members.fetch(); // Fetch the members in the voice channel
       console.log(`Guild: ${guildId}, Voice Channel: ${voiceChannel.name}, Members: ${voiceChannel.members.size}`);
 
-      if (voiceChannel.members.size === 1 && voiceChannel.members.has(botId)) {
+      if (voiceChannel.members.size === 0) {
         // Bot is the only member in the voice channel
         console.log(`Bot is the only member in the voice channel: ${voiceChannel.name}`);
 
@@ -103,6 +103,7 @@ client.once('ready', async () => {
       }
     }
   }
+
 
 
 
