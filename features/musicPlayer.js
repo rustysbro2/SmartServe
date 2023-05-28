@@ -41,7 +41,7 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the guild.');
     }
 
-    const voiceChannel = guild.me?.voice?.channel || guild.channels.cache.get(this.channelId);
+    const voiceChannel = guild.me?.voice.channel || guild.channels.cache.get(this.channelId);
     if (!voiceChannel || voiceChannel.type !== 'GUILD_VOICE') {
       throw new Error('Invalid voice channel.');
     }
@@ -65,6 +65,7 @@ class MusicPlayer {
 
     this.connection.subscribe(this.audioPlayer);
   }
+
 
 
 
