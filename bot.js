@@ -66,42 +66,6 @@ client.once('ready', async () => {
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
 
-  // Start checking voice channels every second
-  setInterval(() => {
-    checkVoiceChannels();
-  }, 1000); // Check every 1 second
-});
-
-async function checkVoiceChannels() {
-  const botId = client.user.id;
-  const guilds = client.guilds.cache;
-
-  console.log(`Checking voice channels at ${new Date().toLocaleTimeString()}`);
-
-  for (const [guildId, guild] of guilds) {
-    const musicPlayer = client.musicPlayers.get(guildId);
-    const voiceChannels = guild.channels.cache.filter(channel => channel.type === 'GUILD_VOICE');
-
-    console.log(`Guild: ${guildId}, Voice Channels: ${voiceChannels.size}`);
-
-    for (const [channelId, channel] of voiceChannels) {
-      const members = channel.members.filter(member => !member.user.bot);
-
-      console.log(`Channel: ${channelId}, Members: ${members.size}, Member IDs: ${members.map(member => member.id).join(', ')}`);
-
-      if (members.size === 0 && channel.members.has(botId)) {
-        // Bot is the only member in the voice channel
-        console.log(`Bot is the only member in the voice channel: ${channel.name}`);
-
-        if (musicPlayer && musicPlayer.connection) {
-          console.log("Destroying connection and leaving voice channel.");
-          musicPlayer.connection.destroy();
-          client.musicPlayers.delete(guildId);
-        }
-      }
-    }
-  }
-}
 
 client.on('interactionCreate', async (interaction) => {
   console.log('Interaction received:', interaction);
