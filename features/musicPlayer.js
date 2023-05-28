@@ -129,10 +129,11 @@ isBotAlone() {
     return false;
   }
 
-  const botId = this.connection.joinConfig.guildId;
+  const botId = this.textChannel.client.user.id;
   const botMember = members.find(member => member.user.id === botId);
   return members.size === 1 && botMember !== null;
 }
+
 
 
 
