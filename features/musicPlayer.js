@@ -8,6 +8,8 @@ const {
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
 const { EmbedBuilder } = require('discord.js');
+const config = require('./config.js');
+
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -234,7 +236,7 @@ class MusicPlayer {
       return;
     }
 
-    const botId = this.connection.joinConfig.adapterCreator.userId;
+    const botId = config.clientId; // Use the client ID from config.js
     const botMember = members.get(botId);
 
     if (!botMember) {
