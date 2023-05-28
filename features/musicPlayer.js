@@ -3,7 +3,6 @@ const {
   joinVoiceChannel,
   VoiceConnectionStatus,
   createAudioPlayer,
-  createAudioResource,
   AudioPlayerStatus,
 } = require('@discordjs/voice');
 const { MessageEmbed } = require('discord.js');
