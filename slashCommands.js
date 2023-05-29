@@ -61,10 +61,6 @@ module.exports = async function (client) {
     const command = require(`./commands/${file}`);
     const commandData = command.data.toJSON();
 
-    // Retrieve the modified date of the command file
-    const fileStats = fs.statSync(`./commands/${file}`);
-    commandData.lastModified = fileStats.mtime;
-
     if (command.global !== false) {
       globalCommands.push(commandData);
       console.log(`Refreshing global command: ${commandData.name}`);
