@@ -58,12 +58,12 @@ module.exports = async function (client) {
   const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
 
   for (const file of commandFiles) {
-    const commandFilePath = `./commands/${file}`;
-    const command = require(commandFilePath);
+    const command = require(`./commands/${file}`);
     const commandData = command.data.toJSON();
-    const lastModified = fs.statSync(commandFilePath).mtime; // Retrieve last modified timestamp
 
-    commandData.lastModified = lastModified; // Add last modified timestamp to command data
+    // Retrieve the modified date of the command file
+    const fileStats = fs.statSync(`./commands/${file}`);
+    commandData.lastModified = fileStats.mtime;
 
     if (command.global !== false) {
       globalCommands.push(commandData);
@@ -124,11 +124,15 @@ module.exports = async function (client) {
           options = VALUES(options),
           lastModified = VALUES(lastModified)
           `,
-          [command.name, result.id, JSON.stringify(command.options || []), command.lastModified]
+          [command.name, result.id, JSON.stringify(command.options || []), command.lastModified],
+          (error, results) => {
+            if (error) {
+              console.error('Error inserting command into database:', error);
+            } else {
+              console.log('Command inserted into database:', command.name);
+            }
+          }
         );
-
-        // Log command update
-        console.log(`Command updated: ${command.name}`);
       } else {
         console.error(`No valid command ID received for global command: ${command.name}`);
       }
@@ -190,11 +194,15 @@ module.exports = async function (client) {
           options = VALUES(options),
           lastModified = VALUES(lastModified)
           `,
-          [command.name, result.id, JSON.stringify(command.options || []), command.lastModified]
+          [command.name, result.id, JSON.stringify(command.options || []), command.lastModified],
+          (error, results) => {
+            if (error) {
+              console.error('Error inserting command into database:', error);
+            } else {
+              console.log('Command inserted into database:', command.name);
+            }
+          }
         );
-
-        // Log command update
-        console.log(`Command updated: ${command.name}`);
       } else {
         console.error(`No valid command ID received for guild-specific command: ${command.name}`);
         console.error('Result received:', result);
