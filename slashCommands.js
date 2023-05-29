@@ -87,7 +87,8 @@ module.exports = async function (client) {
     console.log('All global commands:', allGlobalCommands);
 
     // Fetch and display all guild-specific commands for each guild
-    for (const guildId in guildCommands) {
+    for (const guildCommand of guildCommands) {
+      const guildId = guildCommand.guildId;
       const allGuildCommands = await rest.get(
         Routes.applicationGuildCommands(clientId, guildId)
       );
