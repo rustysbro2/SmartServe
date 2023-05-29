@@ -1,102 +1,81 @@
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.js');
-const inviteTracker = require('./features/inviteTracker.js');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v10');
+const { clientId, token } = require('./config.js');
 const fs = require('fs');
-const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
-const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
-const { handleSelectMenu } = require('./commands/help');
 
-const intents = [
-  GatewayIntentBits.Guilds,
-  GatewayIntentBits.GuildMessages,
-  GatewayIntentBits.GuildMembers,
-  GatewayIntentBits.GuildVoiceStates
-];
-
-const client = new Client({ shards: "auto", intents });
-
-client.commands = new Collection();
-client.musicPlayers = new Map();
-
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const commandCategories = [];
-
-for (const file of commandFiles) {
-  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
-  client.commands.set(command.data.name, command);
-
-  if (command.category) {
-    let category = commandCategories.find(category => category.name === command.category);
-    if (!category) {
-      category = {
-        name: command.category,
-        description: '',
-        commands: []
-      };
-      commandCategories.push(category);
-    }
-    category.commands.push({
-      name: command.data.name,
-      description: command.data.description
-    });
-  } else {
-    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
-    if (!defaultCategory) {
-      defaultCategory = {
-        name: 'Uncategorized',
-        description: 'Commands that do not belong to any specific category',
-        commands: []
-      };
-      commandCategories.push(defaultCategory);
-    }
-    defaultCategory.commands.push({
-      name: command.data.name,
-      description: command.data.description
-    });
-  }
+function commandHasChanged(oldCommand, newCommand) {
+  // Compare command properties to check for changes
+  return (
+    oldCommand.name !== newCommand.name ||
+    oldCommand.description !== newCommand.description ||
+    JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options)
+  );
 }
 
-client.once('ready', async () => {
-  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+module.exports = async function (client) {
+  const commands = [];
+  const guildSpecificCommands = [];
+  const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
 
-  inviteTracker.execute(client);
+  for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
 
-  const slashCommands = require('./slashCommands.js');
-  await slashCommands(client);
-});
-
-client.on('interactionCreate', async (interaction) => {
-  console.log('Interaction received:', interaction);
-
-  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-    console.log('Select menu interaction received:', interaction);
-    await handleSelectMenu(interaction, commandCategories);
-  } else if (interaction.isCommand()) {
-    const { commandName } = interaction;
-
-    console.log('Command interaction received:', interaction);
-
-    if (commandName === 'help') {
-      console.log('Executing help command...');
-      await client.commands.get('help').execute(interaction, client);
-      console.log('Help command executed.');
+    if (command.global) {
+      commands.push(command.data.toJSON());
     } else {
-      const command = client.commands.get(commandName);
-
-      if (!command) return;
-
-      try {
-        console.log(`Executing ${commandName} command...`);
-        await command.execute(interaction, client);
-        console.log(`${commandName} command executed.`);
-      } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-      }
+      const guildId = '1100765844776173670'; // Replace 'YOUR_GUILD_ID' with the desired guild ID
+      const guildCommand = {
+        guildId,
+        command: command.data.toJSON(),
+        category: command.category || 'Uncategorized', // Set default category if not specified
+      };
+      guildSpecificCommands.push(guildCommand);
     }
   }
-});
 
-client.login(token);
+  const rest = new REST({ version: '10' }).setToken(token);
+
+  try {
+    console.log('Started refreshing application (/) commands.');
+
+    // Get existing global slash commands
+    const existingGlobalCommands = await rest.get(
+      Routes.applicationCommands(clientId)
+    );
+
+    console.log('Existing global commands fetched:', existingGlobalCommands);
+
+    // Remove old global commands
+    const deleteGlobalPromises = existingGlobalCommands.map((command) =>
+      rest.delete(Routes.applicationCommand(clientId, command.id))
+    );
+    await Promise.all(deleteGlobalPromises);
+
+    console.log('Old global commands deleted.');
+
+    // Register updated global commands
+    const registerGlobalPromises = [rest.post(
+      Routes.applicationCommands(clientId),
+      { body: commands },
+    )];
+    await Promise.all(registerGlobalPromises);
+
+    console.log('Successfully reloaded global application (/) commands.');
+
+    // Register guild-specific commands
+    for (const { guildId, command, category } of guildSpecificCommands) {
+      await rest.post(
+        Routes.applicationGuildCommand(clientId, guildId),
+        { body: command }
+      );
+    }
+
+    console.log('Successfully added guild-specific commands.');
+
+  } catch (error) {
+    console.error('Error while refreshing application (/) commands.', error);
+    console.log('Request Body:', error.requestBody);
+    console.log('Raw Error:', error.rawError);
+    console.error('Command that caused the error:', error.command);
+  }
+};
