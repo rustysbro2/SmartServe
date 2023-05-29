@@ -24,14 +24,13 @@ module.exports = async function (client) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
     } else {
-      client.guilds.cache.forEach((guild) => {
-        const guildId = guild.id;
+      for (const guildId of client.guilds.cache.keys()) {
         if (!guildCommands[guildId]) {
           guildCommands[guildId] = [];
         }
         guildCommands[guildId].push(command.data.toJSON());
         console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
-      });
+      }
     }
   }
 
