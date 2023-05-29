@@ -12,6 +12,17 @@ function commandHasChanged(oldCommand, newCommand) {
   );
 }
 
+function calculateRateLimitResetTime(resetTimestamp) {
+  const now = Date.now();
+  const resetTime = new Date(resetTimestamp * 1000);
+  const timeRemaining = resetTime - now;
+  const seconds = Math.floor(timeRemaining / 1000) % 60;
+  const minutes = Math.floor(timeRemaining / 1000 / 60) % 60;
+  const hours = Math.floor(timeRemaining / 1000 / 60 / 60) % 24;
+
+  return `${hours}h ${minutes}m ${seconds}s`;
+}
+
 module.exports = async function (client) {
   const globalCommands = [];
   const guildCommands = [];
@@ -125,6 +136,16 @@ module.exports = async function (client) {
     // Fetch and display the names of all guild-specific commands for the current guild
     const guildCommandNames = guildCommands.map((command) => command.name);
     console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
+
+    // Get rate limit information
+    const rateLimitInfo = await rest.get(Routes.application(clientId)).catch(console.error);
+    if (rateLimitInfo) {
+      const { global: globalRateLimit, application: applicationRateLimit } = rateLimitInfo;
+      const globalResetTime = calculateRateLimitResetTime(globalRateLimit.resetTime);
+      const applicationResetTime = calculateRateLimitResetTime(applicationRateLimit.resetTime);
+      console.log(`Global Rate Limit Reset Time: ${globalResetTime}`);
+      console.log(`Application Rate Limit Reset Time: ${applicationResetTime}`);
+    }
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
   }
