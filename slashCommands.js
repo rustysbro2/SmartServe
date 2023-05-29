@@ -14,7 +14,7 @@ function commandHasChanged(oldCommand, newCommand) {
 
 module.exports = async function (client) {
   const globalCommands = [];
-  const guildCommands = {};
+  const guildCommands = [];
 
   const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
 
@@ -23,14 +23,9 @@ module.exports = async function (client) {
     if (command.global !== false) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
-    } else {
-      if (command.guildId === guildId) {
-        if (!guildCommands[guildId]) {
-          guildCommands[guildId] = [];
-        }
-        guildCommands[guildId].push(command.data.toJSON());
-        console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
-      }
+    } else if (command.guildId === guildId) {
+      guildCommands.push(command.data.toJSON());
+      console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
     }
   }
 
@@ -79,7 +74,7 @@ module.exports = async function (client) {
     // Register updated guild-specific commands
     const registerGuildPromises = [rest.put(
       Routes.applicationGuildCommands(clientId, guildId),
-      { body: guildCommands[guildId] },
+      { body: guildCommands },
       { headers: { 'Content-Type': 'application/json' } } // Set Content-Type header
     )];
     await Promise.all(registerGuildPromises);
