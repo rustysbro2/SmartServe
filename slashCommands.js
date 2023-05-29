@@ -67,19 +67,17 @@ module.exports = async function (client) {
     console.log('Updated guild-specific commands registered successfully.');
 
     // Set permissions for guild-specific commands
-    const commandPermissions = guildCommands.map((command) => ({
-      id: command.id,
-      permissions: [
+    for (const command of guildCommands) {
+      const permissionsUrl = `/applications/${clientId}/guilds/${guildId}/commands/${command.id}/permissions`;
+      const commandPermissions = [
         {
           id: guildId,
           type: 'ROLE',
           permission: true,
         },
-      ],
-    }));
-
-    const permissionsUrl = `/applications/${clientId}/guilds/${guildId}/commands/permissions`;
-    await rest.put(permissionsUrl, { body: commandPermissions });
+      ];
+      await rest.put(permissionsUrl, { body: commandPermissions });
+    }
     console.log('Command permissions set for guild-specific commands.');
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
