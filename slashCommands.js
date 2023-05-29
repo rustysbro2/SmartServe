@@ -9,7 +9,7 @@ function commandHasChanged(oldCommand, newCommand) {
   console.log('Old Command Options:', oldCommand.options);
   console.log('New Command Options:', newCommand.options);
 
-  if (typeof oldCommand.options === 'undefined' && typeof newCommand.options === 'undefined') {
+  if (oldCommand.options === undefined && newCommand.options === undefined) {
     console.log('Command has changed: false');
     return false; // No change if both options are undefined
   }
@@ -22,9 +22,10 @@ function commandHasChanged(oldCommand, newCommand) {
   return (
     oldCommand.name !== newCommand.name ||
     oldCommand.description !== newCommand.description ||
-    oldOptionsString !== newOptionsString
+    (oldCommand.options !== undefined && newCommand.options !== undefined && oldOptionsString !== newOptionsString)
   );
 }
+
 
 
 // Create commandIds table if it doesn't exist
