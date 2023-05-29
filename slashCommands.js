@@ -13,69 +13,115 @@ function commandHasChanged(oldCommand, newCommand) {
 }
 
 module.exports = async function (client) {
-  const commands = [];
-  const guildSpecificCommands = [];
-  const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+  const rest = new REST({ version: '10' }).setToken(token);
+  const globalCommands = [];
+  const guildCommands = new Map();
 
-  for (const file of commandFiles) {
+  console.log('Started refreshing application (/) commands.');
+
+  // Refresh global commands
+  const globalCommandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+
+  for (const file of globalCommandFiles) {
     const filePath = `./commands/${file}`;
+    if (!fs.existsSync(filePath)) {
+      console.error(`Global command file does not exist: ${filePath}`);
+      continue;
+    }
+
     try {
-      console.log(`Loading command file: ${filePath}`);
+      console.log(`Refreshing global command: ${filePath}`);
       const command = require(filePath);
 
-      if (command.global) {
-        commands.push(command.data.toJSON());
-      } else {
-        const guildId = '1100765844776173670'; // Replace 'YOUR_GUILD_ID' with the desired guild ID
-        const guildCommand = {
-          guildId,
-          command: command.data.toJSON(),
-          category: command.category || 'Uncategorized', // Set default category if not specified
-        };
-        guildSpecificCommands.push(guildCommand);
-      }
+      globalCommands.push(command.data.toJSON());
     } catch (error) {
-      console.error(`Error while loading command file: ${filePath}`);
+      console.error(`Error while refreshing global command: ${filePath}`);
       console.error(error);
     }
   }
 
-  const rest = new REST({ version: '10' }).setToken(token);
-
   try {
-    console.log('Started refreshing application (/) commands.');
-
-    // Get existing global slash commands
-    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+    console.log('Fetching existing global commands...');
+    const existingGlobalCommands = await rest.get(
+      Routes.applicationCommands(clientId)
+    );
     console.log('Existing global commands fetched:', existingGlobalCommands);
 
-    // Remove old global commands
+    console.log('Deleting old global commands...');
     const deleteGlobalPromises = existingGlobalCommands.map((command) =>
       rest.delete(Routes.applicationCommand(clientId, command.id))
     );
     await Promise.all(deleteGlobalPromises);
     console.log('Old global commands deleted.');
 
-    // Register updated global commands
-    const registerGlobalPromises = [rest.post(
+    console.log('Registering updated global commands...');
+    await rest.post(
       Routes.applicationCommands(clientId),
-      { body: commands },
-    )];
-    await Promise.all(registerGlobalPromises);
-    console.log('Registered updated global commands.');
-
-    // Register guild-specific commands
-    for (const { guildId, command, category } of guildSpecificCommands) {
-      await rest.post(
-        Routes.applicationGuildCommand(clientId, guildId),
-        { body: command }
-      );
-    }
-    console.log('Added guild-specific commands.');
-
-    console.log('Successfully refreshed application (/) commands.');
-
+      { body: globalCommands }
+    );
+    console.log('Updated global commands registered.');
   } catch (error) {
-    console.error('Error while refreshing application (/) commands:', error);
+    console.error('Error while refreshing global commands:', error);
   }
+
+  // Refresh guild-specific commands
+  const guildSpecificCommandFiles = fs.readdirSync('./commands/guilds').filter((file) => file.endsWith('.js'));
+
+  for (const file of guildSpecificCommandFiles) {
+    const filePath = `./commands/guilds/${file}`;
+    if (!fs.existsSync(filePath)) {
+      console.error(`Guild-specific command file does not exist: ${filePath}`);
+      continue;
+    }
+
+    try {
+      console.log(`Refreshing guild-specific command: ${filePath}`);
+      const command = require(filePath);
+
+      const guildId = command.guildId;
+      if (!guildCommands.has(guildId)) {
+        guildCommands.set(guildId, []);
+      }
+
+      const guildCommand = {
+        guildId,
+        command: command.data.toJSON(),
+        category: command.category || 'Uncategorized',
+      };
+      guildCommands.get(guildId).push(guildCommand);
+    } catch (error) {
+      console.error(`Error while refreshing guild-specific command: ${filePath}`);
+      console.error(error);
+    }
+  }
+
+  try {
+    console.log('Refreshing guild-specific commands...');
+    for (const [guildId, commands] of guildCommands) {
+      console.log(`Refreshing guild-specific commands for guild ID: ${guildId}`);
+      const existingGuildCommands = await rest.get(
+        Routes.applicationGuildCommands(clientId, guildId)
+      );
+      console.log(`Existing guild-specific commands fetched for guild ID ${guildId}:`, existingGuildCommands);
+
+      const deleteGuildPromises = existingGuildCommands.map((command) =>
+        rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id))
+      );
+      await Promise.all(deleteGuildPromises);
+      console.log(`Old guild-specific commands deleted for guild ID ${guildId}.`);
+
+      const registerGuildPromises = commands.map((command) =>
+        rest.post(
+          Routes.applicationGuildCommands(clientId, guildId),
+          { body: [command.command] }
+        )
+      );
+      await Promise.all(registerGuildPromises);
+      console.log(`Updated guild-specific commands registered for guild ID ${guildId}.`);
+    }
+  } catch (error) {
+    console.error('Error while refreshing guild-specific commands:', error);
+  }
+
+  console.log('Command refresh completed.');
 };
