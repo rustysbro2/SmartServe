@@ -34,81 +34,36 @@ function commandHasChanged(oldCommand, newCommand) {
   return false; // No change in options
 }
 
-async function insertInitialCommands() {
-  const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
-  const initialCommands = [];
-
-  for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    const commandData = command.data.toJSON();
-
-    if (command.global !== false) {
-      initialCommands.push({
-        commandName: commandData.name,
-        commandId: '', // This will be populated later
-        options: commandData.options || [],
-      });
-    } else {
-      const guildCommand = {
-        ...commandData,
-        guildId: guildId,
-      };
-      initialCommands.push({
-        commandName: commandData.name,
-        commandId: '', // This will be populated later
-        options: guildCommand.options || [],
-      });
-    }
+// Create commandIds table if it doesn't exist
+db.query(
+  `
+  CREATE TABLE IF NOT EXISTS commandIds (
+    commandName VARCHAR(255),
+    commandId VARCHAR(255),
+    options JSON,
+    lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (commandName)
+  )
+`,
+  (error) => {
+    if (error) throw error;
+    console.log('CommandIds table created or already exists.');
   }
-
-  // Store the initial commands in the database
-  for (const command of initialCommands) {
-    const result = await db.query(
-      `
-      INSERT INTO commandIds (commandName, commandId, options)
-      VALUES (?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-      commandId = VALUES(commandId),
-      options = VALUES(options),
-      lastModified = CURRENT_TIMESTAMP
-      `,
-      [command.commandName, '', JSON.stringify(command.options)]
-    );
-
-    if (result.affectedRows > 0) {
-      console.log(`Command inserted into database: ${command.commandName}`);
-    }
-  }
-}
+);
 
 module.exports = async function (client) {
-  // Create commandIds table if it doesn't exist
-  db.query(
-    `
-    CREATE TABLE IF NOT EXISTS commandIds (
-      commandName VARCHAR(255),
-      commandId VARCHAR(255),
-      options JSON,
-      lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (commandName)
-    )
-  `,
-    (error) => {
-      if (error) throw error;
-      console.log('CommandIds table created or already exists.');
-    }
-  );
-
-  await insertInitialCommands();
-
   const globalCommands = [];
   const guildCommands = [];
 
   const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
 
   for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
+    const commandFilePath = `./commands/${file}`;
+    const command = require(commandFilePath);
     const commandData = command.data.toJSON();
+    const lastModified = fs.statSync(commandFilePath).mtime; // Retrieve last modified timestamp
+
+    commandData.lastModified = lastModified; // Add last modified timestamp to command data
 
     if (command.global !== false) {
       globalCommands.push(commandData);
@@ -162,15 +117,17 @@ module.exports = async function (client) {
         // Store the command id, options, and last modified timestamp in the database
         await db.query(
           `
-          UPDATE commandIds
-          SET commandId = ?,
-              options = ?,
-              lastModified = CURRENT_TIMESTAMP
-          WHERE commandName = ?
+          INSERT INTO commandIds (commandName, commandId, options, lastModified)
+          VALUES (?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          commandId = VALUES(commandId),
+          options = VALUES(options),
+          lastModified = VALUES(lastModified)
           `,
-          [result.id, JSON.stringify(command.options || []), command.name]
+          [command.name, result.id, JSON.stringify(command.options || []), command.lastModified]
         );
 
+        // Log command update
         console.log(`Command updated: ${command.name}`);
       } else {
         console.error(`No valid command ID received for global command: ${command.name}`);
@@ -226,15 +183,17 @@ module.exports = async function (client) {
         // Store the command id, options, and last modified timestamp in the database
         await db.query(
           `
-          UPDATE commandIds
-          SET commandId = ?,
-              options = ?,
-              lastModified = CURRENT_TIMESTAMP
-          WHERE commandName = ?
+          INSERT INTO commandIds (commandName, commandId, options, lastModified)
+          VALUES (?, ?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          commandId = VALUES(commandId),
+          options = VALUES(options),
+          lastModified = VALUES(lastModified)
           `,
-          [result.id, JSON.stringify(command.options || []), command.name]
+          [command.name, result.id, JSON.stringify(command.options || []), command.lastModified]
         );
 
+        // Log command update
         console.log(`Command updated: ${command.name}`);
       } else {
         console.error(`No valid command ID received for guild-specific command: ${command.name}`);
