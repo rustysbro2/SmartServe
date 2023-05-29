@@ -72,7 +72,6 @@ module.exports = {
       const command = require(path.join(commandsDirectory, file));
       console.log('Command module:', command);
 
-      // Exclude guild-specific commands if the guild ID doesn't match and the command is not global
       if (!command.global && interaction.guildId !== guildId) {
         continue;
       }
@@ -118,6 +117,11 @@ module.exports = {
 
     const usedOptionValues = new Set();
 
+    if (commandCategories.length === 0) {
+      console.log('No command categories found.');
+      return;
+    }
+
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
@@ -133,21 +137,6 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
-
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
