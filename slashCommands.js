@@ -3,6 +3,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const db = require('./database.js');
+const fs = require('fs');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
