@@ -61,18 +61,24 @@ module.exports = async function (client) {
 
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    const commandData = command.data.toJSON();
 
-    if (command.global !== false) {
-      globalCommands.push(commandData);
-      console.log(`Refreshing global command: ${commandData.name}`);
+    if (command.data) {
+      const commandData = command.data.toJSON();
+
+      if (command.global !== false) {
+        globalCommands.push(commandData);
+        console.log(`Refreshing global command: ${commandData.name}`);
+      } else {
+        const guildCommand = commandData;
+        guildCommand.guildId = guildId; // Add guildId property
+        guildCommands.push(guildCommand);
+        console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
+      }
     } else {
-      const guildCommand = commandData;
-      guildCommand.guildId = guildId; // Add guildId property
-      guildCommands.push(guildCommand);
-      console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
+      console.error(`Command file '${file}' does not export a valid slash command.`);
     }
   }
+
 
   const rest = new REST({ version: '10' }).setToken(token);
 
