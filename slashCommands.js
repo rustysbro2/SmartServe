@@ -127,7 +127,7 @@ module.exports = async function (client) {
     console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
 
     // Check rate limit reset time
-    const headers = rest.lastResponse ? rest.lastResponse.headers : rest.globalRateLimit.headers;
+    const headers = rest.lastResponse?.headers || rest.globalRateLimit?.headers;
     const globalResetTime = new Date(headers['x-ratelimit-global']).toLocaleString();
     const applicationResetTime = new Date(headers['x-ratelimit-reset']).toLocaleString();
 
