@@ -20,7 +20,7 @@ module.exports = async function (client) {
 
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    if (command.global) {
+    if (command.global !== false) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
     } else {
