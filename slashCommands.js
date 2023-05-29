@@ -162,11 +162,13 @@ module.exports = async function (client) {
         result = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id), {
           body: command,
         });
+        console.log(`Updated guild-specific command: ${command.name}, response:`, result);
       } else {
         console.log(`Creating guild-specific command: ${command.name}`);
         result = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
           body: command,
         });
+        console.log(`Created guild-specific command: ${command.name}, response:`, result);
       }
 
       // Check if result.id is defined before storing in the database
