@@ -2,6 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
+const pool = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
@@ -12,7 +13,24 @@ function commandHasChanged(oldCommand, newCommand) {
   );
 }
 
+async function createCommandsTable() {
+  try {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS commands (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL
+      )
+    `;
+    await pool.query(createTableQuery);
+    console.log('Commands table created or already exists.');
+  } catch (error) {
+    console.error('Error creating commands table:', error);
+  }
+}
+
 module.exports = async function (client) {
+  createCommandsTable();
+
   const globalCommands = [];
   const guildCommands = [];
 
@@ -24,12 +42,12 @@ module.exports = async function (client) {
 
     if (command.global !== false) {
       globalCommands.push(commandData);
-      console.log(`Refreshing global command: ${commandData.name}`);
+      console.log(`Refreshing global command: ${command.name}`);
     } else {
       const guildCommand = commandData;
       guildCommand.guildId = guildId; // Add guildId property
       guildCommands.push(guildCommand);
-      console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
+      console.log(`Refreshing guild-specific command for guild ${guildId}: ${command.name}`);
     }
   }
 
