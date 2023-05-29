@@ -57,6 +57,7 @@ module.exports = async function (client) {
     const registerGlobalPromises = [rest.put(
       Routes.applicationCommands(clientId),
       { body: globalCommands },
+      { headers: { 'Content-Type': 'application/json' } } // Set Content-Type header
     )];
     await Promise.all(registerGlobalPromises);
     console.log('Updated global commands registered successfully.');
@@ -79,6 +80,7 @@ module.exports = async function (client) {
     const registerGuildPromises = [rest.put(
       Routes.applicationGuildCommands(clientId, guildId),
       { body: guildCommands[guildId] },
+      { headers: { 'Content-Type': 'application/json' } } // Set Content-Type header
     )];
     await Promise.all(registerGuildPromises);
     console.log('Updated guild-specific commands registered successfully.');
