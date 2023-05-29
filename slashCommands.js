@@ -79,16 +79,9 @@ module.exports = async function (client) {
     );
     console.log('All global commands:', allGlobalCommands);
 
-    // Fetch and display all guild-specific commands for each guild
-    client.guilds.cache.each(async (guild) => {
-      const guildId = guild.id;
-      if (guildId === guildId) {
-        const allGuildCommands = await rest.get(
-          Routes.applicationGuildCommands(clientId, guildId)
-        );
-        console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
-      }
-    });
+    // Fetch and display the names of all guild-specific commands for the current guild
+    const guildCommandNames = guildCommands.map((command) => command.name);
+    console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
   }
