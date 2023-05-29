@@ -3,15 +3,6 @@ const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
 
-function commandHasChanged(oldCommand, newCommand) {
-  // Compare command properties to check for changes
-  return (
-    oldCommand.name !== newCommand.name ||
-    oldCommand.description !== newCommand.description ||
-    JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options)
-  );
-}
-
 module.exports = async function (client) {
   const globalCommands = [];
   const guildCommands = [];
@@ -91,10 +82,12 @@ module.exports = async function (client) {
     // Fetch and display all guild-specific commands for each guild
     client.guilds.cache.each(async (guild) => {
       const guildId = guild.id;
-      const allGuildCommands = await rest.get(
-        Routes.applicationGuildCommands(clientId, guildId)
-      );
-      console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
+      if (guildId === guildId) {
+        const allGuildCommands = await rest.get(
+          Routes.applicationGuildCommands(clientId, guildId)
+        );
+        console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
+      }
     });
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
