@@ -16,6 +16,11 @@ module.exports = async function (client) {
   const globalCommands = [];
   const guildCommands = {};
 
+  // Clear the guildCommands object before populating it
+  for (const guildId in guildCommands) {
+    guildCommands[guildId] = [];
+  }
+
   const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
 
   for (const file of commandFiles) {
@@ -24,14 +29,11 @@ module.exports = async function (client) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
     } else {
-      for (const guild of client.guilds.cache.values()) {
+      client.guilds.cache.forEach((guild) => {
         const guildId = guild.id;
-        if (!guildCommands[guildId]) {
-          guildCommands[guildId] = [];
-        }
         guildCommands[guildId].push(command.data.toJSON());
         console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
-      }
+      });
     }
   }
 
