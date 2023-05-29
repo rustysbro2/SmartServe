@@ -24,14 +24,13 @@ module.exports = async function (client) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
     } else {
-      client.guilds.cache.forEach((guild) => {
-        const guildId = guild.id;
+      if (command.guildId === guildId) {
         if (!guildCommands[guildId]) {
           guildCommands[guildId] = [];
         }
         guildCommands[guildId].push(command.data.toJSON());
         console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
-      });
+      }
     }
   }
 
@@ -92,17 +91,6 @@ module.exports = async function (client) {
       )];
       await Promise.all(registerGuildPromises);
       console.log(`Updated guild-specific commands registered successfully for guild ${guildId}.`);
-    }
-
-    // Debug logging - Print all global commands
-    console.log('All global commands:');
-    console.log(globalCommands);
-
-    // Debug logging - Print all guild-specific commands and the guilds they are in
-    console.log('All guild-specific commands:');
-    for (const guildId in guildCommands) {
-      console.log(`Guild ${guildId}:`);
-      console.log(guildCommands[guildId]);
     }
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
