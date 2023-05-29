@@ -4,6 +4,8 @@ const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
 const db = require('./database.js');
 
+const { isEqual } = require('lodash');
+
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
   console.log('Old Command Options:', oldCommand.options);
@@ -14,17 +16,16 @@ function commandHasChanged(oldCommand, newCommand) {
     return false; // No change if both options are undefined
   }
 
-  const oldOptionsString = JSON.stringify(oldCommand.options);
-  const newOptionsString = JSON.stringify(newCommand.options);
-
-  console.log('Command has changed:', oldOptionsString !== newOptionsString);
+  const optionsChanged = !isEqual(oldCommand.options, newCommand.options);
+  console.log('Command has changed:', optionsChanged);
 
   return (
     oldCommand.name !== newCommand.name ||
     oldCommand.description !== newCommand.description ||
-    (oldCommand.options !== undefined && newCommand.options !== undefined && oldOptionsString !== newOptionsString)
+    optionsChanged
   );
 }
+
 
 
 
