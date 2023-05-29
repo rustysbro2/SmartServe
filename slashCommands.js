@@ -186,6 +186,7 @@ module.exports = async function (client) {
         );
       } else {
         console.error(`No valid command ID received for guild-specific command: ${command.name}`);
+        console.error('Result received:', result);
       }
 
       return result;
