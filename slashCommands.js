@@ -24,8 +24,11 @@ module.exports = async function (client) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
     } else {
-      guildCommands.push(command.data.toJSON());
-      console.log(`Refreshing guild-specific command: ./commands/${file}`);
+      guildCommands.push({
+        guildId: guildId,
+        command: command.data.toJSON()
+      });
+      console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
     }
   }
 
@@ -50,35 +53,28 @@ module.exports = async function (client) {
     await Promise.all(registerGlobalPromises);
     console.log('Updated global commands registered successfully.');
 
-    // Get existing guild-specific slash commands
-    const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
-    console.log('Existing guild-specific commands fetched:', existingGuildCommands);
-
-    // Remove old guild-specific commands
-    const deleteGuildPromises = existingGuildCommands.map((command) =>
-      rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id))
-    );
-    await Promise.all(deleteGuildPromises);
-    console.log('Old guild-specific commands deleted.');
-
     // Register updated guild-specific commands
-    const registerGuildPromises = [rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: guildCommands })];
-    await Promise.all(registerGuildPromises);
-    console.log('Updated guild-specific commands registered successfully.');
+    for (const { guildId, command } of guildCommands) {
+      const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
+      console.log(`Existing guild-specific commands fetched for guild ${guildId}:`, existingGuildCommands);
 
-    // Set permissions for guild-specific commands
-    for (const command of guildCommands) {
-      const permissionsUrl = `/applications/${clientId}/guilds/${guildId}/commands/${command.id}/permissions`;
-      const commandPermissions = [
-        {
-          id: guildId,
-          type: 'ROLE',
-          permission: true,
-        },
-      ];
-      await rest.put(permissionsUrl, { body: commandPermissions });
+      // Remove old guild-specific commands
+      const deleteGuildPromises = existingGuildCommands.map((command) =>
+        rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id))
+      );
+      await Promise.all(deleteGuildPromises);
+      console.log(`Old guild-specific commands deleted for guild ${guildId}.`);
+
+      // Register updated guild-specific commands
+      const registerGuildPromises = [rest.put(
+        Routes.applicationGuildCommands(clientId, guildId),
+        { body: [command] },
+      )];
+      await Promise.all(registerGuildPromises);
+      console.log(`Updated guild-specific commands registered successfully for guild ${guildId}.`);
     }
-    console.log('Command permissions set for guild-specific commands.');
+
+    console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
   }
