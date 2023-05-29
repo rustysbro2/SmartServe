@@ -1,9 +1,8 @@
+const { pool } = require('./database.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
-const { pool } = require('./database.js');
-const mysql = require('mysql2');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
