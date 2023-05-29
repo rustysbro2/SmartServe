@@ -120,11 +120,15 @@ module.exports = async function (client) {
           options = VALUES(options),
           lastModified = CURRENT_TIMESTAMP
           `,
-          [command.name, result.id, JSON.stringify(command.options || [])]
+          [command.name, result.id, JSON.stringify(command.options || [])],
+          (error, results) => {
+            if (error) {
+              console.error('Error inserting command into database:', error);
+            } else {
+              console.log('Command inserted into database:', command.name);
+            }
+          }
         );
-
-        // Log command update
-        console.log(`Command updated: ${command.name}`);
       } else {
         console.error(`No valid command ID received for global command: ${command.name}`);
       }
@@ -186,11 +190,15 @@ module.exports = async function (client) {
           options = VALUES(options),
           lastModified = CURRENT_TIMESTAMP
           `,
-          [command.name, result.id, JSON.stringify(command.options || [])]
+          [command.name, result.id, JSON.stringify(command.options || [])],
+          (error, results) => {
+            if (error) {
+              console.error('Error inserting command into database:', error);
+            } else {
+              console.log('Command inserted into database:', command.name);
+            }
+          }
         );
-
-        // Log command update
-        console.log(`Command updated: ${command.name}`);
       } else {
         console.error(`No valid command ID received for guild-specific command: ${command.name}`);
         console.error('Result received:', result);
