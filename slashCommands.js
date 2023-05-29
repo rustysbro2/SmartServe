@@ -45,15 +45,13 @@ module.exports = async function (client) {
     );
     console.log('Existing global commands fetched:', existingGlobalCommands);
 
-    // Remove old global commands that are not present in the updated commands
+    // Remove old global commands
     console.log('Deleting old global commands...');
-    const deleteGlobalPromises = existingGlobalCommands.map((command) => {
-      if (!commands.find((updatedCommand) => updatedCommand.name === command.name)) {
-        console.log(`Deleting old global command: ${command.name}`);
-        return rest.delete(Routes.applicationCommand(clientId, command.id));
-      }
-    });
+    const deleteGlobalPromises = existingGlobalCommands.map((command) =>
+      rest.delete(Routes.applicationCommand(clientId, command.id))
+    );
     await Promise.all(deleteGlobalPromises);
+    console.log('Old global commands deleted.');
 
     // Register updated global commands
     console.log('Registering updated global commands...');
@@ -62,7 +60,6 @@ module.exports = async function (client) {
       { body: commands },
     )];
     await Promise.all(registerGlobalPromises);
-
     console.log('Successfully reloaded global application (/) commands.');
 
     // Register guild-specific commands
@@ -73,13 +70,9 @@ module.exports = async function (client) {
         { body: command }
       );
     }
-
     console.log('Successfully added guild-specific commands.');
 
   } catch (error) {
-    console.error('Error while refreshing application (/) commands.');
-    console.error('DiscordAPIError:', error);
-    console.error('Request Body:', error.requestBody);
-    console.error('Raw Error:', error.rawError);
+    console.error('Error while refreshing application (/) commands.', error);
   }
 };
