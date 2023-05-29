@@ -9,6 +9,6 @@ module.exports = {
     interaction.reply(`Pong! Ping: ${interaction.client.ws.ping}ms`);
   },
 
-  global: true, // Command is not global (optional, as it defaults to false)
+  global: false, // Command is not global (optional, as it defaults to false)
   category: 'General', // Specify the category
 };
