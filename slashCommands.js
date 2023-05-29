@@ -76,5 +76,6 @@ module.exports = async function (client) {
     console.error('Error while refreshing application (/) commands.', error);
     console.error('Request Body:', error.requestBody);
     console.error('Raw Error:', error.rawError);
+    console.error('Command that caused the error:', commands.find(command => command.name === error.requestBody.json.name));
   }
 };
