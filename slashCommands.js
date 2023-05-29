@@ -109,17 +109,22 @@ module.exports = async function (client) {
         });
       }
 
-      // Store the command id and options in the database
-      await db.query(
-        `
-        INSERT INTO commandIds (commandName, commandId, options)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-        commandId = VALUES(commandId),
-        options = VALUES(options)
-        `,
-        [command.name, result.id, JSON.stringify(command.options || [])]
-      );
+      // Check if result.id is defined before storing in the database
+      if (result.id) {
+        // Store the command id and options in the database
+        await db.query(
+          `
+          INSERT INTO commandIds (commandName, commandId, options)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          commandId = VALUES(commandId),
+          options = VALUES(options)
+          `,
+          [command.name, result.id, JSON.stringify(command.options || [])]
+        );
+      } else {
+        console.error(`No valid command ID received for global command: ${command.name}`);
+      }
 
       return result;
     });
@@ -164,17 +169,22 @@ module.exports = async function (client) {
         });
       }
 
-      // Store the command id and options in the database
-      await db.query(
-        `
-        INSERT INTO commandIds (commandName, commandId, options)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-        commandId = VALUES(commandId),
-        options = VALUES(options)
-        `,
-        [command.name, result.id, JSON.stringify(command.options || [])]
-      );
+      // Check if result.id is defined before storing in the database
+      if (result.id) {
+        // Store the command id and options in the database
+        await db.query(
+          `
+          INSERT INTO commandIds (commandName, commandId, options)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          commandId = VALUES(commandId),
+          options = VALUES(options)
+          `,
+          [command.name, result.id, JSON.stringify(command.options || [])]
+        );
+      } else {
+        console.error(`No valid command ID received for guild-specific command: ${command.name}`);
+      }
 
       return result;
     });
