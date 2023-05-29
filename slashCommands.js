@@ -21,12 +21,12 @@ module.exports = async function (client) {
     const command = require(`./commands/${file}`);
 
     if (command.global) {
-      commands.push(command.data);
+      commands.push(command.data.toJSON());
     } else {
       const guildId = '1106643216125665350'; // Replace 'YOUR_GUILD_ID' with the desired guild ID
       const guildCommand = {
         guildId,
-        command: command.data,
+        command: command.data.toJSON(),
         category: command.category || 'Uncategorized', // Set default category if not specified
       };
       guildSpecificCommands.push(guildCommand);
@@ -39,7 +39,9 @@ module.exports = async function (client) {
     console.log('Started refreshing application (/) commands.');
 
     // Get existing global slash commands
-    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+    const existingGlobalCommands = await rest.get(
+      Routes.applicationCommands(clientId)
+    );
 
     // Remove old global commands
     const deleteGlobalPromises = existingGlobalCommands.map((command) =>
@@ -58,13 +60,9 @@ module.exports = async function (client) {
 
     // Register guild-specific commands
     for (const { guildId, command, category } of guildSpecificCommands) {
-      const permissions = [
-        // Define command permissions if needed
-      ];
-
       await rest.put(
         Routes.applicationGuildCommand(clientId, guildId),
-        { body: [command], permissions }
+        { body: [command] }
       );
     }
 
