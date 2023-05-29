@@ -50,7 +50,7 @@ module.exports = async function (client) {
     await Promise.all(deleteGlobalPromises);
 
     // Register updated global commands
-    const registerGlobalPromises = [rest.put(
+    const registerGlobalPromises = [rest.post(
       Routes.applicationCommands(clientId),
       { body: commands },
     )];
@@ -60,7 +60,7 @@ module.exports = async function (client) {
 
     // Register guild-specific commands
     for (const { guildId, command, category } of guildSpecificCommands) {
-      await rest.put(
+      await rest.post(
         Routes.applicationGuildCommand(clientId, guildId),
         { body: command }
       );
@@ -69,11 +69,6 @@ module.exports = async function (client) {
     console.log('Successfully added guild-specific commands.');
 
   } catch (error) {
-    console.error('Error while refreshing application (/) commands:', error);
-    console.error('Request URL:', error.request.url);
-    console.error('Request Method:', error.request.method);
-    console.error('Request Body:', error.request.body);
-    console.error('Response Status:', error.code);
-    console.error('Response Body:', error.request.body);
+    console.error('Error while refreshing application (/) commands.', error);
   }
 };
