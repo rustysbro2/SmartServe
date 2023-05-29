@@ -5,9 +5,10 @@ module.exports = {
     .setName('ping')
     .setDescription('Replies with the current ping of the bot'),
 
-  async execute(interaction) {
-    await interaction.reply(`Pong! Ping: ${interaction.client.ws.ping}ms`);
+  execute(interaction) {
+    interaction.reply(`Pong! Ping: ${interaction.client.ws.ping}ms`);
   },
-  
-  category: 'General', // Add this line to specify the category
+
+  global: false, // Command is not global (optional, as it defaults to false)
+  category: 'General', // Specify the category
 };
