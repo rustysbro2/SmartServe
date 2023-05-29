@@ -23,7 +23,6 @@ class MusicPlayer {
     this.voteSkipThreshold = 0.5; // Change this value to set the required percentage of votes to skip a song
     this.voiceChannelCheckInterval = null; // Initialize the property
 
-
     this.setupListeners();
     this.startVoiceChannelCheckInterval();
   }
@@ -56,6 +55,7 @@ class MusicPlayer {
     }
 
     this.connection.subscribe(this.audioPlayer);
+    this.isBotAlone(); // Call isBotAlone() here after the connection is established
   }
 
   isValidYoutubeUrl(url) {
@@ -121,15 +121,15 @@ class MusicPlayer {
       return false;
     }
 
-    const members = voiceChannel.members;
-    if (!members) {
-      console.log('Members are undefined.');
+    const guildMembers = guild.members.cache;
+    if (!guildMembers || guildMembers.size === 1) {
+      console.log('There are no other members in the voice channel.');
       return false;
     }
 
     const botId = config.clientId; // Use the client ID from config.js
-    const botMember = members.get(botId);
-    const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
+    const botMember = guildMembers.get(botId);
+    const otherMembers = guildMembers.filter(member => !member.user.bot && member.id !== botId);
     return otherMembers.size === 0 && botMember !== undefined;
   }
 
@@ -215,7 +215,6 @@ class MusicPlayer {
     }, 1000);
   }
 
-
   checkVoiceChannel() {
     if (!this.connection) {
       console.log('Bot is not connected to a voice channel.');
@@ -235,6 +234,7 @@ class MusicPlayer {
     const guildMembers = guild.members.cache;
     if (!guildMembers || guildMembers.size === 1) {
       console.log('There are no other members in the voice channel.');
+      this.leaveVoiceChannel(); // Leave the voice channel if the bot is alone
       return;
     }
 
@@ -249,10 +249,6 @@ class MusicPlayer {
       console.log('Bot is not alone in the voice channel.'); // Debug statement when the bot is not alone
     }
   }
-
-
-
-
 
   leaveVoiceChannel() {
     if (this.connection) {
