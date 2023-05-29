@@ -26,12 +26,7 @@ function commandHasChanged(oldCommand, newCommand) {
     const oldOption = oldOptions[i];
     const newOption = newOptions[i];
 
-    if (
-      oldOption.type !== newOption.type ||
-      oldOption.name !== newOption.name ||
-      oldOption.description !== newOption.description ||
-      oldOption.required !== newOption.required
-    ) {
+    if (oldOption.type !== newOption.type || oldOption.name !== newOption.name || oldOption.description !== newOption.description || oldOption.required !== newOption.required) {
       console.log('Command has changed: true');
       return true; // Option properties changed
     }
@@ -48,7 +43,7 @@ db.query(
     commandName VARCHAR(255),
     commandId VARCHAR(255),
     options JSON,
-    lastModified TIMESTAMP,
+    lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (commandName)
   )
 `,
@@ -59,6 +54,26 @@ db.query(
 );
 
 module.exports = async function (client) {
+  const globalCommands = [];
+  const guildCommands = [];
+
+  const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+
+  for (const file of commandFiles) {
+    const command = require(`./commands/${file}`);
+    const commandData = command.data.toJSON();
+
+    if (command.global !== false) {
+      globalCommands.push(commandData);
+      console.log(`Refreshing global command: ${commandData.name}`);
+    } else {
+      const guildCommand = commandData;
+      guildCommand.guildId = guildId; // Add guildId property
+      guildCommands.push(guildCommand);
+      console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
+    }
+  }
+
   const rest = new REST({ version: '10' }).setToken(token);
 
   try {
@@ -68,57 +83,126 @@ module.exports = async function (client) {
     const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
     console.log('Existing global commands fetched:', existingGlobalCommands.map((command) => command.name));
 
+    // Find commands that need to be created or updated
+    const globalCommandsToUpdate = globalCommands.filter((newCommand) => {
+      const existingCommand = existingGlobalCommands.find((command) => command.name === newCommand.name);
+      return !existingCommand || commandHasChanged(existingCommand, newCommand);
+    });
+
+    // Delete commands that need to be removed
+    const globalCommandsToDelete = existingGlobalCommands.filter((existingCommand) => {
+      return !globalCommands.find((newCommand) => newCommand.name === existingCommand.name);
+    });
+
+    // Create or update global commands
+    const globalCommandPromises = globalCommandsToUpdate.map(async (command) => {
+      const existingCommand = existingGlobalCommands.find((c) => c.name === command.name);
+      let result;
+      if (existingCommand) {
+        console.log(`Updating global command: ${command.name}`);
+        result = await rest.patch(Routes.applicationCommand(clientId, existingCommand.id), {
+          body: command,
+        });
+      } else {
+        console.log(`Creating global command: ${command.name}`);
+        result = await rest.post(Routes.applicationCommands(clientId), {
+          body: command,
+        });
+      }
+
+      // Check if result.id is defined before storing in the database
+      if (result.id) {
+        // Store the command id and options in the database
+        await db.query(
+          `
+          INSERT INTO commandIds (commandName, commandId, options)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          commandId = VALUES(commandId),
+          options = VALUES(options),
+          lastModified = CURRENT_TIMESTAMP
+          `,
+          [command.name, result.id, JSON.stringify(command.options || [])]
+        );
+      } else {
+        console.error(`No valid command ID received for global command: ${command.name}`);
+      }
+
+      return result;
+    });
+
+    // Delete global commands
+    const globalDeletePromises = globalCommandsToDelete.map((command) => {
+      console.log(`Deleting global command: ${command.name}`);
+      return rest.delete(Routes.applicationCommand(clientId, command.id));
+    });
+
+    await Promise.all([...globalCommandPromises, ...globalDeletePromises]);
+    console.log('Global commands updated and deleted successfully.');
+
     // Get existing guild-specific slash commands
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
     console.log('Existing guild-specific commands fetched:', existingGuildCommands.map((command) => command.name));
 
-    const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+    // Find commands that need to be created or updated
+    const guildCommandsToUpdate = guildCommands.filter((newCommand) => {
+      const existingCommand = existingGuildCommands.find((command) => command.name === newCommand.name);
+      return !existingCommand || commandHasChanged(existingCommand, newCommand);
+    });
 
-    for (const file of commandFiles) {
-      const command = require(`./commands/${file}`);
-      const commandData = command.data.toJSON();
+    // Delete commands that need to be removed
+    const guildCommandsToDelete = existingGuildCommands.filter((existingCommand) => {
+      return !guildCommands.find((newCommand) => newCommand.name === existingCommand.name);
+    });
 
-      const existingCommand = existingGlobalCommands.find((c) => c.name === commandData.name) || existingGuildCommands.find((c) => c.name === commandData.name);
-      const commandPath = `./commands/${file}`;
-      const fileStats = fs.statSync(commandPath);
-      const lastModified = fileStats.mtime;
-
-      if (!existingCommand || commandHasChanged(existingCommand, commandData) || (existingCommand.lastModified && lastModified > existingCommand.lastModified)) {
-        let result;
-
-        if (existingCommand) {
-          console.log(`Updating command: ${commandData.name}`);
-          result = await rest.patch(Routes.applicationCommand(clientId, existingCommand.id), {
-            body: commandData,
-          });
-        } else {
-          console.log(`Creating command: ${commandData.name}`);
-          result = await rest.post(Routes.applicationCommands(clientId), {
-            body: commandData,
-          });
-        }
-
-        // Check if result.id is defined before storing in the database
-        if (result.id) {
-          // Store the command id, options, and last modified timestamp in the database
-          await db.query(
-            `
-            INSERT INTO commandIds (commandName, commandId, options, lastModified)
-            VALUES (?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-            commandId = VALUES(commandId),
-            options = VALUES(options),
-            lastModified = VALUES(lastModified)
-            `,
-            [commandData.name, result.id, JSON.stringify(commandData.options || []), lastModified]
-          );
-        } else {
-          console.error(`No valid command ID received for command: ${commandData.name}`);
-        }
+    // Create or update guild-specific commands
+    const guildCommandPromises = guildCommandsToUpdate.map(async (command) => {
+      const existingCommand = existingGuildCommands.find((c) => c.name === command.name);
+      let result;
+      if (existingCommand) {
+        console.log(`Updating guild-specific command: ${command.name}`);
+        result = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id), {
+          body: command,
+        });
+        console.log(`Updated guild-specific command: ${command.name}, response:`, result);
+      } else {
+        console.log(`Creating guild-specific command: ${command.name}`);
+        result = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
+          body: command,
+        });
+        console.log(`Created guild-specific command: ${command.name}, response:`, result);
       }
-    }
 
-    console.log('Commands updated successfully.');
+      // Check if result.id is defined before storing in the database
+      if (result.id) {
+        // Store the command id and options in the database
+        await db.query(
+          `
+          INSERT INTO commandIds (commandName, commandId, options)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          commandId = VALUES(commandId),
+          options = VALUES(options),
+          lastModified = CURRENT_TIMESTAMP
+          `,
+          [command.name, result.id, JSON.stringify(command.options || [])]
+        );
+      } else {
+        console.error(`No valid command ID received for guild-specific command: ${command.name}`);
+        console.error('Result received:', result);
+      }
+
+      return result;
+    });
+
+    // Delete guild-specific commands
+    const guildDeletePromises = guildCommandsToDelete.map((command) => {
+      console.log(`Deleting guild-specific command: ${command.name}`);
+      return rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id));
+    });
+
+    await Promise.all([...guildCommandPromises, ...guildDeletePromises]);
+    console.log('Guild-specific commands updated and deleted successfully.');
 
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
