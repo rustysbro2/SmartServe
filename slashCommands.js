@@ -2,7 +2,6 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
-const mysql = require('mysql');
 const { connectionConfig } = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
