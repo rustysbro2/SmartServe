@@ -23,7 +23,7 @@ module.exports = async function (client) {
     if (command.global !== false) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
-    } else if (command.guildId === guildId) {
+    } else {
       guildCommands.push(command.data.toJSON());
       console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
     }
