@@ -6,35 +6,25 @@ const db = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
-  const optionsChanged = JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options);
-
-  if (optionsChanged) {
-    console.log('Old Command Options:', oldCommand.options);
-    console.log('New Command Options:', newCommand.options);
-  }
-
   return (
     oldCommand.name !== newCommand.name ||
     oldCommand.description !== newCommand.description ||
-    optionsChanged
+    JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options)
   );
 }
 
-
 // Create commandIds table if it doesn't exist
-db.query(
-  `
+db.query(`
   CREATE TABLE IF NOT EXISTS commandIds (
     commandName VARCHAR(255),
     commandId VARCHAR(255),
+    options JSON,
     PRIMARY KEY (commandName)
   )
-`,
-  (error) => {
-    if (error) throw error;
-    console.log('CommandIds table created or already exists.');
-  }
-);
+`, (error) => {
+  if (error) throw error;
+  console.log('CommandIds table created or already exists.');
+});
 
 module.exports = async function (client) {
   const globalCommands = [];
@@ -64,9 +54,9 @@ module.exports = async function (client) {
 
     // Get existing global slash commands
     const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
-    console.log('Existing global commands fetched:', existingGlobalCommands.map((command) => command.name));
+    console.log('Existing global commands fetched:', existingGlobalCommands.map(command => command.name));
 
-    // Filter commands that need to be created or updated
+    // Find commands that need to be created or updated
     const globalCommandsToUpdate = globalCommands.filter((newCommand) => {
       const existingCommand = existingGlobalCommands.find((command) => command.name === newCommand.name);
       return !existingCommand || commandHasChanged(existingCommand, newCommand);
@@ -104,9 +94,9 @@ module.exports = async function (client) {
 
     // Get existing guild-specific slash commands
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
-    console.log('Existing guild-specific commands fetched:', existingGuildCommands.map((command) => command.name));
+    console.log('Existing guild-specific commands fetched:', existingGuildCommands.map(command => command.name));
 
-    // Filter commands that need to be created or updated
+    // Find commands that need to be created or updated
     const guildCommandsToUpdate = guildCommands.filter((newCommand) => {
       const existingCommand = existingGuildCommands.find((command) => command.name === newCommand.name);
       return !existingCommand || commandHasChanged(existingCommand, newCommand);
@@ -144,28 +134,27 @@ module.exports = async function (client) {
 
     // Fetch and display all global commands
     const allGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
-    console.log('All global commands:', allGlobalCommands.map((command) => command.name));
+    console.log('All global commands:', allGlobalCommands.map(command => command.name));
 
     // Fetch and display the names of all guild-specific commands for the current guild
     const guildCommandNames = guildCommands.map((command) => command.name);
     console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
 
-    // Store unique IDs in MySQL database
-    await Promise.all(
-      allGlobalCommands.map((command) => {
-        return db.query(
-          `
-        INSERT INTO commandIds (commandName, commandId)
-        VALUES (?, ?)
+    // Store unique IDs and options in MySQL database
+    await Promise.all(allGlobalCommands.map((command) => {
+      return db.query(
+        `
+        INSERT INTO commandIds (commandName, commandId, options)
+        VALUES (?, ?, ?)
         ON DUPLICATE KEY UPDATE
-        commandId = VALUES(commandId)
+        commandId = VALUES(commandId),
+        options = VALUES(options)
         `,
-          [command.name, command.id]
-        );
-      })
-    );
+        [command.name, command.id, JSON.stringify(command.options)]
+      );
+    }));
 
-    console.log('Global command IDs stored in the database.');
+    console.log('Global command IDs and options stored in the database.');
   } catch (error) {
     if (error.code === 30034) {
       const resetTime = new Date(Date.now() + error.rawError.retry_after * 1000).toLocaleString();
