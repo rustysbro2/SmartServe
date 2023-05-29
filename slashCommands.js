@@ -24,7 +24,9 @@ module.exports = async function (client) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
     } else {
-      guildCommands.push(command.data.toJSON());
+      const guildCommand = command.data.toJSON();
+      guildCommand.guildId = guildId; // Add guildId property
+      guildCommands.push(guildCommand);
       console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
     }
   }
