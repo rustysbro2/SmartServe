@@ -59,10 +59,9 @@ module.exports = async function (client) {
     console.log('Updated global commands registered successfully.');
 
     // Fetch and display all guild-specific commands for each guild
-    const guilds = client.guilds.cache.array();
-    for (const guild of guilds) {
+    client.guilds.cache.forEach(async (guild) => {
       const guildId = guild.id;
-      
+
       // Register updated guild-specific commands for the current guild
       const filteredGuildCommands = guildCommands.filter((command) => command.guildId === guildId);
       const registerGuildPromises = [rest.put(
@@ -78,7 +77,7 @@ module.exports = async function (client) {
         Routes.applicationGuildCommands(clientId, guildId)
       );
       console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
-    }
+    });
 
     // Fetch and display all global commands
     const allGlobalCommands = await rest.get(
