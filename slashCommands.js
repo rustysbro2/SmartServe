@@ -24,12 +24,12 @@ module.exports = async function (client) {
 
     if (command.global !== false) {
       globalCommands.push(commandData);
-      console.log(`Refreshing global command: ./commands/${file}`);
+      console.log(`Refreshing global command: ${command.name}`);
     } else {
       const guildCommand = commandData;
       guildCommand.guildId = guildId; // Add guildId property
       guildCommands.push(guildCommand);
-      console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
+      console.log(`Refreshing guild-specific command for guild ${guildId}: ${command.name}`);
     }
   }
 
@@ -40,7 +40,7 @@ module.exports = async function (client) {
 
     // Get existing global slash commands
     const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
-    console.log('Existing global commands fetched:', existingGlobalCommands);
+    console.log('Existing global commands fetched:', existingGlobalCommands.map(command => command.name));
 
     // Find commands that need to be created or updated
     const globalCommandsToUpdate = globalCommands.filter((newCommand) => {
@@ -80,7 +80,7 @@ module.exports = async function (client) {
 
     // Get existing guild-specific slash commands
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
-    console.log('Existing guild-specific commands fetched:', existingGuildCommands);
+    console.log('Existing guild-specific commands fetched:', existingGuildCommands.map(command => command.name));
 
     // Find commands that need to be created or updated
     const guildCommandsToUpdate = guildCommands.filter((newCommand) => {
@@ -120,7 +120,7 @@ module.exports = async function (client) {
 
     // Fetch and display all global commands
     const allGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
-    console.log('All global commands:', allGlobalCommands);
+    console.log('All global commands:', allGlobalCommands.map(command => command.name));
 
     // Fetch and display the names of all guild-specific commands for the current guild
     const guildCommandNames = guildCommands.map((command) => command.name);
