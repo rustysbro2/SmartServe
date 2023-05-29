@@ -24,12 +24,12 @@ module.exports = async function (client) {
 
     if (command.global !== false) {
       globalCommands.push(commandData);
-      console.log(`Refreshing global command: ${command.name}`);
+      console.log(`Refreshing global command: ${commandData.name}`);
     } else {
       const guildCommand = commandData;
       guildCommand.guildId = guildId; // Add guildId property
       guildCommands.push(guildCommand);
-      console.log(`Refreshing guild-specific command for guild ${guildId}: ${command.name}`);
+      console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
     }
   }
 
