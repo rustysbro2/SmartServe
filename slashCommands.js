@@ -18,18 +18,23 @@ module.exports = async function (client) {
   const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
 
   for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
+    const filePath = `./commands/${file}`;
+    try {
+      const command = require(filePath);
 
-    if (command.global) {
-      commands.push(command.data.toJSON());
-    } else {
-      const guildId = '1100765844776173670'; // Replace 'YOUR_GUILD_ID' with the desired guild ID
-      const guildCommand = {
-        guildId,
-        command: command.data.toJSON(),
-        category: command.category || 'Uncategorized', // Set default category if not specified
-      };
-      guildSpecificCommands.push(guildCommand);
+      if (command.global) {
+        commands.push(command.data.toJSON());
+      } else {
+        const guildId = '1100765844776173670'; // Replace 'YOUR_GUILD_ID' with the desired guild ID
+        const guildCommand = {
+          guildId,
+          command: command.data.toJSON(),
+          category: command.category || 'Uncategorized', // Set default category if not specified
+        };
+        guildSpecificCommands.push(guildCommand);
+      }
+    } catch (error) {
+      console.error(`Error while loading command file: ${filePath}`, error);
     }
   }
 
@@ -74,8 +79,5 @@ module.exports = async function (client) {
 
   } catch (error) {
     console.error('Error while refreshing application (/) commands.', error);
-    console.log('Request Body:', error.requestBody);
-    console.log('Raw Error:', error.rawError);
-    console.error('Command that caused the error:', error.command);
   }
 };
