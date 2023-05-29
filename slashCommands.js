@@ -60,22 +60,22 @@ module.exports = async function (client) {
       { body: commands },
     )];
     await Promise.all(registerGlobalPromises);
-    console.log('Successfully reloaded global application (/) commands.');
+    console.log('Updated global commands registered.');
 
     // Register guild-specific commands
-    console.log('Registering guild-specific commands...');
     for (const { guildId, command, category } of guildSpecificCommands) {
       await rest.post(
         Routes.applicationGuildCommand(clientId, guildId),
         { body: command }
       );
     }
+
     console.log('Successfully added guild-specific commands.');
 
   } catch (error) {
     console.error('Error while refreshing application (/) commands.', error);
-    console.error('Request Body:', error.requestBody);
-    console.error('Raw Error:', error.rawError);
-    console.error('Command that caused the error:', commands.find(command => command.name === error.requestBody.json.name));
+    console.log('Request Body:', error.requestBody);
+    console.log('Raw Error:', error.rawError);
+    console.error('Command that caused the error:', error.command);
   }
 };
