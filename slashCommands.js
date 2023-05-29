@@ -128,7 +128,9 @@ module.exports = async function (client) {
 
     // Check rate limit reset time
     const headers = rest.lastResponse?.headers || rest.globalRateLimit?.headers;
-    const globalResetTime = new Date(headers['x-ratelimit-global']).toLocaleString();
+    const globalResetTime = headers && headers['x-ratelimit-global']
+      ? new Date(headers['x-ratelimit-global']).toLocaleString()
+      : 'N/A';
     const applicationResetTime = new Date(headers['x-ratelimit-reset']).toLocaleString();
 
     console.log('Global Rate Limit Reset Time:', globalResetTime);
