@@ -1,4 +1,3 @@
-const { pool } = require('./database.js');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
@@ -11,29 +10,6 @@ function commandHasChanged(oldCommand, newCommand) {
     oldCommand.description !== newCommand.description ||
     JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options)
   );
-}
-
-// Create commands table if it doesn't exist
-function createCommandsTable() {
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS commands (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(255) NOT NULL,
-      description TEXT NOT NULL,
-      options TEXT,
-      guildId VARCHAR(255),
-      global BOOLEAN DEFAULT true,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `;
-
-  pool.query(createTableQuery, (error) => {
-    if (error) {
-      console.error('Error creating commands table:', error);
-    } else {
-      console.log('Commands table created or already exists');
-    }
-  });
 }
 
 module.exports = async function (client) {
@@ -57,144 +33,116 @@ module.exports = async function (client) {
     }
   }
 
-  // Call createCommandsTable to create or modify the commands table
-  createCommandsTable();
+  const rest = new REST({ version: '10' }).setToken(token);
 
   try {
     console.log('Started refreshing application (/) commands.');
 
     // Get existing global slash commands
-    const getGlobalCommandsQuery = `SELECT * FROM commands WHERE guildId IS NULL`;
-    pool.promise().query(getGlobalCommandsQuery, (error, [existingGlobalCommands]) => {
-      if (error) {
-        console.error('Error fetching existing global commands:', error);
-        return;
-      }
+    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+    console.log('Existing global commands fetched:', existingGlobalCommands.map(command => command.name));
 
-      console.log('Existing global commands fetched:', existingGlobalCommands.map(command => command.name));
-
-      // Find commands that need to be created or updated
-      const globalCommandsToUpdate = globalCommands.filter((newCommand) => {
-        const existingCommand = existingGlobalCommands.find((command) => command.name === newCommand.name);
-        return !existingCommand || commandHasChanged(existingCommand, newCommand);
-      });
-
-      // Delete commands that need to be removed
-      const globalCommandsToDelete = existingGlobalCommands.filter((existingCommand) => {
-        return !globalCommands.find((newCommand) => newCommand.name === existingCommand.name);
-      });
-
-      // Create or update global commands
-      const globalCommandPromises = globalCommandsToUpdate.map((command) => {
-        const existingCommand = existingGlobalCommands.find((c) => c.name === command.name);
-        if (existingCommand) {
-          console.log(`Updating global command: ${command.name}`);
-          const updateCommandQuery = `UPDATE commands SET description = ?, options = ? WHERE id = ?`;
-          const updateCommandValues = [command.description, JSON.stringify(command.options), existingCommand.id];
-          return pool.promise().query(updateCommandQuery, updateCommandValues);
-        } else {
-          console.log(`Creating global command: ${command.name}`);
-          const createCommandQuery = `INSERT INTO commands (name, description, options, global) VALUES (?, ?, ?, true)`;
-          const createCommandValues = [command.name, command.description, JSON.stringify(command.options)];
-          return pool.promise().query(createCommandQuery, createCommandValues);
-        }
-      });
-
-      // Delete global commands
-      const globalDeletePromises = globalCommandsToDelete.map((command) => {
-        console.log(`Deleting global command: ${command.name}`);
-        const deleteCommandQuery = `DELETE FROM commands WHERE id = ?`;
-        const deleteCommandValues = [command.id];
-        return pool.promise().query(deleteCommandQuery, deleteCommandValues);
-      });
-
-      Promise.all([...globalCommandPromises, ...globalDeletePromises])
-        .then(() => {
-          console.log('Global commands updated and deleted successfully.');
-
-          // Get existing guild-specific slash commands
-          const getGuildCommandsQuery = `SELECT * FROM commands WHERE guildId = ?`;
-          const getGuildCommandsValues = [guildId];
-          pool.promise().query(getGuildCommandsQuery, getGuildCommandsValues, (error, [existingGuildCommands]) => {
-            if (error) {
-              console.error('Error fetching existing guild-specific commands:', error);
-              return;
-            }
-
-            console.log('Existing guild-specific commands fetched:', existingGuildCommands.map(command => command.name));
-
-            // Find commands that need to be created or updated
-            const guildCommandsToUpdate = guildCommands.filter((newCommand) => {
-              const existingCommand = existingGuildCommands.find((command) => command.name === newCommand.name);
-              return !existingCommand || commandHasChanged(existingCommand, newCommand);
-            });
-
-            // Delete commands that need to be removed
-            const guildCommandsToDelete = existingGuildCommands.filter((existingCommand) => {
-              return !guildCommands.find((newCommand) => newCommand.name === existingCommand.name);
-            });
-
-            // Create or update guild-specific commands
-            const guildCommandPromises = guildCommandsToUpdate.map((command) => {
-              const existingCommand = existingGuildCommands.find((c) => c.name === command.name);
-              if (existingCommand) {
-                console.log(`Updating guild-specific command: ${command.name}`);
-                const updateCommandQuery = `UPDATE commands SET description = ?, options = ? WHERE id = ?`;
-                const updateCommandValues = [command.description, JSON.stringify(command.options), existingCommand.id];
-                return pool.promise().query(updateCommandQuery, updateCommandValues);
-              } else {
-                console.log(`Creating guild-specific command: ${command.name}`);
-                const createCommandQuery = `INSERT INTO commands (name, description, options, guildId, global) VALUES (?, ?, ?, ?, false)`;
-                const createCommandValues = [command.name, command.description, JSON.stringify(command.options), guildId];
-                return pool.promise().query(createCommandQuery, createCommandValues);
-              }
-            });
-
-            // Delete guild-specific commands
-            const guildDeletePromises = guildCommandsToDelete.map((command) => {
-              console.log(`Deleting guild-specific command: ${command.name}`);
-              const deleteCommandQuery = `DELETE FROM commands WHERE id = ?`;
-              const deleteCommandValues = [command.id];
-              return pool.promise().query(deleteCommandQuery, deleteCommandValues);
-            });
-
-            Promise.all([...guildCommandPromises, ...guildDeletePromises])
-              .then(() => {
-                console.log('Guild-specific commands updated and deleted successfully.');
-
-                // Fetch and display all global commands
-                const getAllGlobalCommandsQuery = `SELECT * FROM commands WHERE guildId IS NULL`;
-                pool.promise().query(getAllGlobalCommandsQuery, (error, [allGlobalCommands]) => {
-                  if (error) {
-                    console.error('Error fetching all global commands:', error);
-                    return;
-                  }
-
-                  console.log('All global commands:', allGlobalCommands);
-
-                  // Fetch and display all guild-specific commands
-                  const getAllGuildCommandsQuery = `SELECT * FROM commands WHERE guildId = ?`;
-                  const getAllGuildCommandsValues = [guildId];
-                  pool.promise().query(getAllGuildCommandsQuery, getAllGuildCommandsValues, (error, [allGuildCommands]) => {
-                    if (error) {
-                      console.error('Error fetching all guild-specific commands:', error);
-                      return;
-                    }
-
-                    console.log('All guild-specific commands:', allGuildCommands);
-                  });
-                });
-              })
-              .catch((error) => {
-                console.error('Error updating guild-specific commands:', error);
-              });
-          });
-        })
-        .catch((error) => {
-          console.error('Error updating global commands:', error);
-        });
+    // Find commands that need to be created or updated
+    const globalCommandsToUpdate = globalCommands.filter((newCommand) => {
+      const existingCommand = existingGlobalCommands.find((command) => command.name === newCommand.name);
+      return !existingCommand || commandHasChanged(existingCommand, newCommand);
     });
+
+    // Delete commands that need to be removed
+    const globalCommandsToDelete = existingGlobalCommands.filter((existingCommand) => {
+      return !globalCommands.find((newCommand) => newCommand.name === existingCommand.name);
+    });
+
+    // Create or update global commands
+    const globalCommandPromises = globalCommandsToUpdate.map((command) => {
+      const existingCommand = existingGlobalCommands.find((c) => c.name === command.name);
+      if (existingCommand) {
+        console.log(`Updating global command: ${command.name}`);
+        return rest.patch(Routes.applicationCommand(clientId, existingCommand.id), {
+          body: command,
+        });
+      } else {
+        console.log(`Creating global command: ${command.name}`);
+        return rest.post(Routes.applicationCommands(clientId), {
+          body: command,
+        });
+      }
+    });
+
+    // Delete global commands
+    const globalDeletePromises = globalCommandsToDelete.map((command) => {
+      console.log(`Deleting global command: ${command.name}`);
+      return rest.delete(Routes.applicationCommand(clientId, command.id));
+    });
+
+    await Promise.all([...globalCommandPromises, ...globalDeletePromises]);
+    console.log('Global commands updated and deleted successfully.');
+
+    // Get existing guild-specific slash commands
+    const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
+    console.log('Existing guild-specific commands fetched:', existingGuildCommands.map(command => command.name));
+
+    // Find commands that need to be created or updated
+    const guildCommandsToUpdate = guildCommands.filter((newCommand) => {
+      const existingCommand = existingGuildCommands.find((command) => command.name === newCommand.name);
+      return !existingCommand || commandHasChanged(existingCommand, newCommand);
+    });
+
+    // Delete commands that need to be removed
+    const guildCommandsToDelete = existingGuildCommands.filter((existingCommand) => {
+      return !guildCommands.find((newCommand) => newCommand.name === existingCommand.name);
+    });
+
+    // Create or update guild-specific commands
+    const guildCommandPromises = guildCommandsToUpdate.map((command) => {
+      const existingCommand = existingGuildCommands.find((c) => c.name === command.name);
+      if (existingCommand) {
+        console.log(`Updating guild-specific command: ${command.name}`);
+        return rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id), {
+          body: command,
+        });
+      } else {
+        console.log(`Creating guild-specific command: ${command.name}`);
+        return rest.post(Routes.applicationGuildCommands(clientId, guildId), {
+          body: command,
+        });
+      }
+    });
+
+    // Delete guild-specific commands
+    const guildDeletePromises = guildCommandsToDelete.map((command) => {
+      console.log(`Deleting guild-specific command: ${command.name}`);
+      return rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id));
+    });
+
+    await Promise.all([...guildCommandPromises, ...guildDeletePromises]);
+    console.log('Guild-specific commands updated and deleted successfully.');
+
+    // Fetch and display all global commands
+    const allGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+    console.log('All global commands:', allGlobalCommands.map(command => command.name));
+
+    // Fetch and display the names of all guild-specific commands for the current guild
+    const guildCommandNames = guildCommands.map((command) => command.name);
+    console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
+
+    // Check rate limit reset time
+    const headers = rest.lastResponse?.headers || rest.globalRateLimit?.headers;
+    const globalResetTime = headers && headers['x-ratelimit-global']
+      ? new Date(parseInt(headers['x-ratelimit-global'])).toLocaleString()
+      : 'N/A';
+    const applicationResetTime = headers && headers['x-ratelimit-reset']
+      ? new Date(parseInt(headers['x-ratelimit-reset'])).toLocaleString()
+      : 'N/A';
+
+    console.log('Global Rate Limit Reset Time:', globalResetTime);
+    console.log('Application Rate Limit Reset Time:', applicationResetTime);
   } catch (error) {
-    console.error('Error while refreshing application (/) commands:', error);
+    if (error.code === 30034) {
+      const resetTime = new Date(Date.now() + error.rawError.retry_after * 1000).toLocaleString();
+      console.log('Rate limit exceeded. Retry after:', resetTime);
+    } else {
+      console.error('Error while refreshing application (/) commands:', error);
+    }
   }
 };
