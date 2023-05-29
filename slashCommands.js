@@ -6,12 +6,20 @@ const db = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
+  const optionsChanged = JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options);
+
+  if (optionsChanged) {
+    console.log('Old Command Options:', oldCommand.options);
+    console.log('New Command Options:', newCommand.options);
+  }
+
   return (
     oldCommand.name !== newCommand.name ||
     oldCommand.description !== newCommand.description ||
-    JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options)
+    optionsChanged
   );
 }
+
 
 // Create commandIds table if it doesn't exist
 db.query(
