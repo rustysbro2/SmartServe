@@ -43,7 +43,7 @@ db.query(
     commandName VARCHAR(255),
     commandId VARCHAR(255),
     options JSON,
-    lastModified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    lastModified DATETIME,
     PRIMARY KEY (commandName)
   )
 `,
@@ -61,33 +61,32 @@ module.exports = async function (client) {
 
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
+    const commandData = command.data.toJSON();
 
-    if (command.data) {
-      const commandData = command.data.toJSON();
+    // Get the last modified timestamp of the file
+    const fileStats = fs.statSync(`./commands/${file}`);
+    const lastModified = fileStats.mtime;
 
-      if (command.global !== false) {
-        globalCommands.push(commandData);
-        console.log(`Refreshing global command: ${commandData.name}`);
-      } else {
-        const guildCommand = commandData;
-        guildCommand.guildId = guildId; // Add guildId property
-        guildCommands.push(guildCommand);
-        console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
-      }
-
-      // Store the command details in the database
-      await db.query(
-        `
-        INSERT INTO commandIds (commandName, commandId, options)
-        VALUES (?, '', ?)
-        ON DUPLICATE KEY UPDATE
-        options = VALUES(options)
-        `,
-        [commandData.name, JSON.stringify(commandData.options || [])]
-      );
+    if (command.global !== false) {
+      globalCommands.push(commandData);
+      console.log(`Refreshing global command: ${commandData.name}`);
     } else {
-      console.error(`Command file '${file}' does not export a valid slash command.`);
+      const guildCommand = commandData;
+      guildCommand.guildId = guildId; // Add guildId property
+      guildCommands.push(guildCommand);
+      console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
     }
+
+    // Store the command name and last modified timestamp in the database
+    await db.query(
+      `
+      INSERT INTO commandIds (commandName, lastModified)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE
+      lastModified = VALUES(lastModified)
+      `,
+      [commandData.name, lastModified]
+    );
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
@@ -126,15 +125,18 @@ module.exports = async function (client) {
         });
       }
 
-      // Check if result.id is defined before updating the command details in the database
+      // Check if result.id is defined before storing in the database
       if (result.id) {
+        // Store the command id and options in the database
         await db.query(
           `
-          UPDATE commandIds
-          SET commandId = ?
-          WHERE commandName = ?
+          INSERT INTO commandIds (commandName, commandId, options)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          commandId = VALUES(commandId),
+          options = VALUES(options)
           `,
-          [result.id, command.name]
+          [command.name, result.id, JSON.stringify(command.options || [])]
         );
       } else {
         console.error(`No valid command ID received for global command: ${command.name}`);
@@ -185,15 +187,18 @@ module.exports = async function (client) {
         console.log(`Created guild-specific command: ${command.name}, response:`, result);
       }
 
-      // Check if result.id is defined before updating the command details in the database
+      // Check if result.id is defined before storing in the database
       if (result.id) {
+        // Store the command id and options in the database
         await db.query(
           `
-          UPDATE commandIds
-          SET commandId = ?
-          WHERE commandName = ?
+          INSERT INTO commandIds (commandName, commandId, options)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE
+          commandId = VALUES(commandId),
+          options = VALUES(options)
           `,
-          [result.id, command.name]
+          [command.name, result.id, JSON.stringify(command.options || [])]
         );
       } else {
         console.error(`No valid command ID received for guild-specific command: ${command.name}`);
