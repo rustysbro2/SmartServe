@@ -72,7 +72,7 @@ module.exports = async function (client) {
       console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
     }
 
-    // Store command options in the database
+    //// Store command options in the database
     await db.query(
       `
       INSERT INTO commandIds (commandName, commandId, options)
