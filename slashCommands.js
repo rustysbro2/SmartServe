@@ -25,13 +25,9 @@ module.exports = async function (client) {
       console.log(`Refreshing global command: ./commands/${file}`);
     } else {
       const guildCommand = command.data.toJSON();
-      if (command.guildId === guildId) {
-        guildCommand.guildId = guildId; // Add guildId property
-        guildCommands.push(guildCommand);
-        console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
-      } else {
-        console.log(`Skipping guild-specific command for guild ${command.guildId}: ./commands/${file}`);
-      }
+      guildCommand.guildId = guildId; // Add guildId property
+      guildCommands.push(guildCommand);
+      console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
     }
   }
 
@@ -63,21 +59,21 @@ module.exports = async function (client) {
     await Promise.all(registerGlobalPromises);
     console.log('Updated global commands registered successfully.');
 
-    // Get existing guild-specific slash commands for the guild specified in config.js
+    // Get existing guild-specific slash commands
     const existingGuildCommands = await rest.get(
       Routes.applicationGuildCommands(clientId, guildId)
     );
 
     console.log('Existing guild-specific commands fetched:', existingGuildCommands);
 
-    // Remove old guild-specific commands for the guild specified in config.js
+    // Remove old guild-specific commands
     const deleteGuildPromises = existingGuildCommands.map((command) =>
       rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id))
     );
     await Promise.all(deleteGuildPromises);
     console.log('Old guild-specific commands deleted.');
 
-    // Register updated guild-specific commands for the guild specified in config.js
+    // Register updated guild-specific commands
     const registerGuildPromises = [rest.put(
       Routes.applicationGuildCommands(clientId, guildId),
       { body: guildCommands },
@@ -92,15 +88,14 @@ module.exports = async function (client) {
     );
     console.log('All global commands:', allGlobalCommands);
 
-    // Fetch and display all guild-specific commands for each guild except the one specified in config.js
+    // Fetch and display all guild-specific commands for each guild
     for (const guildCommand of guildCommands) {
-      if (guildCommand.guildId !== guildId) {
-        const guildId = guildCommand.guildId;
-        const allGuildCommands = await rest.get(
-          Routes.applicationGuildCommands(clientId, guildId)
-        );
-        console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
-      }
+      const guildId = guildCommand.guildId;
+      const allGuildCommands = await rest.get(
+        Routes.applicationGuildCommands(clientId, guildId)
+      );
+      console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
+      console.log(`Guild ID: ${guildId}`);
     }
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
