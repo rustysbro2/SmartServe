@@ -55,7 +55,6 @@ class MusicPlayer {
     }
 
     this.connection.subscribe(this.audioPlayer);
-    this.isBotAlone(); // Call isBotAlone() here after the connection is established
   }
 
   isValidYoutubeUrl(url) {
@@ -121,16 +120,16 @@ class MusicPlayer {
       return false;
     }
 
-    const guildMembers = guild.members.cache;
-    if (!guildMembers || guildMembers.size === 1) {
-      console.log('There are no other members in the voice channel.');
+    const members = voiceChannel.members;
+    if (!members) {
+      console.log('Members are undefined.');
       return false;
     }
 
     const botId = config.clientId; // Use the client ID from config.js
-    const botMember = guildMembers.get(botId);
-    const otherMembers = guildMembers.filter(member => !member.user.bot && member.id !== botId);
-    return otherMembers.size === 0 && botMember !== undefined;
+    const botMember = members.get(botId);
+    const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
+    return otherMembers.size === 0;
   }
 
   sendNowPlaying() {
@@ -231,27 +230,22 @@ class MusicPlayer {
       return;
     }
 
-    const guildMembers = guild.members.cache;
-    if (!guildMembers || guildMembers.size === 1) {
-      console.log('There are no other members in the voice channel.');
-      this.leaveVoiceChannel(); // Leave the voice channel if the bot is alone
+    const members = voiceChannel.members;
+
+    if (!members) {
+      console.log('Members are undefined.');
       return;
     }
 
-    const botId = config.clientId; // Use the client ID from config.js
-    const botMember = guildMembers.get(botId);
-    const otherMembers = guildMembers.filter(member => !member.user.bot && member.id !== botId);
+    const otherMembers = members.filter(member => !member.user.bot);
 
-    // Check if there are non-bot members in the voice channel who are not deafened
-    const nonBotMembers = otherMembers.filter(member => !member.voice?.selfDeaf);
-    if (nonBotMembers.size === 0) {
+    if (otherMembers.size === 0) {
       console.log('Bot is alone in the voice channel. Leaving the channel.');
       this.leaveVoiceChannel(); // Leave the voice channel if the bot is alone
     } else {
       console.log('Bot is not alone in the voice channel.'); // Debug statement when the bot is not alone
     }
   }
-
 
   leaveVoiceChannel() {
     if (this.connection) {
