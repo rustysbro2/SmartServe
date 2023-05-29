@@ -43,7 +43,7 @@ db.query(
     commandName VARCHAR(255),
     commandId VARCHAR(255),
     options JSON,
-    lastModified DATETIME,
+    lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (commandName)
   )
 `,
@@ -63,10 +63,6 @@ module.exports = async function (client) {
     const command = require(`./commands/${file}`);
     const commandData = command.data.toJSON();
 
-    // Get the last modified timestamp of the file
-    const fileStats = fs.statSync(`./commands/${file}`);
-    const lastModified = fileStats.mtime;
-
     if (command.global !== false) {
       globalCommands.push(commandData);
       console.log(`Refreshing global command: ${commandData.name}`);
@@ -76,17 +72,6 @@ module.exports = async function (client) {
       guildCommands.push(guildCommand);
       console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
     }
-
-    // Store the command name and last modified timestamp in the database
-    await db.query(
-      `
-      INSERT INTO commandIds (commandName, lastModified)
-      VALUES (?, ?)
-      ON DUPLICATE KEY UPDATE
-      lastModified = VALUES(lastModified)
-      `,
-      [commandData.name, lastModified]
-    );
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
@@ -127,14 +112,15 @@ module.exports = async function (client) {
 
       // Check if result.id is defined before storing in the database
       if (result.id) {
-        // Store the command id and options in the database
+        // Store the command id, options, and last modified timestamp in the database
         await db.query(
           `
           INSERT INTO commandIds (commandName, commandId, options)
           VALUES (?, ?, ?)
           ON DUPLICATE KEY UPDATE
           commandId = VALUES(commandId),
-          options = VALUES(options)
+          options = VALUES(options),
+          lastModified = CURRENT_TIMESTAMP
           `,
           [command.name, result.id, JSON.stringify(command.options || [])]
         );
@@ -189,14 +175,15 @@ module.exports = async function (client) {
 
       // Check if result.id is defined before storing in the database
       if (result.id) {
-        // Store the command id and options in the database
+        // Store the command id, options, and last modified timestamp in the database
         await db.query(
           `
           INSERT INTO commandIds (commandName, commandId, options)
           VALUES (?, ?, ?)
           ON DUPLICATE KEY UPDATE
           commandId = VALUES(commandId),
-          options = VALUES(options)
+          options = VALUES(options),
+          lastModified = CURRENT_TIMESTAMP
           `,
           [command.name, result.id, JSON.stringify(command.options || [])]
         );
