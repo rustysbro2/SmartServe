@@ -242,13 +242,16 @@ class MusicPlayer {
     const botMember = guildMembers.get(botId);
     const otherMembers = guildMembers.filter(member => !member.user.bot && member.id !== botId);
 
-    if (otherMembers.size === 0 && !botMember.voice?.selfDeaf) {
+    // Check if there are non-bot members in the voice channel who are not deafened
+    const nonBotMembers = otherMembers.filter(member => !member.voice?.selfDeaf);
+    if (nonBotMembers.size === 0) {
       console.log('Bot is alone in the voice channel. Leaving the channel.');
       this.leaveVoiceChannel(); // Leave the voice channel if the bot is alone
     } else {
       console.log('Bot is not alone in the voice channel.'); // Debug statement when the bot is not alone
     }
   }
+
 
   leaveVoiceChannel() {
     if (this.connection) {
