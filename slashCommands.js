@@ -6,7 +6,6 @@ const db = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
-
   if (oldCommand.options === undefined && newCommand.options === undefined) {
     return false; // No change if both options are undefined
   }
@@ -22,7 +21,12 @@ function commandHasChanged(oldCommand, newCommand) {
     const oldOption = oldOptions[i];
     const newOption = newOptions[i];
 
-    if (oldOption.type !== newOption.type || oldOption.name !== newOption.name || oldOption.description !== newOption.description || oldOption.required !== newOption.required) {
+    if (
+      oldOption.type !== newOption.type ||
+      oldOption.name !== newOption.name ||
+      oldOption.description !== newOption.description ||
+      oldOption.required !== newOption.required
+    ) {
       return true; // Option properties changed
     }
   }
@@ -107,16 +111,17 @@ module.exports = async function (client) {
       // Check if result.id is defined before storing in the database
       if (result.id) {
         // Store the command id, options, and last modified timestamp in the database
-        const sql = `
+        await db.query(
+          `
           INSERT INTO commandIds (commandName, commandId, options)
           VALUES (?, ?, ?)
           ON DUPLICATE KEY UPDATE
           commandId = VALUES(commandId),
           options = VALUES(options),
           lastModified = CURRENT_TIMESTAMP
-        `;
-
-        await db.query(sql, [command.name, result.id, JSON.stringify(command.options || [])]);
+          `,
+          [command.name, result.id, JSON.stringify(command.options || [])]
+        );
 
         // Log command update
         console.log(`Command updated: ${command.name}`);
@@ -172,16 +177,17 @@ module.exports = async function (client) {
       // Check if result.id is defined before storing in the database
       if (result.id) {
         // Store the command id, options, and last modified timestamp in the database
-        const sql = `
+        await db.query(
+          `
           INSERT INTO commandIds (commandName, commandId, options)
           VALUES (?, ?, ?)
           ON DUPLICATE KEY UPDATE
           commandId = VALUES(commandId),
           options = VALUES(options),
           lastModified = CURRENT_TIMESTAMP
-        `;
-
-        await db.query(sql, [command.name, result.id, JSON.stringify(command.options || [])]);
+          `,
+          [command.name, result.id, JSON.stringify(command.options || [])]
+        );
 
         // Log command update
         console.log(`Command updated: ${command.name}`);
