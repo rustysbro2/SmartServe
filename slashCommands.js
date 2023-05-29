@@ -19,7 +19,6 @@ module.exports = async function (client) {
 
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    command.data.id = client.application.commands.cache.find(c => c.name === command.data.name)?.id || 'unique-command-id';
 
     if (command.global) {
       commands.push(command.data.toJSON());
@@ -70,6 +69,11 @@ module.exports = async function (client) {
     console.log('Successfully added guild-specific commands.');
 
   } catch (error) {
-    console.error('Error while refreshing application (/) commands.', error);
+    console.error('Error while refreshing application (/) commands:', error);
+    console.error('Request URL:', error.request.url);
+    console.error('Request Method:', error.request.method);
+    console.error('Request Body:', error.request.body);
+    console.error('Response Status:', error.code);
+    console.error('Response Body:', error.request.body);
   }
 };
