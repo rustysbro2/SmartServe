@@ -6,8 +6,11 @@ const db = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
+  console.log('Old Command Options:', oldCommand.options);
+  console.log('New Command Options:', newCommand.options);
 
   if (oldCommand.options === undefined && newCommand.options === undefined) {
+    console.log('Command has changed: false');
     return false; // No change if both options are undefined
   }
 
@@ -15,6 +18,7 @@ function commandHasChanged(oldCommand, newCommand) {
   const newOptions = newCommand.options || [];
 
   if (oldOptions.length !== newOptions.length) {
+    console.log('Command has changed: true');
     return true; // Number of options changed
   }
 
@@ -23,10 +27,12 @@ function commandHasChanged(oldCommand, newCommand) {
     const newOption = newOptions[i];
 
     if (oldOption.type !== newOption.type || oldOption.name !== newOption.name || oldOption.description !== newOption.description || oldOption.required !== newOption.required) {
+      console.log('Command has changed: true');
       return true; // Option properties changed
     }
   }
 
+  console.log('Command has changed: false');
   return false; // No change in options
 }
 
@@ -56,6 +62,7 @@ module.exports = async function (client) {
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     const commandData = command.data.toJSON();
+    commandData.file = file; // Store the file name for comparison
 
     if (command.global !== false) {
       globalCommands.push(commandData);
