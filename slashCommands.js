@@ -78,7 +78,8 @@ module.exports = async function (client) {
       ],
     }));
 
-    await rest.put(Routes.applicationGuildCommandsPermissions(clientId, guildId), { body: commandPermissions });
+    const permissionsUrl = `/applications/${clientId}/guilds/${guildId}/commands/permissions`;
+    await rest.put(permissionsUrl, { body: commandPermissions });
     console.log('Command permissions set for guild-specific commands.');
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
