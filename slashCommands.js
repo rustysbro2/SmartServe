@@ -71,18 +71,6 @@ module.exports = async function (client) {
       guildCommands.push(guildCommand);
       console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
     }
-
-    //// Store command options in the database
-    await db.query(
-      `
-      INSERT INTO commandIds (commandName, commandId, options)
-      VALUES (?, ?, ?)
-      ON DUPLICATE KEY UPDATE
-      commandId = VALUES(commandId),
-      options = VALUES(options)
-      `,
-      [commandData.name, commandData.id, JSON.stringify(commandData.options || [])]
-    );
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
@@ -106,19 +94,34 @@ module.exports = async function (client) {
     });
 
     // Create or update global commands
-    const globalCommandPromises = globalCommandsToUpdate.map((command) => {
+    const globalCommandPromises = globalCommandsToUpdate.map(async (command) => {
       const existingCommand = existingGlobalCommands.find((c) => c.name === command.name);
+      let result;
       if (existingCommand) {
         console.log(`Updating global command: ${command.name}`);
-        return rest.patch(Routes.applicationCommand(clientId, existingCommand.id), {
+        result = await rest.patch(Routes.applicationCommand(clientId, existingCommand.id), {
           body: command,
         });
       } else {
         console.log(`Creating global command: ${command.name}`);
-        return rest.post(Routes.applicationCommands(clientId), {
+        result = await rest.post(Routes.applicationCommands(clientId), {
           body: command,
         });
       }
+
+      // Store the command id and options in the database
+      await db.query(
+        `
+        INSERT INTO commandIds (commandName, commandId, options)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        commandId = VALUES(commandId),
+        options = VALUES(options)
+        `,
+        [command.name, result.id, JSON.stringify(command.options || [])]
+      );
+
+      return result;
     });
 
     // Delete global commands
@@ -146,19 +149,34 @@ module.exports = async function (client) {
     });
 
     // Create or update guild-specific commands
-    const guildCommandPromises = guildCommandsToUpdate.map((command) => {
+    const guildCommandPromises = guildCommandsToUpdate.map(async (command) => {
       const existingCommand = existingGuildCommands.find((c) => c.name === command.name);
+      let result;
       if (existingCommand) {
         console.log(`Updating guild-specific command: ${command.name}`);
-        return rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id), {
+        result = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id), {
           body: command,
         });
       } else {
         console.log(`Creating guild-specific command: ${command.name}`);
-        return rest.post(Routes.applicationGuildCommands(clientId, guildId), {
+        result = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
           body: command,
         });
       }
+
+      // Store the command id and options in the database
+      await db.query(
+        `
+        INSERT INTO commandIds (commandName, commandId, options)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        commandId = VALUES(commandId),
+        options = VALUES(options)
+        `,
+        [command.name, result.id, JSON.stringify(command.options || [])]
+      );
+
+      return result;
     });
 
     // Delete guild-specific commands
@@ -170,37 +188,8 @@ module.exports = async function (client) {
     await Promise.all([...guildCommandPromises, ...guildDeletePromises]);
     console.log('Guild-specific commands updated and deleted successfully.');
 
-    // Fetch and display all global commands
-    const allGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
-    console.log('All global commands:', allGlobalCommands.map((command) => command.name));
-
-    // Fetch and display the names of all guild-specific commands for the current guild
-    const guildCommandNames = guildCommands.map((command) => command.name);
-    console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
-
-    // Store unique IDs and options in MySQL database
-    await Promise.all(
-      allGlobalCommands.map((command) => {
-        return db.query(
-          `
-          UPDATE commandIds
-          SET commandId = ?,
-            options = ?
-          WHERE commandName = ?
-          `,
-          [command.id, JSON.stringify(command.options || []), command.name]
-        );
-      })
-    );
-
-
-    console.log('Global command IDs and options stored in the database.');
+    console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
-    if (error.code === 30034) {
-      const resetTime = new Date(Date.now() + error.rawError.retry_after * 1000).toLocaleString();
-      console.log('Rate limit exceeded. Retry after:', resetTime);
-    } else {
-      console.error('Error while refreshing application (/) commands:', error);
-    }
+    console.error('Error refreshing application (/) commands:', error);
   }
 };
