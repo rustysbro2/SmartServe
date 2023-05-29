@@ -2,7 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
-const pool = require('./database.js').promise(); // Import the promise-based pool
+const pool = require('./database');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
@@ -40,7 +40,7 @@ module.exports = async function (client) {
     console.log('Started refreshing application (/) commands.');
 
     // Get existing global slash commands
-    const [existingGlobalCommands] = await pool.query('SELECT name FROM commands WHERE global = 1');
+    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
     console.log('Existing global commands fetched:', existingGlobalCommands.map(command => command.name));
 
     // Find commands that need to be created or updated
@@ -80,7 +80,7 @@ module.exports = async function (client) {
     console.log('Global commands updated and deleted successfully.');
 
     // Get existing guild-specific slash commands
-    const [existingGuildCommands] = await pool.query('SELECT name FROM commands WHERE global = 0 AND guildId = ?', [guildId]);
+    const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
     console.log('Existing guild-specific commands fetched:', existingGuildCommands.map(command => command.name));
 
     // Find commands that need to be created or updated
@@ -119,13 +119,75 @@ module.exports = async function (client) {
     await Promise.all([...guildCommandPromises, ...guildDeletePromises]);
     console.log('Guild-specific commands updated and deleted successfully.');
 
-    // Fetch and display all global commands
-    const allGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+    // Insert or update global commands in the database
+    await Promise.all(
+      globalCommands.map(async (command) => {
+        try {
+          const [rows] = await pool.promise().query('SELECT * FROM commands WHERE name = ?', [command.name]);
+          if (rows.length > 0) {
+            // Update command in the database
+            await pool.promise().query('UPDATE commands SET description = ?, options = ? WHERE name = ?', [
+              command.description,
+              JSON.stringify(command.options),
+              command.name,
+            ]);
+          } else {
+            // Insert command into the database
+            await pool.promise().query('INSERT INTO commands (name, description, options) VALUES (?, ?, ?)', [
+              command.name,
+              command.description,
+              JSON.stringify(command.options),
+            ]);
+          }
+        } catch (error) {
+          console.error('Error inserting/updating command in the database:', error);
+        }
+      })
+    );
+
+    // Fetch and display all global commands from the database
+    const [allGlobalCommands] = await pool.promise().query('SELECT name FROM commands WHERE global = 1');
     console.log('All global commands:', allGlobalCommands.map(command => command.name));
 
-    // Fetch and display the names of all guild-specific commands for the current guild
-    const guildCommandNames = guildCommands.map((command) => command.name);
-    console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
+    // Insert or update guild-specific commands in the database
+    await Promise.all(
+      guildCommands.map(async (command) => {
+        try {
+          const [rows] = await pool
+            .promise()
+            .query('SELECT * FROM commands WHERE name = ? AND guildId = ?', [command.name, guildId]);
+          if (rows.length > 0) {
+            // Update command in the database
+            await pool
+              .promise()
+              .query('UPDATE commands SET description = ?, options = ? WHERE name = ? AND guildId = ?', [
+                command.description,
+                JSON.stringify(command.options),
+                command.name,
+                guildId,
+              ]);
+          } else {
+            // Insert command into the database
+            await pool
+              .promise()
+              .query('INSERT INTO commands (name, description, options, guildId) VALUES (?, ?, ?, ?)', [
+                command.name,
+                command.description,
+                JSON.stringify(command.options),
+                guildId,
+              ]);
+          }
+        } catch (error) {
+          console.error('Error inserting/updating command in the database:', error);
+        }
+      })
+    );
+
+    // Fetch and display the names of all guild-specific commands for the current guild from the database
+    const [guildCommandNames] = await pool
+      .promise()
+      .query('SELECT name FROM commands WHERE global = 0 AND guildId = ?', [guildId]);
+    console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames.map(command => command.name));
 
     // Check rate limit reset time
     const headers = rest.lastResponse?.headers || rest.globalRateLimit?.headers;
