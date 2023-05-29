@@ -39,11 +39,10 @@ module.exports = async function (client) {
     console.log('Started refreshing application (/) commands.');
 
     // Get existing global slash commands
+    console.log('Fetching existing global commands...');
     const existingGlobalCommands = await rest.get(
       Routes.applicationCommands(clientId)
     );
-
-    console.log('Fetching existing global commands...');
     console.log('Existing global commands fetched:', existingGlobalCommands);
 
     // Remove old global commands
@@ -79,5 +78,6 @@ module.exports = async function (client) {
 
   } catch (error) {
     console.error('Error while refreshing application (/) commands.', error);
+    console.error('Command that caused the error:', commands.find(cmd => cmd.name === error.rawError.errors.name[0].name));
   }
 };
