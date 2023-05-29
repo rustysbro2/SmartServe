@@ -74,5 +74,7 @@ module.exports = async function (client) {
 
   } catch (error) {
     console.error('Error while refreshing application (/) commands.', error);
+    console.error('Request Body:', error.requestBody);
+    console.error('Raw Error:', error.rawError);
   }
 };
