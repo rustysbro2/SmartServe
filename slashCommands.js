@@ -23,7 +23,7 @@ module.exports = async function (client) {
     if (command.global) {
       commands.push(command.data.toJSON());
     } else {
-      const guildId = '1106643216125665350'; // Replace 'YOUR_GUILD_ID' with the desired guild ID
+      const guildId = '1100765844776173670'; // Replace 'YOUR_GUILD_ID' with the desired guild ID
       const guildCommand = {
         guildId,
         command: command.data.toJSON(),
