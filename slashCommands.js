@@ -81,7 +81,7 @@ module.exports = async function (client) {
       commandId = VALUES(commandId),
       options = VALUES(options)
       `,
-      [commandData.name, null, JSON.stringify(commandData.options)]
+      [commandData.name, commandData.id, JSON.stringify(commandData.options)]
     );
   }
 
