@@ -1,8 +1,8 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
-const fs = require('fs');
 const pool = require('./database.js');
+const fs = require('fs');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
@@ -13,27 +13,7 @@ function commandHasChanged(oldCommand, newCommand) {
   );
 }
 
-async function createCommandsTable() {
-  try {
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS commands (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL,
-        description VARCHAR(255) NOT NULL,
-        options TEXT NOT NULL,
-        guildId VARCHAR(255),
-        global BOOLEAN NOT NULL DEFAULT 1
-      )
-    `);
-    console.log('Commands table created successfully.');
-  } catch (error) {
-    console.error('Error creating commands table:', error);
-  }
-}
-
 module.exports = async function (client) {
-  await createCommandsTable();
-
   const globalCommands = [];
   const guildCommands = [];
 
@@ -140,20 +120,36 @@ module.exports = async function (client) {
     console.log('Guild-specific commands updated and deleted successfully.');
 
     // Insert or update commands in the database
-    const insertOrUpdatePromises = globalCommandsToUpdate.map((command) => {
-      return pool.query(`
-        INSERT INTO commands (name, description, options, guildId, global)
-        VALUES (?, ?, ?, NULL, 1)
-        ON DUPLICATE KEY UPDATE
-        description = VALUES(description),
-        options = VALUES(options),
-        guildId = VALUES(guildId),
-        global = VALUES(global)
-      `, [command.name, command.description, JSON.stringify(command.options)]);
+    const insertCommandsPromises = globalCommands.map((command) => {
+      const { name, description, options } = command;
+      return pool.promise().query(
+        `INSERT INTO commands (name, description, options, guildId, global)
+         VALUES (?, ?, ?, NULL, 1)
+         ON DUPLICATE KEY UPDATE
+         description = VALUES(description),
+         options = VALUES(options),
+         guildId = VALUES(guildId),
+         global = VALUES(global)`,
+        [name, description, JSON.stringify(options)]
+      );
     });
 
-    await Promise.all(insertOrUpdatePromises);
-    console.log('Commands inserted/updated in the database successfully.');
+    const updateCommandsPromises = guildCommands.map((command) => {
+      const { name, description, options } = command;
+      return pool.promise().query(
+        `INSERT INTO commands (name, description, options, guildId, global)
+         VALUES (?, ?, ?, ?, 0)
+         ON DUPLICATE KEY UPDATE
+         description = VALUES(description),
+         options = VALUES(options),
+         guildId = VALUES(guildId),
+         global = VALUES(global)`,
+        [name, description, JSON.stringify(options), guildId]
+      );
+    });
+
+    await Promise.all([...insertCommandsPromises, ...updateCommandsPromises]);
+    console.log('Commands inserted/updated in the database.');
 
     // Fetch and display all global commands
     const allGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
@@ -175,11 +171,6 @@ module.exports = async function (client) {
     console.log('Global Rate Limit Reset Time:', globalResetTime);
     console.log('Application Rate Limit Reset Time:', applicationResetTime);
   } catch (error) {
-    if (error.code === 30034) {
-      const resetTime = new Date(Date.now() + error.rawError.retry_after * 1000).toLocaleString();
-      console.log('Rate limit exceeded. Retry after:', resetTime);
-    } else {
-      console.error('Error while refreshing application (/) commands:', error);
-    }
+    console.error('Error while refreshing application (/) commands:', error);
   }
 };
