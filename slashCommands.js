@@ -61,37 +61,27 @@ module.exports = async function (client) {
     await Promise.all(registerGlobalPromises);
     console.log('Updated global commands registered successfully.');
 
+    // Get existing guild-specific slash commands
+    const existingGuildCommands = await rest.get(
+      Routes.applicationGuildCommands(clientId, guildId)
+    );
+
+    console.log('Existing guild-specific commands fetched:', existingGuildCommands);
+
+    // Remove old guild-specific commands
+    const deleteGuildPromises = existingGuildCommands.map((command) =>
+      rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id))
+    );
+    await Promise.all(deleteGuildPromises);
+    console.log('Old guild-specific commands deleted.');
+
     // Register updated guild-specific commands
-    for (const guildId in guildCommands) {
-      if (guildId !== guildId) {
-        // Skip registering commands for other guilds
-        continue;
-      }
-
-      const existingGuildCommands = await rest.get(
-        Routes.applicationGuildCommands(clientId, guildId)
-      );
-
-      console.log(`Existing guild-specific commands fetched for guild ${guildId}:`, existingGuildCommands);
-
-      // Remove old guild-specific commands
-      const deleteGuildPromises = existingGuildCommands.map((command) => {
-        // Check if the command is no longer specific to the guild
-        if (!guildCommands[guildId].find((cmd) => cmd.name === command.name)) {
-          return rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id));
-        }
-      });
-      await Promise.all(deleteGuildPromises);
-      console.log(`Old guild-specific commands deleted for guild ${guildId}.`);
-
-      // Register updated guild-specific commands
-      const registerGuildPromises = [rest.put(
-        Routes.applicationGuildCommands(clientId, guildId),
-        { body: guildCommands[guildId] },
-      )];
-      await Promise.all(registerGuildPromises);
-      console.log(`Updated guild-specific commands registered successfully for guild ${guildId}.`);
-    }
+    const registerGuildPromises = [rest.put(
+      Routes.applicationGuildCommands(clientId, guildId),
+      { body: guildCommands[guildId] },
+    )];
+    await Promise.all(registerGuildPromises);
+    console.log('Updated guild-specific commands registered successfully.');
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
   }
