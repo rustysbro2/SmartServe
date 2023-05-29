@@ -2,8 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
-const mysql = require('mysql2');
-const pool = require('./database');
+const pool = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
@@ -14,17 +13,27 @@ function commandHasChanged(oldCommand, newCommand) {
   );
 }
 
-// Create commands table if it doesn't exist
-pool.query(`CREATE TABLE IF NOT EXISTS commands (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  name VARCHAR(255) NOT NULL,
-  description VARCHAR(255) NOT NULL,
-  options TEXT,
-  guildId VARCHAR(255),
-  UNIQUE KEY unique_command (name, guildId)
-)`);
+async function createCommandsTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS commands (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        description VARCHAR(255) NOT NULL,
+        options TEXT NOT NULL,
+        guildId VARCHAR(255),
+        global BOOLEAN NOT NULL DEFAULT 1
+      )
+    `);
+    console.log('Commands table created successfully.');
+  } catch (error) {
+    console.error('Error creating commands table:', error);
+  }
+}
 
 module.exports = async function (client) {
+  await createCommandsTable();
+
   const globalCommands = [];
   const guildCommands = [];
 
@@ -129,6 +138,22 @@ module.exports = async function (client) {
 
     await Promise.all([...guildCommandPromises, ...guildDeletePromises]);
     console.log('Guild-specific commands updated and deleted successfully.');
+
+    // Insert or update commands in the database
+    const insertOrUpdatePromises = globalCommandsToUpdate.map((command) => {
+      return pool.query(`
+        INSERT INTO commands (name, description, options, guildId, global)
+        VALUES (?, ?, ?, NULL, 1)
+        ON DUPLICATE KEY UPDATE
+        description = VALUES(description),
+        options = VALUES(options),
+        guildId = VALUES(guildId),
+        global = VALUES(global)
+      `, [command.name, command.description, JSON.stringify(command.options)]);
+    });
+
+    await Promise.all(insertOrUpdatePromises);
+    console.log('Commands inserted/updated in the database successfully.');
 
     // Fetch and display all global commands
     const allGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
