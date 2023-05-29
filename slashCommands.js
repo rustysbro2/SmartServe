@@ -23,10 +23,15 @@ module.exports = async function (client) {
     if (command.global !== false) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
-    } else if (command.guildId === guildId) {
+    } else {
       const guildCommand = command.data.toJSON();
-      guildCommands.push(guildCommand);
-      console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
+      if (command.guildId === guildId) {
+        guildCommand.guildId = guildId; // Add guildId property
+        guildCommands.push(guildCommand);
+        console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
+      } else {
+        console.log(`Skipping guild-specific command for guild ${command.guildId}: ./commands/${file}`);
+      }
     }
   }
 
@@ -87,11 +92,16 @@ module.exports = async function (client) {
     );
     console.log('All global commands:', allGlobalCommands);
 
-    // Fetch and display all guild-specific commands for the guild specified in config.js
-    const allGuildCommands = await rest.get(
-      Routes.applicationGuildCommands(clientId, guildId)
-    );
-    console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
+    // Fetch and display all guild-specific commands for each guild except the one specified in config.js
+    for (const guildCommand of guildCommands) {
+      if (guildCommand.guildId !== guildId) {
+        const guildId = guildCommand.guildId;
+        const allGuildCommands = await rest.get(
+          Routes.applicationGuildCommands(clientId, guildId)
+        );
+        console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
+      }
+    }
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
   }
