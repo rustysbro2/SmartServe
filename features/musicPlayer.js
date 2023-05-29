@@ -232,26 +232,15 @@ class MusicPlayer {
       return;
     }
 
-    const members = voiceChannel.members;
-
-    if (!members) {
-      console.log('Members are undefined.');
+    const guildMembers = guild.members.cache;
+    if (!guildMembers || guildMembers.size === 1) {
+      console.log('There are no other members in the voice channel.');
       return;
     }
 
     const botId = config.clientId; // Use the client ID from config.js
-    const botMember = members.get(botId);
-
-    if (!botMember) {
-      console.log('Bot is not present in the voice channel.');
-      console.log('Bot ID:', botId);
-      console.log('Voice Channel ID:', voiceChannelId);
-      console.log('Voice Channel Members:', members.size);
-      this.leaveVoiceChannel(); // Leave the voice channel if the bot is not present
-      return;
-    }
-
-    const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
+    const botMember = guildMembers.get(botId);
+    const otherMembers = guildMembers.filter(member => !member.user.bot && member.id !== botId);
 
     if (otherMembers.size === 0 && !botMember.voice?.selfDeaf) {
       console.log('Bot is alone in the voice channel. Leaving the channel.');
@@ -260,6 +249,7 @@ class MusicPlayer {
       console.log('Bot is not alone in the voice channel.'); // Debug statement when the bot is not alone
     }
   }
+
 
 
 
