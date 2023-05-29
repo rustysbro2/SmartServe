@@ -70,7 +70,7 @@ module.exports = async function (client) {
 
       // Register updated guild-specific commands
       const registerGuildPromises = guildCommands[guildId].map((command) =>
-        rest.put(Routes.applicationGuildCommand(clientId, guildId), { body: command })
+        rest.post(Routes.applicationGuildCommands(clientId, guildId), { body: command })
       );
       await Promise.all(registerGuildPromises);
       console.log(`Updated guild-specific commands registered successfully for guild ${guildId}.`);
