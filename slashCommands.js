@@ -23,7 +23,7 @@ module.exports = async function (client) {
     if (command.global !== false) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
-    } else if (command.guildId === guildId) {
+    } else {
       guildCommands.push(command.data.toJSON());
       console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
     }
@@ -86,11 +86,13 @@ module.exports = async function (client) {
     );
     console.log('All global commands:', allGlobalCommands);
 
-    // Fetch and display all guild-specific commands
-    const allGuildCommands = await rest.get(
-      Routes.applicationGuildCommands(clientId, guildId)
-    );
-    console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
+    // Fetch and display all guild-specific commands for each guild
+    for (const guildId in guildCommands) {
+      const allGuildCommands = await rest.get(
+        Routes.applicationGuildCommands(clientId, guildId)
+      );
+      console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
+    }
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
   }
