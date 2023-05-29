@@ -59,6 +59,7 @@ module.exports = async function (client) {
     console.log('Updated global commands registered successfully.');
 
     // Fetch and display all guild-specific commands for each guild
+    await client.guilds.fetch(); // Update guild cache
     client.guilds.cache.forEach(async (guild) => {
       const guildId = guild.id;
 
