@@ -270,6 +270,8 @@ class MusicPlayer {
       this.connection.destroy();
       this.connection = null;
       console.log('Bot left the voice channel.');
+
+      clearInterval(this.voiceChannelCheckInterval); // Clear the voice channel check interval
     }
   }
 }
