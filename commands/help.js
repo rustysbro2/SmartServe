@@ -71,41 +71,21 @@ module.exports = {
       const command = require(path.join(commandsDirectory, file));
       console.log('Command module:', command);
 
-      if (command.category) {
-        let category = commandCategories.find((category) => category.name === command.category);
+      const category = {
+        name: command.category || defaultCategoryName,
+        description: command.categoryDescription || '',
+        commands: [],
+        guildId: command.guildId // Add guildId property
+      };
 
-        if (!category) {
-          category = {
-            name: command.category,
-            description: '',
-            commands: [],
-          };
-
-          commandCategories.push(category);
-        }
-
+      command.commands.forEach((cmd) => {
         category.commands.push({
-          name: command.data.name,
-          description: command.data.description,
+          name: cmd.name,
+          description: cmd.description,
         });
-      } else {
-        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+      });
 
-        if (!defaultCategory) {
-          defaultCategory = {
-            name: defaultCategoryName,
-            description: 'Commands that do not belong to any specific category',
-            commands: [],
-          };
-
-          commandCategories.push(defaultCategory);
-        }
-
-        defaultCategory.commands.push({
-          name: command.data.name,
-          description: command.data.description,
-        });
-      }
+      commandCategories.push(category);
     }
 
     console.log('Command categories:', commandCategories);
@@ -117,15 +97,17 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     commandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name));
+      if (category.guildId === interaction.guildId) {
+        const optionBuilder = new StringSelectMenuOptionBuilder()
+          .setLabel(category.name)
+          .setValue(generateUniqueOptionValue(category.name));
 
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
+        if (category.description && category.description.length > 0) {
+          optionBuilder.setDescription(category.description);
+        }
+
+        selectMenu.addOptions(optionBuilder);
       }
-
-      selectMenu.addOptions(optionBuilder);
     });
 
     function generateUniqueOptionValue(categoryName) {
