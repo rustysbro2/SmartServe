@@ -2,7 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
-const pool = require('./database.js');
+const { pool } = require('./database.js');
 const mysql = require('mysql2');
 
 function commandHasChanged(oldCommand, newCommand) {
@@ -185,4 +185,33 @@ module.exports = async function (client) {
                     console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames.map(command => command.name));
 
                     // Check rate limit reset time
-                    const global
+                    const globalResetTime = rest.lastResponse?.headers['x-ratelimit-global']
+                      ? new Date(parseInt(rest.lastResponse.headers['x-ratelimit-global'])).toLocaleString()
+                      : 'N/A';
+                    const applicationResetTime = rest.lastResponse?.headers['x-ratelimit-reset']
+                      ? new Date(parseInt(rest.lastResponse.headers['x-ratelimit-reset'])).toLocaleString()
+                      : 'N/A';
+
+                    console.log('Global Rate Limit Reset Time:', globalResetTime);
+                    console.log('Application Rate Limit Reset Time:', applicationResetTime);
+                  });
+                });
+              })
+              .catch((error) => {
+                console.error('Error updating or deleting guild-specific commands:', error);
+              });
+          });
+        })
+        .catch((error) => {
+          console.error('Error updating or deleting global commands:', error);
+        });
+    });
+  } catch (error) {
+    if (error.code === 30034) {
+      const resetTime = new Date(Date.now() + error.rawError.retry_after * 1000).toLocaleString();
+      console.log('Rate limit exceeded. Retry after:', resetTime);
+    } else {
+      console.error('Error while refreshing application (/) commands:', error);
+    }
+  }
+};
