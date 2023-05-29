@@ -77,6 +77,9 @@ module.exports = async function (client) {
     console.log('Successfully added guild-specific commands.');
 
   } catch (error) {
-    console.error('Error while refreshing application (/) commands.', error);
+    console.error('Error while refreshing application (/) commands.');
+    console.error('DiscordAPIError:', error);
+    console.error('Request Body:', error.requestBody);
+    console.error('Raw Error:', error.rawError);
   }
 };
