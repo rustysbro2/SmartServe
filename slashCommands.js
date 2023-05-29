@@ -2,6 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
+const db = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
@@ -11,6 +12,18 @@ function commandHasChanged(oldCommand, newCommand) {
     JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options)
   );
 }
+
+// Create commandIds table if it doesn't exist
+db.query(`
+  CREATE TABLE IF NOT EXISTS commandIds (
+    commandName VARCHAR(255),
+    commandId VARCHAR(255),
+    PRIMARY KEY (commandName)
+  )
+`, (error) => {
+  if (error) throw error;
+  console.log('CommandIds table created or already exists.');
+});
 
 module.exports = async function (client) {
   const globalCommands = [];
@@ -126,17 +139,20 @@ module.exports = async function (client) {
     const guildCommandNames = guildCommands.map((command) => command.name);
     console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
 
-    // Check rate limit reset time
-    const headers = rest.lastResponse?.headers || rest.globalRateLimit?.headers;
-    const globalResetTime = headers && headers['x-ratelimit-global']
-      ? new Date(parseInt(headers['x-ratelimit-global'])).toLocaleString()
-      : 'N/A';
-    const applicationResetTime = headers && headers['x-ratelimit-reset']
-      ? new Date(parseInt(headers['x-ratelimit-reset'])).toLocaleString()
-      : 'N/A';
+    // Store unique IDs in MySQL database
+    await Promise.all(allGlobalCommands.map((command) => {
+      return db.query(
+        `
+        INSERT INTO commandIds (commandName, commandId)
+        VALUES (?, ?)
+        ON DUPLICATE KEY UPDATE
+        commandId = VALUES(commandId)
+        `,
+        [command.name, command.id]
+      );
+    }));
 
-    console.log('Global Rate Limit Reset Time:', globalResetTime);
-    console.log('Application Rate Limit Reset Time:', applicationResetTime);
+    console.log('Global command IDs stored in the database.');
   } catch (error) {
     if (error.code === 30034) {
       const resetTime = new Date(Date.now() + error.rawError.retry_after * 1000).toLocaleString();
