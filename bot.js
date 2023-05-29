@@ -3,7 +3,6 @@ const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const { handleSelectMenu } = require('./commands/help');
-const slashCommands = require('./slashCommands.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -12,7 +11,7 @@ const intents = [
   GatewayIntentBits.GuildVoiceStates
 ];
 
-const client = new Client({ shards: 'auto', intents });
+const client = new Client({ shards: "auto", intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
@@ -61,6 +60,7 @@ client.once('ready', async () => {
 
   inviteTracker.execute(client);
 
+  const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
 });
 
