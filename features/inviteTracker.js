@@ -12,7 +12,7 @@ async function fetchInvites(guild) {
 }
 
 function updateInviteInDb(guildId, code, uses, inviterId) {
-  db.query(
+  pool.query(
     `
     INSERT INTO invites (guildId, code, uses, inviterId)
     VALUES (?, ?, ?, ?)
@@ -27,7 +27,7 @@ function updateInviteInDb(guildId, code, uses, inviterId) {
   );
 }
 
-db.query(
+pool.query(
   `
   CREATE TABLE IF NOT EXISTS invites (
     guildId VARCHAR(255),
@@ -42,7 +42,7 @@ db.query(
   }
 );
 
-db.query(
+pool.query(
   `
   CREATE TABLE IF NOT EXISTS inviteChannels (
     guildId VARCHAR(255) PRIMARY KEY,
@@ -68,7 +68,7 @@ module.exports = {
 
     client.on('guildMemberAdd', async (member) => {
       console.log(`New member added: ${member.user.tag}`);
-      db.query(
+      pool.query(
         `
         SELECT *
         FROM invites
@@ -122,7 +122,7 @@ module.exports = {
 
   setInviteChannel(guildId, channelId) {
     console.log(`Setting invite channel: ${channelId} for guild: ${guildId}`);
-    db.query(
+    pool.query(
       `
       INSERT INTO inviteChannels (guildId, channelId)
       VALUES (?, ?)
@@ -139,7 +139,7 @@ module.exports = {
 
 async function getInviteChannelId(guildId) {
   return new Promise((resolve, reject) => {
-    db.query(
+    pool.query(
       `
       SELECT channelId
       FROM inviteChannels
