@@ -1,4 +1,3 @@
-// slashCommands.js
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token } = require('./config.js');
@@ -15,36 +14,62 @@ function commandHasChanged(oldCommand, newCommand) {
 
 module.exports = async function (client) {
   const commands = [];
+  const guildSpecificCommands = [];
   const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
 
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    commands.push(command.data);
+
+    if (command.global) {
+      commands.push(command.data);
+    } else {
+      const guildId = '1106643216125665350'; // Replace 'YOUR_GUILD_ID' with the desired guild ID
+      const guildCommand = {
+        guildId,
+        command: command.data,
+        category: command.category || 'Uncategorized', // Set default category if not specified
+      };
+      guildSpecificCommands.push(guildCommand);
+    }
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
 
   try {
-    const guilds = client.guilds.cache.map((guild) => guild.id);
-
-    console.log('Started refreshing application (/) commands for all guilds.');
+    console.log('Started refreshing application (/) commands.');
 
     // Get existing global slash commands
-    const existingCommands = await rest.get(Routes.applicationCommands(clientId));
+    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
 
     // Remove old global commands
-    const deletePromises = existingCommands.map((command) =>
+    const deleteGlobalPromises = existingGlobalCommands.map((command) =>
       rest.delete(Routes.applicationCommand(clientId, command.id))
     );
-    await Promise.all(deletePromises);
+    await Promise.all(deleteGlobalPromises);
 
     // Register updated global commands
-    const registerPromises = guilds.map((guildId) =>
-      rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands })
-    );
-    await Promise.all(registerPromises);
+    const registerGlobalPromises = [rest.put(
+      Routes.applicationCommands(clientId),
+      { body: commands },
+    )];
+    await Promise.all(registerGlobalPromises);
 
-    console.log('Successfully reloaded application (/) commands for all guilds.');
+    console.log('Successfully reloaded global application (/) commands.');
+
+    // Register guild-specific commands
+    for (const { guildId, command, category } of guildSpecificCommands) {
+      const permissions = [
+        // Define command permissions if needed
+      ];
+
+      await rest.put(
+        Routes.applicationGuildCommand(clientId, guildId),
+        { body: [command], permissions }
+      );
+    }
+
+    console.log('Successfully added guild-specific commands.');
+
   } catch (error) {
     console.error('Error while refreshing application (/) commands.', error);
   }
