@@ -2,10 +2,8 @@ const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
-const { joinVoiceChannel, entersState, VoiceConnectionStatus } = require('@discordjs/voice');
-const { AudioPlayerStatus, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
-const ytdl = require('ytdl-core');
 const { handleSelectMenu } = require('./commands/help');
+const slashCommands = require('./slashCommands.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -14,7 +12,7 @@ const intents = [
   GatewayIntentBits.GuildVoiceStates
 ];
 
-const client = new Client({ shards: "auto", intents });
+const client = new Client({ shards: 'auto', intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
@@ -63,7 +61,6 @@ client.once('ready', async () => {
 
   inviteTracker.execute(client);
 
-  const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
 });
 
