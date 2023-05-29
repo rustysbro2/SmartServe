@@ -79,6 +79,18 @@ module.exports = async function (client) {
     )];
     await Promise.all(registerGuildPromises);
     console.log('Updated guild-specific commands registered successfully.');
+
+    // Fetch and display all global commands
+    const allGlobalCommands = await rest.get(
+      Routes.applicationCommands(clientId)
+    );
+    console.log('All global commands:', allGlobalCommands);
+
+    // Fetch and display all guild-specific commands
+    const allGuildCommands = await rest.get(
+      Routes.applicationGuildCommands(clientId, guildId)
+    );
+    console.log(`All guild-specific commands for guild ${guildId}:`, allGuildCommands);
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
   }
