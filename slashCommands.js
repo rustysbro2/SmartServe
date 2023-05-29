@@ -43,7 +43,7 @@ db.query(
     commandName VARCHAR(255),
     commandId VARCHAR(255),
     options JSON,
-    lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    lastModified DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (commandName)
   )
 `,
@@ -74,11 +74,21 @@ module.exports = async function (client) {
         guildCommands.push(guildCommand);
         console.log(`Refreshing guild-specific command for guild ${guildId}: ${commandData.name}`);
       }
+
+      // Store the command details in the database
+      await db.query(
+        `
+        INSERT INTO commandIds (commandName, commandId, options)
+        VALUES (?, '', ?)
+        ON DUPLICATE KEY UPDATE
+        options = VALUES(options)
+        `,
+        [commandData.name, JSON.stringify(commandData.options || [])]
+      );
     } else {
       console.error(`Command file '${file}' does not export a valid slash command.`);
     }
   }
-
 
   const rest = new REST({ version: '10' }).setToken(token);
 
@@ -116,19 +126,15 @@ module.exports = async function (client) {
         });
       }
 
-      // Check if result.id is defined before storing in the database
+      // Check if result.id is defined before updating the command details in the database
       if (result.id) {
-        // Store the command id and options in the database
         await db.query(
           `
-          INSERT INTO commandIds (commandName, commandId, options)
-          VALUES (?, ?, ?)
-          ON DUPLICATE KEY UPDATE
-          commandId = VALUES(commandId),
-          options = VALUES(options),
-          lastModified = CURRENT_TIMESTAMP
+          UPDATE commandIds
+          SET commandId = ?
+          WHERE commandName = ?
           `,
-          [command.name, result.id, JSON.stringify(command.options || [])]
+          [result.id, command.name]
         );
       } else {
         console.error(`No valid command ID received for global command: ${command.name}`);
@@ -179,19 +185,15 @@ module.exports = async function (client) {
         console.log(`Created guild-specific command: ${command.name}, response:`, result);
       }
 
-      // Check if result.id is defined before storing in the database
+      // Check if result.id is defined before updating the command details in the database
       if (result.id) {
-        // Store the command id and options in the database
         await db.query(
           `
-          INSERT INTO commandIds (commandName, commandId, options)
-          VALUES (?, ?, ?)
-          ON DUPLICATE KEY UPDATE
-          commandId = VALUES(commandId),
-          options = VALUES(options),
-          lastModified = CURRENT_TIMESTAMP
+          UPDATE commandIds
+          SET commandId = ?
+          WHERE commandName = ?
           `,
-          [command.name, result.id, JSON.stringify(command.options || [])]
+          [result.id, command.name]
         );
       } else {
         console.error(`No valid command ID received for guild-specific command: ${command.name}`);
