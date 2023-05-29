@@ -5,19 +5,25 @@ const fs = require('fs');
 const db = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
-  // Log old and new command options for comparison
+  // Compare command properties to check for changes
   console.log('Old Command Options:', oldCommand.options);
   console.log('New Command Options:', newCommand.options);
 
-  // Compare command properties to check for changes
-  const hasChanged =
+  if (typeof oldCommand.options === 'undefined' && typeof newCommand.options === 'undefined') {
+    console.log('Command has changed: false');
+    return false; // No change if both options are undefined
+  }
+
+  const oldOptionsString = JSON.stringify(oldCommand.options);
+  const newOptionsString = JSON.stringify(newCommand.options);
+
+  console.log('Command has changed:', oldOptionsString !== newOptionsString);
+
+  return (
     oldCommand.name !== newCommand.name ||
     oldCommand.description !== newCommand.description ||
-    JSON.stringify(oldCommand.options) !== JSON.stringify(newCommand.options);
-
-  console.log('Command has changed:', hasChanged);
-
-  return hasChanged;
+    oldOptionsString !== newOptionsString
+  );
 }
 
 
