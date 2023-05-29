@@ -23,7 +23,7 @@ module.exports = async function (client) {
     if (command.global !== false) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
-    } else if (command.guildId === guildId) {
+    } else {
       const guildCommand = command.data.toJSON();
       guildCommand.guildId = guildId; // Add guildId property
       guildCommands.push(guildCommand);
@@ -88,8 +88,8 @@ module.exports = async function (client) {
     );
     console.log('All global commands:', allGlobalCommands);
 
-    // Fetch and display all guild-specific commands for each guild
-    for (const guildId in guildCommands) {
+    // Fetch and display guild-specific commands for each guild
+    for (const guildId of client.guilds.cache.keys()) {
       const allGuildCommands = await rest.get(
         Routes.applicationGuildCommands(clientId, guildId)
       );
