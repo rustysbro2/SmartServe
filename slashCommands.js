@@ -2,7 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 const fs = require('fs');
-const pool = require('./database.js');
+const pool = require('./database.js').promise(); // Import the promise-based pool
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
@@ -13,24 +13,7 @@ function commandHasChanged(oldCommand, newCommand) {
   );
 }
 
-async function createCommandsTable() {
-  try {
-    const createTableQuery = `
-      CREATE TABLE IF NOT EXISTS commands (
-        id INT PRIMARY KEY AUTO_INCREMENT,
-        name VARCHAR(255) NOT NULL
-      )
-    `;
-    await pool.query(createTableQuery);
-    console.log('Commands table created or already exists.');
-  } catch (error) {
-    console.error('Error creating commands table:', error);
-  }
-}
-
 module.exports = async function (client) {
-  createCommandsTable();
-
   const globalCommands = [];
   const guildCommands = [];
 
@@ -57,7 +40,7 @@ module.exports = async function (client) {
     console.log('Started refreshing application (/) commands.');
 
     // Get existing global slash commands
-    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+    const [existingGlobalCommands] = await pool.query('SELECT name FROM commands WHERE global = 1');
     console.log('Existing global commands fetched:', existingGlobalCommands.map(command => command.name));
 
     // Find commands that need to be created or updated
@@ -97,7 +80,7 @@ module.exports = async function (client) {
     console.log('Global commands updated and deleted successfully.');
 
     // Get existing guild-specific slash commands
-    const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
+    const [existingGuildCommands] = await pool.query('SELECT name FROM commands WHERE global = 0 AND guildId = ?', [guildId]);
     console.log('Existing guild-specific commands fetched:', existingGuildCommands.map(command => command.name));
 
     // Find commands that need to be created or updated
