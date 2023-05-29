@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const db = require('../database.js');
+const pool = require('../database.js');
 
 let invites = {};
 
