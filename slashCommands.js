@@ -78,6 +78,6 @@ module.exports = async function (client) {
     console.log('Successfully added guild-specific commands.');
 
   } catch (error) {
-    console.error('Error while refreshing application (/) commands.', error);
+    console.error('Error while refreshing application (/) commands:', error);
   }
 };
