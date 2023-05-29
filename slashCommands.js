@@ -39,11 +39,12 @@ module.exports = async function (client) {
     console.log('Started refreshing application (/) commands.');
 
     // Get existing global slash commands
-    console.log('Fetching existing global commands...');
     const existingGlobalCommands = await rest.get(
       Routes.applicationCommands(clientId)
     );
-    console.log('Existing global commands fetched.');
+
+    console.log('Fetching existing global commands...');
+    console.log('Existing global commands fetched:', existingGlobalCommands);
 
     // Remove old global commands
     console.log('Deleting old global commands...');
@@ -65,14 +66,14 @@ module.exports = async function (client) {
     console.log('Successfully reloaded global application (/) commands.');
 
     // Register guild-specific commands
-    console.log('Registering guild-specific commands...');
     for (const { guildId, command, category } of guildSpecificCommands) {
+      console.log(`Registering guild-specific command for guild ID ${guildId}...`);
       await rest.post(
         Routes.applicationGuildCommand(clientId, guildId),
         { body: command }
       );
+      console.log(`Guild-specific command registered for guild ID ${guildId}.`);
     }
-    console.log('Guild-specific commands registered.');
 
     console.log('Successfully added guild-specific commands.');
 
