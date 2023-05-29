@@ -33,7 +33,11 @@ module.exports = async function (client) {
       console.log(`Refreshing global command: ${filePath}`);
       const command = require(filePath);
 
-      globalCommands.push(command.data.toJSON());
+      if (command.global) {
+        globalCommands.push(command.data.toJSON());
+      } else {
+        console.log(`Skipping non-global command: ${command.data.name}`);
+      }
     } catch (error) {
       console.error(`Error while refreshing global command: ${filePath}`);
       console.error(error);
@@ -78,6 +82,11 @@ module.exports = async function (client) {
       console.log(`Refreshing guild-specific command: ${filePath}`);
       const command = require(filePath);
 
+      if (command.global) {
+        console.log(`Skipping global command for guild-specific registration: ${command.data.name}`);
+        continue;
+      }
+
       const guildId = command.guildId;
       if (!guildCommands.has(guildId)) {
         guildCommands.set(guildId, []);
@@ -98,18 +107,20 @@ module.exports = async function (client) {
   try {
     console.log('Refreshing guild-specific commands...');
     for (const [guildId, commands] of guildCommands) {
-      console.log(`Refreshing guild-specific commands for guild ID: ${guildId}`);
+      console.log(`Fetching existing guild-specific commands for guild ID ${guildId}...`);
       const existingGuildCommands = await rest.get(
         Routes.applicationGuildCommands(clientId, guildId)
       );
       console.log(`Existing guild-specific commands fetched for guild ID ${guildId}:`, existingGuildCommands);
 
+      console.log(`Deleting old guild-specific commands for guild ID ${guildId}...`);
       const deleteGuildPromises = existingGuildCommands.map((command) =>
         rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id))
       );
       await Promise.all(deleteGuildPromises);
       console.log(`Old guild-specific commands deleted for guild ID ${guildId}.`);
 
+      console.log(`Registering updated guild-specific commands for guild ID ${guildId}...`);
       const registerGuildPromises = commands.map((command) =>
         rest.post(
           Routes.applicationGuildCommands(clientId, guildId),
