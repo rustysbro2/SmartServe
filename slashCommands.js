@@ -133,6 +133,12 @@ module.exports = async function (client) {
     console.log('Global Rate Limit Reset Time:', new Date(globalRateLimitReset).toLocaleString());
     console.log('Application Rate Limit Reset Time:', new Date(applicationRateLimitReset).toLocaleString());
   } catch (error) {
-    console.error('Error while refreshing application (/) commands:', error);
+    if (error.code === 30034) {
+      const retryAfter = error.rawError.retry_after;
+      const resetTime = Date.now() + retryAfter;
+      console.log('Rate limit exceeded. Retry after:', new Date(resetTime).toLocaleString());
+    } else {
+      console.error('Error while refreshing application (/) commands:', error);
+    }
   }
 };
