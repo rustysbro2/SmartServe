@@ -24,13 +24,14 @@ module.exports = async function (client) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
     } else {
-      for (const guildId in client.guilds.cache) {
+      client.guilds.cache.forEach((guild) => {
+        const guildId = guild.id;
         if (!guildCommands[guildId]) {
           guildCommands[guildId] = [];
         }
         guildCommands[guildId].push(command.data.toJSON());
         console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
-      }
+      });
     }
   }
 
@@ -54,7 +55,7 @@ module.exports = async function (client) {
     console.log('Old global commands deleted.');
 
     // Register updated global commands
-    const registerGlobalPromises = [rest.post(
+    const registerGlobalPromises = [rest.put(
       Routes.applicationCommands(clientId),
       { body: globalCommands },
     )];
@@ -77,7 +78,7 @@ module.exports = async function (client) {
       console.log(`Old guild-specific commands deleted for guild ${guildId}.`);
 
       // Register updated guild-specific commands
-      const registerGuildPromises = [rest.post(
+      const registerGuildPromises = [rest.put(
         Routes.applicationGuildCommands(clientId, guildId),
         { body: guildCommands[guildId] },
       )];
