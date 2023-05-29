@@ -20,6 +20,7 @@ module.exports = async function (client) {
   for (const file of commandFiles) {
     const filePath = `./commands/${file}`;
     try {
+      console.log(`Loading command file: ${filePath}`);
       const command = require(filePath);
 
       if (command.global) {
@@ -34,7 +35,8 @@ module.exports = async function (client) {
         guildSpecificCommands.push(guildCommand);
       }
     } catch (error) {
-      console.error(`Error while loading command file: ${filePath}`, error);
+      console.error(`Error while loading command file: ${filePath}`);
+      console.error(error);
     }
   }
 
@@ -44,10 +46,7 @@ module.exports = async function (client) {
     console.log('Started refreshing application (/) commands.');
 
     // Get existing global slash commands
-    const existingGlobalCommands = await rest.get(
-      Routes.applicationCommands(clientId)
-    );
-
+    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
     console.log('Existing global commands fetched:', existingGlobalCommands);
 
     // Remove old global commands
@@ -55,7 +54,6 @@ module.exports = async function (client) {
       rest.delete(Routes.applicationCommand(clientId, command.id))
     );
     await Promise.all(deleteGlobalPromises);
-
     console.log('Old global commands deleted.');
 
     // Register updated global commands
@@ -64,8 +62,7 @@ module.exports = async function (client) {
       { body: commands },
     )];
     await Promise.all(registerGlobalPromises);
-
-    console.log('Successfully reloaded global application (/) commands.');
+    console.log('Registered updated global commands.');
 
     // Register guild-specific commands
     for (const { guildId, command, category } of guildSpecificCommands) {
@@ -74,8 +71,9 @@ module.exports = async function (client) {
         { body: command }
       );
     }
+    console.log('Added guild-specific commands.');
 
-    console.log('Successfully added guild-specific commands.');
+    console.log('Successfully refreshed application (/) commands.');
 
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
