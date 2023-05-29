@@ -1,6 +1,6 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { clientId, token, guildId } = require('./config.js');
+const { clientId, token, guildIds } = require('./config.js');
 const fs = require('fs');
 
 function commandHasChanged(oldCommand, newCommand) {
@@ -23,13 +23,14 @@ module.exports = async function (client) {
     if (command.global !== false) {
       globalCommands.push(command.data.toJSON());
       console.log(`Refreshing global command: ./commands/${file}`);
-    } else if (command.guildId) {
-      const guildId = command.guildId;
-      if (!guildCommands[guildId]) {
-        guildCommands[guildId] = [];
+    } else {
+      for (const guildId of guildIds) {
+        if (!guildCommands[guildId]) {
+          guildCommands[guildId] = [];
+        }
+        guildCommands[guildId].push(command.data.toJSON());
+        console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
       }
-      guildCommands[guildId].push(command.data.toJSON());
-      console.log(`Refreshing guild-specific command for guild ${guildId}: ./commands/${file}`);
     }
   }
 
@@ -42,7 +43,6 @@ module.exports = async function (client) {
     const existingGlobalCommands = await rest.get(
       Routes.applicationCommands(clientId)
     );
-
     console.log('Existing global commands fetched:', existingGlobalCommands);
 
     // Remove old global commands
@@ -56,18 +56,15 @@ module.exports = async function (client) {
     const registerGlobalPromises = [rest.put(
       Routes.applicationCommands(clientId),
       { body: globalCommands },
-      { headers: { 'Content-Type': 'application/json' } } // Set Content-Type header
     )];
     await Promise.all(registerGlobalPromises);
     console.log('Updated global commands registered successfully.');
 
-    // Get existing guild-specific slash commands
-    const guildIds = Object.keys(guildCommands);
-    for (const guildId of guildIds) {
+    // Register updated guild-specific commands
+    for (const guildId in guildCommands) {
       const existingGuildCommands = await rest.get(
         Routes.applicationGuildCommands(clientId, guildId)
       );
-
       console.log(`Existing guild-specific commands fetched for guild ${guildId}:`, existingGuildCommands);
 
       // Remove old guild-specific commands
@@ -81,7 +78,6 @@ module.exports = async function (client) {
       const registerGuildPromises = [rest.put(
         Routes.applicationGuildCommands(clientId, guildId),
         { body: guildCommands[guildId] },
-        { headers: { 'Content-Type': 'application/json' } } // Set Content-Type header
       )];
       await Promise.all(registerGuildPromises);
       console.log(`Updated guild-specific commands registered successfully for guild ${guildId}.`);
@@ -93,8 +89,8 @@ module.exports = async function (client) {
     );
     console.log('All global commands:', allGlobalCommands);
 
-    // Fetch and display all guild-specific commands for each guild
-    for (const guildId of guildIds) {
+    // Fetch and display all guild-specific commands
+    for (const guildId in guildCommands) {
       const allGuildCommands = await rest.get(
         Routes.applicationGuildCommands(clientId, guildId)
       );
