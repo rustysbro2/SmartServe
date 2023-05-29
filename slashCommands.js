@@ -16,15 +16,28 @@ function commandHasChanged(oldCommand, newCommand) {
     return false; // No change if both options are undefined
   }
 
-  const optionsChanged = !isEqual(oldCommand.options, newCommand.options);
-  console.log('Command has changed:', optionsChanged);
+  const oldOptions = oldCommand.options || [];
+  const newOptions = newCommand.options || [];
 
-  return (
-    oldCommand.name !== newCommand.name ||
-    oldCommand.description !== newCommand.description ||
-    optionsChanged
-  );
+  if (oldOptions.length !== newOptions.length) {
+    console.log('Command has changed: true');
+    return true; // Number of options changed
+  }
+
+  for (let i = 0; i < oldOptions.length; i++) {
+    const oldOption = oldOptions[i];
+    const newOption = newOptions[i];
+
+    if (oldOption.type !== newOption.type || oldOption.name !== newOption.name || oldOption.description !== newOption.description || oldOption.required !== newOption.required) {
+      console.log('Command has changed: true');
+      return true; // Option properties changed
+    }
+  }
+
+  console.log('Command has changed: false');
+  return false; // No change in options
 }
+
 
 
 
