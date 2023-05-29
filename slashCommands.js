@@ -183,15 +183,16 @@ module.exports = async function (client) {
       allGlobalCommands.map((command) => {
         return db.query(
           `
-        UPDATE commandIds
-        SET commandId = ?,
-          options = ?
-        WHERE commandName = ?
-        `,
-          [command.id, JSON.stringify(command.options), command.name]
+          UPDATE commandIds
+          SET commandId = ?,
+            options = ?
+          WHERE commandName = ?
+          `,
+          [command.id, JSON.stringify(command.options || []), command.name]
         );
       })
     );
+
 
     console.log('Global command IDs and options stored in the database.');
   } catch (error) {
