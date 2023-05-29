@@ -129,13 +129,16 @@ module.exports = async function (client) {
     // Check rate limit reset time
     const globalRateLimitReset = rest.ratelimits.global.reset;
     const applicationRateLimitReset = rest.ratelimits.route(`${Routes.applicationCommands(clientId)}`).reset;
-    console.log('Global Rate Limit Reset Time:', new Date(globalRateLimitReset * 1000).toLocaleString());
-    console.log('Application Rate Limit Reset Time:', new Date(applicationRateLimitReset * 1000).toLocaleString());
+
+    const globalResetTime = new Date(globalRateLimitReset * 1000).toLocaleString();
+    const applicationResetTime = new Date(applicationRateLimitReset * 1000).toLocaleString();
+
+    console.log('Global Rate Limit Reset Time:', globalResetTime);
+    console.log('Application Rate Limit Reset Time:', applicationResetTime);
   } catch (error) {
     if (error.code === 30034) {
-      const retryAfter = error.rawError.retry_after;
-      const resetTime = Date.now() + retryAfter;
-      console.log('Rate limit exceeded. Retry after:', new Date(resetTime).toLocaleString());
+      const resetTime = new Date(Date.now() + error.rawError.retry_after).toLocaleString();
+      console.log('Rate limit exceeded. Retry after:', resetTime);
     } else {
       console.error('Error while refreshing application (/) commands:', error);
     }
