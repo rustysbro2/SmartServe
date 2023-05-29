@@ -1,8 +1,8 @@
+// slashCommands.js
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
-const pool = require('./database.js');
-const fs = require('fs');
+const db = require('./database.js');
 
 function commandHasChanged(oldCommand, newCommand) {
   // Compare command properties to check for changes
@@ -119,57 +119,20 @@ module.exports = async function (client) {
     await Promise.all([...guildCommandPromises, ...guildDeletePromises]);
     console.log('Guild-specific commands updated and deleted successfully.');
 
-    // Insert or update commands in the database
-    const insertCommandsPromises = globalCommands.map((command) => {
-      const { name, description, options } = command;
-      return pool.promise().query(
-        `INSERT INTO commands (name, description, options, guildId, global)
-         VALUES (?, ?, ?, NULL, 1)
-         ON DUPLICATE KEY UPDATE
-         description = VALUES(description),
-         options = VALUES(options),
-         guildId = VALUES(guildId),
-         global = VALUES(global)`,
-        [name, description, JSON.stringify(options)]
-      );
+    // Update the database with the commands
+    const allCommands = [...globalCommands, ...guildCommands];
+    const dbPromises = allCommands.map((command) => {
+      return db.query('INSERT INTO commands (name, description, options, guildId, global) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE description = VALUES(description), options = VALUES(options), guildId = VALUES(guildId), global = VALUES(global)', [command.name, command.description, JSON.stringify(command.options), command.guildId, command.guildId ? 0 : 1]);
     });
 
-    const updateCommandsPromises = guildCommands.map((command) => {
-      const { name, description, options } = command;
-      return pool.promise().query(
-        `INSERT INTO commands (name, description, options, guildId, global)
-         VALUES (?, ?, ?, ?, 0)
-         ON DUPLICATE KEY UPDATE
-         description = VALUES(description),
-         options = VALUES(options),
-         guildId = VALUES(guildId),
-         global = VALUES(global)`,
-        [name, description, JSON.stringify(options), guildId]
-      );
-    });
+    await Promise.all(dbPromises);
+    console.log('Commands inserted/updated in the database successfully.');
 
-    await Promise.all([...insertCommandsPromises, ...updateCommandsPromises]);
-    console.log('Commands inserted/updated in the database.');
+    console.log('All global commands:', globalCommands.map(command => command.name));
+    console.log('Guild-specific commands for guild', guildId + ':', guildCommands.map(command => command.name));
 
-    // Fetch and display all global commands
-    const allGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
-    console.log('All global commands:', allGlobalCommands.map(command => command.name));
-
-    // Fetch and display the names of all guild-specific commands for the current guild
-    const guildCommandNames = guildCommands.map((command) => command.name);
-    console.log(`Guild-specific commands for guild ${guildId}:`, guildCommandNames);
-
-    // Check rate limit reset time
-    const headers = rest.lastResponse?.headers || rest.globalRateLimit?.headers;
-    const globalResetTime = headers && headers['x-ratelimit-global']
-      ? new Date(parseInt(headers['x-ratelimit-global'])).toLocaleString()
-      : 'N/A';
-    const applicationResetTime = headers && headers['x-ratelimit-reset']
-      ? new Date(parseInt(headers['x-ratelimit-reset'])).toLocaleString()
-      : 'N/A';
-
-    console.log('Global Rate Limit Reset Time:', globalResetTime);
-    console.log('Application Rate Limit Reset Time:', applicationResetTime);
+    console.log('Global Rate Limit Reset Time: N/A');
+    console.log('Application Rate Limit Reset Time: N/A');
   } catch (error) {
     console.error('Error while refreshing application (/) commands:', error);
   }
