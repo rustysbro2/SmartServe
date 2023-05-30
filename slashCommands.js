@@ -62,47 +62,47 @@ async function updateCommandData(commands, rest, client) {
           const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
 
           if (!existingGlobalCommand) {
-            // Register the command as a global command
-            const response = await rest.post(Routes.applicationCommands(clientId), {
-              body: commandData,
-            });
+          // Register the command as a global command
+          const response = await rest.post(Routes.applicationCommands(clientId), {
+            body: commandData,
+          });
 
-            const commandId = response.id;
+          const commandId = response.id;
 
-            // Update the command data in the array
-            command.commandId = commandId;
-            command.lastModified = new Date();
+          // Update the command data in the array
+          command.commandId = commandId;
+          command.lastModified = newLastModified;
 
-            console.log(`Command data updated: ${JSON.stringify(command)}`);
-          } else {
-            // Check if the command file exists
-            const commandFilePath = `./commands/${fileName}`;
-            const commandFileExists = fs.existsSync(commandFilePath);
+          console.log(`Command data updated: ${JSON.stringify(command)}`);
+        } else {
+          // Check if the command file exists
+          const commandFilePath = `./commands/${fileName}`;
+          const commandFileExists = fs.existsSync(commandFilePath);
 
-            if (commandFileExists) {
-              // Check if the last modified date has changed
-              const newLastModified = fs.statSync(commandFilePath).mtime;
+          if (commandFileExists) {
+            // Check if the last modified date has changed
+            const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
-                // Update the command and obtain the command ID
-                const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
-                  body: commandData,
-                });
+            if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
+              // Update the command and obtain the command ID
+              const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
+                body: commandData,
+              });
 
-                const commandId = response.id;
+              const commandId = response.id;
 
-                // Update the command data in the array
-                command.commandId = commandId;
-                command.lastModified = newLastModified;
+              // Update the command data in the array
+              command.commandId = commandId;
+              command.lastModified = newLastModified;
 
-                console.log(`Command data updated: ${JSON.stringify(command)}`);
-              } else {
-                console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
-              }
+              console.log(`Command data updated: ${JSON.stringify(command)}`);
             } else {
-              console.log(`Skipping command update due to missing command file: ${JSON.stringify(command)}`);
+              console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
             }
+          } else {
+            console.log(`Skipping command update due to missing command file: ${JSON.stringify(command)}`);
           }
+        }
 
           // Delete the command if it exists as a guild-specific command
           const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
