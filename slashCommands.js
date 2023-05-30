@@ -34,11 +34,10 @@ async function updateCommandData(commands, rest, client) {
 
     for (const command of commands) {
       const { name, description, lastModified, global } = command;
-      const existingCommand = client.commands.get(name.toLowerCase()); // Use lowercase comparison for case insensitivity
+      const existingCommand = client.commands.get(name);
 
       if (!existingCommand) {
-        console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
-        continue;
+        return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
       }
 
       const commandData = {
@@ -65,12 +64,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the last modified date has changed
-            const commandFile = `./commands/${name.toLowerCase()}.js`;
-            if (!fs.existsSync(commandFile)) {
-              console.error(`Error updating command data: Command file not found: ${commandFile}`);
-              continue;
-            }
-            const newLastModified = fs.statSync(commandFile).mtime;
+            const newLastModified = getCommandFileLastModified(name);
 
             if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
               // Update the command and obtain the command ID
@@ -114,12 +108,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the last modified date has changed
-            const commandFile = `./commands/${name.toLowerCase()}.js`;
-            if (!fs.existsSync(commandFile)) {
-              console.error(`Error updating command data: Command file not found: ${commandFile}`);
-              continue;
-            }
-            const newLastModified = fs.statSync(commandFile).mtime;
+            const newLastModified = getCommandFileLastModified(name);
 
             if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
               // Update the command and obtain the command ID
@@ -170,6 +159,15 @@ async function updateCommandData(commands, rest, client) {
   }
 }
 
+function getCommandFileLastModified(name) {
+  const commandFile = `./commands/${name.toLowerCase()}.js`;
+  const normalizedCommandFile = fs.readdirSync('./commands').find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
+  if (normalizedCommandFile) {
+    return fs.statSync(commandFile).mtime;
+  }
+  return null;
+}
+
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
@@ -186,7 +184,7 @@ module.exports = async function (client) {
       name: command.data.name,
       description: command.data.description,
       commandId: null,
-      lastModified: fs.statSync(`./commands/${file}`).mtime,
+      lastModified: getCommandFileLastModified(command.data.name),
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
