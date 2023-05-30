@@ -28,12 +28,6 @@ async function updateCommandData(commands) {
     for (const command of commands) {
       const { commandName, commandId, lastModified } = command;
 
-      // Skip the command if the commandName is null
-      if (!commandName) {
-        console.warn('Skipping command update due to missing commandName:', command);
-        continue;
-      }
-
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
         VALUES (?, ?, ?)
@@ -48,6 +42,7 @@ async function updateCommandData(commands) {
     console.error('Error updating command data:', error);
   }
 }
+
 
 
 module.exports = async function (client) {
