@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { guildId } = require('../config.js');
+const { guildId } = require('../config.js');//sjsjsjs
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
@@ -28,10 +28,9 @@ async function handleSelectMenu(interaction, commandCategories) {
     });
 
     try {
-      await interaction.deferUpdate();
-      console.log('Interaction deferred.');
-
       if (interaction.message) {
+        await interaction.deferUpdate();
+        console.log('Interaction deferred.');
         await interaction.message.edit({ embeds: [categoryEmbed] });
         console.log('Interaction message updated.');
       } else {
@@ -59,6 +58,7 @@ module.exports = {
     }
 
     const commandCategories = [];
+    const defaultCategoryName = 'Uncategorized';
 
     const commandsDirectory = path.join(__dirname, '../commands');
     console.log('Commands directory:', commandsDirectory);
@@ -67,50 +67,27 @@ module.exports = {
     console.log('Command files:', commandFiles);
 
     for (const file of commandFiles) {
-      if (file === 'help.js') continue;
-
       const command = require(path.join(commandsDirectory, file));
       console.log('Command module:', command);
 
-      if (command.global !== false || (command.guildId && command.guildId !== guildId)) {
-        continue; // Skip global commands and guild-specific commands for other guilds
+      if (command.data.name === 'help') continue; // Skip the help command itself
+
+      let category = commandCategories.find((category) => category.name === command.category);
+
+      if (!category) {
+        category = {
+          name: command.category || defaultCategoryName,
+          description: '',
+          commands: [],
+        };
+
+        commandCategories.push(category);
       }
 
-      if (command.category) {
-        let category = commandCategories.find((category) => category.name === command.category);
-
-        if (!category) {
-          category = {
-            name: command.category,
-            description: '',
-            commands: [],
-          };
-
-          commandCategories.push(category);
-        }
-
-        category.commands.push({
-          name: command.data.name,
-          description: command.data.description,
-        });
-      } else {
-        let defaultCategory = commandCategories.find((category) => category.name === 'Uncategorized');
-
-        if (!defaultCategory) {
-          defaultCategory = {
-            name: 'Uncategorized',
-            description: 'Commands that do not belong to any specific category',
-            commands: [],
-          };
-
-          commandCategories.push(defaultCategory);
-        }
-
-        defaultCategory.commands.push({
-          name: command.data.name,
-          description: command.data.description,
-        });
-      }
+      category.commands.push({
+        name: command.data.name,
+        description: command.data.description,
+      });
     }
 
     console.log('Command categories:', commandCategories);
