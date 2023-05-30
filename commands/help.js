@@ -100,7 +100,7 @@ module.exports = {
     // Add the "Uncategorized" category explicitly
     const uncategorizedOption = new StringSelectMenuOptionBuilder()
       .setLabel(defaultCategoryName)
-      .setValue('uncategorized');
+      .setValue(defaultCategoryName.toLowerCase().replace(/\s/g, '_'));
     selectMenu.addOptions(uncategorizedOption);
 
     commandCategories.forEach((category) => {
