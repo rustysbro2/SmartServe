@@ -36,7 +36,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       if (interaction.message) {
         await interaction.deferUpdate();
         console.log('Interaction deferred.');
-        await interaction.message.edit({ embeds: [categoryEmbed.toJSON()] });
+        await interaction.message.edit({ embeds: [categoryEmbed] });
         console.log('Interaction message updated.');
       } else {
         console.error('Interaction does not have a message.');
