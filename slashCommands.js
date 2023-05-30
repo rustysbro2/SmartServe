@@ -79,6 +79,8 @@ module.exports = async function (client) {
     // Update the command data in the table
     await updateCommandData(commands);
 
+    console.log('Commands:', commands); // Add this console log to check the structure of the commands array
+
     // Register the global slash commands
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
       body: commands,
