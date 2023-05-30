@@ -3,6 +3,7 @@ const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
 const { pool } = require('./database.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
@@ -95,7 +96,6 @@ module.exports = async function (client) {
     await updateCommandData(updatedCommands);
 
     console.log('Successfully refreshed application (/) commands.');
-    console.log('Response:', response); // Debug statement
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
 
