@@ -162,6 +162,7 @@ async function updateCommandData(commands, rest, client) {
 }
 
 
+
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
