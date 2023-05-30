@@ -3,7 +3,6 @@ const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
 const { pool } = require('./database.js');
-const { SlashCommandBuilder } = require('discord.js');
 
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
@@ -35,15 +34,7 @@ async function updateCommandData(commands) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      await pool
-        .promise()
-        .query(insertUpdateQuery, [
-          commandName,
-          commandId,
-          lastModified,
-          commandId,
-          lastModified,
-        ]);
+      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
@@ -78,22 +69,14 @@ module.exports = async function (client) {
 
   try {
     console.log('Started refreshing application (/) commands.');
-    console.log('Commands:', commands); // Debug statement
-
-    // Register the global slash commands
-    const response = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
-      body: commands.map((command) => command.data.toJSON()),
-    });
-
-    // Update the command data in the table with the generated command IDs
-    const updatedCommands = response.map((command, index) => ({
-      commandName: commands[index].commandName,
-      commandId: command.id,
-      lastModified: commands[index].lastModified,
-    }));
 
     // Update the command data in the table
-    await updateCommandData(updatedCommands);
+    await updateCommandData(commands);
+
+    // Register the global slash commands
+    const response = await rest.put(Routes.applicationCommands(clientId), {
+      body: commands,
+    });
 
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
