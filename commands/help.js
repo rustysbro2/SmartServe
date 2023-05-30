@@ -75,6 +75,8 @@ module.exports = {
       }
     });
 
+    console.log('Filtered command categories:', filteredCommandCategories);
+
     filteredCommandCategories.slice(0, 25).forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
@@ -84,9 +86,9 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
+      console.log('Adding option to select menu:', category.name);
       selectMenu.addOptions(optionBuilder);
     });
-
 
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
