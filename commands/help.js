@@ -57,11 +57,9 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    const filteredCommandCategories.slice(0, 10).forEach((category) => {
-      return isGlobal ? !category.guildId : category.guildId === interaction.guildId;
-    });
-
-    const defaultCategoryName = 'Uncategorized';
+    const filteredCommandCategories = commandCategories.filter((category) =>
+      isGlobal ? !category.guildId : category.guildId === interaction.guildId
+    ).slice(0, 10);
 
     const usedOptionValues = new Set();
 
@@ -70,7 +68,7 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     // Add options to the select menu
-    filteredCommandCategories.slice(0, 25).forEach((category) => {
+    filteredCommandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(generateUniqueOptionValue(category.name));
