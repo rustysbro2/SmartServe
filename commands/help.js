@@ -9,8 +9,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   console.log('Selected category:', selectedCategory);
 
   const category = commandCategories.find(
-    (category) =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+    (category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
   if (category) {
@@ -21,7 +20,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global === false) return; // Exclude global commands from the category
+      if (command.data.category !== category.name && command.data.category !== 'uncategorized') return; // Exclude commands from other categories
 
       console.log('Adding command to embed:', command.data.name);
       categoryEmbed.addFields({ name: command.data.name, value: command.data.description });
