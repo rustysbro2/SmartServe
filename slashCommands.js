@@ -84,9 +84,9 @@ module.exports = async function (client) {
 
     // Log the command names that caused the error
     const commandNames = commands.map((command) => command.commandName);
-    const errorCommands = error.rawError.errors.map((err, index) => ({
-      name: commandNames[index],
-      error: err.name,
+    const errorCommands = commandNames.map((commandName, index) => ({
+      name: commandName,
+      error: error.rawError.errors[index].name,
     }));
 
     console.error('Command request body:', commandNames);
