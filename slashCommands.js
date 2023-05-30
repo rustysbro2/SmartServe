@@ -84,7 +84,7 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 14) !== lastModified.toISOString().slice(0, 14))) {
+              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
                 console.log(`- Last Modified: ${lastModified}`);
@@ -141,7 +141,7 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+              if (command.commandId === null) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
                 console.log(`- Last Modified: ${lastModified}`);
@@ -215,7 +215,7 @@ module.exports = async function (client) {
       name: setName,
       description: command.data.description,
       commandId: null, // Set commandId to null initially
-      lastModified: fs.statSync(`./commands/${file}`).mtime,
+      lastModified: fs.statSync(`./commands/${file}`).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
