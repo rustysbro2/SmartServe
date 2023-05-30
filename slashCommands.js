@@ -1,4 +1,5 @@
 // slashCommands.js
+
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
@@ -22,6 +23,16 @@ async function createCommandIdsTable() {
   } catch (error) {
     console.error('Error creating commandIds table:', error);
   }
+}
+
+function getCommandFileLastModified(name) {
+  const commandFiles = fs.readdirSync('./commands');
+  const normalizedCommandFile = commandFiles.find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
+  if (normalizedCommandFile) {
+    const commandFile = `./commands/${normalizedCommandFile}`;
+    return fs.statSync(commandFile).mtime;
+  }
+  return null;
 }
 
 async function updateCommandData(commands, rest, client) {
@@ -157,15 +168,6 @@ async function updateCommandData(commands, rest, client) {
   } catch (error) {
     console.error('Error updating command data:', error);
   }
-}
-
-function getCommandFileLastModified(name) {
-  const commandFile = `./commands/${name.toLowerCase()}.js`;
-  const normalizedCommandFile = fs.readdirSync('./commands').find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
-  if (normalizedCommandFile) {
-    return fs.statSync(commandFile).mtime;
-  }
-  return null;
 }
 
 module.exports = async function (client) {
