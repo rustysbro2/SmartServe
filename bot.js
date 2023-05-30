@@ -23,6 +23,10 @@ for (const file of commandFiles) {
   const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
   client.commands.set(command.data.name, command);
 
+  if (command.global !== false || (command.guildId && command.guildId !== client.guildId)) {
+    continue; // Skip global commands and guild-specific commands for other guilds
+  }
+
   if (command.category) {
     let category = commandCategories.find(category => category.name === command.category);
     if (!category) {
@@ -86,7 +90,7 @@ client.on('interactionCreate', async (interaction) => {
 
     if (commandName === 'help') {
       console.log('Executing help command...');
-      await client.commands.get('help').execute(interaction, client);
+      await client.commands.get('help').execute(interaction, client, commandCategories);
       console.log('Help command executed.');
     } else {
       const command = client.commands.get(commandName);
