@@ -190,7 +190,7 @@ module.exports = async function (client) {
   for (const file of commandFiles) {
     const commandFileName = file.toLowerCase();
     const command = require(`./commands/${commandFileName}`);
-    const setName = command.data.setName.toLowerCase();
+    const setName = command.data.name.toLowerCase(); // Change this line
     const commandData = {
       name: setName,
       description: command.data.description,
