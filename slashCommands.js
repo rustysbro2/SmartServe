@@ -145,8 +145,9 @@ async function updateCommandData(commands, rest, client) {
         const insertUpdateQuery = `
           INSERT INTO commandIds (commandName, commandId, lastModified)
           VALUES (?, ?, ?)
-          ON DUPLICATE KEY UPDATE commandId = VALUES(commandId), lastModified = VALUES(lastModified)
+          ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
         `;
+
 
         await pool.promise().query(insertUpdateQuery, [name.toLowerCase(), command.commandId, command.lastModified]);
       } catch (error) {
