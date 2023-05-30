@@ -77,7 +77,7 @@ client.on('interactionCreate', async (interaction) => {
 
     if (commandName === 'help') {
       console.log('Executing help command...');
-      await client.commands.get('help').execute(interaction, client, commandCategories, guildId);
+      await client.commands.get('help').execute(interaction, client, commandCategories, interaction.guildId);
       console.log('Help command executed.');
     } else {
       const command = client.commands.get(commandName);
