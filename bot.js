@@ -16,16 +16,13 @@ const client = new Client({ shards: "auto", intents });
 client.commands = new Collection();
 client.musicPlayers = new Map();
 
+
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const commandCategories = [];
 
 for (const file of commandFiles) {
   const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
   client.commands.set(command.data.name, command);
-
-  if (command.global !== false) {
-    continue; // Skip global commands
-  }
 
   if (command.category) {
     let category = commandCategories.find(category => category.name === command.category);
@@ -42,29 +39,19 @@ for (const file of commandFiles) {
       description: command.data.description
     });
   } else {
-    let commandFound = false;
-    for (const category of commandCategories) {
-      if (category.name === 'Uncategorized') {
-        category.commands.push({
-          name: command.data.name,
-          description: command.data.description
-        });
-        commandFound = true;
-        break;
-      }
-    }
-    if (!commandFound) {
-      const defaultCategory = {
+    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
+    if (!defaultCategory) {
+      defaultCategory = {
         name: 'Uncategorized',
         description: 'Commands that do not belong to any specific category',
         commands: []
       };
       commandCategories.push(defaultCategory);
-      defaultCategory.commands.push({
-        name: command.data.name,
-        description: command.data.description
-      });
     }
+    defaultCategory.commands.push({
+      name: command.data.name,
+      description: command.data.description
+    });
   }
 }
 
@@ -91,7 +78,7 @@ client.on('interactionCreate', async (interaction) => {
 
     if (commandName === 'help') {
       console.log('Executing help command...');
-      await client.commands.get('help').execute(interaction, client, commandCategories);
+      await client.commands.get('help').execute(interaction, client);
       console.log('Help command executed.');
     } else {
       const command = client.commands.get(commandName);
