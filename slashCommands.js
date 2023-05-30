@@ -23,42 +23,10 @@ async function createCommandIdsTable() {
   }
 }
 
-async function updateCommandData(commands, rest) {
+async function updateCommandData(commands, rest, interaction) {
   try {
     for (const command of commands) {
-      const { name, description } = command;
-      const existingCommand = interaction.client.commands.get(name);
-
-      if (!existingCommand) {
-        return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
-      }
-
-      const commandData = {
-        name: existingCommand.data.name,
-        description: existingCommand.data.description,
-      };
-
-      try {
-        // Register the command and obtain the command ID
-        const response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
-          body: commandData,
-        });
-
-        const commandId = response.id;
-
-        // Update the command data in the array
-        command.commandId = commandId;
-        command.lastModified = new Date();
-
-        console.log(`Command data updated: ${JSON.stringify(command)}`);
-      } catch (error) {
-        console.error(`Error updating command data: ${error.message}`);
-      }
-    }
-
-    // Update the command data in the database
-    for (const command of commands) {
-      const { name, commandId, lastModified } = command;
+      const { commandName, commandId, lastModified } = command;
 
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
@@ -66,7 +34,7 @@ async function updateCommandData(commands, rest) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      await pool.promise().query(insertUpdateQuery, [name, commandId, lastModified, commandId, lastModified]);
+      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
@@ -75,7 +43,7 @@ async function updateCommandData(commands, rest) {
   }
 }
 
-module.exports = async function (client) {
+module.exports = async function (client, interaction) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
 
@@ -103,8 +71,13 @@ module.exports = async function (client) {
   try {
     console.log('Started refreshing application (/) commands.');
 
-    // Update the command data and register the global slash commands
-    await updateCommandData(commands, rest);
+    // Update the command data in the table
+    await updateCommandData(commands, rest, interaction);
+
+    // Register the global slash commands
+    const response = await rest.put(Routes.applicationCommands(clientId), {
+      body: commands,
+    });
 
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
