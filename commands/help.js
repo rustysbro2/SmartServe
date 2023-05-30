@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, MessageEmbed } = require('discord.js');
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
@@ -16,13 +16,13 @@ async function handleSelectMenu(interaction, commandCategories) {
   if (category) {
     console.log('Category found:', category.name);
 
-    const categoryEmbed = new EmbedBuilder()
+    const categoryEmbed = new MessageEmbed()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
       console.log('Adding command to embed:', command.name);
-      categoryEmbed.addFields({ name: command.name, value: command.description });
+      categoryEmbed.addField(command.name, command.description);
     });
 
     try {
@@ -47,7 +47,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories, guildId) {
+  async execute(interaction, client, commandCategories) {
     console.log('Help command interaction received:', interaction);
 
     if (interaction.deferred || interaction.replied) {
@@ -57,16 +57,9 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    const filteredCommandCategories = commandCategories.filter((category) => {
-      if (isGlobal) {
-        return !category.guildId || category.guildId === guildId;
-      } else {
-        return (
-          !category.guildId ||
-          (category.guildId === guildId && category.commands.every(command => command.global !== false))
-        );
-      }
-    }).slice(0, 10);
+    const filteredCommandCategories = commandCategories.filter((category) =>
+      isGlobal ? !category.global : category.guildId === interaction.guildId
+    ).slice(0, 10);
 
     const usedOptionValues = new Set();
 
@@ -84,7 +77,7 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
-      selectMenu.addOptions(optionBuilder);
+      selectMenu.addOption(optionBuilder);
     });
 
     function generateUniqueOptionValue(categoryName) {
@@ -104,7 +97,7 @@ module.exports = {
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    const initialEmbed = new EmbedBuilder()
+    const initialEmbed = new MessageEmbed()
       .setTitle('Command Categories')
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
