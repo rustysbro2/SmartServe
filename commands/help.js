@@ -1,5 +1,4 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
-const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
@@ -21,10 +20,8 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false) {
-        console.log('Adding command to embed:', command.name);
-        categoryEmbed.addFields({ name: command.name, value: command.description });
-      }
+      console.log('Adding command to embed:', command.name);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     try {
@@ -62,6 +59,16 @@ module.exports = {
     const filteredCommandCategories = commandCategories.filter((category) =>
       isGlobal ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
+    
+    // Filter out commands with global: false
+    const availableCommands = filteredCommandCategories.reduce((commands, category) => {
+      category.commands.forEach((command) => {
+        if (command.global !== false) {
+          commands.push(command);
+        }
+      });
+      return commands;
+    }, []);
 
     const usedOptionValues = new Set();
 
@@ -70,26 +77,26 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     // Add options to the select menu
-    filteredCommandCategories.forEach((category) => {
+    availableCommands.forEach((command) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name));
+        .setLabel(command.name)
+        .setValue(generateUniqueOptionValue(command.name));
 
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
+      if (command.description && command.description.length > 0) {
+        optionBuilder.setDescription(command.description);
       }
 
-      selectMenu.addOptions(optionBuilder);
+      selectMenu.addOption(optionBuilder);
     });
 
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(commandName) {
+      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
 
-      let optionValue = sanitizedCategoryName;
+      let optionValue = sanitizedCommandName;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
+        optionValue = `${sanitizedCommandName}_${index}`;
         index++;
       }
 
