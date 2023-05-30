@@ -9,7 +9,7 @@ async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS commandIds (
-      commandName VARCHAR(255),
+      commandName VARCHAR(255) COLLATE utf8mb4_general_ci,
       commandId VARCHAR(255),
       lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (commandName)
@@ -34,7 +34,8 @@ async function updateCommandData(commands, rest, client) {
 
     for (const command of commands) {
       const { name, description, lastModified, global } = command;
-      const existingCommand = client.commands.get(name);
+      const lowerCaseName = name.toLowerCase();
+      const existingCommand = client.commands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
 
       if (!existingCommand) {
         return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
@@ -46,8 +47,6 @@ async function updateCommandData(commands, rest, client) {
       };
 
       try {
-        const lowerCaseName = name.toLowerCase();
-
         if (global) {
           const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
 
@@ -145,6 +144,7 @@ async function updateCommandData(commands, rest, client) {
     // Update the command data in the database
     for (const command of commands) {
       const { name, commandId, lastModified } = command;
+      const lowerCaseName = name.toLowerCase();
 
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
@@ -152,7 +152,7 @@ async function updateCommandData(commands, rest, client) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      await pool.promise().query(insertUpdateQuery, [name, commandId, lastModified, commandId, lastModified]);
+      await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
@@ -173,11 +173,12 @@ module.exports = async function (client) {
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
+    const lowerCaseName = command.data.name.toLowerCase();
     const commandData = {
       name: command.data.name,
       description: command.data.description,
       commandId: null,
-      lastModified: fs.statSync(`./commands/${file}`).mtime,
+      lastModified: fs.statSync(`./commands/${lowerCaseName}.js`).mtime,
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
