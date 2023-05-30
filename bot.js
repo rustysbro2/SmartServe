@@ -1,98 +1,99 @@
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v10');
-const { clientId, guildId, token } = require('./config.js');
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { token } = require('./config.js');
+const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
-const { pool } = require('./database.js');
+const { handleSelectMenu } = require('./commands/help');
 
-async function createCommandIdsTable() {
-  // Create commandIds table if it doesn't exist
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS commandIds (
-      commandName VARCHAR(255),
-      commandId VARCHAR(255),
-      lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (commandName)
-    )
-  `;
+const intents = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildVoiceStates
+];
 
-  try {
-    await pool.promise().query(createTableQuery);
-    console.log('CommandIds table created or already exists.');
-  } catch (error) {
-    console.error('Error creating commandIds table:', error);
-  }
-}
+const client = new Client({ shards: "auto", intents });
 
-async function updateCommandData(commands) {
-  try {
-    for (const command of commands) {
-      const { commandName, commandId, lastModified } = command;
+client.commands = new Collection();
+client.musicPlayers = new Map();
 
-      const insertUpdateQuery = `
-        INSERT INTO commandIds (commandName, commandId, lastModified)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
-      `;
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandCategories = [];
 
-      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
+for (const file of commandFiles) {
+  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
+  client.commands.set(command.data.name, command);
+
+  if (command.category) {
+    let category = commandCategories.find(category => category.name === command.category);
+    if (!category) {
+      category = {
+        name: command.category,
+        description: '',
+        commands: []
+      };
+      commandCategories.push(category);
     }
-
-    console.log('Command data updated successfully.');
-  } catch (error) {
-    console.error('Error updating command data:', error);
-  }
-}
-
-module.exports = async function (client) {
-  // Create the commandIds table if it doesn't exist
-  await createCommandIdsTable();
-
-  const commands = [];
-
-  // Read command files from the commands directory
-  const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
-
-  // Loop through command files and register slash commands
-  for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    const commandData = {
-      name: command.data.name, // Add the name field
-      commandId: null,
-      lastModified: fs.statSync(`./commands/${file}`).mtime,
-    };
-
-    // Add the command data to the commands array
-    commands.push(commandData);
-  }
-
-  const rest = new REST({ version: '10' }).setToken(token);
-
-  try {
-    console.log('Started refreshing application (/) commands.');
-
-    // Update the command data in the table
-    await updateCommandData(commands);
-
-    // Register the global slash commands
-    const response = await rest.put(Routes.applicationCommands(clientId), {
-      body: commands,
+    category.commands.push({
+      name: command.data.name,
+      description: command.data.description
     });
+  } else {
+    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
+    if (!defaultCategory) {
+      defaultCategory = {
+        name: 'Uncategorized',
+        description: 'Commands that do not belong to any specific category',
+        commands: []
+      };
+      commandCategories.push(defaultCategory);
+    }
+    defaultCategory.commands.push({
+      name: command.data.name,
+      description: command.data.description
+    });
+  }
+}
 
-    console.log('Successfully refreshed application (/) commands.');
-  } catch (error) {
-    console.error('Error refreshing application (/) commands:', error);
+client.once('ready', async () => {
+  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
 
-    // Log the command names that caused the error
-    const commandNames = commands.map((command) => command.name);
-    const errorCommands = commandNames.map((commandName, index) => ({
-      name: commandName,
-      error: error.rawError.errors[index] || error,
-    }));
+  inviteTracker.execute(client);
 
-    console.error('Error commands:');
-    for (const errorCommand of errorCommands) {
-      console.error(`- Command: ${errorCommand.name}`);
-      console.error(`  Error: ${JSON.stringify(errorCommand.error)}`);
+  const slashCommands = require('./slashCommands.js');
+  await slashCommands(client);
+});
+
+client.on('interactionCreate', async (interaction) => {
+  console.log('Interaction received:', interaction);
+
+  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
+    console.log('Select menu interaction received:', interaction);
+    await handleSelectMenu(interaction, commandCategories);
+  } else if (interaction.isCommand()) {
+    const { commandName } = interaction;
+
+    console.log('Command interaction received:', interaction);
+
+    if (commandName === 'help') {
+      console.log('Executing help command...');
+      await client.commands.get('help').execute(interaction, client);
+      console.log('Help command executed.');
+    } else {
+      const command = client.commands.get(commandName);
+
+      if (!command) return;
+
+      try {
+        console.log(`Executing ${commandName} command...`);
+        await command.execute(interaction, client);
+        console.log(`${commandName} command executed.`);
+      } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+      }
     }
   }
-};
+});
+
+client.login(token);
