@@ -28,9 +28,10 @@ async function handleSelectMenu(interaction, commandCategories) {
     });
 
     try {
+      await interaction.deferUpdate();
+      console.log('Interaction deferred.');
+
       if (interaction.message) {
-        await interaction.deferUpdate();
-        console.log('Interaction deferred.');
         await interaction.message.edit({ embeds: [categoryEmbed] });
         console.log('Interaction message updated.');
       } else {
@@ -58,7 +59,6 @@ module.exports = {
     }
 
     const commandCategories = [];
-    const defaultCategoryName = 'Uncategorized';
 
     const commandsDirectory = path.join(__dirname, '../commands');
     console.log('Commands directory:', commandsDirectory);
@@ -94,11 +94,11 @@ module.exports = {
           description: command.data.description,
         });
       } else {
-        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+        let defaultCategory = commandCategories.find((category) => category.name === 'Uncategorized');
 
         if (!defaultCategory) {
           defaultCategory = {
-            name: defaultCategoryName,
+            name: 'Uncategorized',
             description: 'Commands that do not belong to any specific category',
             commands: [],
           };
@@ -111,14 +111,6 @@ module.exports = {
           description: command.data.description,
         });
       }
-    }
-
-    if (!commandCategories.find((category) => category.name === defaultCategoryName)) {
-      commandCategories.push({
-        name: defaultCategoryName,
-        description: 'Commands that do not belong to any specific category',
-        commands: [],
-      });
     }
 
     console.log('Command categories:', commandCategories);
