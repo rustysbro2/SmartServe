@@ -9,67 +9,37 @@ async function handleSelectMenu(interaction, commandCategories) {
 
   console.log('Selected category:', selectedCategory);
 
-  if (selectedCategory.toLowerCase() === 'uncategorized') {
-    const uncategorizedCommands = commandCategories.find((category) => category.name === '');
+  const category = commandCategories.find(
+    (category) =>
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+  );
 
-    if (uncategorizedCommands && uncategorizedCommands.commands.length > 0) {
-      console.log('Uncategorized commands found:', uncategorizedCommands.commands);
+  if (category) {
+    console.log('Category found:', category.name);
 
-      const categoryEmbed = new EmbedBuilder()
-        .setTitle('Uncategorized Commands')
-        .setDescription('Here are the uncategorized commands:')
-        .setColor('#0099ff');
+    const categoryEmbed = new EmbedBuilder()
+      .setTitle(`Commands - ${category.name}`)
+      .setDescription(category.description || 'No description available');
 
-      uncategorizedCommands.commands.forEach((command) => {
-        categoryEmbed.addField(command.name, command.description);
-      });
+    category.commands.forEach((command) => {
+      console.log('Adding command to embed:', command.name);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
+    });
 
-      try {
-        if (interaction.message) {
-          await interaction.deferUpdate();
-          console.log('Interaction deferred.');
-          await interaction.message.edit({ embeds: [categoryEmbed] });
-          console.log('Interaction message updated.');
-        } else {
-          console.error('Interaction does not have a message.');
-        }
-      } catch (error) {
-        console.error('Error deferring or editing interaction:', error);
+    try {
+      if (interaction.message) {
+        await interaction.deferUpdate();
+        console.log('Interaction deferred.');
+        await interaction.message.edit({ embeds: [categoryEmbed] });
+        console.log('Interaction message updated.');
+      } else {
+        console.error('Interaction does not have a message.');
       }
-    } else {
-      console.log('No uncategorized commands found.');
+    } catch (error) {
+      console.error('Error deferring or editing interaction:', error);
     }
   } else {
-    const category = commandCategories.find(
-      (category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
-    );
-
-    if (category) {
-      console.log('Category found:', category.name);
-
-      const categoryEmbed = new EmbedBuilder()
-        .setTitle(`Commands - ${category.name}`)
-        .setDescription(category.description || 'No description available');
-
-      category.commands.forEach((command) => {
-        categoryEmbed.addField(command.name, command.description);
-      });
-
-      try {
-        if (interaction.message) {
-          await interaction.deferUpdate();
-          console.log('Interaction deferred.');
-          await interaction.message.edit({ embeds: [categoryEmbed] });
-          console.log('Interaction message updated.');
-        } else {
-          console.error('Interaction does not have a message.');
-        }
-      } catch (error) {
-        console.error('Error deferring or editing interaction:', error);
-      }
-    } else {
-      console.error(`Category '${selectedCategory}' not found.`);
-    }
+    console.error(`Category '${selectedCategory}' not found.`);
   }
 }
 
@@ -78,7 +48,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client) {
     console.log('Help command interaction received:', interaction);
 
     if (interaction.deferred || interaction.replied) {
@@ -86,19 +56,65 @@ module.exports = {
       return;
     }
 
+    const commandCategories = [];
     const defaultCategoryName = 'Uncategorized';
+
+    const commandsDirectory = path.join(__dirname, '../commands');
+    console.log('Commands directory:', commandsDirectory);
+
+    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
+    console.log('Command files:', commandFiles);
+
+    for (const file of commandFiles) {
+      if (file === 'help.js') continue;
+
+      const command = require(path.join(commandsDirectory, file));
+      console.log('Command module:', command);
+
+      if (command.category) {
+        let category = commandCategories.find((category) => category.name === command.category);
+
+        if (!category) {
+          category = {
+            name: command.category,
+            description: '',
+            commands: [],
+          };
+
+          commandCategories.push(category);
+        }
+
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      } else {
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+
+        if (!defaultCategory) {
+          defaultCategory = {
+            name: defaultCategoryName,
+            description: 'Commands that do not belong to any specific category',
+            commands: [],
+          };
+
+          commandCategories.push(defaultCategory);
+        }
+
+        defaultCategory.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      }
+    }
+
+    console.log('Command categories:', commandCategories);
 
     const usedOptionValues = new Set();
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
-
-    // Add the "Uncategorized" category explicitly
-    const uncategorizedOption = new StringSelectMenuOptionBuilder()
-      .setLabel(defaultCategoryName)
-      .setValue(generateUniqueOptionValue(defaultCategoryName));
-    selectMenu.addOptions(uncategorizedOption);
 
     commandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
