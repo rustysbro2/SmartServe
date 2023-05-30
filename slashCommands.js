@@ -84,7 +84,7 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
+              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 14) !== lastModified.toISOString().slice(0, 14))) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
                 console.log(`- Last Modified: ${lastModified}`);
