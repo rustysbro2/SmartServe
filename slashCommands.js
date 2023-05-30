@@ -35,14 +35,14 @@ async function updateCommandData(commands, rest, client) {
     for (const command of commands) {
       const { name, description, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
-      const existingCommand = client.commands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
+      const existingCommand = client.commands.find(cmd => cmd.setName.toLowerCase() === lowerCaseName);
 
       if (!existingCommand) {
         return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
       }
 
       const commandData = {
-        name: existingCommand.data.name,
+        name: existingCommand.data.setName,
         description: existingCommand.data.description,
       };
 
@@ -177,9 +177,6 @@ async function updateCommandData(commands, rest, client) {
   }
 }
 
-
-
-
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
@@ -192,12 +189,12 @@ module.exports = async function (client) {
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    const lowerCaseName = command.data.name.toLowerCase();
+    const setName = command.setName.toLowerCase();
     const commandData = {
-      name: command.data.name,
-      description: command.data.description,
+      name: setName,
+      description: command.description,
       commandId: null,
-      lastModified: fs.statSync(`./commands/${lowerCaseName}.js`).mtime,
+      lastModified: fs.statSync(`./commands/${file}`).mtime,
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
