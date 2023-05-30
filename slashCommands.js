@@ -6,7 +6,7 @@ const fs = require('fs');
 const commandsFolder = './commands';
 const rest = new REST({ version: '10' }).setToken(token);
 
-async function registerCommands() {
+async function registerSlashCommands() {
   try {
     console.log('Started refreshing application (/) commands.');
 
@@ -44,4 +44,4 @@ async function registerCommands() {
   }
 }
 
-registerCommands();
+registerSlashCommands();
