@@ -48,7 +48,10 @@ async function updateCommandData(commands, rest, client) {
 
         // Update the command data in the array
         command.commandId = commandId;
-        command.lastModified = new Date();
+
+        const commandFile = `./commands/${name}.js`;
+        const lastModified = fs.statSync(commandFile).mtime;
+        command.lastModified = lastModified;
 
         console.log(`Command data updated: ${JSON.stringify(command)}`);
       } catch (error) {
@@ -74,6 +77,7 @@ async function updateCommandData(commands, rest, client) {
     console.error('Error updating command data:', error);
   }
 }
+
 
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
