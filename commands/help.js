@@ -62,18 +62,6 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    commandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name));
-
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
-      }
-
-      selectMenu.addOptions(optionBuilder);
-    });
-
     // Add Uncategorized category
     const uncategorizedCommands = commandCategories.find((category) => category.name === 'Uncategorized');
 
@@ -85,14 +73,43 @@ module.exports = {
       selectMenu.addOptions(optionBuilder);
     }
 
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+    commandCategories.forEach((category) => {
+      if (category.name === 'Uncategorized') {
+        return;
+      }
 
-      let optionValue = sanitizedCategoryName;
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(generateUniqueOptionValue(category.name));
+
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
+
+      selectMenu.addOptions(optionBuilder);
+
+      category.commands.forEach((command) => {
+        console.log('Adding command to uncategorized:', command.name);
+        const uncategorizedOptionBuilder = new StringSelectMenuOptionBuilder()
+          .setLabel(command.name)
+          .setValue(generateUniqueOptionValue(command.name));
+
+        if (command.description && command.description.length > 0) {
+          uncategorizedOptionBuilder.setDescription(command.description);
+        }
+
+        selectMenu.addOptions(uncategorizedOptionBuilder);
+      });
+    });
+
+    function generateUniqueOptionValue(value) {
+      const sanitizedValue = value.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedValue;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
+        optionValue = `${sanitizedValue}_${index}`;
         index++;
       }
 
