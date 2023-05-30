@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, MessageEmbed } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
@@ -16,13 +16,13 @@ async function handleSelectMenu(interaction, commandCategories) {
   if (category) {
     console.log('Category found:', category.name);
 
-    const categoryEmbed = new MessageEmbed()
+    const categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
       console.log('Adding command to embed:', command.name);
-      categoryEmbed.addField(command.name, command.description);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     try {
@@ -47,7 +47,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client, commandCategories, guildId) {
     console.log('Help command interaction received:', interaction);
 
     if (interaction.deferred || interaction.replied) {
@@ -58,7 +58,7 @@ module.exports = {
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories.filter((category) =>
-      isGlobal ? !category.global : category.guildId === interaction.guildId
+      isGlobal ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
 
     const usedOptionValues = new Set();
@@ -97,7 +97,7 @@ module.exports = {
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    const initialEmbed = new MessageEmbed()
+    const initialEmbed = new EmbedBuilder()
       .setTitle('Command Categories')
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
