@@ -23,7 +23,7 @@ for (const file of commandFiles) {
   const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
   client.commands.set(command.data.name, command);
 
-  if (command.global !== false || (command.guildId && command.guildId !== client.guildId)) {
+  if (command.global !== false || (command.guildId && command.guildId !== interaction.guildId)) {
     continue; // Skip global commands and guild-specific commands for other guilds
   }
 
