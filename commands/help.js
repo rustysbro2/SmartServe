@@ -9,7 +9,8 @@ async function handleSelectMenu(interaction, commandCategories) {
   console.log('Selected category:', selectedCategory);
 
   const category = commandCategories.find(
-    (category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+    (category) =>
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
   if (category) {
@@ -20,23 +21,28 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      const data = command.data;
-      if (
-        (data.category && data.category.toLowerCase() !== category.name.toLowerCase()) ||
-        (!data.category && category.name.toLowerCase() !== 'uncategorized')
-      ) {
-        return; // Exclude commands from other categories
-      }
+      const commandData = client.commands.get(command.name)?.data;
 
-      console.log('Adding command to embed:', data.name);
-      categoryEmbed.addFields({ name: data.name, value: data.description });
+      if (commandData) {
+        const commandCategory = commandData.category;
+
+        if (
+          (commandCategory && commandCategory.toLowerCase() !== category.name.toLowerCase()) ||
+          (!commandCategory && category.name.toLowerCase() !== 'uncategorized')
+        ) {
+          return; // Exclude commands from other categories
+        }
+
+        console.log('Adding command to embed:', commandData.name);
+        categoryEmbed.addFields({ name: commandData.name, value: commandData.description });
+      }
     });
 
     try {
       if (interaction.message) {
         await interaction.deferUpdate();
         console.log('Interaction deferred.');
-        await interaction.message.edit({ embeds: [categoryEmbed] });
+        await interaction.message.edit({ embeds: [categoryEmbed.toJSON()] });
         console.log('Interaction message updated.');
       } else {
         console.error('Interaction does not have a message.');
@@ -48,6 +54,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 
 
