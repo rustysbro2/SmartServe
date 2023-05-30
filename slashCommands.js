@@ -86,21 +86,22 @@ module.exports = async function (client) {
   const commands = [];
 
   // Read command files from the commands directory
-  const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
+  const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
 
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     const commandData = {
       name: command.data.name,
-      description: command.data.description, // Add the description field
+      description: command.data.description,
       commandId: null,
-      lastModified: null, // Set lastModified as null when the file is missing
+      lastModified: fs.statSync(`./commands/${file}`).mtime,
     };
 
     // Add the command data to the commands array
     commands.push(commandData);
   }
+
 
 
   const rest = new REST({ version: '10' }).setToken(token);
