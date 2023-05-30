@@ -25,6 +25,12 @@ async function createCommandIdsTable() {
 
 async function updateCommandData(commands, rest, client) {
   try {
+    // Get the existing global slash commands
+    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+
+    // Get the existing guild-specific slash commands
+    const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
+
     for (const command of commands) {
       const { name, description, lastModified, global } = command;
       const existingCommand = client.commands.get(name);
@@ -42,15 +48,35 @@ async function updateCommandData(commands, rest, client) {
         let response;
 
         if (global) {
-          // Register as global command
-          response = await rest.post(Routes.applicationCommands(clientId), {
-            body: commandData,
-          });
+          // Check if the command is already registered as a global command
+          const existingGlobalCommand = existingGlobalCommands.find((cmd) => cmd.name.toLowerCase() === name.toLowerCase());
+
+          if (existingGlobalCommand) {
+            // Update the existing global command
+            response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
+              body: commandData,
+            });
+          } else {
+            // Register as a new global command
+            response = await rest.post(Routes.applicationCommands(clientId), {
+              body: commandData,
+            });
+          }
         } else {
-          // Register as guild-specific command
-          response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
-            body: commandData,
-          });
+          // Check if the command is already registered as a guild-specific command
+          const existingGuildCommand = existingGuildCommands.find((cmd) => cmd.name.toLowerCase() === name.toLowerCase());
+
+          if (existingGuildCommand) {
+            // Update the existing guild-specific command
+            response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
+              body: commandData,
+            });
+          } else {
+            // Register as a new guild-specific command
+            response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
+              body: commandData,
+            });
+          }
         }
 
         const commandId = response.id;
@@ -60,7 +86,7 @@ async function updateCommandData(commands, rest, client) {
 
         // Check if the last modified date has changed
         const commandFile = `./commands/${name}.js`;
-        const normalizedCommandFile = fs.readdirSync('./commands').find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
+        const normalizedCommandFile = fs.readdirSync('./commands').find((file) => file.toLowerCase() === `${name.toLowerCase()}.js`);
         const newLastModified = normalizedCommandFile ? fs.statSync(`./commands/${normalizedCommandFile}`).mtime : null;
 
         if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
@@ -110,7 +136,7 @@ module.exports = async function (client) {
       description: command.data.description,
       commandId: null,
       lastModified: fs.statSync(`./commands/${file}`).mtime,
-      global: command.global === undefined ? true : command.global, // Set to true if global is not specified
+      global: command.global !== undefined ? command.global : true,
     };
 
     // Add the command data to the commands array
