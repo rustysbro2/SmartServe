@@ -23,10 +23,8 @@ async function createCommandIdsTable() {
   }
 }
 
-async function updateCommandData(commands) {
+async function updateCommandData(commands, rest) {
   try {
-    const rest = new REST({ version: '10' }).setToken(token);
-
     for (const command of commands) {
       const { name, description } = command;
       const existingCommand = interaction.client.commands.get(name);
@@ -67,7 +65,6 @@ async function updateCommandData(commands) {
   }
 }
 
-
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
@@ -96,13 +93,8 @@ module.exports = async function (client) {
   try {
     console.log('Started refreshing application (/) commands.');
 
-    // Update the command data in the table
-    await updateCommandData(commands);
-
-    // Register the global slash commands
-    const response = await rest.put(Routes.applicationCommands(clientId), {
-      body: commands,
-    });
+    // Update the command data and register the global slash commands
+    await updateCommandData(commands, rest);
 
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
