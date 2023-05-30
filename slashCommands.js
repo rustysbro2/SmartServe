@@ -27,7 +27,7 @@ async function updateCommandData(commands, rest) {
   try {
     for (const command of commands) {
       const { name, description } = command;
-      const existingCommand = interaction.client.commands.get(name);
+      const existingCommand = client.commands.get(name);
 
       if (!existingCommand) {
         return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
