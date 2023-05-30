@@ -1,8 +1,9 @@
+// help.js
+
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { guildId } = require('../config.js');
-
+const { guildId } = require('./config.js'); // Import the guildId from config.js
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
@@ -24,8 +25,11 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      console.log('Adding command to embed:', command.name);
-      categoryEmbed.addFields({ name: command.name, value: command.description });
+      // Exclude guild-specific commands if used in a different guild
+      if (command.global || interaction.guildId === guildId) {
+        console.log('Adding command to embed:', command.name);
+        categoryEmbed.addFields({ name: command.name, value: command.description });
+      }
     });
 
     try {
@@ -58,8 +62,6 @@ module.exports = {
       return;
     }
 
-    const guildId = interaction.guildId; // Get the ID of the guild where the help command is issued
-
     const commandCategories = [];
     const defaultCategoryName = 'Uncategorized';
 
@@ -88,12 +90,11 @@ module.exports = {
           commandCategories.push(category);
         }
 
-        if (!command.global || command.guildId === guildId) { // Check if the command is not global or matches the current guild
-          category.commands.push({
-            name: command.data.name,
-            description: command.data.description,
-          });
-        }
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+          global: command.global || false, // Set global to false if not specified in the command file
+        });
       } else {
         let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
 
@@ -107,12 +108,11 @@ module.exports = {
           commandCategories.push(defaultCategory);
         }
 
-        if (!command.global || command.guildId === guildId) { // Check if the command is not global or matches the current guild
-          defaultCategory.commands.push({
-            name: command.data.name,
-            description: command.data.description,
-          });
-        }
+        defaultCategory.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+          global: command.global || false, // Set global to false if not specified in the command file
+        });
       }
     }
 
