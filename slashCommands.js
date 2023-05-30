@@ -1,8 +1,10 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { clientId, token } = require('./config.js');
+const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
 const { pool } = require('./database.js');
+
+const rest = new REST({ version: '10' }).setToken(token);
 
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
@@ -28,13 +30,31 @@ async function updateCommandData(commands) {
     for (const command of commands) {
       const { commandName, commandId, lastModified } = command;
 
+      // Retrieve the command ID from the Discord API
+      const fetchedCommand = await rest.get(
+        Routes.applicationGuildCommand(clientId, guildId, commandId)
+      );
+      const updatedCommandId = fetchedCommand.id;
+
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
         VALUES (?, ?, ?)
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
+      // Update the command ID in the database
+      await pool
+        .promise()
+        .query(insertUpdateQuery, [
+          commandName,
+          updatedCommandId,
+          lastModified,
+          updatedCommandId,
+          lastModified,
+        ]);
+
+      // Update the commandId property in the commands array
+      command.commandId = updatedCommandId;
     }
 
     console.log('Command data updated successfully.');
@@ -64,8 +84,6 @@ module.exports = async function (client) {
     // Add the command data to the commands array
     commands.push(commandData);
   }
-
-  const rest = new REST({ version: '10' }).setToken(token);
 
   try {
     console.log('Started refreshing application (/) commands.');
