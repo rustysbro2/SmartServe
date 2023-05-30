@@ -34,10 +34,11 @@ async function updateCommandData(commands, rest, client) {
 
     for (const command of commands) {
       const { name, description, lastModified, global } = command;
-      const existingCommand = client.commands.get(name);
+      const existingCommand = client.commands.get(name.toLowerCase()); // Use lowercase comparison for case insensitivity
 
       if (!existingCommand) {
-        return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
+        console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
+        continue;
       }
 
       const commandData = {
@@ -64,7 +65,12 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the last modified date has changed
-            const newLastModified = fs.statSync(`./commands/${name}.js`).mtime;
+            const commandFile = `./commands/${name.toLowerCase()}.js`;
+            if (!fs.existsSync(commandFile)) {
+              console.error(`Error updating command data: Command file not found: ${commandFile}`);
+              continue;
+            }
+            const newLastModified = fs.statSync(commandFile).mtime;
 
             if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
               // Update the command and obtain the command ID
@@ -108,7 +114,12 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the last modified date has changed
-            const newLastModified = fs.statSync(`./commands/${name}.js`).mtime;
+            const commandFile = `./commands/${name.toLowerCase()}.js`;
+            if (!fs.existsSync(commandFile)) {
+              console.error(`Error updating command data: Command file not found: ${commandFile}`);
+              continue;
+            }
+            const newLastModified = fs.statSync(commandFile).mtime;
 
             if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
               // Update the command and obtain the command ID
