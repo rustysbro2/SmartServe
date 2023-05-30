@@ -1,6 +1,4 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
-const fs = require('fs');
-const path = require('path');
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
@@ -67,15 +65,13 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    const filteredCommandCategories = commandCategories.filter(category => {
-      if (isGlobal) {
+    const filteredCommandCategories = commandCategories.filter((category) => {
+      if (isGlobal || (interaction.guildId && interaction.guildId === guildId)) {
         return category.name !== defaultCategoryName;
       } else {
-        return category.name !== defaultCategoryName && category.commands.some(command => command.global);
+        return category.name !== defaultCategoryName && category.commands.some((command) => command.global);
       }
     });
-
-    console.log('Filtered command categories:', filteredCommandCategories);
 
     filteredCommandCategories.slice(0, 25).forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
@@ -86,7 +82,6 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
-      console.log('Adding option to select menu:', category.name);
       selectMenu.addOptions(optionBuilder);
     });
 
