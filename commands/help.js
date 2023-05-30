@@ -9,27 +9,20 @@ async function handleSelectMenu(interaction, commandCategories) {
   console.log('Selected category:', selectedCategory);
 
   const category = commandCategories.find(
-    (category) => category.name.toLowerCase() === selectedCategory.toLowerCase()
+    (category) =>
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
   if (category) {
     console.log('Category found:', category.name);
 
-    const categoryEmbed = new Discord.MessageEmbed()
+    const categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      const data = command.data;
-      if (
-        (data.category && data.category.toLowerCase() !== category.name.toLowerCase()) ||
-        (!data.category && category.name.toLowerCase() !== 'uncategorized')
-      ) {
-        return; // Exclude commands from other categories
-      }
-
-      console.log('Adding command to embed:', data.name);
-      categoryEmbed.addField(data.name, data.description);
+      console.log('Adding command to embed:', command.name);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     try {
@@ -84,7 +77,7 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
-      selectMenu.addOptions(optionBuilder);
+      selectMenu.addOption(optionBuilder);
     });
 
     function generateUniqueOptionValue(categoryName) {
