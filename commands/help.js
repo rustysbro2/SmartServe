@@ -49,102 +49,73 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client) {
-    console.log('Help command interaction received:', interaction);
+async execute(interaction, client, commandCategories, guildId) {
+  console.log('Help command interaction received:', interaction);
 
-    if (interaction.deferred || interaction.replied) {
-      console.log('Interaction already deferred or replied to.');
-      return;
+  if (interaction.deferred || interaction.replied) {
+    console.log('Interaction already deferred or replied to.');
+    return;
+  }
+
+  const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
+
+  const defaultCategoryName = 'Uncategorized';
+
+  const usedOptionValues = new Set();
+
+  const selectMenu = new StringSelectMenuBuilder()
+    .setCustomId('help_category')
+    .setPlaceholder('Select a category');
+
+  const filteredCommandCategories = commandCategories.filter(category => {
+    if (isGlobal) {
+      return category.name !== defaultCategoryName;
+    } else {
+      return category.name !== defaultCategoryName && category.commands.some(command => command.global);
+    }
+  });
+
+  filteredCommandCategories.forEach((category) => {
+    const optionBuilder = new StringSelectMenuOptionBuilder()
+      .setLabel(category.name)
+      .setValue(generateUniqueOptionValue(category.name));
+
+    if (category.description && category.description.length > 0) {
+      optionBuilder.setDescription(category.description);
     }
 
-    const defaultCategoryName = 'Uncategorized';
+    selectMenu.addOptions(optionBuilder);
+  });
 
-    const commandCategories = [];
-    const usedOptionValues = new Set();
+  function generateUniqueOptionValue(categoryName) {
+    const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
 
-    const commandsDirectory = __dirname;
-    console.log('Commands directory:', commandsDirectory);
+    let optionValue = sanitizedCategoryName;
+    let index = 1;
 
-    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
-    console.log('Command files:', commandFiles);
-
-    for (const file of commandFiles) {
-      if (file === 'help.js') continue;
-
-      const command = require(path.join(commandsDirectory, file));
-      console.log('Command module:', command);
-
-      if (command.category) {
-        let category = commandCategories.find((category) => category.name === command.category);
-
-        if (!category) {
-          category = {
-            name: command.category,
-            description: '',
-            commands: [],
-          };
-
-          commandCategories.push(category);
-        }
-
-        category.commands.push({
-          name: command.data.name,
-          description: command.data.description,
-          global: command.global === undefined ? true : command.global,
-        });
-      } else {
-        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
-
-        if (!defaultCategory) {
-          defaultCategory = {
-            name: defaultCategoryName,
-            description: 'Commands that do not belong to any specific category',
-            commands: [],
-          };
-
-          commandCategories.push(defaultCategory);
-        }
-
-        defaultCategory.commands.push({
-          name: command.data.name,
-          description: command.data.description,
-          global: command.global === undefined ? true : command.global,
-        });
-      }
+    while (usedOptionValues.has(optionValue)) {
+      optionValue = `${sanitizedCategoryName}_${index}`;
+      index++;
     }
 
-    console.log('Command categories:', commandCategories);
+    usedOptionValues.add(optionValue);
+    return optionValue;
+  }
 
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('help_category')
-      .setPlaceholder('Select a category');
+  const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    commandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(category.name.toLowerCase().replace(/\s/g, '_'));
+  const initialEmbed = new EmbedBuilder()
+    .setTitle('Command Categories')
+    .setDescription('Please select a category from the dropdown menu.')
+    .setColor('#0099ff');
 
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
-      }
-
-      selectMenu.addOptions(optionBuilder);
-    });
-
-    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
-
-    const initialEmbed = new EmbedBuilder()
-      .setTitle('Command Categories')
-      .setDescription('Please select a category from the dropdown menu.')
-      .setColor('#0099ff');
-
-    try {
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-      console.log('Initial embed sent.');
-    } catch (error) {
-      console.error('Error replying to interaction:', error);
-    }
-  },
+  try {
+    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+    console.log('Initial embed sent.');
+  } catch (error) {
+    console.error('Error replying to interaction:', error);
+  }
+},
 
   handleSelectMenu,
 };
