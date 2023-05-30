@@ -71,9 +71,13 @@ module.exports = async function (client) {
       lastModified: fs.statSync(`./commands/${file}`).mtime,
     };
 
+    console.log(`File: ${file}`);
+    console.log(`Command name: ${commandData.name}`);
+
     // Add the command data to the commands array
     commands.push(commandData);
   }
+
 
   const rest = new REST({ version: '10' }).setToken(token);
 
