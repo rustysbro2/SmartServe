@@ -53,19 +53,15 @@ module.exports = async function (client) {
 
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
-    try {
-      const command = require(`./commands/${file}`);
-      const commandData = {
-        commandName: command.data.name,
-        commandId: null,
-        lastModified: fs.statSync(`./commands/${file}`).mtime,
-      };
+    const command = require(`./commands/${file}`);
+    const commandData = {
+      commandName: command.data.name,
+      commandId: null,
+      lastModified: fs.statSync(`./commands/${file}`).mtime,
+    };
 
-      // Add the command data to the commands array
-      commands.push(commandData);
-    } catch (error) {
-      console.error(`Error loading command file '${file}':`, error);
-    }
+    // Add the command data to the commands array
+    commands.push(commandData);
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
@@ -84,5 +80,6 @@ module.exports = async function (client) {
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
+    console.log('Command request body:', error.requestBody); // Add this line to log the request body
   }
 };
