@@ -21,7 +21,12 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     category.commands.forEach((command) => {
       const data = command.data.toJSON();
-      if (data.category !== category.name && data.category !== 'uncategorized') return; // Exclude commands from other categories
+      if (
+        (data.category && data.category !== category.name) ||
+        (!data.category && category.name !== 'uncategorized')
+      ) {
+        return; // Exclude commands from other categories
+      }
 
       console.log('Adding command to embed:', data.name);
       categoryEmbed.addFields({ name: data.name, value: data.description });
