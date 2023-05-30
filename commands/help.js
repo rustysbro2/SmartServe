@@ -21,8 +21,10 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      console.log('Adding command to embed:', command.name);
-      categoryEmbed.addFields({ name: command.name, value: command.description });
+      if (command.global === false) return; // Exclude global commands from the category
+
+      console.log('Adding command to embed:', command.data.name);
+      categoryEmbed.addFields({ name: command.data.name, value: command.data.description });
     });
 
     try {
