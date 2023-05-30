@@ -69,7 +69,7 @@ client.on('interactionCreate', async (interaction) => {
 
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
     console.log('Select menu interaction received:', interaction);
-    await helpCommand.handleSelectMenu(interaction, commandCategories);
+    await helpCommand.handleSelectMenu(interaction, client, commandCategories);
   } else if (interaction.isCommand()) {
     const { commandName, guildId: interactionGuildId } = interaction;
 
