@@ -1,9 +1,7 @@
-// help.js
-
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { guildId } = require('../config.js'); // Import the guildId from config.js
+const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
@@ -25,11 +23,8 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      // Exclude guild-specific commands if used in a different guild
-      if (command.global || interaction.guildId === guildId) {
-        console.log('Adding command to embed:', command.name);
-        categoryEmbed.addFields({ name: command.name, value: command.description });
-      }
+      console.log('Adding command to embed:', command.name);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     try {
@@ -62,10 +57,12 @@ module.exports = {
       return;
     }
 
-    const commandCategories = [];
     const defaultCategoryName = 'Uncategorized';
 
-    const commandsDirectory = path.join(__dirname, '../commands');
+    const commandCategories = [];
+    const usedOptionValues = new Set();
+
+    const commandsDirectory = __dirname;
     console.log('Commands directory:', commandsDirectory);
 
     const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
@@ -93,7 +90,7 @@ module.exports = {
         category.commands.push({
           name: command.data.name,
           description: command.data.description,
-          global: command.global || false, // Set global to false if not specified in the command file
+          global: command.global === undefined ? true : command.global,
         });
       } else {
         let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
@@ -111,14 +108,12 @@ module.exports = {
         defaultCategory.commands.push({
           name: command.data.name,
           description: command.data.description,
-          global: command.global || false, // Set global to false if not specified in the command file
+          global: command.global === undefined ? true : command.global,
         });
       }
     }
 
     console.log('Command categories:', commandCategories);
-
-    const usedOptionValues = new Set();
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
@@ -127,7 +122,7 @@ module.exports = {
     commandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name));
+        .setValue(category.name.toLowerCase().replace(/\s/g, '_'));
 
       if (category.description && category.description.length > 0) {
         optionBuilder.setDescription(category.description);
@@ -135,21 +130,6 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
-
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
