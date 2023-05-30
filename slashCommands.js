@@ -25,12 +25,8 @@ async function createCommandIdsTable() {
 
 async function updateCommandData(commands) {
   try {
-    console.log('Updating command data:', commands);
-
     for (const command of commands) {
-      console.log('Processing command:', command);
-
-      const { commandName, commandId, lastModified } = command;
+      const { name, description, commandId, lastModified } = command; // Destructure the command object
 
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
@@ -38,10 +34,9 @@ async function updateCommandData(commands) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      console.log('SQL query:', insertUpdateQuery);
-      console.log('Values:', [commandName, commandId, lastModified, commandId, lastModified]);
+      await pool.promise().query(insertUpdateQuery, [name, commandId, lastModified, commandId, lastModified]); // Use name instead of commandName
 
-      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
+      console.log('Command data updated:', command);
     }
 
     console.log('Command data updated successfully.');
@@ -69,13 +64,9 @@ module.exports = async function (client) {
       lastModified: fs.statSync(`./commands/${file}`).mtime,
     };
 
-    console.log(`File: ${file}`);
-    console.log(`Command name: ${commandData.name}`);
-
     // Add the command data to the commands array
     commands.push(commandData);
   }
-
 
   const rest = new REST({ version: '10' }).setToken(token);
 
@@ -108,3 +99,4 @@ module.exports = async function (client) {
     }
   }
 };
+
