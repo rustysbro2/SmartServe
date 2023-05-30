@@ -83,7 +83,7 @@ async function updateCommandData(commands, rest, client) {
               // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              if (newCommandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+              if (commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
                 // Update the command and obtain the command ID
                 const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
                   body: commandData,
@@ -135,7 +135,7 @@ async function updateCommandData(commands, rest, client) {
               // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              if (command.commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+              if (commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
                 // Update the command and obtain the command ID
                 const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
                   body: commandData,
@@ -155,7 +155,6 @@ async function updateCommandData(commands, rest, client) {
               console.log(`Skipping command update due to missing command file: ${JSON.stringify(command)}`);
             }
           }
-
 
           // Delete the command if it exists as a global command
           const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
@@ -177,7 +176,7 @@ async function updateCommandData(commands, rest, client) {
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
         VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = IF(?, commandId, commandId), lastModified = ?
+        ON DUPLICATE KEY UPDATE commandId = IFNULL(?, commandId), lastModified = ?
       `;
 
       await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
