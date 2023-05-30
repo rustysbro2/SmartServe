@@ -25,7 +25,11 @@ async function createCommandIdsTable() {
 async function updateCommandData(commands) {
   try {
     for (const command of commands) {
-      const { commandName, commandId, lastModified } = command;
+      const { commandName, lastModified } = command;
+
+      // Retrieve the commandId from the database or assign a default value
+      const [result] = await pool.promise().query('SELECT commandId FROM commandIds WHERE commandName = ?', [commandName]);
+      const commandId = result?.commandId || null;
 
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
@@ -35,8 +39,8 @@ async function updateCommandData(commands) {
 
       await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
 
-      // Update the command object with the name
-      command.name = commandName;
+      // Update the command object with the commandId
+      command.commandId = commandId;
     }
 
     console.log('Command data updated successfully.');
@@ -66,8 +70,6 @@ module.exports = async function (client) {
     // Add the command data to the commands array
     commands.push(commandData);
   }
-
-  console.log('Commands:', commands);
 
   const rest = new REST({ version: '10' }).setToken(token);
 
