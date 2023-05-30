@@ -32,18 +32,29 @@ async function updateCommandData(commands, rest, client) {
     // Get the existing guild-specific slash commands
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
 
+    // Read command files from the commands directory
+    const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
+
+    // Map command names to lowercase file names
+    const commandNameToFileMap = commandFiles.reduce((map, file) => {
+      const command = require(`./commands/${file}`);
+      const lowerCaseName = command.data.name.toLowerCase();
+      map[lowerCaseName] = file;
+      return map;
+    }, {});
+
     for (const command of commands) {
       const { name, description, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
-      const existingCommand = client.commands.find(cmd => cmd.data.name.toLowerCase() === lowerCaseName);
+      const fileName = commandNameToFileMap[lowerCaseName];
 
-      if (!existingCommand) {
+      if (!fileName) {
         return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
       }
 
       const commandData = {
-        name: existingCommand.data.setName,
-        description: existingCommand.data.description,
+        name: name, // Use the original command name
+        description: description,
       };
 
       try {
@@ -65,7 +76,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the command file exists
-            const commandFilePath = `./commands/${name}.js`;
+            const commandFilePath = `./commands/${fileName}`;
             const commandFileExists = fs.existsSync(commandFilePath);
 
             if (commandFileExists) {
@@ -117,7 +128,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the command file exists
-            const commandFilePath = `./commands/${name}.js`;
+            const commandFilePath = `./commands/${fileName}`;
             const commandFileExists = fs.existsSync(commandFilePath);
 
             if (commandFileExists) {
@@ -188,20 +199,19 @@ module.exports = async function (client) {
 
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);  // adjusted line
-    const setName = command.data.name.toLowerCase(); // Change this line
+    const command = require(`./commands/${file}`);
+    const setName = command.data.name.toLowerCase();
     const commandData = {
       name: setName,
       description: command.data.description,
       commandId: null,
-      lastModified: fs.statSync(`./commands/${file}`).mtime,  // adjusted line
+      lastModified: fs.statSync(`./commands/${file}`).mtime,
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
     // Add the command data to the commands array
     commands.push(commandData);
   }
-
 
   const rest = new REST({ version: '10' }).setToken(token);
 
