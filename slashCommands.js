@@ -33,7 +33,13 @@ async function updateCommandData(commands) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
+      const [result] = await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
+
+      if (result.affectedRows === 1) {
+        console.log(`Command data updated for command '${commandName}'.`);
+      } else {
+        console.log(`Command data inserted for new command '${commandName}'.`);
+      }
     }
 
     console.log('Command data updated successfully.');
@@ -80,6 +86,5 @@ module.exports = async function (client) {
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
-    console.log('Command request body:', error.requestBody); // Add this line to log the request body
   }
 };
