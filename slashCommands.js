@@ -4,8 +4,6 @@ const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
 const { pool } = require('./database.js');
 
-const rest = new REST({ version: '10' }).setToken(token);
-
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
   const createTableQuery = `
@@ -30,31 +28,13 @@ async function updateCommandData(commands) {
     for (const command of commands) {
       const { commandName, commandId, lastModified } = command;
 
-      // Retrieve the command ID from the Discord API
-      const fetchedCommand = await rest.get(
-        Routes.applicationGuildCommand(clientId, guildId, commandId)
-      );
-      const updatedCommandId = fetchedCommand.id;
-
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
         VALUES (?, ?, ?)
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      // Update the command ID in the database
-      await pool
-        .promise()
-        .query(insertUpdateQuery, [
-          commandName,
-          updatedCommandId,
-          lastModified,
-          updatedCommandId,
-          lastModified,
-        ]);
-
-      // Update the commandId property in the commands array
-      command.commandId = updatedCommandId;
+      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
@@ -85,6 +65,8 @@ module.exports = async function (client) {
     commands.push(commandData);
   }
 
+  const rest = new REST({ version: '10' }).setToken(token);
+
   try {
     console.log('Started refreshing application (/) commands.');
 
@@ -104,7 +86,7 @@ module.exports = async function (client) {
     const commandNames = commands.map((command) => command.commandName);
     const errorCommands = commandNames.map((commandName, index) => ({
       name: commandName,
-      error: error.rawError.errors[index]?.name || error.error._errors[index]?.name,
+      error: error.rawError.errors[index].name || error.error._errors[index].name,
     }));
 
     console.error('Command request body:', commandNames);
