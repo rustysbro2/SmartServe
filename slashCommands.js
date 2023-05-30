@@ -63,7 +63,25 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
-            console.log(`Skipping command update since command is already registered as a global command: ${JSON.stringify(command)}`);
+            // Check if the last modified date has changed
+            const newLastModified = fs.statSync(`./commands/${name}.js`).mtime;
+
+            if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
+              // Update the command and obtain the command ID
+              const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
+                body: commandData,
+              });
+
+              const commandId = response.id;
+
+              // Update the command data in the array
+              command.commandId = commandId;
+              command.lastModified = newLastModified;
+
+              console.log(`Command data updated: ${JSON.stringify(command)}`);
+            } else {
+              console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
+            }
           }
 
           // Delete the command if it exists as a guild-specific command
@@ -89,7 +107,25 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
-            console.log(`Skipping command update since command is already registered as a guild-specific command: ${JSON.stringify(command)}`);
+            // Check if the last modified date has changed
+            const newLastModified = fs.statSync(`./commands/${name}.js`).mtime;
+
+            if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
+              // Update the command and obtain the command ID
+              const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
+                body: commandData,
+              });
+
+              const commandId = response.id;
+
+              // Update the command data in the array
+              command.commandId = commandId;
+              command.lastModified = newLastModified;
+
+              console.log(`Command data updated: ${JSON.stringify(command)}`);
+            } else {
+              console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
+            }
           }
 
           // Delete the command if it exists as a global command
