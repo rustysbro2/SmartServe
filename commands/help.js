@@ -20,7 +20,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      const data = command.data.toJSON();
+      const data = command.data;
       if (
         (data.category && data.category !== category.name) ||
         (!data.category && category.name !== 'uncategorized')
@@ -36,7 +36,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       if (interaction.message) {
         await interaction.deferUpdate();
         console.log('Interaction deferred.');
-        await interaction.message.edit({ embeds: [categoryEmbed] });
+        await interaction.message.edit({ embeds: [categoryEmbed.toJSON()] });
         console.log('Interaction message updated.');
       } else {
         console.error('Interaction does not have a message.');
