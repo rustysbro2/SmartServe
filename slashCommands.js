@@ -24,11 +24,6 @@ async function createCommandIdsTable() {
   }
 }
 
-function getCommandFileLastModified(name) {
-  const commandFile = fs.readdirSync('./commands').find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
-  return commandFile ? fs.statSync(`./commands/${commandFile}`).mtime : null;
-}
-
 async function updateCommandData(commands, rest, client) {
   try {
     // Get the existing global slash commands
@@ -69,7 +64,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the last modified date has changed
-            const newLastModified = getCommandFileLastModified(name);
+            const newLastModified = fs.statSync(`./commands/${name}.js`).mtime;
 
             if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
               // Update the command and obtain the command ID
@@ -113,7 +108,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the last modified date has changed
-            const newLastModified = getCommandFileLastModified(name);
+            const newLastModified = fs.statSync(`./commands/${name}.js`).mtime;
 
             if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
               // Update the command and obtain the command ID
@@ -140,19 +135,22 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command deleted as it needs to be registered as a guild-specific command: ${JSON.stringify(command)}`);
           }
         }
-
-        // Update the command ID in the database
-        const insertUpdateQuery = `
-          INSERT INTO commandIds (commandName, commandId, lastModified)
-          VALUES (?, ?, ?)
-          ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
-        `;
-
-
-        await pool.promise().query(insertUpdateQuery, [name.toLowerCase(), command.commandId, command.lastModified]);
       } catch (error) {
         console.error(`Error updating command data: ${error.message}`);
       }
+    }
+
+    // Update the command data in the database
+    for (const command of commands) {
+      const { name, commandId, lastModified } = command;
+
+      const insertUpdateQuery = `
+        INSERT INTO commandIds (commandName, commandId, lastModified)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE commandId = VALUES(commandId), lastModified = VALUES(lastModified)
+      `;
+
+      await pool.promise().query(insertUpdateQuery, [name, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
@@ -177,7 +175,7 @@ module.exports = async function (client) {
       name: command.data.name,
       description: command.data.description,
       commandId: null,
-      lastModified: getCommandFileLastModified(command.data.name),
+      lastModified: fs.statSync(`./commands/${file}`).mtime,
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
