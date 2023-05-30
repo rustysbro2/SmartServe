@@ -2,27 +2,31 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
-const { query } = require('./database.js');
+const { pool } = require('./database.js');
 
-// Function to insert or update a command in the database
-async function upsertCommand(commandName, commandId, options) {
-  const queryStr = `
-    INSERT INTO commandIds (commandName, commandId, options)
-    VALUES (?, ?, ?)
-    ON DUPLICATE KEY UPDATE
-    commandId = VALUES(commandId),
-    options = VALUES(options)
+async function createCommandIdsTable() {
+  const createTableQuery = `
+    CREATE TABLE IF NOT EXISTS commandIds (
+      commandName VARCHAR(255),
+      commandId VARCHAR(255),
+      options JSON,
+      lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      PRIMARY KEY (commandName)
+    )
   `;
 
   try {
-    await query(queryStr, [commandName, commandId, JSON.stringify(options)]);
-    console.log(`Command '${commandName}' upserted successfully.`);
+    await pool.query(createTableQuery);
+    console.log('CommandIds table created or already exists.');
   } catch (error) {
-    console.error(`Error upserting command '${commandName}':`, error);
+    console.error('Error creating commandIds table:', error);
   }
 }
 
 module.exports = async function (client) {
+  // Create the commandIds table if it doesn't exist
+  await createCommandIdsTable();
+
   const commands = [];
 
   // Read command files from the commands directory
@@ -35,9 +39,6 @@ module.exports = async function (client) {
 
     // Add the command data to the commands array
     commands.push(commandData);
-
-    // Upsert the command in the database
-    await upsertCommand(commandData.name, '', commandData.options || []);
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
