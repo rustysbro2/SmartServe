@@ -83,8 +83,13 @@ async function updateCommandData(commands, rest, client) {
               // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              if (commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
-                // Update the command and obtain the command ID
+              // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
+              if (command.commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+                console.log(`Updating command '${name}':`);
+                console.log(`- Command ID: ${command.commandId}`);
+                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- New Last Modified: ${newLastModified}`);
+
                 const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
                   body: commandData,
                 });
@@ -135,8 +140,13 @@ async function updateCommandData(commands, rest, client) {
               // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              if (commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
-                // Update the command and obtain the command ID
+              // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
+              if (command.commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+                console.log(`Updating command '${name}':`);
+                console.log(`- Command ID: ${command.commandId}`);
+                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- New Last Modified: ${newLastModified}`);
+
                 const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
                   body: commandData,
                 });
@@ -176,7 +186,7 @@ async function updateCommandData(commands, rest, client) {
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
         VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = IFNULL(?, commandId), lastModified = ?
+        ON DUPLICATE KEY UPDATE commandId = IF(?, commandId, commandId), lastModified = ?
       `;
 
       await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
