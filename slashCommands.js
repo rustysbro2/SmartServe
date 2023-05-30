@@ -34,7 +34,15 @@ async function updateCommandData(commands) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
+      await pool
+        .promise()
+        .query(insertUpdateQuery, [
+          commandName,
+          commandId,
+          lastModified,
+          commandId,
+          lastModified,
+        ]);
     }
 
     console.log('Command data updated successfully.');
@@ -69,6 +77,7 @@ module.exports = async function (client) {
 
   try {
     console.log('Started refreshing application (/) commands.');
+    console.log('Commands:', commands); // Debug statement
 
     // Update the command data in the table
     await updateCommandData(commands);
@@ -79,8 +88,10 @@ module.exports = async function (client) {
     });
 
     console.log('Successfully refreshed application (/) commands.');
+    console.log('Response:', response); // Debug statement
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
+    console.log('Commands:', commands); // Debug statement
 
     // Log the command names that caused the error
     const commandNames = commands.map((command) => command.commandName);
