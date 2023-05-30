@@ -1,6 +1,6 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { clientId, guildId, token } = require('./config.js');
+const { clientId, token } = require('./config.js');
 const fs = require('fs');
 const { pool } = require('./database.js');
 
@@ -73,8 +73,8 @@ module.exports = async function (client) {
     // Update the command data in the table
     await updateCommandData(commands);
 
-    // Register the guild-specific slash commands
-    const response = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+    // Register the global slash commands
+    const response = await rest.put(Routes.applicationCommands(clientId), {
       body: commands,
     });
 
