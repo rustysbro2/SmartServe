@@ -75,7 +75,7 @@ module.exports = {
       }
     });
 
-    filteredCommandCategories.forEach((category) => {
+    filteredCommandCategories.slice(0, 25).forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(generateUniqueOptionValue(category.name));
@@ -86,6 +86,7 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
+
 
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
