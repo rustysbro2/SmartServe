@@ -28,6 +28,9 @@ async function updateCommandData(commands, rest, client) {
     // Get the existing slash commands
     const existingCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
 
+    // Get the list of command files in the directory
+    const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
+
     for (const command of commands) {
       const { name, description, lastModified } = command;
       const existingCommand = client.commands.get(name);
@@ -61,24 +64,31 @@ async function updateCommandData(commands, rest, client) {
         } else {
           // Check if the last modified date has changed
           const commandFile = `./commands/${name}.js`;
-          const normalizedCommandFile = fs.readdirSync('./commands').find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
-          const newLastModified = normalizedCommandFile ? fs.statSync(`./commands/${normalizedCommandFile}`).mtime : null;
+          const normalizedCommandFile = commandFiles.find((file) => file.toLowerCase() === `${name.toLowerCase()}.js`);
 
-          if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
-            // Update the command and obtain the command ID
-            const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id), {
-              body: commandData,
-            });
+          if (normalizedCommandFile) {
+            const newLastModified = fs.statSync(`./commands/${normalizedCommandFile}`).mtime;
 
-            const commandId = response.id;
+            if (newLastModified.getTime() !== lastModified.getTime()) {
+              // Update the command and obtain the command ID
+              const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id), {
+                body: commandData,
+              });
 
-            // Update the command data in the array
-            command.commandId = commandId;
-            command.lastModified = newLastModified;
+              const commandId = response.id;
 
-            console.log(`Command data updated: ${JSON.stringify(command)}`);
+              // Update the command data in the array
+              command.commandId = commandId;
+              command.lastModified = newLastModified;
+
+              console.log(`Command data updated: ${JSON.stringify(command)}`);
+            } else {
+              console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
+            }
           } else {
-            console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
+            // Delete the command if the file is no longer present
+            await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id));
+            console.log(`Command deleted: ${name}`);
           }
         }
       } catch (error) {
@@ -104,7 +114,6 @@ async function updateCommandData(commands, rest, client) {
     console.error('Error updating command data:', error);
   }
 }
-
 
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
@@ -134,7 +143,7 @@ module.exports = async function (client) {
   try {
     console.log('Started refreshing application (/) commands.');
 
-    // Update the command data and register the global slash commands
+    // Update the command data and register/update/delete the global slash commands
     await updateCommandData(commands, rest, client);
 
     console.log('Successfully refreshed application (/) commands.');
