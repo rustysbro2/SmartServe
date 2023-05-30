@@ -189,7 +189,7 @@ module.exports = async function (client) {
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    const setName = command.setName.toLowerCase();
+    const setName = command.data.name.toLowerCase();
     const commandData = {
       name: setName,
       description: command.description,
