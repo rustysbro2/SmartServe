@@ -64,6 +64,8 @@ module.exports = async function (client) {
     commands.push(commandData);
   }
 
+  console.log('Commands:', commands);
+
   const rest = new REST({ version: '10' }).setToken(token);
 
   try {
