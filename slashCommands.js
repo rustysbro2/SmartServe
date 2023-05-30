@@ -53,18 +53,20 @@ module.exports = async function (client) {
 
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    const commandData = {
-      commandName: command.data.name,
-      commandId: null,
-      lastModified: fs.statSync(`./commands/${file}`).mtime,
-    };
+    try {
+      const command = require(`./commands/${file}`);
+      const commandData = {
+        commandName: command.data.name,
+        commandId: null,
+        lastModified: fs.statSync(`./commands/${file}`).mtime,
+      };
 
-    // Add the command data to the commands array
-    commands.push(commandData);
+      // Add the command data to the commands array
+      commands.push(commandData);
+    } catch (error) {
+      console.error(`Error loading command file '${file}':`, error);
+    }
   }
-
-  console.log('Commands to register:', commands);
 
   const rest = new REST({ version: '10' }).setToken(token);
 
@@ -73,8 +75,6 @@ module.exports = async function (client) {
 
     // Update the command data in the table
     await updateCommandData(commands);
-
-    console.log('Command data after update:', commands);
 
     // Register the guild-specific slash commands
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
