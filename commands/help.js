@@ -5,7 +5,7 @@ const path = require('path');
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
 
-  const selectedCategory = interaction.values[0];
+  const selectedCategory = interaction.values[0].toLowerCase();
 
   console.log('Selected category:', selectedCategory);
 
