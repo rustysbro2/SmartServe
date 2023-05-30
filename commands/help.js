@@ -59,15 +59,9 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    const filteredCommandCategories = commandCategories
-      .filter((category) => {
-        if (isGlobal) {
-          return category.global !== false;
-        } else {
-          return category.global !== false && (!category.guildId || category.guildId === interaction.guildId);
-        }
-      })
-      .slice(0, 10);
+    const filteredCommandCategories = commandCategories.filter((category) =>
+      isGlobal ? !category.guildId : category.guildId === interaction.guildId
+    ).slice(0, 10);
 
     const usedOptionValues = new Set();
 
