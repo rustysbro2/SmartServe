@@ -47,7 +47,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client, commandCategories, guildId) {
     console.log('Help command interaction received:', interaction);
 
     if (interaction.deferred || interaction.replied) {
