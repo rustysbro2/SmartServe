@@ -48,7 +48,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async function execute(interaction, client, commandCategories) {
     console.log('Help command interaction received:', interaction);
 
     if (interaction.deferred || interaction.replied) {
@@ -63,6 +63,12 @@ module.exports = {
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
+
+    // Add the "Uncategorized" category explicitly
+    const uncategorizedOption = new StringSelectMenuOptionBuilder()
+      .setLabel(defaultCategoryName)
+      .setValue(generateUniqueOptionValue(defaultCategoryName));
+    selectMenu.addOptions(uncategorizedOption);
 
     commandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
