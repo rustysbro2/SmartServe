@@ -9,16 +9,48 @@ async function handleSelectMenu(interaction, commandCategories) {
 
   console.log('Selected category:', selectedCategory);
 
-  if (selectedCategory.toLowerCase() === 'uncategorized') {
-    const uncategorizedCommands = commandCategories.find(category => !category.name);
+  const category = commandCategories.find(
+    (category) =>
+      category.name?.toLowerCase().replace(/\s/g, '_') === selectedCategory
+  );
 
-    if (uncategorizedCommands) {
+  if (category) {
+    console.log('Category found:', category.name);
+
+    const categoryEmbed = new EmbedBuilder()
+      .setTitle(`Commands - ${category.name}`)
+      .setDescription(category.description || 'No description available');
+
+    category.commands.forEach((command) => {
+      console.log('Adding command to embed:', command.name);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
+    });
+
+    try {
+      if (interaction.message) {
+        await interaction.deferUpdate();
+        console.log('Interaction deferred.');
+        await interaction.message.edit({ embeds: [categoryEmbed] });
+        console.log('Interaction message updated.');
+      } else {
+        console.error('Interaction does not have a message.');
+      }
+    } catch (error) {
+      console.error('Error deferring or editing interaction:', error);
+    }
+  } else if (selectedCategory.toLowerCase() === 'uncategorized') {
+    const uncategorizedCommands = commandCategories.find(
+      (category) => !category.name
+    );
+
+    if (uncategorizedCommands && uncategorizedCommands.commands.length > 0) {
       const categoryEmbed = new EmbedBuilder()
         .setTitle('Uncategorized Commands')
         .setDescription('Here are the uncategorized commands:')
         .setColor('#0099ff');
 
-      uncategorizedCommands.commands.forEach(command => {
+      uncategorizedCommands.commands.forEach((command) => {
+        console.log('Adding command to embed:', command.name);
         categoryEmbed.addField(command.name, command.description);
       });
 
@@ -38,38 +70,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       console.log('No uncategorized commands found.');
     }
   } else {
-    const category = commandCategories.find(category =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
-    );
-
-    if (category) {
-      console.log('Category found:', category.name);
-
-      const categoryEmbed = new EmbedBuilder()
-        .setTitle(`Commands - ${category.name}`)
-        .setDescription(category.description || 'No description available')
-        .setColor('#0099ff');
-
-      category.commands.forEach(command => {
-        console.log('Adding command to embed:', command.name);
-        categoryEmbed.addFields({ name: command.name, value: command.description });
-      });
-
-      try {
-        if (interaction.message) {
-          await interaction.deferUpdate();
-          console.log('Interaction deferred.');
-          await interaction.message.edit({ embeds: [categoryEmbed] });
-          console.log('Interaction message updated.');
-        } else {
-          console.error('Interaction does not have a message.');
-        }
-      } catch (error) {
-        console.error('Error deferring or editing interaction:', error);
-      }
-    } else {
-      console.error(`Category '${selectedCategory}' not found.`);
-    }
+    console.error(`Category '${selectedCategory}' not found.`);
   }
 }
 
@@ -100,9 +101,7 @@ module.exports = {
       .setValue(generateUniqueOptionValue(defaultCategoryName));
     selectMenu.addOptions(uncategorizedOption);
 
-    commandCategories.forEach(category => {
-      if (!category.name) return; // Skip uncategorized commands
-
+    commandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(generateUniqueOptionValue(category.name));
