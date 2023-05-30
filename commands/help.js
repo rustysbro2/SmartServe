@@ -56,6 +56,8 @@ module.exports = {
       return;
     }
 
+    const guildId = interaction.guildId; // Get the ID of the guild where the help command is issued
+
     const commandCategories = [];
     const defaultCategoryName = 'Uncategorized';
 
@@ -84,10 +86,12 @@ module.exports = {
           commandCategories.push(category);
         }
 
-        category.commands.push({
-          name: command.data.name,
-          description: command.data.description,
-        });
+        if (!command.global || command.guildId === guildId) { // Check if the command is not global or matches the current guild
+          category.commands.push({
+            name: command.data.name,
+            description: command.data.description,
+          });
+        }
       } else {
         let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
 
@@ -101,10 +105,12 @@ module.exports = {
           commandCategories.push(defaultCategory);
         }
 
-        defaultCategory.commands.push({
-          name: command.data.name,
-          description: command.data.description,
-        });
+        if (!command.global || command.guildId === guildId) { // Check if the command is not global or matches the current guild
+          defaultCategory.commands.push({
+            name: command.data.name,
+            description: command.data.description,
+          });
+        }
       }
     }
 
