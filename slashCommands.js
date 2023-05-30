@@ -25,6 +25,14 @@ async function createCommandIdsTable() {
 
 async function updateCommandData(commands, rest, client) {
   try {
+    // Get the existing slash commands
+    const existingCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
+
+    // Clear the existing slash commands
+    for (const existingCommand of existingCommands) {
+      await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id));
+    }
+
     for (const command of commands) {
       const { name, description, lastModified } = command;
       const existingCommand = client.commands.get(name);
