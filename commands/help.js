@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, SelectMenuBuilder, SelectMenuOptionBuilder, MessageEmbed } = require('discord.js');
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
@@ -16,7 +16,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   if (category) {
     console.log('Category found:', category.name);
 
-    const categoryEmbed = new EmbedBuilder()
+    const categoryEmbed = new MessageEmbed()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
@@ -57,17 +57,21 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
+    const filteredCommandCategories = commandCategories.filter((category) => {
+      return isGlobal ? !category.guildId : category.guildId === interaction.guildId;
+    });
+
     const defaultCategoryName = 'Uncategorized';
 
     const usedOptionValues = new Set();
 
-    const selectMenu = new StringSelectMenuBuilder()
+    const selectMenu = new SelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
     // Add options to the select menu
     filteredCommandCategories.slice(0, 25).forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
+      const optionBuilder = new SelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(generateUniqueOptionValue(category.name));
 
@@ -77,7 +81,6 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
-
 
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
@@ -96,7 +99,7 @@ module.exports = {
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    const initialEmbed = new EmbedBuilder()
+    const initialEmbed = new MessageEmbed()
       .setTitle('Command Categories')
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
