@@ -57,7 +57,7 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    const filteredCommandCategories = commandCategories.filter((category) => {
+    const filteredCommandCategories.slice(0, 10).forEach((category) => {
       return isGlobal ? !category.guildId : category.guildId === interaction.guildId;
     });
 
