@@ -56,7 +56,8 @@ module.exports = async function (client) {
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     const commandData = {
-      name: command.data.name, // Add the name field
+      name: command.data.name,
+      description: command.data.description, // Add the description field
       commandId: null,
       lastModified: fs.statSync(`./commands/${file}`).mtime,
     };
