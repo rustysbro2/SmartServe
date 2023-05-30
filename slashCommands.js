@@ -57,7 +57,17 @@ async function updateCommandData(commands, rest) {
     }
 
     // Update the command data in the database
-    await updateCommandData(commands);
+    for (const command of commands) {
+      const { name, commandId, lastModified } = command;
+
+      const insertUpdateQuery = `
+        INSERT INTO commandIds (commandName, commandId, lastModified)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
+      `;
+
+      await pool.promise().query(insertUpdateQuery, [name, commandId, lastModified, commandId, lastModified]);
+    }
 
     console.log('Command data updated successfully.');
   } catch (error) {
@@ -114,4 +124,3 @@ module.exports = async function (client) {
     }
   }
 };
-
