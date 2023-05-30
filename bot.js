@@ -2,7 +2,7 @@ const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token, guildId } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
-const { handleSelectMenu } = require('./commands/help');
+const helpCommand = require('./commands/help');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -69,7 +69,7 @@ client.on('interactionCreate', async (interaction) => {
 
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
     console.log('Select menu interaction received:', interaction);
-    await handleSelectMenu(interaction, commandCategories);
+    await helpCommand.handleSelectMenu(interaction, commandCategories);
   } else if (interaction.isCommand()) {
     const { commandName, guildId: interactionGuildId } = interaction;
 
