@@ -48,7 +48,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client) {
     console.log('Help command interaction received:', interaction);
 
     if (interaction.deferred || interaction.replied) {
@@ -56,28 +56,48 @@ module.exports = {
       return;
     }
 
+    const commandCategories = [];
+    const defaultCategoryName = 'Uncategorized';
+
+    const commandsDirectory = path.join(__dirname, '../commands');
+    console.log('Commands directory:', commandsDirectory);
+
+    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
+    console.log('Command files:', commandFiles);
+
+    for (const file of commandFiles) {
+      if (file === 'help.js') continue;
+
+      const command = require(path.join(commandsDirectory, file));
+      console.log('Command module:', command);
+
+      let category = commandCategories.find((category) => category.name === (command.category || defaultCategoryName));
+
+      if (!category) {
+        category = {
+          name: command.category || defaultCategoryName,
+          description: '',
+          commands: [],
+        };
+
+        commandCategories.push(category);
+      }
+
+      category.commands.push({
+        name: command.data.name,
+        description: command.data.description,
+      });
+    }
+
+    console.log('Command categories:', commandCategories);
+
     const usedOptionValues = new Set();
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Add Uncategorized category
-    const uncategorizedCommands = commandCategories.find((category) => category.name === 'Uncategorized');
-
-    if (uncategorizedCommands) {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(uncategorizedCommands.name)
-        .setValue(generateUniqueOptionValue(uncategorizedCommands.name));
-
-      selectMenu.addOptions(optionBuilder);
-    }
-
     commandCategories.forEach((category) => {
-      if (category.name === 'Uncategorized') {
-        return;
-      }
-
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(generateUniqueOptionValue(category.name));
@@ -87,29 +107,16 @@ module.exports = {
       }
 
       selectMenu.addOptions(optionBuilder);
-
-      category.commands.forEach((command) => {
-        console.log('Adding command to uncategorized:', command.name);
-        const uncategorizedOptionBuilder = new StringSelectMenuOptionBuilder()
-          .setLabel(command.name)
-          .setValue(generateUniqueOptionValue(command.name));
-
-        if (command.description && command.description.length > 0) {
-          uncategorizedOptionBuilder.setDescription(command.description);
-        }
-
-        selectMenu.addOptions(uncategorizedOptionBuilder);
-      });
     });
 
-    function generateUniqueOptionValue(value) {
-      const sanitizedValue = value.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
 
-      let optionValue = sanitizedValue;
+      let optionValue = sanitizedCategoryName;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedValue}_${index}`;
+        optionValue = `${sanitizedCategoryName}_${index}`;
         index++;
       }
 
