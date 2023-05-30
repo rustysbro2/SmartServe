@@ -81,7 +81,7 @@ module.exports = {
             optionBuilder.setDescription(command.description);
           }
 
-          selectMenu.addOption(optionBuilder);
+          selectMenu.addOptions(optionBuilder);
         }
       });
     });
