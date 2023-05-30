@@ -35,7 +35,7 @@ async function updateCommandData(commands, rest, client) {
     for (const command of commands) {
       const { name, description, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
-      const existingCommand = client.commands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
+      const existingCommand = client.commands.get(lowerCaseName);
 
       if (!existingCommand) {
         return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
@@ -160,6 +160,7 @@ async function updateCommandData(commands, rest, client) {
     console.error('Error updating command data:', error);
   }
 }
+
 
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
