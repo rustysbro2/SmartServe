@@ -10,7 +10,7 @@ const intents = [
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildVoiceStates
 ];
-const shardCount = 2; // Specify the desired number of shards
+const shardCount = 4; // Specify the desired number of shards
 
 const client = new Client({ shards: shardCount, intents });
 
