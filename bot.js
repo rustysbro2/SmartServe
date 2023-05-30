@@ -69,7 +69,7 @@ client.on('interactionCreate', async (interaction) => {
 
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
     console.log('Select menu interaction received:', interaction);
-    await helpCommand.handleSelectMenu(interaction, client, commandCategories);
+    await helpCommand.handleSelectMenu(interaction, commandCategories.commands);
   } else if (interaction.isCommand()) {
     const { commandName, guildId: interactionGuildId } = interaction;
 
@@ -77,7 +77,7 @@ client.on('interactionCreate', async (interaction) => {
 
     if (commandName === 'help') {
       console.log('Executing help command...');
-      await client.commands.get('help').execute(interaction, client, commandCategories, interaction.guildId);
+      await client.commands.get('help').execute(interaction, client, commandCategories.commands, interaction.guildId);
       console.log('Help command executed.');
     } else {
       const command = client.commands.get(commandName);
