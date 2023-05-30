@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { guildId } = require('../config.js');//sjsjsjs
+const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
@@ -71,6 +71,10 @@ module.exports = {
       console.log('Command module:', command);
 
       if (command.data.name === 'help') continue; // Skip the help command itself
+
+      if (command.global === false && (!command.guildId || command.guildId !== guildId)) {
+        continue; // Skip guild-specific commands for other guilds
+      }
 
       let category = commandCategories.find((category) => category.name === command.category);
 
