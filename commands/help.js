@@ -59,24 +59,22 @@ module.exports = {
     const filteredCommandCategories = commandCategories.filter((category) =>
       isGlobal ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
-    
-    // Filter out commands with global: false
-    const availableCommands = filteredCommandCategories.reduce((commands, category) => {
+
+    const availableCommands = [];
+    const usedOptionValues = new Set();
+
+    filteredCommandCategories.forEach((category) => {
       category.commands.forEach((command) => {
         if (command.global !== false) {
-          commands.push(command);
+          availableCommands.push(command);
         }
       });
-      return commands;
-    }, []);
-
-    const usedOptionValues = new Set();
+    });
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Add options to the select menu
     availableCommands.forEach((command) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(command.name)
@@ -86,7 +84,7 @@ module.exports = {
         optionBuilder.setDescription(command.description);
       }
 
-      selectMenu.addOption(optionBuilder);
+      selectMenu.addOptions(optionBuilder);
     });
 
     function generateUniqueOptionValue(commandName) {
