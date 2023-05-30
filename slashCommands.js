@@ -110,7 +110,7 @@ module.exports = async function (client) {
       description: command.data.description,
       commandId: null,
       lastModified: fs.statSync(`./commands/${file}`).mtime,
-      global: command.global || false, // Set to global if specified, otherwise default to false
+      global: command.global === undefined ? true : command.global, // Set to true if global is not specified
     };
 
     // Add the command data to the commands array
