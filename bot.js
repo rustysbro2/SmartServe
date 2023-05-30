@@ -1,110 +1,113 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { token } = require('./config.js');
+const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
-const path = require('path');
+const { handleSelectMenu } = require('./commands/help');
 
-async function handleSelectMenu(interaction, commandCategories) {
-  console.log('Select menu interaction received:', interaction);
+const intents = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildVoiceStates
+];
 
-  const selectedCategory = interaction.values[0];
+const client = new Client({ shards: "auto", intents });
 
-  console.log('Selected category:', selectedCategory);
+client.commands = new Collection();
+client.musicPlayers = new Map();
 
-  const category = commandCategories.find(
-    (category) =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
-  );
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandCategories = [];
 
-  if (category) {
-    console.log('Category found:', category.name);
+for (const file of commandFiles) {
+  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
+  client.commands.set(command.data.name, command);
 
-    const categoryEmbed = new EmbedBuilder()
-      .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.description || 'No description available');
+  if (command.global !== false) {
+    continue; // Skip global commands
+  }
 
-    category.commands.forEach((command) => {
-      console.log('Adding command to embed:', command.name);
-      categoryEmbed.addFields({ name: command.name, value: command.description });
-    });
-
-    try {
-      if (interaction.message) {
-        await interaction.deferUpdate();
-        console.log('Interaction deferred.');
-        await interaction.message.edit({ embeds: [categoryEmbed] });
-        console.log('Interaction message updated.');
-      } else {
-        console.error('Interaction does not have a message.');
-      }
-    } catch (error) {
-      console.error('Error deferring or editing interaction:', error);
+  if (command.category) {
+    let category = commandCategories.find(category => category.name === command.category);
+    if (!category) {
+      category = {
+        name: command.category,
+        description: '',
+        commands: []
+      };
+      commandCategories.push(category);
     }
+    category.commands.push({
+      name: command.data.name,
+      description: command.data.description
+    });
   } else {
-    console.error(`Category '${selectedCategory}' not found.`);
+    let commandFound = false;
+    for (const category of commandCategories) {
+      if (category.name === 'Uncategorized') {
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description
+        });
+        commandFound = true;
+        break;
+      }
+    }
+    if (!commandFound) {
+      const defaultCategory = {
+        name: 'Uncategorized',
+        description: 'Commands that do not belong to any specific category',
+        commands: []
+      };
+      commandCategories.push(defaultCategory);
+      defaultCategory.commands.push({
+        name: command.data.name,
+        description: command.data.description
+      });
+    }
   }
 }
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('help')
-    .setDescription('List all commands or info about a specific command'),
+client.once('ready', async () => {
+  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
 
-  async execute(interaction, client, commandCategories) {
-    console.log('Help command interaction received:', interaction);
+  inviteTracker.execute(client);
 
-    if (interaction.deferred || interaction.replied) {
-      console.log('Interaction already deferred or replied to.');
-      return;
-    }
+  const slashCommands = require('./slashCommands.js');
+  await slashCommands(client);
+});
 
-    const defaultCategoryName = 'Uncategorized';
+client.on('interactionCreate', async (interaction) => {
+  console.log('Interaction received:', interaction);
 
-    const usedOptionValues = new Set();
+  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
+    console.log('Select menu interaction received:', interaction);
+    await handleSelectMenu(interaction, commandCategories);
+  } else if (interaction.isCommand()) {
+    const { commandName } = interaction;
 
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('help_category')
-      .setPlaceholder('Select a category');
+    console.log('Command interaction received:', interaction);
 
-    commandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name));
+    if (commandName === 'help') {
+      console.log('Executing help command...');
+      await client.commands.get('help').execute(interaction, client, commandCategories);
+      console.log('Help command executed.');
+    } else {
+      const command = client.commands.get(commandName);
 
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
+      if (!command) return;
+
+      try {
+        console.log(`Executing ${commandName} command...`);
+        await command.execute(interaction, client);
+        console.log(`${commandName} command executed.`);
+      } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
       }
-
-      selectMenu.addOptions(optionBuilder);
-    });
-
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
     }
+  }
+});
 
-    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
-
-    const initialEmbed = new EmbedBuilder()
-      .setTitle('Command Categories')
-      .setDescription('Please select a category from the dropdown menu.')
-      .setColor('#0099ff');
-
-    try {
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-      console.log('Initial embed sent.');
-    } catch (error) {
-      console.error('Error replying to interaction:', error);
-    }
-  },
-
-  handleSelectMenu,
-};
+client.login(token);
