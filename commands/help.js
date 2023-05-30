@@ -113,6 +113,14 @@ module.exports = {
       }
     }
 
+    if (!commandCategories.find((category) => category.name === defaultCategoryName)) {
+      commandCategories.push({
+        name: defaultCategoryName,
+        description: 'Commands that do not belong to any specific category',
+        commands: [],
+      });
+    }
+
     console.log('Command categories:', commandCategories);
 
     const usedOptionValues = new Set();
@@ -132,17 +140,6 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
-
-    // Add the 'Uncategorized' category to the dropdown menu
-    const uncategorizedCategory = commandCategories.find(category => category.name === defaultCategoryName);
-    if (uncategorizedCategory) {
-      const uncategorizedOption = new StringSelectMenuOptionBuilder()
-        .setLabel(defaultCategoryName)
-        .setValue(generateUniqueOptionValue(defaultCategoryName))
-        .setDescription(uncategorizedCategory.description || 'No description available');
-      
-      selectMenu.addOptions(uncategorizedOption);
-    }
 
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
