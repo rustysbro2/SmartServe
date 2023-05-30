@@ -11,7 +11,7 @@ const intents = [
   GatewayIntentBits.GuildVoiceStates
 ];
 
-const client = new Client({ shards: shardCount, intents });
+const client = new Client({ shards: "auto", intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
