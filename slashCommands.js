@@ -1,5 +1,4 @@
 // slashCommands.js
-
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
@@ -26,13 +25,8 @@ async function createCommandIdsTable() {
 }
 
 function getCommandFileLastModified(name) {
-  const commandFiles = fs.readdirSync('./commands');
-  const normalizedCommandFile = commandFiles.find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
-  if (normalizedCommandFile) {
-    const commandFile = `./commands/${normalizedCommandFile}`;
-    return fs.statSync(commandFile).mtime;
-  }
-  return null;
+  const commandFile = fs.readdirSync('./commands').find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
+  return commandFile ? fs.statSync(`./commands/${commandFile}`).mtime : null;
 }
 
 async function updateCommandData(commands, rest, client) {
@@ -146,22 +140,18 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command deleted as it needs to be registered as a guild-specific command: ${JSON.stringify(command)}`);
           }
         }
+
+        // Update the command ID in the database
+        const insertUpdateQuery = `
+          INSERT INTO commandIds (commandName, commandId, lastModified)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE commandId = VALUES(commandId), lastModified = VALUES(lastModified)
+        `;
+
+        await pool.promise().query(insertUpdateQuery, [name.toLowerCase(), command.commandId, command.lastModified]);
       } catch (error) {
         console.error(`Error updating command data: ${error.message}`);
       }
-    }
-
-    // Update the command data in the database
-    for (const command of commands) {
-      const { name, commandId, lastModified } = command;
-
-      const insertUpdateQuery = `
-        INSERT INTO commandIds (commandName, commandId, lastModified)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
-      `;
-
-      await pool.promise().query(insertUpdateQuery, [name, commandId, lastModified, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
