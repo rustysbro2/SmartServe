@@ -56,22 +56,6 @@ module.exports = {
       return;
     }
 
-    const uncategorizedCommands = [];
-
-    commandCategories.forEach((category) => {
-      uncategorizedCommands.push(...category.commands);
-    });
-
-    if (uncategorizedCommands.length > 0) {
-      const uncategorizedCategory = {
-        name: 'Uncategorized',
-        description: 'Commands that do not belong to any specific category',
-        commands: uncategorizedCommands,
-      };
-
-      commandCategories.push(uncategorizedCategory);
-    }
-
     const usedOptionValues = new Set();
 
     const selectMenu = new StringSelectMenuBuilder()
