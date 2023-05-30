@@ -5,6 +5,7 @@ const fs = require('fs');
 const { pool } = require('./database.js');
 
 async function createCommandIdsTable() {
+  // Create commandIds table if it doesn't exist
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS commandIds (
       commandName VARCHAR(255),
@@ -73,13 +74,22 @@ module.exports = async function (client) {
     await updateCommandData(commands);
 
     // Register the guild-specific slash commands
-    await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+    const response = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
       body: commands,
     });
 
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
-    console.error('Command request body:', error.requestBody);
+
+    // Log the command names that caused the error
+    const commandNames = commands.map((command) => command.commandName);
+    const errorCommands = error.requestBody.json.map((command, index) => ({
+      name: command.commandName,
+      error: error.rawError.errors[index].name,
+    }));
+
+    console.error('Command request body:', commandNames);
+    console.error('Error commands:', errorCommands);
   }
 };
