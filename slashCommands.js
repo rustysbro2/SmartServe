@@ -25,25 +25,48 @@ async function createCommandIdsTable() {
 
 async function updateCommandData(commands) {
   try {
+    const rest = new REST({ version: '10' }).setToken(token);
+
     for (const command of commands) {
-      const { name, description, commandId, lastModified } = command; // Destructure the command object
+      const { name, description } = command;
+      const existingCommand = interaction.client.commands.get(name);
 
-      const insertUpdateQuery = `
-        INSERT INTO commandIds (commandName, commandId, lastModified)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
-      `;
+      if (!existingCommand) {
+        return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
+      }
 
-      await pool.promise().query(insertUpdateQuery, [name, commandId, lastModified, commandId, lastModified]); // Use name instead of commandName
+      const commandData = {
+        name: existingCommand.data.name,
+        description: existingCommand.data.description,
+      };
 
-      console.log('Command data updated:', command);
+      try {
+        // Register the command and obtain the command ID
+        const response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
+          body: commandData,
+        });
+
+        const commandId = response.id;
+
+        // Update the command data in the array
+        command.commandId = commandId;
+        command.lastModified = new Date();
+
+        console.log(`Command data updated: ${JSON.stringify(command)}`);
+      } catch (error) {
+        console.error(`Error updating command data: ${error.message}`);
+      }
     }
+
+    // Update the command data in the database
+    await updateCommandData(commands);
 
     console.log('Command data updated successfully.');
   } catch (error) {
     console.error('Error updating command data:', error);
   }
 }
+
 
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
