@@ -83,36 +83,26 @@ async function updateCommandData(commands, rest, client) {
               // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              // Retrieve the commandId from the database
-              const query = 'SELECT commandId FROM commandIds WHERE commandName = ?';
-              const [rows, fields] = await pool.promise().query(query, [lowerCaseName]);
+              // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
+              if (command.commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+                console.log(`Updating command '${name}':`);
+                console.log(`- Command ID: ${command.commandId}`);
+                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- New Last Modified: ${newLastModified}`);
 
-              if (rows.length > 0) {
-                const databaseCommandId = rows[0].commandId;
+                const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
+                  body: commandData,
+                });
 
-                // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-                if (command.commandId === null || databaseCommandId !== command.commandId || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
-                  console.log(`Updating command '${name}':`);
-                  console.log(`- Command ID: ${command.commandId}`);
-                  console.log(`- Last Modified: ${lastModified}`);
-                  console.log(`- New Last Modified: ${newLastModified}`);
+                const newCommandId = response.id;
 
-                  const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
-                    body: commandData,
-                  });
+                // Update the command data in the array
+                command.commandId = newCommandId;
+                command.lastModified = newLastModified;
 
-                  const newCommandId = response.id;
-
-                  // Update the command data in the array
-                  command.commandId = newCommandId;
-                  command.lastModified = newLastModified;
-
-                  console.log(`Command data updated: ${JSON.stringify(command)}`);
-                } else {
-                  console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
-                }
+                console.log(`Command data updated: ${JSON.stringify(command)}`);
               } else {
-                console.log(`Skipping command update since commandId not found in the database: ${JSON.stringify(command)}`);
+                console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
               }
             } else {
               console.log(`Skipping command update due to missing command file: ${JSON.stringify(command)}`);
@@ -150,36 +140,26 @@ async function updateCommandData(commands, rest, client) {
               // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              // Retrieve the commandId from the database
-              const query = 'SELECT commandId FROM commandIds WHERE commandName = ?';
-              const [rows, fields] = await pool.promise().query(query, [lowerCaseName]);
+              // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
+              if (command.commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+                console.log(`Updating command '${name}':`);
+                console.log(`- Command ID: ${command.commandId}`);
+                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- New Last Modified: ${newLastModified}`);
 
-              if (rows.length > 0) {
-                const databaseCommandId = rows[0].commandId;
+                const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
+                  body: commandData,
+                });
 
-                // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-                if (command.commandId === null || databaseCommandId !== command.commandId || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
-                  console.log(`Updating command '${name}':`);
-                  console.log(`- Command ID: ${command.commandId}`);
-                  console.log(`- Last Modified: ${lastModified}`);
-                  console.log(`- New Last Modified: ${newLastModified}`);
+                const newCommandId = response.id;
 
-                  const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
-                    body: commandData,
-                  });
+                // Update the command data in the array
+                command.commandId = newCommandId;
+                command.lastModified = newLastModified;
 
-                  const newCommandId = response.id;
-
-                  // Update the command data in the array
-                  command.commandId = newCommandId;
-                  command.lastModified = newLastModified;
-
-                  console.log(`Command data updated: ${JSON.stringify(command)}`);
-                } else {
-                  console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
-                }
+                console.log(`Command data updated: ${JSON.stringify(command)}`);
               } else {
-                console.log(`Skipping command update since commandId not found in the database: ${JSON.stringify(command)}`);
+                console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
               }
             } else {
               console.log(`Skipping command update due to missing command file: ${JSON.stringify(command)}`);
@@ -196,6 +176,20 @@ async function updateCommandData(commands, rest, client) {
       } catch (error) {
         console.error(`Error updating command data: ${error.message}`);
       }
+    }
+
+    // Update the command data in the database
+    for (const command of commands) {
+      const { name, commandId, lastModified } = command;
+      const lowerCaseName = name.toLowerCase();
+
+      const insertUpdateQuery = `
+        INSERT INTO commandIds (commandName, commandId, lastModified)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE commandId = IF(?, commandId, commandId), lastModified = ?
+      `;
+
+      await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
@@ -220,13 +214,35 @@ module.exports = async function (client) {
     const commandData = {
       name: setName,
       description: command.data.description,
-      commandId: null, // Set the initial commandId to null
+      commandId: null, // Set commandId to null initially
       lastModified: fs.statSync(`./commands/${file}`).mtime,
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
     // Add the command data to the commands array
     commands.push(commandData);
+  }
+
+  // Retrieve the commandIds from the database and update the commandData object
+  const selectCommandIdsQuery = `
+    SELECT commandName, commandId, lastModified FROM commandIds
+  `;
+
+  const [rows] = await pool.promise().query(selectCommandIdsQuery);
+  const commandIdMap = rows.reduce((map, row) => {
+    map[row.commandName] = { commandId: row.commandId, lastModified: row.lastModified };
+    return map;
+  }, {});
+
+  for (const command of commands) {
+    const { name } = command;
+    const lowerCaseName = name.toLowerCase();
+
+    if (commandIdMap[lowerCaseName]) {
+      const { commandId, lastModified } = commandIdMap[lowerCaseName];
+      command.commandId = commandId;
+      command.lastModified = lastModified;
+    }
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
