@@ -87,4 +87,22 @@ client.on('interactionCreate', async (interaction) => {
     if (commandName === 'help') {
       console.log('Executing help command...');
       await client.commands.get('help').execute(interaction, client);
-     
+      console.log('Help command executed.');
+    } else {
+      const command = client.commands.get(commandName);
+
+      if (!command) return;
+
+      try {
+        console.log(`Executing ${commandName} command...`);
+        await command.execute(interaction, client);
+        console.log(`${commandName} command executed.`);
+      } catch (error) {
+        console.error(error);
+        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+      }
+    }
+  }
+});
+
+client.login(token);
