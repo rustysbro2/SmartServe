@@ -65,14 +65,7 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    const filteredCommandCategories = commandCategories.filter((category) => {
-      if (isGlobal || (interaction.guildId && interaction.guildId === guildId)) {
-        return category.name !== defaultCategoryName;
-      } else {
-        return category.name !== defaultCategoryName && category.commands.some((command) => command.global);
-      }
-    });
-
+    // Add options to the select menu
     filteredCommandCategories.slice(0, 25).forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
@@ -84,6 +77,7 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
+
 
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
