@@ -9,19 +9,17 @@ async function handleSelectMenu(interaction, commandCategories) {
 
   console.log('Selected category:', selectedCategory);
 
-  if (selectedCategory === 'uncategorized') {
-    const uncategorizedCommands = commandCategories
-      .filter(category => !category.category)
-      .flatMap(category => category.commands);
+  if (selectedCategory.toLowerCase() === 'uncategorized') {
+    const uncategorizedCommands = commandCategories.find(category => !category.name);
 
-    if (uncategorizedCommands.length > 0) {
+    if (uncategorizedCommands) {
       const categoryEmbed = new EmbedBuilder()
         .setTitle('Uncategorized Commands')
-        .setDescription('Commands that do not belong to any specific category');
+        .setDescription('Here are the uncategorized commands:')
+        .setColor('#0099ff');
 
-      uncategorizedCommands.forEach((command) => {
-        console.log('Adding command to embed:', command.name);
-        categoryEmbed.addFields({ name: command.name, value: command.description });
+      uncategorizedCommands.commands.forEach(command => {
+        categoryEmbed.addField(command.name, command.description);
       });
 
       try {
@@ -38,12 +36,10 @@ async function handleSelectMenu(interaction, commandCategories) {
       }
     } else {
       console.log('No uncategorized commands found.');
-      await interaction.reply('No uncategorized commands found.');
     }
   } else {
-    const category = commandCategories.find(
-      (category) =>
-        category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+    const category = commandCategories.find(category =>
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
     );
 
     if (category) {
@@ -51,9 +47,10 @@ async function handleSelectMenu(interaction, commandCategories) {
 
       const categoryEmbed = new EmbedBuilder()
         .setTitle(`Commands - ${category.name}`)
-        .setDescription(category.description || 'No description available');
+        .setDescription(category.description || 'No description available')
+        .setColor('#0099ff');
 
-      category.commands.forEach((command) => {
+      category.commands.forEach(command => {
         console.log('Adding command to embed:', command.name);
         categoryEmbed.addFields({ name: command.name, value: command.description });
       });
@@ -100,13 +97,15 @@ module.exports = {
     // Add the "Uncategorized" category explicitly
     const uncategorizedOption = new StringSelectMenuOptionBuilder()
       .setLabel(defaultCategoryName)
-      .setValue(defaultCategoryName.toLowerCase().replace(/\s/g, '_'));
+      .setValue(generateUniqueOptionValue(defaultCategoryName));
     selectMenu.addOptions(uncategorizedOption);
 
-    commandCategories.forEach((category) => {
+    commandCategories.forEach(category => {
+      if (!category.name) return; // Skip uncategorized commands
+
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
-        .setValue(category.name.toLowerCase().replace(/\s/g, '_'));
+        .setValue(generateUniqueOptionValue(category.name));
 
       if (category.description && category.description.length > 0) {
         optionBuilder.setDescription(category.description);
