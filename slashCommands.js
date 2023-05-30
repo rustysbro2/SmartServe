@@ -9,7 +9,6 @@ async function createCommandIdsTable() {
     CREATE TABLE IF NOT EXISTS commandIds (
       commandName VARCHAR(255),
       commandId VARCHAR(255),
-      options JSON,
       lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       PRIMARY KEY (commandName)
     )
@@ -26,17 +25,17 @@ async function createCommandIdsTable() {
 async function updateCommandData(commands) {
   try {
     for (const command of commands) {
-      const { commandName, commandId, options } = command;
-      
+      const { commandName, commandId, lastModified } = command;
+
       const insertUpdateQuery = `
-        INSERT INTO commandIds (commandName, commandId, options)
+        INSERT INTO commandIds (commandName, commandId, lastModified)
         VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = ?, options = ?
+        ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
-      
-      await pool.promise().query(insertUpdateQuery, [commandName, commandId, options, commandId, options]);
+
+      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
     }
-    
+
     console.log('Command data updated successfully.');
   } catch (error) {
     console.error('Error updating command data:', error);
@@ -55,7 +54,11 @@ module.exports = async function (client) {
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
-    const commandData = command.data.toJSON();
+    const commandData = {
+      commandName: command.data.name,
+      commandId: null,
+      lastModified: fs.statSync(`./commands/${file}`).mtime,
+    };
 
     // Add the command data to the commands array
     commands.push(commandData);
