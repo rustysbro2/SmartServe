@@ -5,13 +5,12 @@ const path = require('path');
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
 
-  const selectedCategory = interaction.values[0].toLowerCase();
+  const selectedCategory = interaction.values[0];
 
   console.log('Selected category:', selectedCategory);
 
-  const category = commandCategories.find(
-    (category) =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+  const category = commandCategories.find((category) =>
+    category.name.toLowerCase() === selectedCategory.toLowerCase()
   );
 
   if (category) {
