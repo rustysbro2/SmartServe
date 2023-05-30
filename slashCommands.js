@@ -23,7 +23,7 @@ async function createCommandIdsTable() {
   }
 }
 
-async function updateCommandData(commands, rest) {
+async function updateCommandData(commands, rest, client) {
   try {
     for (const command of commands) {
       const { name, description } = command;
@@ -104,7 +104,7 @@ module.exports = async function (client) {
     console.log('Started refreshing application (/) commands.');
 
     // Update the command data and register the global slash commands
-    await updateCommandData(commands, rest);
+    await updateCommandData(commands, rest, client);
 
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
