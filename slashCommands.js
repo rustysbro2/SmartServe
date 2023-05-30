@@ -64,6 +64,8 @@ module.exports = async function (client) {
     commands.push(commandData);
   }
 
+  console.log('Commands to register:', commands);
+
   const rest = new REST({ version: '10' }).setToken(token);
 
   try {
@@ -71,6 +73,8 @@ module.exports = async function (client) {
 
     // Update the command data in the table
     await updateCommandData(commands);
+
+    console.log('Command data after update:', commands);
 
     // Register the guild-specific slash commands
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
