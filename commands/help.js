@@ -1,7 +1,6 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
@@ -49,52 +48,13 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client) {
+  async execute(interaction, client, commandCategories) {
     console.log('Help command interaction received:', interaction);
 
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
     }
-
-    const commandCategories = [];
-    const defaultCategoryName = 'Uncategorized';
-
-    const commandsDirectory = path.join(__dirname, '../commands');
-    console.log('Commands directory:', commandsDirectory);
-
-    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
-    console.log('Command files:', commandFiles);
-
-    for (const file of commandFiles) {
-      const command = require(path.join(commandsDirectory, file));
-      console.log('Command module:', command);
-
-      if (command.data.name === 'help') continue; // Skip the help command itself
-
-      if (command.global === false && (!command.guildId || command.guildId !== guildId)) {
-        continue; // Skip guild-specific commands for other guilds
-      }
-
-      let category = commandCategories.find((category) => category.name === command.category);
-
-      if (!category) {
-        category = {
-          name: command.category || defaultCategoryName,
-          description: '',
-          commands: [],
-        };
-
-        commandCategories.push(category);
-      }
-
-      category.commands.push({
-        name: command.data.name,
-        description: command.data.description,
-      });
-    }
-
-    console.log('Command categories:', commandCategories);
 
     const usedOptionValues = new Set();
 
