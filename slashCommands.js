@@ -56,7 +56,7 @@ module.exports = async function (client) {
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     const commandData = {
-      commandName: command.data.name,
+      name: command.data.name, // Add the name field
       commandId: null,
       lastModified: fs.statSync(`./commands/${file}`).mtime,
     };
@@ -83,7 +83,7 @@ module.exports = async function (client) {
     console.error('Error refreshing application (/) commands:', error);
 
     // Log the command names that caused the error
-    const commandNames = commands.map((command) => command.commandName);
+    const commandNames = commands.map((command) => command.name);
     const errorCommands = commandNames.map((commandName, index) => ({
       name: commandName,
       error: error.rawError.errors[index] || error,
