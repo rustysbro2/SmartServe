@@ -11,7 +11,7 @@ async function handleSelectMenu(interaction, commandCategories) {
 
   const category = commandCategories.find(
     (category) =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory.toLowerCase().replace(/\s/g, '_')
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
   if (category) {
@@ -48,7 +48,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client) {
+  async execute(interaction, client, commandCategories) {
     console.log('Help command interaction received:', interaction);
 
     if (interaction.deferred || interaction.replied) {
@@ -56,40 +56,7 @@ module.exports = {
       return;
     }
 
-    const commandCategories = [];
     const defaultCategoryName = 'Uncategorized';
-
-    const commandsDirectory = path.join(__dirname, '../commands');
-    console.log('Commands directory:', commandsDirectory);
-
-    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
-    console.log('Command files:', commandFiles);
-
-    for (const file of commandFiles) {
-      if (file === 'help.js') continue;
-
-      const command = require(path.join(commandsDirectory, file));
-      console.log('Command module:', command);
-
-      let category = commandCategories.find((category) => category.name.toLowerCase().replace(/\s/g, '_') === (command.category || defaultCategoryName).toLowerCase().replace(/\s/g, '_'));
-
-      if (!category) {
-        category = {
-          name: command.category || defaultCategoryName,
-          description: '',
-          commands: [],
-        };
-
-        commandCategories.push(category);
-      }
-
-      category.commands.push({
-        name: command.data.name,
-        description: command.data.description,
-      });
-    }
-
-    console.log('Command categories:', commandCategories);
 
     const usedOptionValues = new Set();
 
