@@ -77,7 +77,7 @@ module.exports = {
         optionBuilder.setDescription(category.description);
       }
 
-      selectMenu.addOption(optionBuilder);
+      selectMenu.addOptions(optionBuilder);
     });
 
     function generateUniqueOptionValue(categoryName) {
