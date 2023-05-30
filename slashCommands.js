@@ -78,7 +78,6 @@ async function updateCommandData(commands, rest, client) {
   }
 }
 
-
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
@@ -101,8 +100,6 @@ module.exports = async function (client) {
     // Add the command data to the commands array
     commands.push(commandData);
   }
-
-
 
   const rest = new REST({ version: '10' }).setToken(token);
 
