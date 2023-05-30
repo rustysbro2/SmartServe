@@ -16,7 +16,7 @@ async function createCommandIdsTable() {
   `;
 
   try {
-    await pool.query(createTableQuery);
+    await pool.promise().query(createTableQuery);
     console.log('CommandIds table created or already exists.');
   } catch (error) {
     console.error('Error creating commandIds table:', error);
