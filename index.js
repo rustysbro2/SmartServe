@@ -1,8 +1,12 @@
 const { ShardingManager } = require('discord.js');
 const { token } = require('./config.js');
 
-const manager = new ShardingManager('./bot.js', { token: token });
+const shardCount = 4; // Specify the desired number of shards
 
-manager.on('shardCreate', shard => console.log(`Launched shard ${shard.id}`));
+const manager = new ShardingManager('./bot.js', { token: token, totalShards: shardCount });
+
+manager.on('shardCreate', shard => {
+  console.log(`Launched shard ${shard.id}`);
+});
 
 manager.spawn();
