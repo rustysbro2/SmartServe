@@ -50,7 +50,8 @@ async function updateCommandData(commands, rest, client) {
         command.commandId = commandId;
 
         const commandFile = `./commands/${name}.js`;
-        const lastModified = fs.statSync(commandFile).mtime;
+        const normalizedCommandFile = fs.readdirSync('./commands').find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
+        const lastModified = normalizedCommandFile ? fs.statSync(`./commands/${normalizedCommandFile}`).mtime : null;
         command.lastModified = lastModified;
 
         console.log(`Command data updated: ${JSON.stringify(command)}`);
@@ -94,7 +95,7 @@ module.exports = async function (client) {
       name: command.data.name,
       description: command.data.description,
       commandId: null,
-      lastModified: fs.statSync(`./commands/${file}`).mtime,
+      lastModified: null,
     };
 
     // Add the command data to the commands array
