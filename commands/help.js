@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
-async function handleSelectMenu(interaction, commandCategories) {
+async function handleSelectMenu(interaction, client, commandCategories) {
   console.log('Select menu interaction received:', interaction);
 
   const selectedCategory = interaction.values[0];
@@ -54,6 +54,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 
 
