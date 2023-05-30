@@ -25,14 +25,12 @@ async function createCommandIdsTable() {
 
 async function updateCommandData(commands) {
   try {
-    for (const command of commands) {
-      const { commandName, commandId, lastModified } = command;
+    console.log('Updating command data:', commands);
 
-      // Check if the commandName is null or empty
-      if (!commandName) {
-        console.error(`Skipping command update due to missing commandName: ${JSON.stringify(command)}`);
-        continue;
-      }
+    for (const command of commands) {
+      console.log('Processing command:', command);
+
+      const { commandName, commandId, lastModified } = command;
 
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
