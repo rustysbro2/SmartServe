@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { guildId } = require('../config.js');//smememmej
+const { guildId } = require('../config.js');//sjsjsjs
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
