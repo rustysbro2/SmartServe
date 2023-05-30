@@ -179,8 +179,9 @@ async function updateCommandData(commands, rest, client) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      await pool.promise().query(insertUpdateQuery, [lowerCaseName, command.commandId, lastModified, command.commandId, lastModified]);
+      await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandData.commandId, lastModified, commandData.commandId, lastModified]);
     }
+
 
     console.log('Command data updated successfully.');
   } catch (error) {
