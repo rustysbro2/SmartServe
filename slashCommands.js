@@ -38,6 +38,9 @@ async function updateCommandData(commands) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
+      console.log('SQL query:', insertUpdateQuery);
+      console.log('Values:', [commandName, commandId, lastModified, commandId, lastModified]);
+
       await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
     }
 
@@ -46,9 +49,6 @@ async function updateCommandData(commands) {
     console.error('Error updating command data:', error);
   }
 }
-
-
-
 
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
