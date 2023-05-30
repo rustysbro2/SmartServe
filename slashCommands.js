@@ -26,7 +26,7 @@ async function createCommandIdsTable() {
 async function updateCommandData(commands, rest, client) {
   try {
     for (const command of commands) {
-      const { name, description } = command;
+      const { name, description, lastModified } = command;
       const existingCommand = client.commands.get(name);
 
       if (!existingCommand) {
@@ -49,12 +49,17 @@ async function updateCommandData(commands, rest, client) {
         // Update the command data in the array
         command.commandId = commandId;
 
+        // Check if the last modified date has changed
         const commandFile = `./commands/${name}.js`;
         const normalizedCommandFile = fs.readdirSync('./commands').find(file => file.toLowerCase() === `${name.toLowerCase()}.js`);
-        const lastModified = normalizedCommandFile ? fs.statSync(`./commands/${normalizedCommandFile}`).mtime : null;
-        command.lastModified = lastModified;
+        const newLastModified = normalizedCommandFile ? fs.statSync(`./commands/${normalizedCommandFile}`).mtime : null;
 
-        console.log(`Command data updated: ${JSON.stringify(command)}`);
+        if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
+          command.lastModified = newLastModified;
+          console.log(`Command data updated: ${JSON.stringify(command)}`);
+        } else {
+          console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
+        }
       } catch (error) {
         console.error(`Error updating command data: ${error.message}`);
       }
@@ -95,7 +100,7 @@ module.exports = async function (client) {
       name: command.data.name,
       description: command.data.description,
       commandId: null,
-      lastModified: null,
+      lastModified: fs.statSync(`./commands/${file}`).mtime,
     };
 
     // Add the command data to the commands array
