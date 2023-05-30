@@ -79,19 +79,25 @@ module.exports = async function (client) {
     console.log('Started refreshing application (/) commands.');
     console.log('Commands:', commands); // Debug statement
 
-    // Update the command data in the table
-    await updateCommandData(commands);
-
     // Register the global slash commands
-    const response = await rest.put(Routes.applicationCommands(clientId), {
-      body: commands,
+    const response = await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
+      body: commands.map((command) => command.data.toJSON()),
     });
+
+    // Update the command data in the table with the generated command IDs
+    const updatedCommands = response.map((command, index) => ({
+      commandName: commands[index].commandName,
+      commandId: command.id,
+      lastModified: commands[index].lastModified,
+    }));
+
+    // Update the command data in the table
+    await updateCommandData(updatedCommands);
 
     console.log('Successfully refreshed application (/) commands.');
     console.log('Response:', response); // Debug statement
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
-    console.log('Commands:', commands); // Debug statement
 
     // Log the command names that caused the error
     const commandNames = commands.map((command) => command.commandName);
