@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
-async function handleSelectMenu(interaction, client, commandCategories) {
+async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
 
   const selectedCategory = interaction.values[0];
@@ -9,8 +9,7 @@ async function handleSelectMenu(interaction, client, commandCategories) {
   console.log('Selected category:', selectedCategory);
 
   const category = commandCategories.find(
-    (category) =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+    (category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
   if (category) {
@@ -21,21 +20,16 @@ async function handleSelectMenu(interaction, client, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      const commandData = client.commands.get(command.name)?.data;
-
-      if (commandData) {
-        const commandCategory = commandData.category;
-
-        if (
-          (commandCategory && commandCategory.toLowerCase() !== category.name.toLowerCase()) ||
-          (!commandCategory && category.name.toLowerCase() !== 'uncategorized')
-        ) {
-          return; // Exclude commands from other categories
-        }
-
-        console.log('Adding command to embed:', commandData.name);
-        categoryEmbed.addFields({ name: commandData.name, value: commandData.description });
+      const data = command.data;
+      if (
+        (data.category && data.category.toLowerCase() !== category.name.toLowerCase()) ||
+        (!data.category && category.name.toLowerCase() !== 'uncategorized')
+      ) {
+        return; // Exclude commands from other categories
       }
+
+      console.log('Adding command to embed:', data.name);
+      categoryEmbed.addFields({ name: data.name, value: data.description });
     });
 
     try {
@@ -54,11 +48,6 @@ async function handleSelectMenu(interaction, client, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
-
-
-
-
-
 
 module.exports = {
   data: new SlashCommandBuilder()
