@@ -1,5 +1,5 @@
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { token } = require('./config.js');
+const { token, guildId } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const { handleSelectMenu } = require('./commands/help');
@@ -15,7 +15,6 @@ const client = new Client({ shards: "auto", intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
-
 
 const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const commandCategories = [];
@@ -72,18 +71,26 @@ client.on('interactionCreate', async (interaction) => {
     console.log('Select menu interaction received:', interaction);
     await handleSelectMenu(interaction, commandCategories);
   } else if (interaction.isCommand()) {
-    const { commandName } = interaction;
+    const { commandName, guildId: interactionGuildId } = interaction;
 
     console.log('Command interaction received:', interaction);
 
     if (commandName === 'help') {
       console.log('Executing help command...');
-      await client.commands.get('help').execute(interaction, client);
+      await client.commands.get('help').execute(interaction, client, commandCategories, guildId);
       console.log('Help command executed.');
     } else {
       const command = client.commands.get(commandName);
 
       if (!command) return;
+
+      const isGlobal = !interactionGuildId || (interactionGuildId === guildId);
+
+      if (isGlobal && !command.global) {
+        console.log(`Command '${commandName}' is not available globally.`);
+        await interaction.reply({ content: 'This command is not available globally!', ephemeral: true });
+        return;
+      }
 
       try {
         console.log(`Executing ${commandName} command...`);
