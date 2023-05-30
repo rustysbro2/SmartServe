@@ -1,3 +1,4 @@
+// slashCommands.js
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
@@ -28,8 +29,9 @@ async function updateCommandData(commands, rest, client) {
     // Get the existing global slash commands
     const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
 
-    for (const command of commands) {
-      const { name, description, lastModified, global } = command;
+    // Register/update global commands
+    for (const command of commands.filter(cmd => cmd.global)) {
+      const { name, description, lastModified } = command;
       const existingCommand = client.commands.get(name);
 
       if (!existingCommand) {
@@ -80,6 +82,38 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
           }
         }
+      } catch (error) {
+        console.error(`Error updating command data: ${error.message}`);
+      }
+    }
+
+    // Register/update guild-specific commands
+    for (const command of commands.filter(cmd => !cmd.global)) {
+      const { name, description, lastModified } = command;
+      const existingCommand = client.commands.get(name);
+
+      if (!existingCommand) {
+        return console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
+      }
+
+      const commandData = {
+        name: existingCommand.data.name,
+        description: existingCommand.data.description,
+      };
+
+      try {
+        // Register/update the guild-specific command and obtain the command ID
+        const response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
+          body: commandData,
+        });
+
+        const commandId = response.id;
+
+        // Update the command data in the array
+        command.commandId = commandId;
+        command.lastModified = new Date();
+
+        console.log(`Command data updated: ${JSON.stringify(command)}`);
       } catch (error) {
         console.error(`Error updating command data: ${error.message}`);
       }
