@@ -95,12 +95,13 @@ module.exports = async function (client) {
       name: command.data.name,
       description: command.data.description, // Add the description field
       commandId: null,
-      lastModified: fs.statSync(`./commands/${file}`).mtime,
+      lastModified: null, // Set lastModified as null when the file is missing
     };
 
     // Add the command data to the commands array
     commands.push(commandData);
   }
+
 
   const rest = new REST({ version: '10' }).setToken(token);
 
