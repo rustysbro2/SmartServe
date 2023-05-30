@@ -80,5 +80,6 @@ module.exports = async function (client) {
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
+    console.error('Command request body:', error.requestBody);
   }
 };
