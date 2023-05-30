@@ -23,6 +23,26 @@ async function createCommandIdsTable() {
   }
 }
 
+async function updateCommandData(commands) {
+  try {
+    for (const command of commands) {
+      const { commandName, commandId, options } = command;
+      
+      const insertUpdateQuery = `
+        INSERT INTO commandIds (commandName, commandId, options)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE commandId = ?, options = ?
+      `;
+      
+      await pool.promise().query(insertUpdateQuery, [commandName, commandId, options, commandId, options]);
+    }
+    
+    console.log('Command data updated successfully.');
+  } catch (error) {
+    console.error('Error updating command data:', error);
+  }
+}
+
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
@@ -45,6 +65,9 @@ module.exports = async function (client) {
 
   try {
     console.log('Started refreshing application (/) commands.');
+
+    // Update the command data in the table
+    await updateCommandData(commands);
 
     // Register the global slash commands
     await rest.put(Routes.applicationGuildCommands(clientId, guildId), {
