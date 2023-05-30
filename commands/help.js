@@ -11,7 +11,7 @@ async function handleSelectMenu(interaction, commandCategories) {
 
   const category = commandCategories.find(
     (category) =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory.toLowerCase().replace(/\s/g, '_')
   );
 
   if (category) {
@@ -71,7 +71,7 @@ module.exports = {
       const command = require(path.join(commandsDirectory, file));
       console.log('Command module:', command);
 
-      let category = commandCategories.find((category) => category.name === (command.category || defaultCategoryName));
+      let category = commandCategories.find((category) => category.name.toLowerCase().replace(/\s/g, '_') === (command.category || defaultCategoryName).toLowerCase().replace(/\s/g, '_'));
 
       if (!category) {
         category = {
