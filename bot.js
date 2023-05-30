@@ -57,12 +57,13 @@ for (const file of commandFiles) {
       const defaultCategory = {
         name: 'Uncategorized',
         description: 'Commands that do not belong to any specific category',
-        commands: [{
-          name: command.data.name,
-          description: command.data.description
-        }]
+        commands: []
       };
       commandCategories.push(defaultCategory);
+      defaultCategory.commands.push({
+        name: command.data.name,
+        description: command.data.description
+      });
     }
   }
 }
