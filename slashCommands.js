@@ -34,6 +34,9 @@ async function updateCommandData(commands) {
       `;
 
       await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
+
+      // Update the command object with the name
+      command.name = commandName;
     }
 
     console.log('Command data updated successfully.');
