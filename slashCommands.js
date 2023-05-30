@@ -104,7 +104,7 @@ module.exports = async function (client) {
     const commandNames = commands.map((command) => command.commandName);
     const errorCommands = commandNames.map((commandName, index) => ({
       name: commandName,
-      error: error.rawError.errors[index].name || error.error._errors[index].name,
+      error: error.rawError.errors[index]?.name || error.error._errors[index]?.name,
     }));
 
     console.error('Command request body:', commandNames);
