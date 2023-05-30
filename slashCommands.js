@@ -188,14 +188,13 @@ module.exports = async function (client) {
 
   // Loop through command files and register slash commands
   for (const file of commandFiles) {
-    const commandFileName = file.toLowerCase();
-    const command = require(`./commands/${commandFileName}`);
+    const command = require(`./commands/${file}`);  // adjusted line
     const setName = command.data.name.toLowerCase(); // Change this line
     const commandData = {
       name: setName,
       description: command.data.description,
       commandId: null,
-      lastModified: fs.statSync(`./commands/${commandFileName}`).mtime,
+      lastModified: fs.statSync(`./commands/${file}`).mtime,  // adjusted line
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
