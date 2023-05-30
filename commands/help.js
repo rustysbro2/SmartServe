@@ -9,48 +9,18 @@ async function handleSelectMenu(interaction, commandCategories) {
 
   console.log('Selected category:', selectedCategory);
 
-  const category = commandCategories.find(
-    (category) =>
-      category.name?.toLowerCase().replace(/\s/g, '_') === selectedCategory
-  );
-
-  if (category) {
-    console.log('Category found:', category.name);
-
-    const categoryEmbed = new EmbedBuilder()
-      .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.description || 'No description available');
-
-    category.commands.forEach((command) => {
-      console.log('Adding command to embed:', command.name);
-      categoryEmbed.addFields({ name: command.name, value: command.description });
-    });
-
-    try {
-      if (interaction.message) {
-        await interaction.deferUpdate();
-        console.log('Interaction deferred.');
-        await interaction.message.edit({ embeds: [categoryEmbed] });
-        console.log('Interaction message updated.');
-      } else {
-        console.error('Interaction does not have a message.');
-      }
-    } catch (error) {
-      console.error('Error deferring or editing interaction:', error);
-    }
-  } else if (selectedCategory.toLowerCase() === 'uncategorized') {
-    const uncategorizedCommands = commandCategories.find(
-      (category) => !category.name
-    );
+  if (selectedCategory.toLowerCase() === 'uncategorized') {
+    const uncategorizedCommands = commandCategories.find((category) => category.name === '');
 
     if (uncategorizedCommands && uncategorizedCommands.commands.length > 0) {
+      console.log('Uncategorized commands found:', uncategorizedCommands.commands);
+
       const categoryEmbed = new EmbedBuilder()
         .setTitle('Uncategorized Commands')
         .setDescription('Here are the uncategorized commands:')
         .setColor('#0099ff');
 
       uncategorizedCommands.commands.forEach((command) => {
-        console.log('Adding command to embed:', command.name);
         categoryEmbed.addField(command.name, command.description);
       });
 
@@ -70,7 +40,36 @@ async function handleSelectMenu(interaction, commandCategories) {
       console.log('No uncategorized commands found.');
     }
   } else {
-    console.error(`Category '${selectedCategory}' not found.`);
+    const category = commandCategories.find(
+      (category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+    );
+
+    if (category) {
+      console.log('Category found:', category.name);
+
+      const categoryEmbed = new EmbedBuilder()
+        .setTitle(`Commands - ${category.name}`)
+        .setDescription(category.description || 'No description available');
+
+      category.commands.forEach((command) => {
+        categoryEmbed.addField(command.name, command.description);
+      });
+
+      try {
+        if (interaction.message) {
+          await interaction.deferUpdate();
+          console.log('Interaction deferred.');
+          await interaction.message.edit({ embeds: [categoryEmbed] });
+          console.log('Interaction message updated.');
+        } else {
+          console.error('Interaction does not have a message.');
+        }
+      } catch (error) {
+        console.error('Error deferring or editing interaction:', error);
+      }
+    } else {
+      console.error(`Category '${selectedCategory}' not found.`);
+    }
   }
 }
 
