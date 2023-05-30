@@ -9,18 +9,16 @@ async function handleSelectMenu(interaction, commandCategories) {
 
   console.log('Selected category:', selectedCategory);
 
-  const category = commandCategories.find((category) =>
-    category.name.toLowerCase() === selectedCategory.toLowerCase()
-  );
-
-  if (category) {
-    console.log('Category found:', category.name);
+  if (selectedCategory === 'uncategorized') {
+    const uncategorizedCommands = commandCategories
+      .filter(category => !category.category)
+      .flatMap(category => category.commands);
 
     const categoryEmbed = new EmbedBuilder()
-      .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.description || 'No description available');
+      .setTitle('Uncategorized Commands')
+      .setDescription('Commands that do not belong to any specific category');
 
-    category.commands.forEach((command) => {
+    uncategorizedCommands.forEach((command) => {
       console.log('Adding command to embed:', command.name);
       categoryEmbed.addFields({ name: command.name, value: command.description });
     });
@@ -38,7 +36,38 @@ async function handleSelectMenu(interaction, commandCategories) {
       console.error('Error deferring or editing interaction:', error);
     }
   } else {
-    console.error(`Category '${selectedCategory}' not found.`);
+    const category = commandCategories.find(
+      (category) =>
+        category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+    );
+
+    if (category) {
+      console.log('Category found:', category.name);
+
+      const categoryEmbed = new EmbedBuilder()
+        .setTitle(`Commands - ${category.name}`)
+        .setDescription(category.description || 'No description available');
+
+      category.commands.forEach((command) => {
+        console.log('Adding command to embed:', command.name);
+        categoryEmbed.addFields({ name: command.name, value: command.description });
+      });
+
+      try {
+        if (interaction.message) {
+          await interaction.deferUpdate();
+          console.log('Interaction deferred.');
+          await interaction.message.edit({ embeds: [categoryEmbed] });
+          console.log('Interaction message updated.');
+        } else {
+          console.error('Interaction does not have a message.');
+        }
+      } catch (error) {
+        console.error('Error deferring or editing interaction:', error);
+      }
+    } else {
+      console.error(`Category '${selectedCategory}' not found.`);
+    }
   }
 }
 
