@@ -33,13 +33,7 @@ async function updateCommandData(commands) {
         ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
       `;
 
-      const [result] = await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
-
-      if (result.affectedRows === 1) {
-        console.log(`Command data updated for command '${commandName}'.`);
-      } else {
-        console.log(`Command data inserted for new command '${commandName}'.`);
-      }
+      await pool.promise().query(insertUpdateQuery, [commandName, commandId, lastModified, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
