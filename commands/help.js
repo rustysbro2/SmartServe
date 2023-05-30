@@ -49,73 +49,73 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-async execute(interaction, client, commandCategories, guildId) {
-  console.log('Help command interaction received:', interaction);
+  async execute(interaction, client, commandCategories) {
+    console.log('Help command interaction received:', interaction);
 
-  if (interaction.deferred || interaction.replied) {
-    console.log('Interaction already deferred or replied to.');
-    return;
-  }
-
-  const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
-
-  const defaultCategoryName = 'Uncategorized';
-
-  const usedOptionValues = new Set();
-
-  const selectMenu = new StringSelectMenuBuilder()
-    .setCustomId('help_category')
-    .setPlaceholder('Select a category');
-
-  const filteredCommandCategories = commandCategories.filter(category => {
-    if (isGlobal) {
-      return category.name !== defaultCategoryName;
-    } else {
-      return category.name !== defaultCategoryName && category.commands.some(command => command.global);
-    }
-  });
-
-  filteredCommandCategories.forEach((category) => {
-    const optionBuilder = new StringSelectMenuOptionBuilder()
-      .setLabel(category.name)
-      .setValue(generateUniqueOptionValue(category.name));
-
-    if (category.description && category.description.length > 0) {
-      optionBuilder.setDescription(category.description);
+    if (interaction.deferred || interaction.replied) {
+      console.log('Interaction already deferred or replied to.');
+      return;
     }
 
-    selectMenu.addOptions(optionBuilder);
-  });
+    const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-  function generateUniqueOptionValue(categoryName) {
-    const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+    const defaultCategoryName = 'Uncategorized';
 
-    let optionValue = sanitizedCategoryName;
-    let index = 1;
+    const usedOptionValues = new Set();
 
-    while (usedOptionValues.has(optionValue)) {
-      optionValue = `${sanitizedCategoryName}_${index}`;
-      index++;
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
+
+    const filteredCommandCategories = commandCategories.filter(category => {
+      if (isGlobal) {
+        return category.name !== defaultCategoryName;
+      } else {
+        return category.name !== defaultCategoryName && category.commands.some(command => command.global);
+      }
+    });
+
+    filteredCommandCategories.forEach((category) => {
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(generateUniqueOptionValue(category.name));
+
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
+
+      selectMenu.addOptions(optionBuilder);
+    });
+
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCategoryName;
+      let index = 1;
+
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCategoryName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
     }
 
-    usedOptionValues.add(optionValue);
-    return optionValue;
-  }
+    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-  const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+    const initialEmbed = new EmbedBuilder()
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
+      .setColor('#0099ff');
 
-  const initialEmbed = new EmbedBuilder()
-    .setTitle('Command Categories')
-    .setDescription('Please select a category from the dropdown menu.')
-    .setColor('#0099ff');
-
-  try {
-    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-    console.log('Initial embed sent.');
-  } catch (error) {
-    console.error('Error replying to interaction:', error);
-  }
-},
+    try {
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      console.log('Initial embed sent.');
+    } catch (error) {
+      console.error('Error replying to interaction:', error);
+    }
+  },
 
   handleSelectMenu,
 };
