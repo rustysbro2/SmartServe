@@ -9,13 +9,13 @@ async function handleSelectMenu(interaction, commandCategories) {
   console.log('Selected category:', selectedCategory);
 
   const category = commandCategories.find(
-    (category) => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
+    (category) => category.name.toLowerCase() === selectedCategory.toLowerCase()
   );
 
   if (category) {
     console.log('Category found:', category.name);
 
-    const categoryEmbed = new EmbedBuilder()
+    const categoryEmbed = new Discord.MessageEmbed()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
@@ -29,14 +29,14 @@ async function handleSelectMenu(interaction, commandCategories) {
       }
 
       console.log('Adding command to embed:', data.name);
-      categoryEmbed.addFields({ name: data.name, value: data.description });
+      categoryEmbed.addField(data.name, data.description);
     });
 
     try {
       if (interaction.message) {
         await interaction.deferUpdate();
         console.log('Interaction deferred.');
-        await interaction.message.edit({ embeds: [categoryEmbed.toJSON()] });
+        await interaction.message.edit({ embeds: [categoryEmbed] });
         console.log('Interaction message updated.');
       } else {
         console.error('Interaction does not have a message.');
