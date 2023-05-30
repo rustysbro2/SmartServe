@@ -1,228 +1,167 @@
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v10');
-const { clientId, token, guildId } = require('./config.js');
+const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
-const db = require('./database.js');
+const path = require('path');
+const { guildId } = require('../config.js');//smememmej
 
-function commandHasChanged(oldCommand, newCommand) {
-  // Compare command properties to check for changes
-  if (oldCommand.options === undefined && newCommand.options === undefined) {
-    return false; // No change if both options are undefined
-  }
+async function handleSelectMenu(interaction, commandCategories) {
+  console.log('Select menu interaction received:', interaction);
 
-  const oldOptions = oldCommand.options || [];
-  const newOptions = newCommand.options || [];
+  const selectedCategory = interaction.values[0];
 
-  if (oldOptions.length !== newOptions.length) {
-    return true; // Number of options changed
-  }
+  console.log('Selected category:', selectedCategory);
 
-  for (let i = 0; i < oldOptions.length; i++) {
-    const oldOption = oldOptions[i];
-    const newOption = newOptions[i];
-
-    if (
-      oldOption.type !== newOption.type ||
-      oldOption.name !== newOption.name ||
-      oldOption.description !== newOption.description ||
-      oldOption.required !== newOption.required
-    ) {
-      return true; // Option properties changed
-    }
-  }
-
-  return false; // No change in options
-}
-
-async function insertInitialCommands() {
-  const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
-
-  for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    const commandData = command.data.toJSON();
-
-    if (command.global !== false) {
-      const [row] = await db.query('SELECT * FROM commandIds WHERE commandName = ?', [commandData.name]);
-      if (!row) {
-        await db.query(
-          `
-          INSERT INTO commandIds (commandName, commandId, options, lastModified)
-          VALUES (?, '', ?, ?)
-          `,
-          [commandData.name, JSON.stringify(commandData.options || []), fs.statSync(`./commands/${file}`).mtime]
-        );
-        console.log(`Command inserted into database: ${commandData.name}`);
-      }
-    } else {
-      const guildCommand = {
-        ...commandData,
-        guildId: guildId,
-      };
-      const [row] = await db.query('SELECT * FROM commandIds WHERE commandName = ?', [commandData.name]);
-      if (!row) {
-        await db.query(
-          `
-          INSERT INTO commandIds (commandName, commandId, options, lastModified)
-          VALUES (?, '', ?, ?)
-          `,
-          [commandData.name, JSON.stringify(guildCommand.options || []), fs.statSync(`./commands/${file}`).mtime]
-        );
-        console.log(`Command inserted into database: ${commandData.name}`);
-      }
-    }
-  }
-}
-
-async function updateCommands() {
-  const commandFiles = fs.readdirSync('./commands').filter((file) => file.endsWith('.js'));
-  const globalCommands = [];
-  const guildCommands = [];
-
-  for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    const commandData = command.data.toJSON();
-
-    if (command.global !== false) {
-      globalCommands.push(commandData);
-    } else {
-      const guildCommand = commandData;
-      guildCommand.guildId = guildId; // Add guildId property
-      guildCommands.push(guildCommand);
-    }
-  }
-
-  const rest = new REST({ version: '10' }).setToken(token);
-
-  try {
-    console.log('Started refreshing application (/) commands.');
-
-    // Get existing global slash commands
-    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
-
-    // Find commands that need to be created or updated
-    const globalCommandsToUpdate = globalCommands.filter((newCommand) => {
-      const existingCommand = existingGlobalCommands.find((command) => command.name === newCommand.name);
-      return !existingCommand || commandHasChanged(existingCommand, newCommand);
-    });
-
-    // Create or update global commands
-    const globalCommandPromises = globalCommandsToUpdate.map(async (command) => {
-      const existingCommand = existingGlobalCommands.find((c) => c.name === command.name);
-      let result;
-      if (existingCommand) {
-        console.log(`Updating global command: ${command.name}`);
-        result = await rest.patch(Routes.applicationCommand(clientId, existingCommand.id), {
-          body: command,
-        });
-      } else {
-        console.log(`Creating global command: ${command.name}`);
-        result = await rest.post(Routes.applicationCommands(clientId), {
-          body: command,
-        });
-      }
-
-      // Check if result.id is defined before storing in the database
-      if (result.id) {
-        // Store the command id, options, and last modified timestamp in the database
-        await db.query(
-          `
-          UPDATE commandIds
-          SET commandId = ?,
-              options = ?,
-              lastModified = ?
-          WHERE commandName = ?
-          `,
-          [result.id, JSON.stringify(command.options || []), fs.statSync(`./commands/${command.name}.js`).mtime, command.name]
-        );
-
-        console.log(`Command updated: ${command.name}`);
-      } else {
-        console.error(`No valid command ID received for global command: ${command.name}`);
-      }
-
-      return result;
-    });
-
-    await Promise.all(globalCommandPromises);
-    console.log('Global commands updated successfully.');
-
-    // Get existing guild-specific slash commands
-    const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
-
-    // Find commands that need to be created or updated
-    const guildCommandsToUpdate = guildCommands.filter((newCommand) => {
-      const existingCommand = existingGuildCommands.find((command) => command.name === newCommand.name);
-      return !existingCommand || commandHasChanged(existingCommand, newCommand);
-    });
-
-    // Create or update guild-specific commands
-    const guildCommandPromises = guildCommandsToUpdate.map(async (command) => {
-      const existingCommand = existingGuildCommands.find((c) => c.name === command.name);
-      let result;
-      if (existingCommand) {
-        console.log(`Updating guild-specific command: ${command.name}`);
-        result = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id), {
-          body: command,
-        });
-        console.log(`Updated guild-specific command: ${command.name}, response:`, result);
-      } else {
-        console.log(`Creating guild-specific command: ${command.name}`);
-        result = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
-          body: command,
-        });
-        console.log(`Created guild-specific command: ${command.name}, response:`, result);
-      }
-
-      // Check if result.id is defined before storing in the database
-      if (result.id) {
-        // Store the command id, options, and last modified timestamp in the database
-        await db.query(
-          `
-          UPDATE commandIds
-          SET commandId = ?,
-              options = ?,
-              lastModified = ?
-          WHERE commandName = ?
-          `,
-          [result.id, JSON.stringify(command.options || []), fs.statSync(`./commands/${command.name}.js`).mtime, command.name]
-        );
-
-        console.log(`Command updated: ${command.name}`);
-      } else {
-        console.error(`No valid command ID received for guild-specific command: ${command.name}`);
-        console.error('Result received:', result);
-      }
-
-      return result;
-    });
-
-    await Promise.all(guildCommandPromises);
-    console.log('Guild-specific commands updated successfully.');
-
-    console.log('Successfully refreshed application (/) commands.');
-  } catch (error) {
-    console.error('Error refreshing application (/) commands:', error);
-  }
-}
-
-module.exports = async function (client) {
-  // Create commandIds table if it doesn't exist
-  db.query(
-    `
-    CREATE TABLE IF NOT EXISTS commandIds (
-      commandName VARCHAR(255),
-      commandId VARCHAR(255),
-      options JSON,
-      lastModified TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      PRIMARY KEY (commandName)
-    )
-  `,
-    (error) => {
-      if (error) throw error;
-      console.log('CommandIds table created or already exists.');
-    }
+  const category = commandCategories.find(
+    (category) =>
+      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
-  await insertInitialCommands();
-  await updateCommands();
+  if (category) {
+    console.log('Category found:', category.name);
+
+    const categoryEmbed = new EmbedBuilder()
+      .setTitle(`Commands - ${category.name}`)
+      .setDescription(category.description || 'No description available');
+
+    category.commands.forEach((command) => {
+      console.log('Adding command to embed:', command.name);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
+    });
+
+    try {
+      if (interaction.message) {
+        await interaction.deferUpdate();
+        console.log('Interaction deferred.');
+        await interaction.message.edit({ embeds: [categoryEmbed] });
+        console.log('Interaction message updated.');
+      } else {
+        console.error('Interaction does not have a message.');
+      }
+    } catch (error) {
+      console.error('Error deferring or editing interaction:', error);
+    }
+  } else {
+    console.error(`Category '${selectedCategory}' not found.`);
+  }
+}
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('help')
+    .setDescription('List all commands or info about a specific command'),
+
+  async execute(interaction, client) {
+    console.log('Help command interaction received:', interaction);
+
+    if (interaction.deferred || interaction.replied) {
+      console.log('Interaction already deferred or replied to.');
+      return;
+    }
+
+    const commandCategories = [];
+    const defaultCategoryName = 'Uncategorized';
+
+    const commandsDirectory = path.join(__dirname, '../commands');
+    console.log('Commands directory:', commandsDirectory);
+
+    const commandFiles = fs.readdirSync(commandsDirectory).filter((file) => file.endsWith('.js'));
+    console.log('Command files:', commandFiles);
+
+    for (const file of commandFiles) {
+      if (file === 'help.js') continue;
+
+      const command = require(path.join(commandsDirectory, file));
+      console.log('Command module:', command);
+
+      if (command.global !== false || (command.guildId && command.guildId !== guildId)) {
+        continue; // Skip global commands and guild-specific commands for other guilds
+      }
+
+      if (command.category) {
+        let category = commandCategories.find((category) => category.name === command.category);
+
+        if (!category) {
+          category = {
+            name: command.category,
+            description: '',
+            commands: [],
+          };
+
+          commandCategories.push(category);
+        }
+
+        category.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      } else {
+        let defaultCategory = commandCategories.find((category) => category.name === defaultCategoryName);
+
+        if (!defaultCategory) {
+          defaultCategory = {
+            name: defaultCategoryName,
+            description: 'Commands that do not belong to any specific category',
+            commands: [],
+          };
+
+          commandCategories.push(defaultCategory);
+        }
+
+        defaultCategory.commands.push({
+          name: command.data.name,
+          description: command.data.description,
+        });
+      }
+    }
+
+    console.log('Command categories:', commandCategories);
+
+    const usedOptionValues = new Set();
+
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
+
+    commandCategories.forEach((category) => {
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(generateUniqueOptionValue(category.name));
+
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
+
+      selectMenu.addOptions(optionBuilder);
+    });
+
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCategoryName;
+      let index = 1;
+
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCategoryName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
+    }
+
+    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+
+    const initialEmbed = new EmbedBuilder()
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
+      .setColor('#0099ff');
+
+    try {
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      console.log('Initial embed sent.');
+    } catch (error) {
+      console.error('Error replying to interaction:', error);
+    }
+  },
+
+  handleSelectMenu,
 };
