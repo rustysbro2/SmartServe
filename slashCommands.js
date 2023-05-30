@@ -43,7 +43,7 @@ async function updateCommandData(commands, rest, client) {
     }, {});
 
     for (const command of commands) {
-      const { name, description, lastModified, global } = command;
+      const { name, description, lastModified, global, commandId } = command;
       const lowerCaseName = name.toLowerCase();
       const fileName = commandNameToFileMap[lowerCaseName];
 
@@ -61,7 +61,7 @@ async function updateCommandData(commands, rest, client) {
         if (global) {
           const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
 
-          if (!existingGlobalCommand || command.commandId === null) {
+          if (!existingGlobalCommand || commandId === null) {
             // Register the command as a global command
             const response = await rest.post(Routes.applicationCommands(clientId), {
               body: commandData,
@@ -82,12 +82,14 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
+                // Update the command and obtain the command ID
                 const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
                   body: commandData,
                 });
 
                 const commandId = response.id;
 
+                // Update the command data in the array
                 command.commandId = commandId;
                 command.lastModified = newLastModified;
 
@@ -108,13 +110,15 @@ async function updateCommandData(commands, rest, client) {
         } else {
           const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
 
-          if (!existingGuildCommand || command.commandId === null) {
+          if (!existingGuildCommand || commandId === null) {
+            // Register the command as a guild-specific command
             const response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
               body: commandData,
             });
 
             const commandId = response.id;
 
+            // Update the command data in the array
             command.commandId = commandId;
             command.lastModified = new Date();
 
@@ -127,12 +131,14 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               if (newLastModified && newLastModified.getTime() !== lastModified.getTime()) {
+                // Update the command and obtain the command ID
                 const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
                   body: commandData,
                 });
 
                 const commandId = response.id;
 
+                // Update the command data in the array
                 command.commandId = commandId;
                 command.lastModified = newLastModified;
 
@@ -151,22 +157,19 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command deleted as it needs to be registered as a guild-specific command: ${JSON.stringify(command)}`);
           }
         }
+
+        // Update the command data in the database
+        const insertUpdateQuery = `
+          INSERT INTO commandIds (commandName, commandId, lastModified)
+          VALUES (?, ?, ?)
+          ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
+        `;
+
+        await pool.promise().query(insertUpdateQuery, [lowerCaseName, command.commandId, command.lastModified, command.commandId, command.lastModified]);
+
       } catch (error) {
         console.error(`Error updating command data: ${error.message}`);
       }
-    }
-
-    for (const command of commands) {
-      const { name, commandId, lastModified } = command;
-      const lowerCaseName = name.toLowerCase();
-
-      const insertUpdateQuery = `
-        INSERT INTO commandIds (commandName, commandId, lastModified)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
-      `;
-
-      await pool.promise().query(insertUpdateQuery, [lowerCaseName, command.commandId, lastModified, command.commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
@@ -176,12 +179,15 @@ async function updateCommandData(commands, rest, client) {
 }
 
 module.exports = async function (client) {
+  // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
 
   const commands = [];
 
+  // Read command files from the commands directory
   const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
 
+  // Loop through command files and register slash commands
   for (const file of commandFiles) {
     const command = require(`./commands/${file}`);
     const setName = command.data.name.toLowerCase();
@@ -190,9 +196,10 @@ module.exports = async function (client) {
       description: command.data.description,
       commandId: null,
       lastModified: fs.statSync(`./commands/${file}`).mtime,
-      global: command.global === undefined ? true : command.global,
+      global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
+    // Add the command data to the commands array
     commands.push(commandData);
   }
 
@@ -201,12 +208,14 @@ module.exports = async function (client) {
   try {
     console.log('Started refreshing application (/) commands.');
 
+    // Update the command data and register the slash commands
     await updateCommandData(commands, rest, client);
 
     console.log('Successfully refreshed application (/) commands.');
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
 
+    // Log the command names that caused the error
     const commandNames = commands.map((command) => command.name);
     const errorCommands = commandNames.map((commandName, index) => ({
       name: commandName,
