@@ -74,6 +74,17 @@ module.exports = {
       selectMenu.addOptions(optionBuilder);
     });
 
+    // Add Uncategorized category
+    const uncategorizedCommands = commandCategories.find((category) => category.name === 'Uncategorized');
+
+    if (uncategorizedCommands) {
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(uncategorizedCommands.name)
+        .setValue(generateUniqueOptionValue(uncategorizedCommands.name));
+
+      selectMenu.addOptions(optionBuilder);
+    }
+
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
 
