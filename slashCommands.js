@@ -28,6 +28,12 @@ async function updateCommandData(commands) {
     for (const command of commands) {
       const { commandName, commandId, lastModified } = command;
 
+      // Check if the commandName is null or empty
+      if (!commandName) {
+        console.error(`Skipping command update due to missing commandName: ${JSON.stringify(command)}`);
+        continue;
+      }
+
       const insertUpdateQuery = `
         INSERT INTO commandIds (commandName, commandId, lastModified)
         VALUES (?, ?, ?)
@@ -42,6 +48,7 @@ async function updateCommandData(commands) {
     console.error('Error updating command data:', error);
   }
 }
+
 
 
 
