@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const fs = require('fs');
 const path = require('path');
-const { guildId } = require('../config.js');//sjsjsjs
+const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Select menu interaction received:', interaction);
@@ -132,6 +132,17 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
+
+    // Add the 'Uncategorized' category to the dropdown menu
+    const uncategorizedCategory = commandCategories.find(category => category.name === defaultCategoryName);
+    if (uncategorizedCategory) {
+      const uncategorizedOption = new StringSelectMenuOptionBuilder()
+        .setLabel(defaultCategoryName)
+        .setValue(generateUniqueOptionValue(defaultCategoryName))
+        .setDescription(uncategorizedCategory.description || 'No description available');
+      
+      selectMenu.addOptions(uncategorizedOption);
+    }
 
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
