@@ -83,10 +83,18 @@ async function updateCommandData(commands, rest, client) {
               // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
+              // Retrieve the stored commandId from the database
+              const commandIdQuery = `
+                SELECT commandId FROM commandIds WHERE commandName = ?
+              `;
+
+              const [rows, fields] = await pool.promise().query(commandIdQuery, [lowerCaseName]);
+              const storedCommandId = rows[0] ? rows[0].commandId : null;
+
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+              if (storedCommandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
                 console.log(`Updating command '${name}':`);
-                console.log(`- Command ID: ${command.commandId}`);
+                console.log(`- Command ID: ${storedCommandId}`);
                 console.log(`- Last Modified: ${lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
@@ -140,10 +148,18 @@ async function updateCommandData(commands, rest, client) {
               // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
+              // Retrieve the stored commandId from the database
+              const commandIdQuery = `
+                SELECT commandId FROM commandIds WHERE commandName = ?
+              `;
+
+              const [rows, fields] = await pool.promise().query(commandIdQuery, [lowerCaseName]);
+              const storedCommandId = rows[0] ? rows[0].commandId : null;
+
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
+              if (storedCommandId === null || (newLastModified && newLastModified.getTime() !== lastModified.getTime())) {
                 console.log(`Updating command '${name}':`);
-                console.log(`- Command ID: ${command.commandId}`);
+                console.log(`- Command ID: ${storedCommandId}`);
                 console.log(`- Last Modified: ${lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
