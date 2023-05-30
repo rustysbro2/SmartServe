@@ -22,8 +22,8 @@ async function handleSelectMenu(interaction, commandCategories) {
     category.commands.forEach((command) => {
       const data = command.data;
       if (
-        (data.category && data.category !== category.name) ||
-        (!data.category && category.name !== 'uncategorized')
+        (data.category && data.category.toLowerCase() !== category.name.toLowerCase()) ||
+        (!data.category && category.name.toLowerCase() !== 'uncategorized')
       ) {
         return; // Exclude commands from other categories
       }
@@ -48,6 +48,8 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
+
 
 module.exports = {
   data: new SlashCommandBuilder()
