@@ -25,16 +25,8 @@ async function createCommandIdsTable() {
 
 async function updateCommandData(commands, rest, client) {
   try {
-    // Get the existing slash commands
-    const existingCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
-
-    // Clear the existing slash commands
-    for (const existingCommand of existingCommands) {
-      await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingCommand.id));
-    }
-
     for (const command of commands) {
-      const { name, description, lastModified } = command;
+      const { name, description, lastModified, global } = command;
       const existingCommand = client.commands.get(name);
 
       if (!existingCommand) {
@@ -47,10 +39,19 @@ async function updateCommandData(commands, rest, client) {
       };
 
       try {
-        // Register the command and obtain the command ID
-        const response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
-          body: commandData,
-        });
+        let response;
+
+        if (global) {
+          // Register as global command
+          response = await rest.post(Routes.applicationCommands(clientId), {
+            body: commandData,
+          });
+        } else {
+          // Register as guild-specific command
+          response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
+            body: commandData,
+          });
+        }
 
         const commandId = response.id;
 
@@ -109,6 +110,7 @@ module.exports = async function (client) {
       description: command.data.description,
       commandId: null,
       lastModified: fs.statSync(`./commands/${file}`).mtime,
+      global: command.global || false, // Set to global if specified, otherwise default to false
     };
 
     // Add the command data to the commands array
@@ -120,7 +122,7 @@ module.exports = async function (client) {
   try {
     console.log('Started refreshing application (/) commands.');
 
-    // Update the command data and register the global slash commands
+    // Update the command data and register the global and guild-specific slash commands
     await updateCommandData(commands, rest, client);
 
     console.log('Successfully refreshed application (/) commands.');
