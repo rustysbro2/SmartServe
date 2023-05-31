@@ -74,6 +74,13 @@ client.once('ready', async () => {
 
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
+
+  console.log('Command Categories:');
+  commandCategories.forEach((category) => {
+    console.log(`Category: ${category.name}`);
+    console.log(`Guild ID: ${category.guildId}`);
+    console.log('Commands:', category.commands);
+  });
 });
 
 client.on('interactionCreate', async (interaction) => {
