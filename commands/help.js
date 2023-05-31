@@ -8,7 +8,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
-  let categoryEmbed = null; // Initialize with a default value
+  let categoryEmbed = null;
 
   if (category) {
     categoryEmbed = new EmbedBuilder()
@@ -39,17 +39,17 @@ async function handleSelectMenu(interaction, commandCategories) {
   // Check if categoryEmbed is still null or has no fields
   if (!categoryEmbed || categoryEmbed.fields.length === 0) {
     // Get the dropdown menu component from the interaction
-    const selectMenu = interaction.message.components.find((component) => component.type === 'ACTION_ROW')?.components.find((component) => component.type === 'SELECT_MENU');
+    const selectMenu = interaction.message.components.find(component => component.type === 'ACTION_ROW')?.components.find(component => component.type === 'SELECT_MENU');
 
     // Check if the select menu exists and has options
     if (selectMenu && selectMenu.options.length > 0) {
       // Find and remove the option corresponding to the empty category
-      selectMenu.options = selectMenu.options.filter((option) => option.value !== selectedCategory);
+      selectMenu.options = selectMenu.options.filter(option => option.value !== selectedCategory);
 
       // Check if the updated options list is empty
       if (selectMenu.options.length === 0) {
         // Remove the entire action row from the components
-        interaction.message.components = interaction.message.components.filter((component) => component.type !== 'ACTION_ROW');
+        interaction.message.components = interaction.message.components.filter(component => component.type !== 'ACTION_ROW');
       }
 
       // Edit the message to remove the empty category from the dropdown menu
@@ -61,6 +61,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 
 module.exports = {
