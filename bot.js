@@ -29,7 +29,8 @@ for (const file of commandFiles) {
       category = {
         name: command.category,
         description: '',
-        commands: []
+        commands: [],
+        guildId: command.guildId
       };
       commandCategories.push(category);
     }
@@ -45,7 +46,8 @@ for (const file of commandFiles) {
       defaultCategory = {
         name: 'Uncategorized',
         description: 'Commands that do not belong to any specific category',
-        commands: []
+        commands: [],
+        guildId: undefined
       };
       commandCategories.push(defaultCategory);
     }
@@ -70,29 +72,14 @@ client.once('ready', async () => {
 
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-    await helpCommand.handleSelectMenu(interaction, commandCategories);
+    helpCommand.handleSelectMenu(interaction, commandCategories);
   } else if (interaction.isCommand()) {
-    const { commandName, guildId: interactionGuildId } = interaction;
-
-    if (commandName === 'help') {
-      await client.commands.get('help').execute(interaction, client, commandCategories, interaction.guildId);
-    } else {
-      const command = client.commands.get(commandName);
-
-      if (!command) return;
-
-      const isGlobal = !interactionGuildId || (interactionGuildId === guildId);
-
-      if (isGlobal && !command.global) {
-        await interaction.reply({ content: 'This command is not available globally!', ephemeral: true });
-        return;
-      }
-
+    const command = client.commands.get(interaction.commandName);
+    if (command) {
       try {
-        await command.execute(interaction, client);
+        await command.execute(interaction, client, commandCategories);
       } catch (error) {
-        console.error(error);
-        await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+        console.error('Error executing command:', error);
       }
     }
   }
