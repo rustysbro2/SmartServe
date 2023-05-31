@@ -16,7 +16,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false || !interaction.guildId || interaction.guildId === guildId) {
+      if (command.global !== false) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
       }
     });
@@ -37,7 +37,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 
   // Check if the category embed has no fields (commands)
-  if (!categoryEmbed || categoryEmbed.fields?.length === 0) {
+  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
     // Get the dropdown menu component from the interaction
     const selectMenu = interaction.message.components[0]?.components[0];
 
@@ -70,7 +70,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client, commandCategories, guildId) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
