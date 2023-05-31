@@ -5,17 +5,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   console.log('Interaction Guild ID:', interaction.guildId);
 
   const selectedCategory = interaction.values[0];
-  const category = commandCategories.find(
-    (category) =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
-  );
-
-  console.log('Command Categories:');
-  commandCategories.forEach((category) => {
-    console.log(`Category: ${category.name}`);
-    console.log(`Guild ID: ${category.guildId}`);
-    console.log('Commands:', category.commands);
-  });
+  const category = commandCategories.find(category => category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory);
 
   let categoryEmbed;
 
@@ -27,25 +17,13 @@ async function handleSelectMenu(interaction, commandCategories) {
       categoryEmbed.setDescription(category.categoryDescription);
     }
 
-    let commandsToShow;
+    const guildSpecificCommands = category.commands.filter(command => command.guildId === interaction.guildId);
+    const globalCommands = category.commands.filter(command => command.global !== false);
+    
+    const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
 
-    if (interaction.guildId === guildId) {
-      commandsToShow = category.commands;
-    } else {
-      commandsToShow = category.commands.filter(
-        (command) => command.global !== false
-      );
-    }
-
-    console.log('Commands to Show:');
-    commandsToShow.forEach((command) => {
-      console.log(`Command: ${command.name}`);
-      console.log(`Category: ${category.name}`);
-      console.log(`Global: ${command.global}`);
-    });
-
-    commandsToShow.forEach((command) => {
-      categoryEmbed.addFields([{ name: command.name, value: command.description }]);
+    commandsToShow.forEach(command => {
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     console.log('Category Embed:', categoryEmbed);
@@ -81,30 +59,21 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    let filteredCommandCategories;
-    if (interaction.guildId === guildId) {
-      filteredCommandCategories = commandCategories.slice(0, 10);
-    } else {
-      filteredCommandCategories = commandCategories
-        .filter((category) => isGlobal ? !category.guildId : category.guildId === interaction.guildId)
-        .slice(0, 10);
-    }
-
-    const usedOptionValues = new Set();
+    const filteredCommandCategories = commandCategories.filter(category => isGlobal ? !category.guildId : category.guildId === interaction.guildId).slice(0, 10);
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    filteredCommandCategories.forEach((category) => {
-      const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
-      selectMenu.addOptions(
-        new StringSelectMenuOptionBuilder()
+    filteredCommandCategories.forEach(category => {
+      if (category.commands.some(command => command.global !== false || (isGlobal && command.guildId === guildId))) {
+        const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
+        const selectOption = new StringSelectMenuOptionBuilder()
           .setLabel(category.name)
           .setValue(categoryName)
-          .setDescription(category.description)
-      );
-      usedOptionValues.add(categoryName);
+          .setDescription(category.description);
+        selectMenu.addOption(selectOption);
+      }
     });
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
