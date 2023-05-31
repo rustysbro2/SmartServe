@@ -14,8 +14,10 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false) {
+      if (command.global !== false || !command.hasOwnProperty('global')) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
+      } else {
+        console.log(`Skipping global false command '${command.name}'`);
       }
     });
 
@@ -59,25 +61,31 @@ module.exports = {
 
     // Add options to the select menu
     filteredCommandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name));
+      category.commands.forEach((command) => {
+        if (command.global !== false || !command.hasOwnProperty('global')) {
+          const optionBuilder = new StringSelectMenuOptionBuilder()
+            .setLabel(command.name)
+            .setValue(generateUniqueOptionValue(command.name));
 
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
-      }
+          if (command.description && command.description.length > 0) {
+            optionBuilder.setDescription(command.description);
+          }
 
-      selectMenu.addOptions(optionBuilder);
+          selectMenu.addOptions(optionBuilder);
+        } else {
+          console.log(`Skipping global false command '${command.name}'`);
+        }
+      });
     });
 
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(commandName) {
+      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
 
-      let optionValue = sanitizedCategoryName;
+      let optionValue = sanitizedCommandName;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
+        optionValue = `${sanitizedCommandName}_${index}`;
         index++;
       }
 
@@ -96,16 +104,13 @@ module.exports = {
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
       console.log('Initial embed sent.');
 
-      // Log global false commands
-      if (!isGlobal) {
-        const globalFalseCommands = commandCategories
-          .filter((category) => category.guildId === interaction.guildId)
-          .flatMap((category) => category.commands)
-          .filter((command) => command.global === false)
-          .map((command) => command.name);
+      // Get global commands
+      const globalCommands = commandCategories
+        .filter((category) => !category.guildId)
+        .flatMap((category) => category.commands)
+        .map((command) => command.name);
 
-        console.log('Global False Commands:', globalFalseCommands);
-      }
+      console.log('Global Commands:', globalCommands);
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
