@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
-async function handleSelectMenu(interaction, commandCategories) {
+async function handleSelectMenu(interaction, commandCategories, guildId) {
   console.log('Interaction Guild ID:', interaction.guildId);
 
   const selectedCategory = interaction.values[0];
@@ -31,7 +31,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       (command) => command.guildId === interaction.guildId
     );
     const globalCommands = category.commands.filter(
-      (command) => command.global !== false
+      (command) => command.global !== false || command.guildId === undefined
     );
 
     console.log('Guild Specific Commands:');
@@ -48,7 +48,9 @@ async function handleSelectMenu(interaction, commandCategories) {
       console.log(`Global: ${command.global}`);
     });
 
-    const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
+    const commandsToShow = guildSpecificCommands.length > 0
+      ? guildSpecificCommands
+      : globalCommands;
 
     commandsToShow.forEach((command) => {
       categoryEmbed.addFields([{ name: command.name, value: command.description }]);
@@ -98,7 +100,7 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     filteredCommandCategories.forEach((category) => {
-      if (category.commands.some((command) => command.global !== false || (isGlobal && command.guildId === guildId))) {
+      if (category.commands.some((command) => command.global !== false || command.guildId === undefined)) {
         const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
         selectMenu.addOptions(
           new StringSelectMenuOptionBuilder()
