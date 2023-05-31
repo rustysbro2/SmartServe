@@ -59,7 +59,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     try {
       if (interaction.message) {
         await interaction.deferUpdate();
-        await interaction.message.edit({ embeds: [categoryEmbed], components: [] });
+        await interaction.message.edit({ embeds: [categoryEmbed.build()], components: [] });
       } else {
         console.error('Interaction does not have a message.');
       }
@@ -133,7 +133,7 @@ module.exports = {
       .setColor('#0099ff');
 
     try {
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      await interaction.reply({ embeds: [initialEmbed.build()], components: [actionRow] });
       console.log('Initial embed sent.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
