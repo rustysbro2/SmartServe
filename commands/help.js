@@ -92,9 +92,6 @@ module.exports = {
     const categoriesWithCommands = filteredCommandCategories
       .filter(category =>
         category.commands.some(command => command.global !== false)
-      )
-      .filter(category =>
-        category.commands.some(command => command.global !== false)
       );
 
     // Add categories with commands to the select menu
@@ -139,8 +136,6 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
-
-
 
   handleSelectMenu,
 };
