@@ -70,7 +70,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories, guildId) {
+    async execute(interaction, client, commandCategories, guildId) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
@@ -88,8 +88,13 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Add categories to the select menu
-    filteredCommandCategories.forEach((category) => {
+    // Filter out categories with no commands
+    const categoriesWithCommands = filteredCommandCategories.filter(category =>
+      category.commands.length > 0
+    );
+
+    // Add categories with commands to the select menu
+    categoriesWithCommands.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(generateUniqueOptionValue(category.name));
@@ -130,6 +135,7 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
   handleSelectMenu,
 };
