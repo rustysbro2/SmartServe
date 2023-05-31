@@ -2,39 +2,27 @@ const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSe
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
-  console.log('Select menu interaction received:', interaction);
-
   const selectedCategory = interaction.values[0];
-
-  console.log('Selected category:', selectedCategory);
-
   const category = commandCategories.find(
     (category) =>
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
   if (category) {
-    console.log('Category found:', category.name);
-
     const categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
       if (command.global !== false) {
-        console.log('Adding command to embed:', command.name);
         categoryEmbed.addFields({ name: command.name, value: command.description });
-      } else {
-        console.log(`Skipping global false command '${command.name}'`);
       }
     });
 
     try {
       if (interaction.message) {
         await interaction.deferUpdate();
-        console.log('Interaction deferred.');
         await interaction.message.edit({ embeds: [categoryEmbed] });
-        console.log('Interaction message updated.');
       } else {
         console.error('Interaction does not have a message.');
       }
@@ -114,3 +102,4 @@ module.exports = {
 
   handleSelectMenu,
 };
+
