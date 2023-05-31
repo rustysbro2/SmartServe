@@ -73,7 +73,13 @@ async function handleSelectMenu(interaction, commandCategories) {
 
       // Edit the message to remove the empty category from the dropdown menu
       try {
-        await interaction.message
+        await interaction.message.edit({ components: [interaction.message.components[0]] });
+      } catch (error) {
+        console.error('Error editing message:', error);
+      }
+    }
+  }
+}
 
 
 
