@@ -20,9 +20,12 @@ async function handleSelectMenu(interaction, commandCategories) {
   let categoryEmbed;
 
   if (category) {
-    categoryEmbed = new EmbedBuilder()
-      .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.categoryDescription || '');
+    categoryEmbed = new EmbedBuilder();
+    categoryEmbed.setTitle(`Commands - ${category.name}`);
+
+    if (category.categoryDescription && category.categoryDescription.length > 0) {
+      categoryEmbed.setDescription(category.categoryDescription);
+    }
 
     const guildSpecificCommands = category.commands.filter(
       (command) => command.guildId === interaction.guildId
@@ -56,7 +59,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     try {
       if (interaction.message) {
         await interaction.deferUpdate();
-        await interaction.message.edit({ embeds: [categoryEmbed] });
+        await interaction.message.edit({ embeds: [categoryEmbed.build()] });
       } else {
         console.error('Interaction does not have a message.');
       }
@@ -96,6 +99,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
