@@ -13,50 +13,10 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
-    const commandsToAdd = category.commands.filter(
-      (command) => command.global !== false
-    );
-
-    if (commandsToAdd.length === 0) {
-      // If the category has no commands to display, remove it from the dropdown menu
-      const updatedCategories = commandCategories.filter(
-        (cat) => cat.name !== category.name
-      );
-
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('help_category')
-        .setPlaceholder('Select a category');
-
-      updatedCategories.forEach((cat) => {
-        const optionBuilder = new StringSelectMenuOptionBuilder()
-          .setLabel(cat.name)
-          .setValue(generateUniqueOptionValue(cat.name));
-
-        if (cat.description && cat.description.length > 0) {
-          optionBuilder.setDescription(cat.description);
-        }
-
-        selectMenu.addOptions(optionBuilder);
-      });
-
-      const actionRow = new ActionRowBuilder().addComponents(selectMenu);
-
-      try {
-        if (interaction.message) {
-          await interaction.deferUpdate();
-          await interaction.message.edit({ components: [actionRow] });
-        } else {
-          console.error('Interaction does not have a message.');
-        }
-      } catch (error) {
-        console.error('Error deferring or editing interaction:', error);
+    category.commands.forEach((command) => {
+      if (command.global !== false) {
+        categoryEmbed.addFields({ name: command.name, value: command.description });
       }
-
-      return;
-    }
-
-    commandsToAdd.forEach((command) => {
-      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     try {
@@ -73,7 +33,6 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -92,25 +51,53 @@ module.exports = {
       isGlobal ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
 
+    const usedOptionValues = new Set();
+
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
     // Add options to the select menu
     filteredCommandCategories.forEach((category) => {
-      const optionBuilder = new StringSelectMenuOptionBuilder()
-        .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name));
+      category.commands.forEach((command) => {
+        if (command.global !== false) {
+          const optionBuilder = new StringSelectMenuOptionBuilder()
+            .setLabel(command.name)
+            .setValue(generateUniqueOptionValue(command.name));
 
-      if (category.description && category.description.length > 0) {
-        optionBuilder.setDescription(category.description);
+          if (command.description && command.description.length > 0) {
+            optionBuilder.setDescription(command.description);
+          }
+
+          selectMenu.addOptions(optionBuilder);
+
+          console.log(`Adding global command to dropdown menu: ${command.name}`);
+        } else {
+          console.log(`Skipping non-global command in dropdown menu: ${command.name}`);
+        }
+      });
+
+      // Remove the category from the select menu if it has no commands
+      if (category.commands.length === 0) {
+        console.log(`Removing empty category from dropdown menu: ${category.name}`);
+        const categoryOptionValue = category.name.toLowerCase().replace(/\s/g, '_');
+        selectMenu.removeOptions(categoryOptionValue);
       }
-
-      selectMenu.addOptions(optionBuilder);
     });
 
-    function generateUniqueOptionValue(categoryName) {
-      return categoryName.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(commandName) {
+      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCommandName;
+      let index = 1;
+
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCommandName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
     }
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
