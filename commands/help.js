@@ -23,7 +23,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.categoryDescription || '')
-      .addField('Category Description', category.categoryDescription || 'No description available');
+      .addFields({ name: 'Category Description', value: category.categoryDescription || 'No description available' });
 
     const guildSpecificCommands = category.commands.filter(
       (command) => command.guildId === interaction.guildId
@@ -36,6 +36,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     guildSpecificCommands.forEach((command) => {
       console.log(`Command: ${command.name}`);
       console.log(`Category: ${category.name}`);
+      
       console.log(`Global: ${command.global}`);
     });
 
