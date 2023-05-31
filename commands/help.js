@@ -34,13 +34,12 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 }
 
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async function execute(interaction, client, commandCategories, guildId) {
+  async execute(interaction, client, commandCategories, guildId) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
@@ -111,9 +110,6 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
-
-
-
 
   handleSelectMenu,
 };
