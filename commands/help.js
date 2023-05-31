@@ -110,13 +110,6 @@ module.exports = {
       }
     });
 
-    const otherCategoryOption = new StringSelectMenuOptionBuilder()
-      .setLabel('Other')
-      .setValue('other')
-      .setDescription('View other categories')
-      .setDefault(true);
-    selectMenu.addOptions(otherCategoryOption);
-
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
     try {
