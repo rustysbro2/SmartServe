@@ -62,7 +62,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories, guildId) {
+  async execute(interaction, client, commandCategories) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
@@ -110,8 +110,8 @@ module.exports = {
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
     const initialEmbed = new EmbedBuilder()
-      .setTitle('Commands')
-      .setDescription('Select a category to view the commands')
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff');
 
     try {
@@ -127,4 +127,5 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+  handleSelectMenu,
 };
