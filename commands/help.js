@@ -106,9 +106,12 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    const filteredCommandCategories = commandCategories
-      .filter((category) => isGlobal ? !category.guildId : category.guildId === interaction.guildId)
-      .slice(0, 10);
+    let filteredCommandCategories = commandCategories;
+    if (!isGlobal) {
+      filteredCommandCategories = commandCategories.filter((category) =>
+        category.guildId === interaction.guildId
+      );
+    }
 
     const usedOptionValues = new Set();
 
@@ -117,27 +120,32 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     filteredCommandCategories.forEach((category) => {
-      if (category.commands.some((command) => command.global !== false || (isGlobal && command.global !== true))) {
-        const optionBuilder = new StringSelectMenuOptionBuilder()
-          .setLabel(category.name)
-          .setValue(generateUniqueOptionValue(category.name));
+      console.log(`Category: ${category.name}`);
 
-        if (category.description && category.description.length > 0) {
-          optionBuilder.setDescription(category.description);
+      category.commands.forEach((command) => {
+        console.log(`Command: ${command.name}`);
+        console.log(`Category: ${category.name}`);
+        console.log(`Global: ${command.global}`);
+
+        if (command.global !== false || (isGlobal && command.global !== true)) {
+          selectMenu.addOptions((option) => {
+            option
+              .setLabel(command.name)
+              .setValue(generateUniqueOptionValue(command.name))
+              .setDescription(command.description || 'No description available');
+          });
         }
-
-        selectMenu.addOptions(optionBuilder);
-      }
+      });
     });
 
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(commandName) {
+      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
 
-      let optionValue = sanitizedCategoryName;
+      let optionValue = sanitizedCommandName;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
+        optionValue = `${sanitizedCommandName}_${index}`;
         index++;
       }
 
@@ -159,6 +167,7 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
 
 
