@@ -1,3 +1,4 @@
+// bot.js
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token, guildId } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
