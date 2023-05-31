@@ -51,7 +51,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
 
     commandsToShow.forEach((command) => {
-      categoryEmbed.addFields({ name: command.name, value: command.description });
+      categoryEmbed.addFields([{ name: command.name, value: command.description }]);
     });
 
     console.log('Category Embed:', categoryEmbed);
