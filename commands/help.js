@@ -100,11 +100,12 @@ module.exports = {
     filteredCommandCategories.forEach((category) => {
       if (category.commands.some((command) => command.global !== false || (isGlobal && command.guildId === guildId))) {
         const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
-        const selectOption = new StringSelectMenuOptionBuilder()
-          .setLabel(category.name)
-          .setValue(categoryName)
-          .setDescription(category.description);
-        selectMenu.addOption(selectOption);
+        selectMenu.addOptions(
+          new StringSelectMenuOptionBuilder()
+            .setLabel(category.name)
+            .setValue(categoryName)
+            .setDescription(category.description)
+        );
         usedOptionValues.add(categoryName);
       }
     });
@@ -114,7 +115,7 @@ module.exports = {
       .setValue('other')
       .setDescription('View other categories')
       .setDefault(true);
-    selectMenu.addOption(otherCategoryOption);
+    selectMenu.addOptions(otherCategoryOption);
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
