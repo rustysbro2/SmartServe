@@ -35,7 +35,9 @@ for (const file of commandFiles) {
     }
     category.commands.push({
       name: command.data.name,
-      description: command.data.description
+      description: command.data.description,
+      global: command.global !== false
+      // Add a 'global' property to the command object, defaulting to true if not specified or if it's true
     });
   } else {
     let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
@@ -49,7 +51,9 @@ for (const file of commandFiles) {
     }
     defaultCategory.commands.push({
       name: command.data.name,
-      description: command.data.description
+      description: command.data.description,
+      global: command.global !== false
+      // Add a 'global' property to the command object, defaulting to true if not specified or if it's true
     });
   }
 }
