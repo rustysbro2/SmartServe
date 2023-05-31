@@ -70,7 +70,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-    async execute(interaction, client, commandCategories, guildId) {
+  async execute(interaction, client, commandCategories, guildId) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
@@ -78,9 +78,9 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    const filteredCommandCategories = commandCategories.filter((category) =>
-      isGlobal ? !category.guildId : category.guildId === interaction.guildId
-    ).slice(0, 10);
+    const filteredCommandCategories = commandCategories
+      .filter((category) => isGlobal ? !category.guildId : category.guildId === interaction.guildId)
+      .slice(0, 10);
 
     const usedOptionValues = new Set();
 
@@ -88,10 +88,14 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Filter out categories with no commands
-    const categoriesWithCommands = filteredCommandCategories.filter(category =>
-      category.commands.length > 0
-    );
+    // Filter out categories with no global commands
+    const categoriesWithCommands = filteredCommandCategories
+      .filter(category =>
+        category.commands.some(command => command.global !== false)
+      )
+      .filter(category =>
+        category.commands.some(command => command.global !== false)
+      );
 
     // Add categories with commands to the select menu
     categoriesWithCommands.forEach((category) => {
@@ -135,6 +139,7 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
 
   handleSelectMenu,
