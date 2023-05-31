@@ -37,30 +37,34 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 
   // Check if categoryEmbed is still null or has no fields
-  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
+  if (!categoryEmbed || !categoryEmbed.fields || categoryEmbed.fields.length === 0) {
     // Get the dropdown menu component from the interaction
-    const selectMenu = interaction.message.components.find(component => component.type === 'ACTION_ROW')?.components.find(component => component.type === 'SELECT_MENU');
+    const selectMenu = interaction.message.components[0]?.components[0];
 
     // Check if the select menu exists and has options
     if (selectMenu && selectMenu.options.length > 0) {
       // Find and remove the option corresponding to the empty category
-      selectMenu.options = selectMenu.options.filter(option => option.value !== selectedCategory);
+      const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
 
       // Check if the updated options list is empty
-      if (selectMenu.options.length === 0) {
+      if (updatedOptions.length === 0) {
         // Remove the entire action row from the components
-        interaction.message.components = interaction.message.components.filter(component => component.type !== 'ACTION_ROW');
+        interaction.message.components = [];
+      } else {
+        // Update the select menu with the modified options
+        selectMenu.options = updatedOptions;
       }
 
       // Edit the message to remove the empty category from the dropdown menu
       try {
-        await interaction.message.edit({ components: interaction.message.components });
+        await interaction.message.edit({ components: [interaction.message.components[0]] });
       } catch (error) {
         console.error('Error editing message:', error);
       }
     }
   }
 }
+
 
 
 
