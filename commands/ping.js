@@ -4,9 +4,9 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('ping')
     .setDescription('Replies with the current ping of the bot')
-    .addGlobalOption() // Set the command as global
-    .addCategory('General') // Set the category name
-    .addCategoryDescription('Commands related to general functionality'), // Set the category description
+    .setGlobal(true) // Command is global
+    .setCategory('General') // Specify the category
+    .setDescription('Commands related to general functionality'), // Specify the category description
 
   execute(interaction) {
     interaction.reply(`Pong! Ping: ${interaction.client.ws.ping}ms`);
