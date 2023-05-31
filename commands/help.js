@@ -78,12 +78,9 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    let filteredCommandCategories = commandCategories;
-    if (!isGlobal) {
-      filteredCommandCategories = commandCategories.filter((category) =>
-        category.guildId === interaction.guildId
-      );
-    }
+    const filteredCommandCategories = commandCategories
+      .filter((category) => isGlobal ? !category.guildId : category.guildId === interaction.guildId)
+      .slice(0, 10);
 
     const usedOptionValues = new Set();
 
@@ -94,12 +91,15 @@ module.exports = {
     filteredCommandCategories.forEach((category) => {
       category.commands.forEach((command) => {
         if (command.global !== false || (isGlobal && command.global !== true)) {
-          selectMenu.addOptions((option) => {
-            option
-              .setLabel(command.name)
-              .setValue(generateUniqueOptionValue(command.name))
-              .setDescription(command.description || 'No description available');
-          });
+          const optionBuilder = new StringSelectMenuOptionBuilder()
+            .setLabel(command.name)
+            .setValue(generateUniqueOptionValue(command.name));
+
+          if (command.description && command.description.length > 0) {
+            optionBuilder.setDescription(command.description);
+          }
+
+          selectMenu.addOptions(optionBuilder);
         }
       });
     });
@@ -133,6 +133,7 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
 
 
