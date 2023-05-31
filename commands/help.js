@@ -71,31 +71,25 @@ module.exports = {
 
     // Add options to the select menu
     filteredCommandCategories.forEach((category) => {
-      category.commands.forEach((command) => {
-        if (command.global !== false) {
-          const optionBuilder = new StringSelectMenuOptionBuilder()
-            .setLabel(command.name)
-            .setValue(generateUniqueOptionValue(command.name));
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(generateUniqueOptionValue(category.name));
 
-          if (command.description && command.description.length > 0) {
-            optionBuilder.setDescription(command.description);
-          }
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
 
-          selectMenu.addOptions(optionBuilder);
-        } else {
-          console.log(`Skipping command '${command.name}' with global: false`);
-        }
-      });
+      selectMenu.addOptions(optionBuilder);
     });
 
-    function generateUniqueOptionValue(commandName) {
-      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
 
-      let optionValue = sanitizedCommandName;
+      let optionValue = sanitizedCategoryName;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCommandName}_${index}`;
+        optionValue = `${sanitizedCategoryName}_${index}`;
         index++;
       }
 
