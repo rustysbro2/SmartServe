@@ -9,8 +9,10 @@ async function handleSelectMenu(interaction, commandCategories) {
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
+  let categoryEmbed;
+
   if (category) {
-    const categoryEmbed = new EmbedBuilder()
+    categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
@@ -63,6 +65,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
