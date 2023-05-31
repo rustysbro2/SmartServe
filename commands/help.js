@@ -15,10 +15,7 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     category.commands.forEach((command) => {
       if (command.global !== false) {
-        console.log(`Adding global command to embed: ${command.name}`);
         categoryEmbed.addFields({ name: command.name, value: command.description });
-      } else {
-        console.log(`Skipping non-global command: ${command.name}`);
       }
     });
 
@@ -36,6 +33,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
