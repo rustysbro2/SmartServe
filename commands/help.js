@@ -8,8 +8,10 @@ async function handleSelectMenu(interaction, commandCategories) {
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
+  let categoryEmbed; // Define categoryEmbed variable outside the if block
+
   if (category) {
-    const categoryEmbed = new EmbedBuilder()
+    categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
@@ -86,7 +88,7 @@ module.exports = {
     filteredCommandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
-        .setValue(category.name.toLowerCase().replace(/\s/g, '_'));
+        .setValue(generateUniqueOptionValue(category.name));
 
       if (category.description && category.description.length > 0) {
         optionBuilder.setDescription(category.description);
@@ -94,6 +96,21 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
+
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCategoryName;
+      let index = 1;
+
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCategoryName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
+    }
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
