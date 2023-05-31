@@ -94,7 +94,7 @@ module.exports = {
           new StringSelectMenuOptionBuilder()
             .setLabel(category.name)
             .setValue(categoryName)
-            .setDescription(category.description)
+            .setDescription(category.categoryDescription) // Updated line
         );
         usedOptionValues.add(categoryName);
       }
