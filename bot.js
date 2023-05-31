@@ -37,7 +37,8 @@ for (const file of commandFiles) {
     category.commands.push({
       name: command.data.name,
       description: command.data.description,
-      global: command.global !== false
+      global: command.global !== false,
+      categoryDescription: command.categoryDescription // Include the categoryDescription property
     });
   } else {
     let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
