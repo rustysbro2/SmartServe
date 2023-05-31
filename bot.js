@@ -38,7 +38,6 @@ for (const file of commandFiles) {
       name: command.data.name,
       description: command.data.description,
       global: command.global !== false
-      // Add a 'global' property to the command object, defaulting to true if not specified or if it's true
     });
   } else {
     let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
@@ -55,10 +54,17 @@ for (const file of commandFiles) {
       name: command.data.name,
       description: command.data.description,
       global: command.global !== false
-      // Add a 'global' property to the command object, defaulting to true if not specified or if it's true
     });
   }
 }
+
+// Remove empty categories
+commandCategories.forEach((category) => {
+  if (category.commands.length === 0) {
+    const index = commandCategories.indexOf(category);
+    commandCategories.splice(index, 1);
+  }
+});
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
