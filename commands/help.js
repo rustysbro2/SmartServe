@@ -89,29 +89,27 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     filteredCommandCategories.forEach((category) => {
-      category.commands.forEach((command) => {
-        if (command.global !== false || (isGlobal && command.global !== true)) {
-          const optionBuilder = new StringSelectMenuOptionBuilder()
-            .setLabel(command.name)
-            .setValue(generateUniqueOptionValue(command.name));
+      if (category.commands.some((command) => command.global !== false || (isGlobal && command.global !== true))) {
+        const optionBuilder = new StringSelectMenuOptionBuilder()
+          .setLabel(category.name)
+          .setValue(generateUniqueOptionValue(category.name));
 
-          if (command.description && command.description.length > 0) {
-            optionBuilder.setDescription(command.description);
-          }
-
-          selectMenu.addOptions(optionBuilder);
+        if (category.description && category.description.length > 0) {
+          optionBuilder.setDescription(category.description);
         }
-      });
+
+        selectMenu.addOptions(optionBuilder);
+      }
     });
 
-    function generateUniqueOptionValue(commandName) {
-      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
 
-      let optionValue = sanitizedCommandName;
+      let optionValue = sanitizedCategoryName;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCommandName}_${index}`;
+        optionValue = `${sanitizedCategoryName}_${index}`;
         index++;
       }
 
@@ -133,6 +131,7 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
 
 
