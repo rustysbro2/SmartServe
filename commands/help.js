@@ -16,7 +16,10 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false) {
+      if (
+        command.global !== false ||
+        (command.guildId && command.guildId === interaction.guildId)
+      ) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
       }
     });
@@ -64,6 +67,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
