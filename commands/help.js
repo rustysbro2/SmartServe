@@ -8,15 +8,15 @@ async function handleSelectMenu(interaction, commandCategories) {
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
-  let categoryEmbed;
+  let categoryEmbed = new EmbedBuilder(); // Initialize as an empty EmbedBuilder object
 
   if (category) {
-    categoryEmbed = new EmbedBuilder()
+    categoryEmbed
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false || category.guildId === guildId) {
+      if (command.global !== false) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
       }
     });
@@ -70,14 +70,16 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client, commandCategories, guildId) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
     }
 
+    const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
+
     const filteredCommandCategories = commandCategories.filter((category) =>
-      category.guildId === guildId || category.guildId === undefined
+      isGlobal ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
 
     const usedOptionValues = new Set();
