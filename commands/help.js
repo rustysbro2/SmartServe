@@ -1,3 +1,4 @@
+// help.js
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
@@ -8,10 +9,8 @@ async function handleSelectMenu(interaction, commandCategories) {
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
-  let categoryEmbed;
-
   if (category) {
-    categoryEmbed = new EmbedBuilder()
+    const categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
