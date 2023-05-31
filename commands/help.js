@@ -14,7 +14,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false && (command.guildId === interaction.guildId || !command.guildId)) {
+      if (command.global !== false) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
       }
     });
@@ -33,7 +33,6 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -69,13 +68,6 @@ module.exports = {
       }
 
       selectMenu.addOptions(optionBuilder);
-
-      // Log global false commands within the category
-      category.commands.forEach((command) => {
-        if (command.global === false) {
-          console.log(`Global False Command in ${category.name}:`, command.name);
-        }
-      });
     });
 
     function generateUniqueOptionValue(categoryName) {
@@ -103,11 +95,21 @@ module.exports = {
     try {
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
       console.log('Initial embed sent.');
+
+      // Log global false commands
+      if (!isGlobal) {
+        const globalFalseCommands = commandCategories
+          .filter((category) => category.guildId === interaction.guildId)
+          .flatMap((category) => category.commands)
+          .filter((command) => command.global === false)
+          .map((command) => command.name);
+
+        console.log('Global False Commands:', globalFalseCommands);
+      }
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
-
 
   handleSelectMenu,
 };
