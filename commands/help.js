@@ -24,12 +24,21 @@ async function handleSelectMenu(interaction, commandCategories) {
       (command) => command.global !== false
     );
 
-    console.log('Guild Specific Commands:', guildSpecificCommands);
-    console.log('Global Commands:', globalCommands);
+    console.log('Guild Specific Commands:');
+    guildSpecificCommands.forEach((command) => {
+      console.log(`Command: ${command.name}`);
+      console.log(`Category: ${category.name}`);
+      console.log(`Global: ${command.global}`);
+    });
+
+    console.log('Global Commands:');
+    globalCommands.forEach((command) => {
+      console.log(`Command: ${command.name}`);
+      console.log(`Category: ${category.name}`);
+      console.log(`Global: ${command.global}`);
+    });
 
     const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
-
-    console.log('Commands to Show:', commandsToShow);
 
     commandsToShow.forEach((command) => {
       categoryEmbed.addFields({ name: command.name, value: command.description });
@@ -80,6 +89,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 
 
