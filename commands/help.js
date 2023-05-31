@@ -15,7 +15,10 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     category.commands.forEach((command) => {
       if (command.global !== false) {
+        console.log(`Adding global command to embed: ${command.name}`);
         categoryEmbed.addFields({ name: command.name, value: command.description });
+      } else {
+        console.log(`Skipping non-global command: ${command.name}`);
       }
     });
 
@@ -102,4 +105,5 @@ module.exports = {
 
   handleSelectMenu,
 };
+
 
