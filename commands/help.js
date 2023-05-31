@@ -52,18 +52,20 @@ async function handleSelectMenu(interaction, commandCategories) {
         interaction.message.components = [];
       } else {
         // Update the select menu with the modified options
-        selectMenu.addOptions(updatedOptions);
+        selectMenu.setOptions(updatedOptions);
+        interaction.message.components[0].components = [selectMenu];
       }
 
       // Edit the message to remove the empty category from the dropdown menu
       try {
-        await interaction.message.edit({ components: [interaction.message.components[0]] });
+        await interaction.message.edit({ components: interaction.message.components });
       } catch (error) {
         console.error('Error editing message:', error);
       }
     }
   }
 }
+
 
 
 module.exports = {
