@@ -14,11 +14,11 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false) {
-        console.log(`Adding global command to embed: ${command.name}`);
+      if (command.hasOwnProperty('global') ? command.global : true) {
+        console.log(`Adding command to embed: ${command.name}`);
         categoryEmbed.addFields({ name: command.name, value: command.description });
       } else {
-        console.log(`Skipping non-global command: ${command.name}`);
+        console.log(`Skipping command: ${command.name}`);
       }
     });
 
@@ -37,9 +37,6 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 }
 
-
-
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
@@ -57,8 +54,6 @@ module.exports = {
       isGlobal ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
 
-    const usedOptionValues = new Set();
-
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
@@ -74,23 +69,10 @@ module.exports = {
       }
 
       selectMenu.addOptions(optionBuilder);
-
-      console.log(`Adding category to dropdown menu: ${category.name}`);
     });
 
     function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
+      return categoryName.toLowerCase().replace(/\s/g, '_');
     }
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
@@ -107,7 +89,6 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
-
 
   handleSelectMenu,
 };
