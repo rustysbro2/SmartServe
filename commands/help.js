@@ -52,7 +52,7 @@ async function handleSelectMenu(interaction, commandCategories) {
         interaction.message.components = [];
       } else {
         // Update the select menu with the modified options
-        selectMenu.setOptions(updatedOptions.slice(0, 25)); // Limit the options to a maximum of 25
+        selectMenu.setOptions(updatedOptions);
       }
 
       // Edit the message to remove the empty category from the dropdown menu
@@ -79,7 +79,7 @@ module.exports = {
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories
-      .filter((category) => isGlobal ? !category.guildId : category.guildId === interaction.guildId)
+      .filter((category) => (isGlobal ? !category.guildId : category.guildId === interaction.guildId))
       .slice(0, 10);
 
     const usedOptionValues = new Set();
@@ -90,12 +90,11 @@ module.exports = {
 
     // Filter out categories with no global commands
     const categoriesWithCommands = filteredCommandCategories
-      .filter(category =>
-        category.commands.some(command => command.global !== false)
-      )
-      .filter(category =>
-        category.commands.some(command => command.global !== false)
+      .filter((category) =>
+        category.commands.some((command) => command.global !== false)
       );
+
+    console.log('Categories with commands:', categoriesWithCommands);
 
     // Add categories with commands to the select menu
     categoriesWithCommands.forEach((category) => {
@@ -109,6 +108,8 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
+
+    console.log('Select menu options:', selectMenu.toJSON().options);
 
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
