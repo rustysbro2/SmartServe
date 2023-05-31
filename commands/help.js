@@ -157,7 +157,7 @@ module.exports = {
       .setTitle('Command Categories')
       .setDescription('Please select a category from the dropdown menu.')
       .setColor('#0099ff')
-      .addField('Categories', 'Please select a category from the dropdown menu.');
+      .addFields({ name: 'Categories', value: 'Please select a category from the dropdown menu.' });
 
     try {
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
