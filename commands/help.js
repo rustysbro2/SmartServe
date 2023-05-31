@@ -26,7 +26,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     if (category.categoryDescription && category.categoryDescription.length > 0) {
       categoryEmbed.setDescription(category.categoryDescription);
     } else {
-      categoryEmbed.setDescription('No description available.'); // Set a default description if categoryDescription is not provided
+      categoryEmbed.setDescription('No description available.');
     }
 
     const commandsToShow = category.commands.filter(
@@ -42,7 +42,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     });
 
     commandsToShow.forEach((command) => {
-      categoryEmbed.addFields([{ name: command.name, value: command.description }]);
+      categoryEmbed.addField(command.name, command.description);
     });
 
     console.log('Category Embed:', categoryEmbed);
@@ -63,6 +63,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     return;
   }
 }
+
 
 
 module.exports = {
