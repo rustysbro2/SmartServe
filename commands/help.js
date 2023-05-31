@@ -68,7 +68,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client, commandCategories, guildId) {
     console.log('Guild ID from config.js:', guildId);
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
