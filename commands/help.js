@@ -39,10 +39,12 @@ async function handleSelectMenu(interaction, commandCategories) {
   // Check if the category embed has no fields (commands)
   if (!categoryEmbed || categoryEmbed.fields.length === 0) {
     // Get the dropdown menu component from the interaction
-    const selectMenu = interaction.message.components[0]?.components[0];
+    const actionRow = interaction.message.components[0];
 
-    // Check if the select menu exists and has options
-    if (selectMenu && selectMenu.options.length > 0) {
+    // Check if the action row exists and has components
+    if (actionRow && actionRow.components.length > 0) {
+      const selectMenu = actionRow.components[0];
+
       // Find and remove the option corresponding to the empty category
       const updatedOptions = selectMenu.getOptions().filter((option) => option.value !== selectedCategory);
 
@@ -57,13 +59,14 @@ async function handleSelectMenu(interaction, commandCategories) {
 
       // Edit the message to remove the empty category from the dropdown menu
       try {
-        await interaction.message.edit({ components: [interaction.message.components[0]] });
+        await interaction.message.edit({ components: [actionRow] });
       } catch (error) {
         console.error('Error editing message:', error);
       }
     }
   }
 }
+
 
 
 
