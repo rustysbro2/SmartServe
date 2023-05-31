@@ -57,48 +57,18 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Add options to the select menu
+    // Add categories to the select menu
     filteredCommandCategories.forEach((category) => {
-      category.commands.forEach((command) => {
-        if (command.global !== false) {
-          const optionBuilder = new StringSelectMenuOptionBuilder()
-            .setLabel(command.name)
-            .setValue(generateUniqueOptionValue(command.name));
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(category.name.toLowerCase().replace(/\s/g, '_'));
 
-          if (command.description && command.description.length > 0) {
-            optionBuilder.setDescription(command.description);
-          }
-
-          selectMenu.addOptions(optionBuilder);
-
-          console.log(`Adding global command to dropdown menu: ${command.name}`);
-        } else {
-          console.log(`Skipping non-global command in dropdown menu: ${command.name}`);
-        }
-      });
-
-      // Remove the category from the select menu if it has no commands
-      if (category.commands.length === 0) {
-        console.log(`Removing empty category from dropdown menu: ${category.name}`);
-        const categoryOptionValue = category.name.toLowerCase().replace(/\s/g, '_');
-        selectMenu.removeOptions(categoryOptionValue);
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
       }
+
+      selectMenu.addOptions(optionBuilder);
     });
-
-    function generateUniqueOptionValue(commandName) {
-      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCommandName;
-      let index = 1;
-
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCommandName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
