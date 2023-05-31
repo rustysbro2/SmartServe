@@ -40,7 +40,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories, guildId) {
+  async function execute(interaction, client, commandCategories, guildId) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
@@ -60,31 +60,25 @@ module.exports = {
 
     // Add options to the select menu
     filteredCommandCategories.forEach((category) => {
-      category.commands.forEach((command) => {
-        if (command.global !== false) {
-          const optionBuilder = new StringSelectMenuOptionBuilder()
-            .setLabel(command.name)
-            .setValue(generateUniqueOptionValue(command.name));
+      const optionBuilder = new StringSelectMenuOptionBuilder()
+        .setLabel(category.name)
+        .setValue(generateUniqueOptionValue(category.name));
 
-          if (command.description && command.description.length > 0) {
-            optionBuilder.setDescription(command.description);
-          }
+      if (category.description && category.description.length > 0) {
+        optionBuilder.setDescription(category.description);
+      }
 
-          selectMenu.addOptions(optionBuilder);
-        } else {
-          console.log(`Skipping global false command '${command.name}'`);
-        }
-      });
+      selectMenu.addOptions(optionBuilder);
     });
 
-    function generateUniqueOptionValue(commandName) {
-      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
 
-      let optionValue = sanitizedCommandName;
+      let optionValue = sanitizedCategoryName;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCommandName}_${index}`;
+        optionValue = `${sanitizedCategoryName}_${index}`;
         index++;
       }
 
@@ -117,6 +111,7 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
 
 
