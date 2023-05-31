@@ -22,7 +22,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   if (category) {
     categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.categoryDescription || 'No description available');
+      .setDescription(category.description || 'No description available');
 
     const guildSpecificCommands = category.commands.filter(
       (command) => command.guildId === interaction.guildId
@@ -96,6 +96,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 
 module.exports = {
