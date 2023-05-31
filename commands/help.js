@@ -60,7 +60,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       if (interaction.message) {
         const actionRow = new ActionRowBuilder().addComponents(interaction.message.components[0]);
         await interaction.deferUpdate();
-        await interaction.message.edit({ embeds: categoryEmbed, components: [actionRow] });
+        await interaction.message.edit({ embeds: [categoryEmbed], components: [actionRow] });
       } else {
         console.error('Interaction does not have a message.');
       }
