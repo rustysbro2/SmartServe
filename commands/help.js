@@ -8,7 +8,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
-  let categoryEmbed; // Define categoryEmbed variable outside the if block
+  let categoryEmbed;
 
   if (category) {
     categoryEmbed = new EmbedBuilder()
@@ -33,6 +33,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
+    return;
   }
 
   // Check if the category embed has no fields (commands)
