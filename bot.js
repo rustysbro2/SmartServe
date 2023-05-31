@@ -58,10 +58,10 @@ for (const file of commandFiles) {
   }
 }
 
-// Remove categories with no commands
+// Filter out categories with no commands
 const nonEmptyCategories = commandCategories.filter(category => category.commands.length > 0);
 commandCategories.length = 0;
-Array.prototype.push.apply(commandCategories, nonEmptyCategories);
+commandCategories.push(...nonEmptyCategories);
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
