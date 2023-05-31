@@ -36,23 +36,21 @@ async function handleSelectMenu(interaction, commandCategories) {
     return;
   }
 
-  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
-    const selectMenu = interaction.message.components[0]?.components[0];
+  const selectMenu = interaction.message.components[0]?.components[0];
 
-    if (selectMenu && selectMenu.options.length > 0) {
-      const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
+  if (selectMenu && selectMenu.options.length > 0) {
+    const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
 
-      if (updatedOptions.length === 0) {
-        interaction.message.components = [];
-      } else {
-        selectMenu.options = updatedOptions;
-      }
+    if (updatedOptions.length === 0) {
+      interaction.message.components = [];
+    } else {
+      selectMenu.setOptions(updatedOptions);
+    }
 
-      try {
-        await interaction.message.edit({ components: [interaction.message.components[0]] });
-      } catch (error) {
-        console.error('Error editing message:', error);
-      }
+    try {
+      await interaction.message.edit({ components: [interaction.message.components[0]] });
+    } catch (error) {
+      console.error('Error editing message:', error);
     }
   }
 }
@@ -74,8 +72,6 @@ module.exports = {
       isGlobalGuild ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
 
-    const usedOptionValues = new Set();
-
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
@@ -83,7 +79,7 @@ module.exports = {
     filteredCommandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
-        .setValue(generateUniqueOptionValue(category.name));
+        .setValue(category.name.toLowerCase().replace(/\s/g, '_'));
 
       if (category.description && category.description.length > 0) {
         optionBuilder.setDescription(category.description);
@@ -91,21 +87,6 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
-
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
@@ -119,8 +100,8 @@ module.exports = {
       const message = await interaction.editReply({ embeds: [initialEmbed], components: [actionRow] });
 
       client.on('interactionCreate', async (interaction) => {
-        if (interaction.isSelectMenu() && interaction.customId === 'help_category') {
-          await handleSelectMenu(interaction, commandCategories);
+        if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
+          await handleSelectMenu(interaction, filteredCommandCategories);
         }
       });
     } catch (error) {
