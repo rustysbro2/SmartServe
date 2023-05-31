@@ -99,7 +99,6 @@ module.exports = {
       // Log global false commands
       if (!isGlobal) {
         const globalFalseCommands = commandCategories
-          .filter((category) => category.guildId === interaction.guildId)
           .flatMap((category) => category.commands)
           .filter((command) => command.global === false || !command.hasOwnProperty('global'))
           .map((command) => command.name);
