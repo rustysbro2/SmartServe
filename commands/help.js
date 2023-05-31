@@ -52,7 +52,7 @@ async function handleSelectMenu(interaction, commandCategories) {
         interaction.message.components = [];
       } else {
         // Update the select menu with the modified options
-        selectMenu.options = updatedOptions;
+        selectMenu.setOptions(updatedOptions);
       }
 
       // Edit the message to remove the empty category from the dropdown menu
@@ -64,6 +64,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 
 
