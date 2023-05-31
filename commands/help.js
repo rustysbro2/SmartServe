@@ -161,12 +161,14 @@ module.exports = {
       .setColor('#0099ff');
 
     try {
-      await interaction.reply({ embeds: [initialEmbed.build()], components: [actionRow] });
+      const categoryEmbed = initialEmbed.toJSON(); // Convert the EmbedBuilder object to JSON
+      await interaction.reply({ embeds: [categoryEmbed], components: [actionRow] });
       console.log('Initial embed sent.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
   handleSelectMenu,
 };
