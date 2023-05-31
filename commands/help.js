@@ -2,6 +2,8 @@ const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSe
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
+  console.log('Interaction Guild ID:', interaction.guildId);
+
   const selectedCategory = interaction.values[0];
   const category = commandCategories.find(
     (category) =>
@@ -15,11 +17,34 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
-    category.commands.forEach((command) => {
-      if (command.global !== false) {
-        categoryEmbed.addFields({ name: command.name, value: command.description });
-      }
+    const guildSpecificCommands = category.commands.filter(
+      (command) => command.guildId === interaction.guildId
+    );
+    const globalCommands = category.commands.filter(
+      (command) => command.global !== false
+    );
+
+    console.log('Guild Specific Commands:');
+    guildSpecificCommands.forEach((command) => {
+      console.log(`Command: ${command.name}`);
+      console.log(`Category: ${category.name}`);
+      console.log(`Global: ${command.global}`);
     });
+
+    console.log('Global Commands:');
+    globalCommands.forEach((command) => {
+      console.log(`Command: ${command.name}`);
+      console.log(`Category: ${category.name}`);
+      console.log(`Global: ${command.global}`);
+    });
+
+    const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
+
+    commandsToShow.forEach((command) => {
+      categoryEmbed.addFields({ name: command.name, value: command.description });
+    });
+
+    console.log('Category Embed:', categoryEmbed);
 
     try {
       if (interaction.message) {
@@ -65,6 +90,9 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 }
 
+
+
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
@@ -78,12 +106,9 @@ module.exports = {
 
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-    let filteredCommandCategories = commandCategories;
-    if (!isGlobal) {
-      filteredCommandCategories = commandCategories.filter((category) =>
-        category.guildId === interaction.guildId
-      );
-    }
+    const filteredCommandCategories = commandCategories
+      .filter((category) => isGlobal ? !category.guildId : category.guildId === interaction.guildId)
+      .slice(0, 10);
 
     const usedOptionValues = new Set();
 
@@ -92,32 +117,27 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     filteredCommandCategories.forEach((category) => {
-      console.log(`Category: ${category.name}`);
+      if (category.commands.some((command) => command.global !== false || (isGlobal && command.global !== true))) {
+        const optionBuilder = new StringSelectMenuOptionBuilder()
+          .setLabel(category.name)
+          .setValue(generateUniqueOptionValue(category.name));
 
-      category.commands.forEach((command) => {
-        console.log(`Command: ${command.name}`);
-        console.log(`Category: ${category.name}`);
-        console.log(`Global: ${command.global}`);
-
-        if (command.global !== false || (isGlobal && command.global !== true)) {
-          selectMenu.addOptions((option) => {
-            option
-              .setLabel(command.name)
-              .setValue(generateUniqueOptionValue(command.name))
-              .setDescription(command.description || 'No description available');
-          });
+        if (category.description && category.description.length > 0) {
+          optionBuilder.setDescription(category.description);
         }
-      });
+
+        selectMenu.addOptions(optionBuilder);
+      }
     });
 
-    function generateUniqueOptionValue(commandName) {
-      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
 
-      let optionValue = sanitizedCommandName;
+      let optionValue = sanitizedCategoryName;
       let index = 1;
 
       while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCommandName}_${index}`;
+        optionValue = `${sanitizedCategoryName}_${index}`;
         index++;
       }
 
@@ -139,6 +159,12 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
+
+
+
+
+
 
   handleSelectMenu,
 };
