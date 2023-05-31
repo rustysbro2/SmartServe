@@ -2,7 +2,6 @@ const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSe
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
-  console.log('Guild ID from config.js:', guildId);
   console.log('Interaction Guild ID:', interaction.guildId);
 
   const selectedCategory = interaction.values[0];
@@ -10,6 +9,13 @@ async function handleSelectMenu(interaction, commandCategories) {
     (category) =>
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
+
+  console.log('Command Categories:');
+  commandCategories.forEach((category) => {
+    console.log(`Category: ${category.name}`);
+    console.log(`Guild ID: ${category.guildId}`);
+    console.log('Commands:', category.commands);
+  });
 
   let categoryEmbed;
 
