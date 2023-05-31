@@ -22,8 +22,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   if (category) {
     categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.categoryDescription || '')
-      .addFields({ name: 'Category Description', value: category.categoryDescription || 'No description available' });
+      .setDescription(category.categoryDescription || '');
 
     const guildSpecificCommands = category.commands.filter(
       (command) => command.guildId === interaction.guildId
@@ -36,7 +35,6 @@ async function handleSelectMenu(interaction, commandCategories) {
     guildSpecificCommands.forEach((command) => {
       console.log(`Command: ${command.name}`);
       console.log(`Category: ${category.name}`);
-      
       console.log(`Global: ${command.global}`);
     });
 
@@ -157,8 +155,7 @@ module.exports = {
     const initialEmbed = new EmbedBuilder()
       .setTitle('Command Categories')
       .setDescription('Please select a category from the dropdown menu.')
-      .setColor('#0099ff')
-      .addFields({ name: 'Categories', value: 'Please select a category from the dropdown menu.' });
+      .setColor('#0099ff');
 
     try {
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
