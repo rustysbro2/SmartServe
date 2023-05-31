@@ -2,6 +2,8 @@ const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSe
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
+  console.log('Interaction Guild ID:', interaction.guildId);
+
   const selectedCategory = interaction.values[0];
   const category = commandCategories.find(
     (category) =>
@@ -22,11 +24,18 @@ async function handleSelectMenu(interaction, commandCategories) {
       (command) => command.global !== false
     );
 
+    console.log('Guild Specific Commands:', guildSpecificCommands);
+    console.log('Global Commands:', globalCommands);
+
     const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
+
+    console.log('Commands to Show:', commandsToShow);
 
     commandsToShow.forEach((command) => {
       categoryEmbed.addFields({ name: command.name, value: command.description });
     });
+
+    console.log('Category Embed:', categoryEmbed);
 
     try {
       if (interaction.message) {
@@ -64,13 +73,7 @@ async function handleSelectMenu(interaction, commandCategories) {
 
       // Edit the message to remove the empty category from the dropdown menu
       try {
-        await interaction.message.edit({ components: [interaction.message.components[0]] });
-      } catch (error) {
-        console.error('Error editing message:', error);
-      }
-    }
-  }
-}
+        await interaction.message
 
 
 
