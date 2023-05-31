@@ -103,6 +103,7 @@ module.exports = {
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client, commandCategories, guildId) {
+    console.log('Guild ID from config.js:', guildId);
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
@@ -124,8 +125,11 @@ module.exports = {
       if (category.commands.some((command) => command.global !== false || (isGlobal && command.global !== true))) {
         const optionBuilder = new StringSelectMenuOptionBuilder()
           .setLabel(category.name)
-          .setValue(generateUniqueOptionValue(category.name))
-          .setDescription(category.categoryDescription || 'No description available');
+          .setValue(generateUniqueOptionValue(category.name));
+
+        if (category.description && category.description.length > 0) {
+          optionBuilder.setDescription(category.description);
+        }
 
         selectMenu.addOptions(optionBuilder);
       }
