@@ -51,7 +51,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
 
     commandsToShow.forEach((command) => {
-      categoryEmbed.addFields({ name: command.name, value: command.description });
+      categoryEmbed.addFields({ name: command.name, value: command.description, inline: true });
     });
 
     console.log('Category Embed:', categoryEmbed);
@@ -161,7 +161,7 @@ module.exports = {
       .setColor('#0099ff');
 
     try {
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      await interaction.reply({ embeds: [initialEmbed.build()], components: [actionRow] });
       console.log('Initial embed sent.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
