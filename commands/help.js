@@ -52,7 +52,10 @@ async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
         interaction.message.components = [];
       } else {
         // Update the select menu with the modified options
-        selectMenu.setOptions(updatedOptions);
+        selectMenu.clearOptions();
+        updatedOptions.forEach((option) => {
+          selectMenu.addOptions(option);
+        });
       }
 
       // Edit the message to remove the empty category from the dropdown menu
@@ -64,6 +67,7 @@ async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
     }
   }
 }
+
 
 
 module.exports = {
