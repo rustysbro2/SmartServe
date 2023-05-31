@@ -13,13 +13,50 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
-    category.commands.forEach((command) => {
-      if (command.hasOwnProperty('global') ? command.global : true) {
-        console.log(`Adding command to embed: ${command.name}`);
-        categoryEmbed.addFields({ name: command.name, value: command.description });
-      } else {
-        console.log(`Skipping command: ${command.name}`);
+    const commandsToAdd = category.commands.filter(
+      (command) => command.global !== false
+    );
+
+    if (commandsToAdd.length === 0) {
+      // If the category has no commands to display, remove it from the dropdown menu
+      const updatedCategories = commandCategories.filter(
+        (cat) => cat.name !== category.name
+      );
+
+      const selectMenu = new StringSelectMenuBuilder()
+        .setCustomId('help_category')
+        .setPlaceholder('Select a category');
+
+      updatedCategories.forEach((cat) => {
+        const optionBuilder = new StringSelectMenuOptionBuilder()
+          .setLabel(cat.name)
+          .setValue(generateUniqueOptionValue(cat.name));
+
+        if (cat.description && cat.description.length > 0) {
+          optionBuilder.setDescription(cat.description);
+        }
+
+        selectMenu.addOptions(optionBuilder);
+      });
+
+      const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+
+      try {
+        if (interaction.message) {
+          await interaction.deferUpdate();
+          await interaction.message.edit({ components: [actionRow] });
+        } else {
+          console.error('Interaction does not have a message.');
+        }
+      } catch (error) {
+        console.error('Error deferring or editing interaction:', error);
       }
+
+      return;
+    }
+
+    commandsToAdd.forEach((command) => {
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
 
     try {
@@ -36,6 +73,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
