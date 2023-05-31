@@ -22,7 +22,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   if (category) {
     categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
-      .setDescription(category.description || 'No description available');
+      .setDescription(category.categoryDescription || 'No description available');
 
     const guildSpecificCommands = category.commands.filter(
       (command) => command.guildId === interaction.guildId
@@ -97,8 +97,6 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 }
 
-
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
@@ -129,8 +127,8 @@ module.exports = {
           .setLabel(category.name)
           .setValue(generateUniqueOptionValue(category.name));
 
-        if (category.description && category.description.length > 0) {
-          optionBuilder.setDescription(category.description);
+        if (category.categoryDescription && category.categoryDescription.length > 0) {
+          optionBuilder.setDescription(category.categoryDescription);
         }
 
         selectMenu.addOptions(optionBuilder);
