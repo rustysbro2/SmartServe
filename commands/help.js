@@ -102,7 +102,7 @@ module.exports = {
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
-  }.
+  },
 
 
   handleSelectMenu,
