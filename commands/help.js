@@ -8,7 +8,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
-  let categoryEmbed = null;
+  let categoryEmbed;
 
   if (category) {
     categoryEmbed = new EmbedBuilder()
@@ -36,8 +36,8 @@ async function handleSelectMenu(interaction, commandCategories) {
     return;
   }
 
-  // Check if categoryEmbed is still null or has no fields
-  if (!categoryEmbed || !categoryEmbed.fields || categoryEmbed.fields.length === 0) {
+  // Check if the category embed has no fields (commands)
+  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
     // Get the dropdown menu component from the interaction
     const selectMenu = interaction.message.components[0]?.components[0];
 
@@ -51,14 +51,8 @@ async function handleSelectMenu(interaction, commandCategories) {
         // Remove the entire action row from the components
         interaction.message.components = [];
       } else {
-        // Create a new select menu with the modified options
-        const newSelectMenu = new StringSelectMenuBuilder()
-          .setCustomId('help_category')
-          .setPlaceholder('Select a category')
-          .addOptions(updatedOptions);
-
-        // Replace the old select menu with the new one
-        interaction.message.components[0].components[0] = newSelectMenu;
+        // Update the select menu with the modified options
+        selectMenu.addOptions(updatedOptions);
       }
 
       // Edit the message to remove the empty category from the dropdown menu
@@ -70,11 +64,6 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
-
-
-
-
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -99,8 +88,13 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
+    // Filter out categories that don't have any commands
+    const categoriesWithCommands = filteredCommandCategories.filter((category) =>
+      category.commands.some((command) => command.global !== false)
+    );
+
     // Add categories to the select menu
-    filteredCommandCategories.forEach((category) => {
+    categoriesWithCommands.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(generateUniqueOptionValue(category.name));
@@ -135,8 +129,12 @@ module.exports = {
       .setColor('#0099ff');
 
     try {
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-      console.log('Initial embed sent.');
+      if (categoriesWithCommands.length === 0) {
+        await interaction.reply({ content: 'There are no available command categories.', ephemeral: true });
+      } else {
+        await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+        console.log('Initial embed sent.');
+      }
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
