@@ -20,6 +20,7 @@ async function handleSelectMenu(interaction, commandCategories) {
         command.global !== false ||
         (command.guildId && command.guildId === interaction.guildId)
       ) {
+        console.log('Adding command:', command.name);
         categoryEmbed.addFields({ name: command.name, value: command.description });
       }
     });
@@ -67,6 +68,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 
 module.exports = {
