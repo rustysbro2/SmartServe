@@ -16,7 +16,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false) {
+      if (command.global !== false || category.guildId === guildId) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
       }
     });
@@ -70,16 +70,14 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories, guildId) {
+  async execute(interaction, client, commandCategories) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
     }
 
-    const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
-
     const filteredCommandCategories = commandCategories.filter((category) =>
-      isGlobal ? (!category.guildId || category.guildId === guildId) : category.guildId === interaction.guildId
+      category.guildId === guildId || category.guildId === undefined
     ).slice(0, 10);
 
     const usedOptionValues = new Set();
