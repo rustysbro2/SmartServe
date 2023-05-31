@@ -59,7 +59,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     try {
       if (interaction.message) {
         await interaction.deferUpdate();
-        await interaction.message.edit({ embeds: [categoryEmbed.build()] });
+        await interaction.message.edit({ embeds: [categoryEmbed], components: [] });
       } else {
         console.error('Interaction does not have a message.');
       }
@@ -69,34 +69,6 @@ async function handleSelectMenu(interaction, commandCategories) {
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
     return;
-  }
-
-  // Check if the category embed has no fields (commands)
-  if (!categoryEmbed || categoryEmbed.fields?.length === 0) {
-    // Get the dropdown menu component from the interaction
-    const selectMenu = interaction.message.components[0]?.components[0];
-
-    // Check if the select menu exists and has options
-    if (selectMenu && selectMenu.options.length > 0) {
-      // Find and remove the option corresponding to the empty category
-      const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
-
-      // Check if the updated options list is empty
-      if (updatedOptions.length === 0) {
-        // Remove the entire action row from the components
-        interaction.message.components = [];
-      } else {
-        // Update the select menu with the modified options
-        selectMenu.setOptions(updatedOptions);
-      }
-
-      // Edit the message to remove the empty category from the dropdown menu
-      try {
-        await interaction.message.edit({ components: [interaction.message.components[0]] });
-      } catch (error) {
-        console.error('Error editing message:', error);
-      }
-    }
   }
 }
 
@@ -161,7 +133,7 @@ module.exports = {
       .setColor('#0099ff');
 
     try {
-      await interaction.reply({ embeds: [initialEmbed.build()], components: [actionRow] });
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
       console.log('Initial embed sent.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
