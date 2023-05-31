@@ -8,10 +8,10 @@ async function handleSelectMenu(interaction, commandCategories) {
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
-  let categoryEmbed = new EmbedBuilder(); // Initialize as an empty EmbedBuilder object
+  let categoryEmbed;
 
   if (category) {
-    categoryEmbed
+    categoryEmbed = new EmbedBuilder()
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
@@ -37,7 +37,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 
   // Check if the category embed has no fields (commands)
-  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
+  if (!categoryEmbed || categoryEmbed.fields?.length === 0) {
     // Get the dropdown menu component from the interaction
     const selectMenu = interaction.message.components[0]?.components[0];
 
