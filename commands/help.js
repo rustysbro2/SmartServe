@@ -60,7 +60,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       if (interaction.message) {
         const actionRow = new ActionRowBuilder().addComponents(interaction.message.components[0]);
         await interaction.deferUpdate();
-        await interaction.message.edit({ embeds: [categoryEmbed], components: [actionRow] });
+        await interaction.message.edit({ embeds: categoryEmbed, components: [actionRow] });
       } else {
         console.error('Interaction does not have a message.');
       }
@@ -137,7 +137,7 @@ module.exports = {
 
     try {
       const categoryEmbed = initialEmbed.toJSON(); // Convert the EmbedBuilder object to JSON
-      await interaction.reply({ embeds: [categoryEmbed], components: [actionRow] });
+      await interaction.reply({ embeds: [initialEmbed.toJSON()], components: [actionRow] });
       console.log('Initial embed sent.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
