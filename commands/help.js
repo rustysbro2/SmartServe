@@ -58,9 +58,9 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     try {
       if (interaction.message) {
-        const actionRow = new ActionRowBuilder().addComponents(interaction.message.components[0]);
+        const actionRow = new ActionRowBuilder().addComponents(...interaction.message.components[0].components);
         await interaction.deferUpdate();
-        await interaction.message.edit({ embeds: [categoryEmbed.toJSON()], components: [actionRow] });
+        await interaction.message.edit({ embeds: [categoryEmbed], components: [actionRow] });
       } else {
         console.error('Interaction does not have a message.');
       }
@@ -78,7 +78,7 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories, guildId) {
+  async execute(interaction, client, commandCategories) {
     console.log('Guild ID from config.js:', guildId);
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
@@ -98,49 +98,31 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     filteredCommandCategories.forEach((category) => {
-      if (category.commands.some((command) => command.global !== false || (isGlobal && command.global !== true))) {
-        const optionBuilder = new StringSelectMenuOptionBuilder()
+      if (category.commands.some((command) => command.global !== false || (isGlobal && command.guildId === guildId))) {
+        const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
+        const selectOption = new StringSelectMenuOptionBuilder()
           .setLabel(category.name)
-          .setValue(generateUniqueOptionValue(category.name));
-
-        if (category.description && category.description.length > 0) {
-          optionBuilder.setDescription(category.description);
-        }
-
-        selectMenu.addOptions(optionBuilder);
+          .setValue(categoryName)
+          .setDescription(category.description);
+        selectMenu.addOption(selectOption);
+        usedOptionValues.add(categoryName);
       }
     });
 
-    function generateUniqueOptionValue(categoryName) {
-      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
-
-      let optionValue = sanitizedCategoryName;
-      let index = 1;
-
-      while (usedOptionValues.has(optionValue)) {
-        optionValue = `${sanitizedCategoryName}_${index}`;
-        index++;
-      }
-
-      usedOptionValues.add(optionValue);
-      return optionValue;
-    }
+    const otherCategoryOption = new StringSelectMenuOptionBuilder()
+      .setLabel('Other')
+      .setValue('other')
+      .setDescription('View other categories')
+      .setDefault(true);
+    selectMenu.addOption(otherCategoryOption);
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    const initialEmbed = new EmbedBuilder()
-      .setTitle('Command Categories')
-      .setDescription('Please select a category from the dropdown menu.')
-      .setColor('#0099ff');
-
     try {
-      const categoryEmbed = initialEmbed.toJSON(); // Convert the EmbedBuilder object to JSON
-      await interaction.reply({ embeds: [categoryEmbed], components: [actionRow] });
-      console.log('Initial embed sent.');
+      await interaction.reply({ content: 'Please select a category:', components: [actionRow] });
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
-
   handleSelectMenu,
 };
