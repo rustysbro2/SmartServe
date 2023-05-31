@@ -32,6 +32,31 @@ async function handleSelectMenu(interaction, commandCategories) {
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
   }
+
+  // Check if the category embed has no fields (commands)
+  if (categoryEmbed.fields.length === 0) {
+    const selectMenu = interaction.message.components[0].components[0];
+    const options = selectMenu.options;
+
+    // Find and remove the option corresponding to the empty category
+    const updatedOptions = options.filter((option) => option.value !== selectedCategory);
+
+    // Update the select menu with the modified options
+    selectMenu.setOptions(updatedOptions);
+
+    // Check if the select menu has no remaining options
+    if (selectMenu.options.length === 0) {
+      // Remove the entire action row from the components
+      interaction.message.components = [];
+    }
+
+    // Edit the message to remove the empty category from the dropdown menu
+    try {
+      await interaction.message.edit({ components: [interaction.message.components[0]] });
+    } catch (error) {
+      console.error('Error editing message:', error);
+    }
+  }
 }
 
 module.exports = {
