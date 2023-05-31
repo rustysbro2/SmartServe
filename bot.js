@@ -58,10 +58,13 @@ for (const file of commandFiles) {
   }
 }
 
-// Filter out categories with no commands
-const nonEmptyCategories = commandCategories.filter(category => category.commands.length > 0);
-commandCategories.length = 0;
-commandCategories.push(...nonEmptyCategories);
+// Remove empty categories
+commandCategories.forEach((category) => {
+  if (category.commands.length === 0) {
+    const index = commandCategories.indexOf(category);
+    commandCategories.splice(index, 1);
+  }
+});
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
@@ -80,7 +83,7 @@ client.on('interactionCreate', async (interaction) => {
     const command = client.commands.get(interaction.commandName);
     if (command) {
       try {
-        await command.execute(interaction, client, commandCategories);
+        await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
       } catch (error) {
         console.error('Error executing command:', error);
       }
