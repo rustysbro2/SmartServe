@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
-async function handleSelectMenu(interaction, commandCategories) {
+async function handleSelectMenu(interaction, commandCategories, isGlobal) {
   const selectedCategory = interaction.values[0];
   const category = commandCategories.find(
     (category) =>
@@ -16,7 +16,7 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false) {
+      if (command.global !== false || isGlobal === false) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
       }
     });
