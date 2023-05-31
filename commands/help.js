@@ -2,8 +2,6 @@ const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSe
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
-  console.log('Interaction Guild ID:', interaction.guildId);
-
   const selectedCategory = interaction.values[0];
   const category = commandCategories.find(
     (category) =>
@@ -17,34 +15,11 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
-    const guildSpecificCommands = category.commands.filter(
-      (command) => command.guildId === interaction.guildId
-    );
-    const globalCommands = category.commands.filter(
-      (command) => command.global !== false
-    );
-
-    console.log('Guild Specific Commands:');
-    guildSpecificCommands.forEach((command) => {
-      console.log(`Command: ${command.name}`);
-      console.log(`Category: ${category.name}`);
-      console.log(`Global: ${command.global}`);
+    category.commands.forEach((command) => {
+      if (command.global !== false) {
+        categoryEmbed.addFields({ name: command.name, value: command.description });
+      }
     });
-
-    console.log('Global Commands:');
-    globalCommands.forEach((command) => {
-      console.log(`Command: ${command.name}`);
-      console.log(`Category: ${category.name}`);
-      console.log(`Global: ${command.global}`);
-    });
-
-    const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
-
-    commandsToShow.forEach((command) => {
-      categoryEmbed.addFields({ name: command.name, value: command.description });
-    });
-
-    console.log('Category Embed:', categoryEmbed);
 
     try {
       if (interaction.message) {
@@ -89,9 +64,6 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
-
-
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -167,13 +139,6 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
-
-
-
-
-
-
-
 
   handleSelectMenu,
 };
