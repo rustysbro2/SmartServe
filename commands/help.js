@@ -15,9 +15,12 @@ async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
+    let hasCommands = false;
+
     category.commands.forEach((command) => {
-      if (isGlobalGuild || command.global !== false) {
+      if ((isGlobalGuild || command.global !== false) && !command.hidden) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
+        hasCommands = true;
       }
     });
 
@@ -31,39 +34,39 @@ async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
     } catch (error) {
       console.error('Error deferring or editing interaction:', error);
     }
+
+    if (!hasCommands) {
+      // Get the dropdown menu component from the interaction
+      const selectMenu = interaction.message.components[0]?.components[0];
+
+      // Check if the select menu exists and has options
+      if (selectMenu && selectMenu.options.length > 0) {
+        // Find and remove the option corresponding to the empty category
+        const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
+
+        // Check if the updated options list is empty
+        if (updatedOptions.length === 0) {
+          // Remove the entire action row from the components
+          interaction.message.components = [];
+        } else {
+          // Update the select menu with the modified options
+          selectMenu.options = updatedOptions;
+        }
+
+        // Edit the message to remove the empty category from the dropdown menu
+        try {
+          await interaction.message.edit({ components: [interaction.message.components[0]] });
+        } catch (error) {
+          console.error('Error editing message:', error);
+        }
+      }
+    }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
     return;
   }
-
-  // Check if the category embed has no fields (commands)
-  if (!categoryEmbed || !categoryEmbed.fields || categoryEmbed.fields.length === 0) {
-    // Get the dropdown menu component from the interaction
-    const selectMenu = interaction.message.components[0]?.components[0];
-
-    // Check if the select menu exists and has options
-    if (selectMenu && selectMenu.options.length > 0) {
-      // Find and remove the option corresponding to the empty category
-      const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
-
-      // Check if the updated options list is empty
-      if (updatedOptions.length === 0) {
-        // Remove the entire action row from the components
-        interaction.message.components = [];
-      } else {
-        // Update the select menu with the modified options
-        selectMenu.options = updatedOptions;
-      }
-
-      // Edit the message to remove the empty category from the dropdown menu
-      try {
-        await interaction.message.edit({ components: [interaction.message.components[0]] });
-      } catch (error) {
-        console.error('Error editing message:', error);
-      }
-    }
-  }
 }
+
 
 
 
