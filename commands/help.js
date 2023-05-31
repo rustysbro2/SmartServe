@@ -125,7 +125,7 @@ module.exports = {
         const optionBuilder = new StringSelectMenuOptionBuilder()
           .setLabel(category.name)
           .setValue(generateUniqueOptionValue(category.name))
-          .setDescription(category.categoryDescription || ''); // Set the category description as the option description
+          .setDescription(category.categoryDescription || 'No description available');
 
         selectMenu.addOptions(optionBuilder);
       }
