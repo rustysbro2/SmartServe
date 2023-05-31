@@ -51,8 +51,14 @@ async function handleSelectMenu(interaction, commandCategories) {
         // Remove the entire action row from the components
         interaction.message.components = [];
       } else {
-        // Update the select menu with the modified options
-        selectMenu.setOptions(updatedOptions);
+        // Create a new select menu with the modified options
+        const newSelectMenu = new StringSelectMenuBuilder()
+          .setCustomId('help_category')
+          .setPlaceholder('Select a category')
+          .addOptions(updatedOptions);
+
+        // Replace the old select menu with the new one
+        interaction.message.components[0].components[0] = newSelectMenu;
       }
 
       // Edit the message to remove the empty category from the dropdown menu
@@ -64,6 +70,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 
 
