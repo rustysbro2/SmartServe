@@ -84,17 +84,20 @@ module.exports = {
 
     const usedOptionValues = new Set();
 
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('help_category')
-      .setPlaceholder('Select a category');
-
     // Filter out categories with no global commands
     const categoriesWithCommands = filteredCommandCategories
       .filter((category) =>
         category.commands.some((command) => command.global !== false)
       );
 
-    console.log('Categories with commands:', categoriesWithCommands);
+    if (categoriesWithCommands.length === 0) {
+      console.log('No categories with commands found.');
+      return;
+    }
+
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
 
     // Add categories with commands to the select menu
     categoriesWithCommands.forEach((category) => {
@@ -140,6 +143,7 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
   handleSelectMenu,
 };
