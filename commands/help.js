@@ -37,7 +37,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 
   // Check if the category embed has no fields (commands)
-  if (!categoryEmbed || !categoryEmbed.fields || categoryEmbed.fields.length === 0) {
+  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
     // Get the dropdown menu component from the interaction
     const selectMenu = interaction.message.components[0]?.components[0];
 
@@ -53,20 +53,17 @@ async function handleSelectMenu(interaction, commandCategories) {
       } else {
         // Update the select menu with the modified options
         selectMenu.setOptions(updatedOptions);
-        interaction.message.components[0].components = [selectMenu];
       }
 
       // Edit the message to remove the empty category from the dropdown menu
       try {
-        await interaction.message.edit({ components: interaction.message.components });
+        await interaction.message.edit({ components: [interaction.message.components[0]] });
       } catch (error) {
         console.error('Error editing message:', error);
       }
     }
   }
 }
-
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -82,7 +79,7 @@ module.exports = {
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories.filter((category) =>
-      isGlobal ? !category.guildId : category.guildId === interaction.guildId
+      isGlobal ? (!category.guildId || category.guildId === guildId) : category.guildId === interaction.guildId
     ).slice(0, 10);
 
     const usedOptionValues = new Set();
@@ -91,13 +88,8 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Filter out categories that don't have any commands
-    const categoriesWithCommands = filteredCommandCategories.filter((category) =>
-      category.commands.some((command) => command.global !== false)
-    );
-
     // Add categories to the select menu
-    categoriesWithCommands.forEach((category) => {
+    filteredCommandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
         .setValue(generateUniqueOptionValue(category.name));
@@ -132,12 +124,8 @@ module.exports = {
       .setColor('#0099ff');
 
     try {
-      if (categoriesWithCommands.length === 0) {
-        await interaction.reply({ content: 'There are no available command categories.', ephemeral: true });
-      } else {
-        await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-        console.log('Initial embed sent.');
-      }
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      console.log('Initial embed sent.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
