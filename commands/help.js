@@ -40,64 +40,84 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
- async execute(interaction, client, commandCategories, guildId) {
-  if (interaction.deferred || interaction.replied) {
-    return;
-  }
-
-  const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
-
-  const filteredCommandCategories = commandCategories.filter((category) =>
-    isGlobal ? !category.guildId : category.guildId === interaction.guildId
-  ).slice(0, 10);
-
-  const usedOptionValues = new Set();
-
-  const selectMenu = new StringSelectMenuBuilder()
-    .setCustomId('help_category')
-    .setPlaceholder('Select a category');
-
-  // Add options to the select menu
-  filteredCommandCategories.forEach((category) => {
-    const optionBuilder = new StringSelectMenuOptionBuilder()
-      .setLabel(category.name)
-      .setValue(generateUniqueOptionValue(category.name));
-
-    if (category.description && category.description.length > 0) {
-      optionBuilder.setDescription(category.description);
+  async execute(interaction, client, commandCategories, guildId) {
+    if (interaction.deferred || interaction.replied) {
+      console.log('Interaction already deferred or replied to.');
+      return;
     }
 
-    selectMenu.addOptions(optionBuilder);
-  });
+    const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
-  function generateUniqueOptionValue(categoryName) {
-    const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+    const filteredCommandCategories = commandCategories.filter((category) =>
+      isGlobal ? !category.guildId : category.guildId === interaction.guildId
+    ).slice(0, 10);
 
-    let optionValue = sanitizedCategoryName;
-    let index = 1;
+    const usedOptionValues = new Set();
 
-    while (usedOptionValues.has(optionValue)) {
-      optionValue = `${sanitizedCategoryName}_${index}`;
-      index++;
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
+
+    // Add options to the select menu
+    filteredCommandCategories.forEach((category) => {
+      category.commands.forEach((command) => {
+        if (command.global !== false) {
+          const optionBuilder = new StringSelectMenuOptionBuilder()
+            .setLabel(command.name)
+            .setValue(generateUniqueOptionValue(command.name));
+
+          if (command.description && command.description.length > 0) {
+            optionBuilder.setDescription(command.description);
+          }
+
+          selectMenu.addOptions(optionBuilder);
+        } else {
+          console.log(`Skipping global false command '${command.name}'`);
+        }
+      });
+    });
+
+    function generateUniqueOptionValue(commandName) {
+      const sanitizedCommandName = commandName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCommandName;
+      let index = 1;
+
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCommandName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
     }
 
-    usedOptionValues.add(optionValue);
-    return optionValue;
-  }
+    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-  const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+    const initialEmbed = new EmbedBuilder()
+      .setTitle('Command Categories')
+      .setDescription('Please select a category from the dropdown menu.')
+      .setColor('#0099ff');
 
-  const initialEmbed = new EmbedBuilder()
-    .setTitle('Command Categories')
-    .setDescription('Please select a category from the dropdown menu.')
-    .setColor('#0099ff');
+    try {
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      console.log('Initial embed sent.');
 
-  try {
-    await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-  } catch (error) {
-    console.error('Error replying to interaction:', error);
-  }
-},
+      // Log global false commands
+      if (!isGlobal) {
+        const globalFalseCommands = commandCategories
+          .filter((category) => category.guildId === interaction.guildId)
+          .flatMap((category) => category.commands)
+          .filter((command) => command.global === false)
+          .map((command) => command.name);
+
+        console.log('Global False Commands:', globalFalseCommands);
+      }
+    } catch (error) {
+      console.error('Error replying to interaction:', error);
+    }
+  },
+
 
 
   handleSelectMenu,
