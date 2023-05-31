@@ -14,10 +14,8 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setDescription(category.description || 'No description available');
 
     category.commands.forEach((command) => {
-      if (command.global !== false || !command.hasOwnProperty('global')) {
+      if (command.global !== false) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
-      } else {
-        console.log(`Skipping global false command '${command.name}'`);
       }
     });
 
@@ -97,6 +95,17 @@ module.exports = {
     try {
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
       console.log('Initial embed sent.');
+
+      // Log global false commands
+      if (!isGlobal) {
+        const globalFalseCommands = commandCategories
+          .filter((category) => category.guildId === interaction.guildId)
+          .flatMap((category) => category.commands)
+          .filter((command) => command.global === false || !command.hasOwnProperty('global'))
+          .map((command) => command.name);
+
+        console.log('Global False Commands:', globalFalseCommands);
+      }
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
