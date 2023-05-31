@@ -90,9 +90,6 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 }
 
-
-
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
@@ -159,12 +156,6 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
-
-
-
-
-
-
 
   handleSelectMenu,
 };
