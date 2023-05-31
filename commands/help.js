@@ -13,11 +13,16 @@ async function handleSelectMenu(interaction, commandCategories) {
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
+    const addedCommands = []; // Array to store the added commands for debugging
+
     category.commands.forEach((command) => {
       if (command.global !== false) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
+        addedCommands.push(command.name); // Add the command name to the debug array
       }
     });
+
+    console.log('Added commands:', addedCommands); // Debug output of added commands
 
     try {
       if (interaction.message) {
@@ -33,6 +38,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     console.error(`Category '${selectedCategory}' not found.`);
   }
 }
+
 
 
 module.exports = {
