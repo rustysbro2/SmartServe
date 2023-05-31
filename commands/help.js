@@ -64,6 +64,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
   }
 }
 
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
