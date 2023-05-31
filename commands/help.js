@@ -2,6 +2,7 @@ const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSe
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
+  console.log('Guild ID from config.js:', guildId);
   console.log('Interaction Guild ID:', interaction.guildId);
 
   const selectedCategory = interaction.values[0];
