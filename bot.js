@@ -66,12 +66,17 @@ client.once('ready', async () => {
 
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
+    console.log('Select menu interaction received');
     await helpCommand.handleSelectMenu(interaction, commandCategories);
   } else if (interaction.isCommand()) {
     const { commandName, guildId: interactionGuildId } = interaction;
 
+    console.log('Command interaction received');
+
     if (commandName === 'help') {
+      console.log('Executing help command...');
       await client.commands.get('help').execute(interaction, client, commandCategories, interaction.guildId);
+      console.log('Help command executed.');
     } else {
       const command = client.commands.get(commandName);
 
@@ -80,12 +85,15 @@ client.on('interactionCreate', async (interaction) => {
       const isGlobal = !interactionGuildId || (interactionGuildId === guildId);
 
       if (isGlobal && !command.global) {
+        console.log(`Command '${commandName}' is not available globally.`);
         await interaction.reply({ content: 'This command is not available globally!', ephemeral: true });
         return;
       }
 
       try {
+        console.log(`Executing ${commandName} command...`);
         await command.execute(interaction, client);
+        console.log(`${commandName} command executed.`);
       } catch (error) {
         console.error(error);
         await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
@@ -93,5 +101,6 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 });
+
 
 client.login(token);
