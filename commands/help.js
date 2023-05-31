@@ -36,21 +36,31 @@ async function handleSelectMenu(interaction, commandCategories) {
     return;
   }
 
-  const selectMenu = interaction.message.components[0]?.components[0];
+  // Check if the category embed has no fields (commands)
+  if (!categoryEmbed || categoryEmbed.fields?.length === 0) {
+    // Get the dropdown menu component from the interaction
+    const selectMenu = interaction.message.components[0]?.components[0];
 
-  if (selectMenu && selectMenu.options.length > 0) {
-    const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
+    // Check if the select menu exists and has options
+    if (selectMenu && selectMenu.options.length > 0) {
+      // Find and remove the option corresponding to the empty category
+      const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
 
-    if (updatedOptions.length === 0) {
-      interaction.message.components = [];
-    } else {
-      selectMenu.setOptions(updatedOptions); // Updated this line
-    }
+      // Check if the updated options list is empty
+      if (updatedOptions.length === 0) {
+        // Remove the entire action row from the components
+        interaction.message.components = [];
+      } else {
+        // Update the select menu with the modified options
+        selectMenu.setOptions(updatedOptions);
+      }
 
-    try {
-      await interaction.message.edit({ components: [interaction.message.components[0]] });
-    } catch (error) {
-      console.error('Error editing message:', error);
+      // Edit the message to remove the empty category from the dropdown menu
+      try {
+        await interaction.message.edit({ components: [interaction.message.components[0]] });
+      } catch (error) {
+        console.error('Error editing message:', error);
+      }
     }
   }
 }
@@ -60,26 +70,29 @@ module.exports = {
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client, commandCategories, guildId) {
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
     }
 
-    const isGlobalGuild = !guildId || (interaction.guildId && interaction.guildId === guildId);
+    const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories.filter((category) =>
-      isGlobalGuild ? !category.guildId : category.guildId === interaction.guildId
+      isGlobal ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
+
+    const usedOptionValues = new Set();
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
+    // Add categories to the select menu
     filteredCommandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
-        .setValue(category.name.toLowerCase().replace(/\s/g, '_'));
+        .setValue(generateUniqueOptionValue(category.name));
 
       if (category.description && category.description.length > 0) {
         optionBuilder.setDescription(category.description);
@@ -87,6 +100,21 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
+
+    function generateUniqueOptionValue(categoryName) {
+      const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
+
+      let optionValue = sanitizedCategoryName;
+      let index = 1;
+
+      while (usedOptionValues.has(optionValue)) {
+        optionValue = `${sanitizedCategoryName}_${index}`;
+        index++;
+      }
+
+      usedOptionValues.add(optionValue);
+      return optionValue;
+    }
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
@@ -96,17 +124,12 @@ module.exports = {
       .setColor('#0099ff');
 
     try {
-      await interaction.deferReply();
-      const message = await interaction.editReply({ embeds: [initialEmbed], components: [actionRow] });
-
-      client.on('interactionCreate', async (interaction) => {
-        if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-          await handleSelectMenu(interaction, filteredCommandCategories);
-        }
-      });
+      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
+      console.log('Initial embed sent.');
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
+
   handleSelectMenu,
 };
