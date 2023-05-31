@@ -37,7 +37,7 @@ async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
   }
 
   // Check if the category embed has no fields (commands)
-  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
+  if (!categoryEmbed || !categoryEmbed.fields || categoryEmbed.fields.length === 0) {
     // Get the dropdown menu component from the interaction
     const selectMenu = interaction.message.components[0]?.components[0];
 
@@ -64,6 +64,7 @@ async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
     }
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
