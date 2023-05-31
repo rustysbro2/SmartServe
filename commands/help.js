@@ -69,6 +69,13 @@ module.exports = {
       }
 
       selectMenu.addOptions(optionBuilder);
+
+      // Log global false commands within the category
+      category.commands.forEach((command) => {
+        if (command.global === false) {
+          console.log(`Global False Command in ${category.name}:`, command.name);
+        }
+      });
     });
 
     function generateUniqueOptionValue(categoryName) {
@@ -96,20 +103,11 @@ module.exports = {
     try {
       await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
       console.log('Initial embed sent.');
-
-      // Log global false commands
-      if (!isGlobal) {
-        const globalFalseCommands = commandCategories
-          .flatMap((category) => category.commands)
-          .filter((command) => command.global === false || !command.hasOwnProperty('global'))
-          .map((command) => command.name);
-
-        console.log('Global False Commands:', globalFalseCommands);
-      }
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
   handleSelectMenu,
 };
