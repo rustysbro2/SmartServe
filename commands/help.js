@@ -97,6 +97,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 }
 
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
