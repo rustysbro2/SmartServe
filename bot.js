@@ -58,7 +58,7 @@ for (const file of commandFiles) {
   }
 }
 
-// Remove empty categories
+// Remove categories with no commands
 const nonEmptyCategories = commandCategories.filter(category => category.commands.length > 0);
 commandCategories.length = 0;
 Array.prototype.push.apply(commandCategories, nonEmptyCategories);
