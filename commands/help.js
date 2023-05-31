@@ -44,7 +44,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     if (updatedOptions.length === 0) {
       interaction.message.components = [];
     } else {
-      selectMenu.setOptions(updatedOptions);
+      selectMenu.addOptions(updatedOptions); // Updated this line
     }
 
     try {
