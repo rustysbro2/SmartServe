@@ -11,4 +11,6 @@ module.exports = {
 
   global: false, // Command is not global (optional, as it defaults to false)
   category: 'General', // Specify the category
+  categoryDescription: 'Commands related to general functionality', // Specify the category description
+
 };
