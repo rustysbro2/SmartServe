@@ -37,7 +37,7 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 
   // Check if the category embed has no fields (commands)
-  if (categoryEmbed.fields.length === 0) {
+  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
     const selectMenu = interaction.message.components[0].components[0];
     const options = selectMenu.options;
 
