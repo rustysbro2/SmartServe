@@ -79,25 +79,20 @@ module.exports = {
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories
-      .filter((category) => (isGlobal ? !category.guildId : category.guildId === interaction.guildId))
+      .filter((category) => isGlobal ? category.guildId === undefined : category.guildId === guildId)
       .slice(0, 10);
 
     const usedOptionValues = new Set();
 
-    // Filter out categories with no global commands
-    const categoriesWithCommands = filteredCommandCategories
-      .filter((category) =>
-        category.commands.some((command) => command.global !== false)
-      );
-
-    if (categoriesWithCommands.length === 0) {
-      console.log('No categories with commands found.');
-      return;
-    }
-
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
+
+    // Filter out categories with no commands
+    const categoriesWithCommands = filteredCommandCategories
+      .filter(category =>
+        category.commands.some(command => command.global !== false)
+      );
 
     // Add categories with commands to the select menu
     categoriesWithCommands.forEach((category) => {
@@ -111,8 +106,6 @@ module.exports = {
 
       selectMenu.addOptions(optionBuilder);
     });
-
-    console.log('Select menu options:', selectMenu.toJSON().options);
 
     function generateUniqueOptionValue(categoryName) {
       const sanitizedCategoryName = categoryName.toLowerCase().replace(/\s/g, '_');
@@ -143,6 +136,7 @@ module.exports = {
       console.error('Error replying to interaction:', error);
     }
   },
+
 
 
   handleSelectMenu,
