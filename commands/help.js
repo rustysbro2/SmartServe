@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
-async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
+async function handleSelectMenu(interaction, commandCategories) {
   const selectedCategory = interaction.values[0];
   const category = commandCategories.find(
     (category) =>
@@ -15,12 +15,9 @@ async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
       .setTitle(`Commands - ${category.name}`)
       .setDescription(category.description || 'No description available');
 
-    let hasCommands = false;
-
     category.commands.forEach((command) => {
-      if ((isGlobalGuild || command.global !== false) && !command.hidden) {
+      if (command.global !== false) {
         categoryEmbed.addFields({ name: command.name, value: command.description });
-        hasCommands = true;
       }
     });
 
@@ -34,42 +31,31 @@ async function handleSelectMenu(interaction, commandCategories, isGlobalGuild) {
     } catch (error) {
       console.error('Error deferring or editing interaction:', error);
     }
-
-    if (!hasCommands) {
-      // Get the dropdown menu component from the interaction
-      const selectMenu = interaction.message.components[0]?.components[0];
-
-      // Check if the select menu exists and has options
-      if (selectMenu && selectMenu.options.length > 0) {
-        // Find and remove the option corresponding to the empty category
-        const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
-
-        // Check if the updated options list is empty
-        if (updatedOptions.length === 0) {
-          // Remove the entire action row from the components
-          interaction.message.components = [];
-        } else {
-          // Update the select menu with the modified options
-          selectMenu.options = updatedOptions;
-        }
-
-        // Edit the message to remove the empty category from the dropdown menu
-        try {
-          await interaction.message.edit({ components: [interaction.message.components[0]] });
-        } catch (error) {
-          console.error('Error editing message:', error);
-        }
-      }
-    }
   } else {
     console.error(`Category '${selectedCategory}' not found.`);
     return;
   }
+
+  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
+    const selectMenu = interaction.message.components[0]?.components[0];
+
+    if (selectMenu && selectMenu.options.length > 0) {
+      const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
+
+      if (updatedOptions.length === 0) {
+        interaction.message.components = [];
+      } else {
+        selectMenu.options = updatedOptions;
+      }
+
+      try {
+        await interaction.message.edit({ components: [interaction.message.components[0]] });
+      } catch (error) {
+        console.error('Error editing message:', error);
+      }
+    }
+  }
 }
-
-
-
-
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -82,11 +68,10 @@ module.exports = {
       return;
     }
 
-    const interactionGuildId = interaction.guildId;
-    const isGlobalGuild = !guildId || (interactionGuildId && interactionGuildId === guildId);
+    const isGlobalGuild = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories.filter((category) =>
-      isGlobalGuild ? !category.guildId : category.guildId === interactionGuildId
+      isGlobalGuild ? !category.guildId : category.guildId === interaction.guildId
     ).slice(0, 10);
 
     const usedOptionValues = new Set();
@@ -95,7 +80,6 @@ module.exports = {
       .setCustomId('help_category')
       .setPlaceholder('Select a category');
 
-    // Add categories to the select menu
     filteredCommandCategories.forEach((category) => {
       const optionBuilder = new StringSelectMenuOptionBuilder()
         .setLabel(category.name)
@@ -126,17 +110,21 @@ module.exports = {
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
     const initialEmbed = new EmbedBuilder()
-      .setTitle('Command Categories')
-      .setDescription('Please select a category from the dropdown menu.')
+      .setTitle('Commands')
+      .setDescription('Select a category to view the commands')
       .setColor('#0099ff');
 
     try {
-      await interaction.reply({ embeds: [initialEmbed], components: [actionRow] });
-      console.log('Initial embed sent.');
+      await interaction.deferReply();
+      const message = await interaction.editReply({ embeds: [initialEmbed], components: [actionRow] });
+
+      client.on('interactionCreate', async (interaction) => {
+        if (interaction.isSelectMenu() && interaction.customId === 'help_category') {
+          await handleSelectMenu(interaction, commandCategories);
+        }
+      });
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
-
-  handleSelectMenu,
 };
