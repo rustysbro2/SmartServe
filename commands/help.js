@@ -27,30 +27,17 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
       categoryEmbed.setDescription(category.categoryDescription);
     }
 
-    const guildSpecificCommands = category.commands.filter(
-      (command) => command.guildId === interaction.guildId
-    );
-    const globalCommands = category.commands.filter(
-      (command) => command.global !== false || command.guildId === undefined
+    const commandsToShow = category.commands.filter(
+      (command) =>
+        command.global !== false && (command.guildId === undefined || command.guildId === guildId)
     );
 
-    console.log('Guild Specific Commands:');
-    guildSpecificCommands.forEach((command) => {
+    console.log('Commands to Show:');
+    commandsToShow.forEach((command) => {
       console.log(`Command: ${command.name}`);
       console.log(`Category: ${category.name}`);
       console.log(`Global: ${command.global}`);
     });
-
-    console.log('Global Commands:');
-    globalCommands.forEach((command) => {
-      console.log(`Command: ${command.name}`);
-      console.log(`Category: ${category.name}`);
-      console.log(`Global: ${command.global}`);
-    });
-
-    const commandsToShow = guildSpecificCommands.length > 0
-      ? guildSpecificCommands
-      : globalCommands;
 
     commandsToShow.forEach((command) => {
       categoryEmbed.addFields([{ name: command.name, value: command.description }]);
@@ -74,6 +61,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     return;
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
