@@ -52,7 +52,7 @@ async function handleSelectMenu(interaction, commandCategories) {
         interaction.message.components = [];
       } else {
         // Update the select menu with the modified options
-        selectMenu.setOptions(updatedOptions);
+        selectMenu.setOptions(updatedOptions.slice(0, 25)); // Limit the options to a maximum of 25
       }
 
       // Edit the message to remove the empty category from the dropdown menu
@@ -90,6 +90,9 @@ module.exports = {
 
     // Filter out categories with no global commands
     const categoriesWithCommands = filteredCommandCategories
+      .filter(category =>
+        category.commands.some(command => command.global !== false)
+      )
       .filter(category =>
         category.commands.some(command => command.global !== false)
       );
