@@ -37,14 +37,14 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 
   // Check if the category embed has no fields (commands)
-  if (!categoryEmbed || !categoryEmbed.fields || categoryEmbed.fields.length === 0) {
+  if (!categoryEmbed || categoryEmbed.fields.length === 0) {
     // Get the dropdown menu component from the interaction
     const selectMenu = interaction.message.components[0]?.components[0];
 
     // Check if the select menu exists and has options
     if (selectMenu && selectMenu.options.length > 0) {
       // Find and remove the option corresponding to the empty category
-      const updatedOptions = selectMenu.options.filter((option) => option.value !== selectedCategory);
+      const updatedOptions = selectMenu.getOptions().filter((option) => option.value !== selectedCategory);
 
       // Check if the updated options list is empty
       if (updatedOptions.length === 0) {
@@ -64,6 +64,7 @@ async function handleSelectMenu(interaction, commandCategories) {
     }
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
