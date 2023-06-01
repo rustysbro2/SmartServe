@@ -1,5 +1,6 @@
 // bot.js
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
+
+const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
 const { token, guildId } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -73,7 +74,15 @@ commandCategories.forEach((category) => {
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+  client.user.setPresence({
+    activities: [
+      {
+        name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+        type: ActivityType.WATCHING,
+      },
+    ],
+    status: "online",
+  });
 
   inviteTracker.execute(client);
 
@@ -86,7 +95,7 @@ client.once('ready', async () => {
     console.log(`Guild ID: ${category.guildId}`);
     console.log('Commands:', category.commands);
   });
-});;
+});
 
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
@@ -102,8 +111,5 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 });
-
-// ...
-
 
 client.login(token);
