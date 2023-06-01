@@ -4,6 +4,7 @@ const { token, guildId } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/help');
+const countingCommand = require('./commands/count');
 
 const intents = [
   GatewayIntentBits.Guilds,
