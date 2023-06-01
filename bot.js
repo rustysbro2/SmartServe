@@ -85,11 +85,7 @@ client.once('ready', async () => {
     console.log(`Guild ID: ${category.guildId}`);
     console.log('Commands:', category.commands);
   });
-});
-
-// bot.js
-
-// ...
+});;
 
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
