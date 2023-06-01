@@ -4,6 +4,9 @@ const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
 const { pool } = require('./database.js');
 
+console.log(pool); // Add this line to check the value of `pool`
+
+
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
   const createTableQuery = `
