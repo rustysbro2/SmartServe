@@ -100,15 +100,21 @@ module.exports = {
     filteredCommandCategories.forEach((category) => {
       if (category.commands.some((command) => command.global !== false || (isGlobal && command.guildId === guildId))) {
         const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
-        selectMenu.addOptions(
-          new StringSelectMenuOptionBuilder()
-            .setLabel(category.name)
-            .setValue(categoryName)
-            .setDescription(category.description)
-        );
+        const selectOption = new StringSelectMenuOptionBuilder()
+          .setLabel(category.name)
+          .setValue(categoryName)
+          .setDescription(category.description);
+        selectMenu.addOption(selectOption);
         usedOptionValues.add(categoryName);
       }
     });
+
+    const otherCategoryOption = new StringSelectMenuOptionBuilder()
+      .setLabel('Other')
+      .setValue('other')
+      .setDescription('View other categories')
+      .setDefault(true);
+    selectMenu.addOption(otherCategoryOption);
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
