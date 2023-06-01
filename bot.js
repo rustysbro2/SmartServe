@@ -45,7 +45,7 @@ for (const file of commandFiles) {
       categoryDescription: command.categoryDescription // Include the categoryDescription property
     });
   } else {
-    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
+    let defaultCategory = commandCategories.find(category => category.name ===   client.user.setActivity(`${client.guilds.cache.size} servers`, { type: 'WATCHING' });'Uncategorized');
     if (!defaultCategory) {
       defaultCategory = {
         name: 'Uncategorized',
@@ -73,7 +73,7 @@ commandCategories.forEach((category) => {
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+  client.user.setActivity(`${client.guilds.cache.size} servers`, { type: 'WATCHING' });
 
   inviteTracker.execute(client);
 
