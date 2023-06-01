@@ -85,9 +85,13 @@ client.once('ready', async () => {
   });
 });
 
+// bot.js
+
+// ...
+
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-    helpCommand.handleSelectMenu(interaction, commandCategories);
+    helpCommand.handleSelectMenu(interaction, commandCategories, guildId); // Pass guildId to the handleSelectMenu function
   } else if (interaction.isCommand()) {
     const command = client.commands.get(interaction.commandName);
     if (command) {
@@ -99,5 +103,8 @@ client.on('interactionCreate', async (interaction) => {
     }
   }
 });
+
+// ...
+
 
 client.login(token);
