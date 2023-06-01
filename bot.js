@@ -32,6 +32,8 @@ for (const file of commandFiles) {
         description: '',
         commands: [],
         guildId: command.guildId
+        categoryDescription: command.categoryDescription // Assign category description here
+
       };
       commandCategories.push(category);
     }
