@@ -21,4 +21,7 @@ module.exports = {
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
   },
+
+  category: 'Invite Tracker',
+  categoryDescription: 'Commands related to invite tracking functionality',
 };
