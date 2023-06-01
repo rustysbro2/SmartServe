@@ -31,10 +31,10 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
       categoryEmbed.setDescription('No description available.');
     }
 
-    const commandsToShow = category.commands.filter(
-      (command) =>
-        command.global !== false && (command.guildId === undefined || command.guildId === guildId)
+    const commandsToShow = category.commands.filter((command) => 
+      command.global === true || (command.global === false && interaction.guildId === guildId)
     );
+
 
     console.log('Commands to Show:');
     commandsToShow.forEach((command) => {
@@ -84,8 +84,11 @@ module.exports = {
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories
-      .filter((category) => (isGlobal ? !category.guildId : category.guildId === interaction.guildId))
+      .filter((category) => 
+        category.commands.some((command) => command.global === true || (command.global === false && interaction.guildId === guildId))
+      )
       .slice(0, 10);
+
 
     const usedOptionValues = new Set();
 
