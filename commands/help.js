@@ -106,7 +106,7 @@ module.exports = {
           new StringSelectMenuOptionBuilder()
             .setLabel(category.name)
             .setValue(categoryName)
-            .setDescription(category.description || 'No description available.') // Updated line
+            .setDescription(category.categoryDescription || 'No description available.') // Updated line
         );
         usedOptionValues.add(categoryName);
       }
