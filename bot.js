@@ -26,24 +26,26 @@ for (const file of commandFiles) {
 
   if (command.category) {
     let category = commandCategories.find(category => category.name === command.category);
+
     if (!category) {
       category = {
         name: command.category,
         description: '',
         commands: [],
-        guildId: command.guildId,
-        categoryDescription: command.categoryDescription // Assign category description here
+        guildId: command.guildId
       };
       commandCategories.push(category);
     }
+
     category.commands.push({
       name: command.data.name,
       description: command.data.description,
       global: command.global !== false,
-      categoryDescription: command.categoryDescription // Include the categoryDescription property
+      categoryDescription: command.categoryDescription
     });
   } else {
     let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
+
     if (!defaultCategory) {
       defaultCategory = {
         name: 'Uncategorized',
@@ -53,6 +55,7 @@ for (const file of commandFiles) {
       };
       commandCategories.push(defaultCategory);
     }
+
     defaultCategory.commands.push({
       name: command.data.name,
       description: command.data.description,
@@ -70,42 +73,28 @@ commandCategories.forEach((category) => {
 });
 
 client.once('ready', async () => {
-  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
   client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
 
   inviteTracker.execute(client);
 
   const slashCommands = require('./slashCommands.js');
   await slashCommands(client);
-
-  console.log('Command Categories:');
-  commandCategories.forEach((category) => {
-    console.log(`Category: ${category.name}`);
-    console.log(`Guild ID: ${category.guildId}`);
-    console.log('Commands:', category.commands);
-  });
 });
-
-// bot.js
-
-// ...
 
 client.on('interactionCreate', async (interaction) => {
   if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-    helpCommand.handleSelectMenu(interaction, commandCategories, guildId); // Pass guildId to the handleSelectMenu function
+    helpCommand.handleSelectMenu(interaction, commandCategories, guildId);
   } else if (interaction.isCommand()) {
     const command = client.commands.get(interaction.commandName);
+    
     if (command) {
       try {
-        await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
+        await command.execute(interaction, client, commandCategories, guildId);
       } catch (error) {
         console.error('Error executing command:', error);
       }
     }
   }
 });
-
-// ...
-
 
 client.login(token);
