@@ -31,6 +31,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
       categoryEmbed.setDescription('No description available.');
     }
 
+    console.log(`Interaction Guild ID: ${interaction.guildId}, Guild ID from config.js: ${guildId}`);
     const commandsToShow = category.commands.filter((command) => {
       const shouldShow = command.global === true || (command.global === false && interaction.guildId === guildId);
       console.log(`Should show command "${command.name}": ${shouldShow}`);
