@@ -1,86 +1,111 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
-const { guildId } = require('../config.js');
+// bot.js
+const { Client, Collection, GatewayIntentBits } = require('discord.js');
+const { token, guildId } = require('./config.js');
+const inviteTracker = require('./features/inviteTracker.js');
+const fs = require('fs');
+const helpCommand = require('./commands/help');
 
-async function handleSelectMenu(interaction, commandCategories, guildId) {
-  const selectedCategory = interaction.values[0];
-  const category = commandCategories.find(
-    (category) =>
-      category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
-  );
+const intents = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildVoiceStates
+];
 
-  let categoryEmbed;
+const client = new Client({ shards: "auto", intents });
 
-  if (category) {
-    categoryEmbed = new EmbedBuilder();
-    categoryEmbed.setTitle(`Commands - ${category.name}`);
-    categoryEmbed.setDescription(category.categoryDescription || 'No description available.');
+client.commands = new Collection();
+client.musicPlayers = new Map();
 
-    const commandsToShow = category.commands.filter((command) => {
-      const shouldShow = command.global === true || (command.global === false && interaction.guildId === guildId);
-      return shouldShow;
-    });
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandCategories = [];
 
-    commandsToShow.forEach((command) => {
-      categoryEmbed.addFields({ name: command.name, value: command.description });
-    });
+for (const file of commandFiles) {
+  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
+  client.commands.set(command.data.name, command);
 
-    try {
-      if (interaction.message) {
-        const actionRow = new ActionRowBuilder().addComponents(...interaction.message.components[0].components);
-        await interaction.deferUpdate();
-        await interaction.message.edit({ embeds: [categoryEmbed], components: [actionRow] });
-      } else {
-        console.error('Interaction does not have a message.');
-      }
-    } catch (error) {
-      console.error('Error deferring or editing interaction:', error);
+  if (command.category) {
+    let category = commandCategories.find(category => category.name === command.category);
+    if (!category) {
+      category = {
+        name: command.category,
+        description: '',
+        commands: [],
+        guildId: command.guildId,
+        categoryDescription: command.categoryDescription // Assign category description here
+      };
+      commandCategories.push(category);
     }
+    category.commands.push({
+      name: command.data.name,
+      description: command.data.description,
+      global: command.global !== false,
+      categoryDescription: command.categoryDescription // Include the categoryDescription property
+    });
   } else {
-    console.error(`Category '${selectedCategory}' not found.`);
-    return;
+    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
+    if (!defaultCategory) {
+      defaultCategory = {
+        name: 'Uncategorized',
+        description: 'Commands that do not belong to any specific category',
+        commands: [],
+        guildId: undefined
+      };
+      commandCategories.push(defaultCategory);
+    }
+    defaultCategory.commands.push({
+      name: command.data.name,
+      description: command.data.description,
+      global: command.global !== false
+    });
   }
 }
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('help')
-    .setDescription('List all commands or info about a specific command'),
+// Remove empty categories
+commandCategories.forEach((category) => {
+  if (category.commands.length === 0) {
+    const index = commandCategories.indexOf(category);
+    commandCategories.splice(index, 1);
+  }
+});
 
-  async execute(interaction, client, commandCategories) {
-    if (interaction.deferred || interaction.replied) {
-      console.log('Interaction already deferred or replied to.');
-      return;
-    }
+client.once('ready', async () => {
+  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+  client.user.setActivity(`${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
 
-    const filteredCommandCategories = commandCategories
-      .filter((category) => 
-        category.commands.some((command) => command.global === true || (command.global === false && interaction.guildId === guildId))
-      )
-      .slice(0, 10);
+  inviteTracker.execute(client);
 
-    const selectMenu = new StringSelectMenuBuilder()
-      .setCustomId('help_category')
-      .setPlaceholder('Select a category');
+  const slashCommands = require('./slashCommands.js');
+  await slashCommands(client);
 
-    filteredCommandCategories.forEach((category) => {
-      if (category.commands.some((command) => command.global !== false || command.guildId === undefined)) {
-        const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
-        selectMenu.addOptions(
-          new StringSelectMenuOptionBuilder()
-            .setLabel(category.name)
-            .setValue(categoryName)
-            .setDescription(category.categoryDescription || 'No description available.')
-        );
+  console.log('Command Categories:');
+  commandCategories.forEach((category) => {
+    console.log(`Category: ${category.name}`);
+    console.log(`Guild ID: ${category.guildId}`);
+    console.log('Commands:', category.commands);
+  });
+});
+
+// bot.js
+
+// ...
+
+client.on('interactionCreate', async (interaction) => {
+  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
+    helpCommand.handleSelectMenu(interaction, commandCategories, guildId); // Pass guildId to the handleSelectMenu function
+  } else if (interaction.isCommand()) {
+    const command = client.commands.get(interaction.commandName);
+    if (command) {
+      try {
+        await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
+      } catch (error) {
+        console.error('Error executing command:', error);
       }
-    });
-
-    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
-
-    try {
-      await interaction.reply({ content: 'Please select a category:', components: [actionRow] });
-    } catch (error) {
-      console.error('Error replying to interaction:', error);
     }
-  },
-  handleSelectMenu,
-};
+  }
+});
+
+// ...
+
+
+client.login(token);
