@@ -31,9 +31,11 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
       categoryEmbed.setDescription('No description available.');
     }
 
-    const commandsToShow = category.commands.filter((command) => 
-      command.global === true || (command.global === false && interaction.guildId === guildId)
-    );
+    const commandsToShow = category.commands.filter((command) => {
+      const shouldShow = command.global === true || (command.global === false && interaction.guildId === guildId);
+      console.log(`Should show command "${command.name}": ${shouldShow}`);
+      return shouldShow;
+    });
 
 
     console.log('Commands to Show:');
