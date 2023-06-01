@@ -113,10 +113,21 @@ module.exports = {
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
     try {
-      await interaction.reply({ content: 'Please select a category:', components: [actionRow] });
+      const categoryEmbed = new EmbedBuilder()
+        .setTitle('Commands')
+        .setDescription('Please select a category.')
+        .setColor('#0099ff');
+
+      // Add the category description to the embed
+      filteredCommandCategories.forEach((category) => {
+        categoryEmbed.addField(category.name, category.categoryDescription || 'No description available.');
+      });
+
+      await interaction.reply({ embeds: [categoryEmbed], components: [actionRow] });
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
+
   handleSelectMenu,
 };
