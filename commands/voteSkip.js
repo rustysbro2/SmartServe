@@ -1,4 +1,3 @@
-// commands/voteSkip.js
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
@@ -24,4 +23,7 @@ module.exports = {
       await interaction.reply(`Failed to vote skip: ${error.message}`);
     }
   },
+
+  category: 'Music',
+  categoryDescription: 'Commands related to music functionality',
 };
