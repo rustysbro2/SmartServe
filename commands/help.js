@@ -38,6 +38,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
       return shouldShow;
     });
 
+
     console.log('Commands to Show:');
     commandsToShow.forEach((command) => {
       console.log(`Command: ${command.name}`);
@@ -46,8 +47,9 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     });
 
     commandsToShow.forEach((command) => {
-      categoryEmbed.addFields({ name: command.name, value: command.description });
+        categoryEmbed.addFields({ name: command.name, value: command.description });
     });
+
 
     console.log('Category Embed:', categoryEmbed);
 
@@ -113,21 +115,10 @@ module.exports = {
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
     try {
-      const categoryEmbed = new EmbedBuilder()
-        .setTitle('Commands')
-        .setDescription('Please select a category.')
-        .setColor('#0099ff');
-
-      // Add the category description to the embed
-      filteredCommandCategories.forEach((category) => {
-        categoryEmbed.addField(category.name, category.categoryDescription || 'No description available.');
-      });
-
-      await interaction.reply({ embeds: [categoryEmbed], components: [actionRow] });
+      await interaction.reply({ content: 'Please select a category:', components: [actionRow] });
     } catch (error) {
       console.error('Error replying to interaction:', error);
     }
   },
-
   handleSelectMenu,
 };
