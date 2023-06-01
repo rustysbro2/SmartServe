@@ -38,7 +38,6 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
       return shouldShow;
     });
 
-
     console.log('Commands to Show:');
     commandsToShow.forEach((command) => {
       console.log(`Command: ${command.name}`);
@@ -47,9 +46,8 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     });
 
     commandsToShow.forEach((command) => {
-        categoryEmbed.addFields({ name: command.name, value: command.description });
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
-
 
     console.log('Category Embed:', categoryEmbed);
 
