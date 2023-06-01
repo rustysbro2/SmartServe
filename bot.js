@@ -73,8 +73,15 @@ commandCategories.forEach((category) => {
 
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setActivity(`${client.guilds.cache.size} servers`, { type: 'WATCHING' });
-
+  client.user.setPresence({
+        activities: [
+          {
+            name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+            type: ActivityType.Watching,
+          },
+        ],
+        status: "online",
+      });
   inviteTracker.execute(client);
 
   const slashCommands = require('./slashCommands.js');
