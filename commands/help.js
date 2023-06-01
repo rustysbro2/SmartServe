@@ -42,7 +42,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     });
 
     commandsToShow.forEach((command) => {
-      categoryEmbed.addField(command.name, command.description);
+      categoryEmbed.addFields(command.name, command.description);
     });
 
     console.log('Category Embed:', categoryEmbed);
