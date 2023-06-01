@@ -2,6 +2,9 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
+console.log('Importing pool from database.js');
+const { pool } = require('./database.js');
+
 const { pool } = require('./database.js');
 
 console.log(pool); // Add this line to check the value of `pool`
