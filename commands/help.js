@@ -109,6 +109,8 @@ module.exports = {
             .setDescription(category.categoryDescription || 'No description available.') // Updated line
         );
         usedOptionValues.add(categoryName);
+        console.log(`Added category '${category.name}' to the select menu with description: '${category.categoryDescription || 'No description available.'}'`); // Debug statement
+
       }
     });
 
