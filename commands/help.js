@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
-async function handleSelectMenu(interaction, commandCategories) {
+async function handleSelectMenu(interaction, commandCategories, guildId) {
   console.log('Interaction Guild ID:', interaction.guildId);
 
   const selectedCategory = interaction.values[0];
@@ -25,33 +25,24 @@ async function handleSelectMenu(interaction, commandCategories) {
 
     if (category.categoryDescription && category.categoryDescription.length > 0) {
       categoryEmbed.setDescription(category.categoryDescription);
+    } else {
+      categoryEmbed.setDescription('No description available.');
     }
 
-    const guildSpecificCommands = category.commands.filter(
-      (command) => command.guildId === interaction.guildId
-    );
-    const globalCommands = category.commands.filter(
-      (command) => command.global !== false
+    const commandsToShow = category.commands.filter(
+      (command) =>
+        command.global !== false && (command.guildId === undefined || command.guildId === guildId)
     );
 
-    console.log('Guild Specific Commands:');
-    guildSpecificCommands.forEach((command) => {
+    console.log('Commands to Show:');
+    commandsToShow.forEach((command) => {
       console.log(`Command: ${command.name}`);
       console.log(`Category: ${category.name}`);
       console.log(`Global: ${command.global}`);
     });
-
-    console.log('Global Commands:');
-    globalCommands.forEach((command) => {
-      console.log(`Command: ${command.name}`);
-      console.log(`Category: ${category.name}`);
-      console.log(`Global: ${command.global}`);
-    });
-
-    const commandsToShow = guildSpecificCommands.length > 0 ? guildSpecificCommands : globalCommands;
 
     commandsToShow.forEach((command) => {
-      categoryEmbed.addFields([{ name: command.name, value: command.description }]);
+      categoryEmbed.addField(command.name, command.description);
     });
 
     console.log('Category Embed:', categoryEmbed);
@@ -73,12 +64,14 @@ async function handleSelectMenu(interaction, commandCategories) {
   }
 }
 
+
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
-  async execute(interaction, client, commandCategories) {
+  async execute(interaction, client, commandCategories, guildId) {
     console.log('Guild ID from config.js:', guildId);
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
@@ -88,7 +81,7 @@ module.exports = {
     const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories
-      .filter((category) => isGlobal ? !category.guildId : category.guildId === interaction.guildId)
+      .filter((category) => (isGlobal ? !category.guildId : category.guildId === interaction.guildId))
       .slice(0, 10);
 
     const usedOptionValues = new Set();
@@ -98,23 +91,17 @@ module.exports = {
       .setPlaceholder('Select a category');
 
     filteredCommandCategories.forEach((category) => {
-      if (category.commands.some((command) => command.global !== false || (isGlobal && command.guildId === guildId))) {
+      if (category.commands.some((command) => command.global !== false || command.guildId === undefined)) {
         const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
-        const selectOption = new StringSelectMenuOptionBuilder()
-          .setLabel(category.name)
-          .setValue(categoryName)
-          .setDescription(category.description);
-        selectMenu.addOption(selectOption);
+        selectMenu.addOptions(
+          new StringSelectMenuOptionBuilder()
+            .setLabel(category.name)
+            .setValue(categoryName)
+            .setDescription(category.categoryDescription || 'No description available.') // Updated line
+        );
         usedOptionValues.add(categoryName);
       }
     });
-
-    const otherCategoryOption = new StringSelectMenuOptionBuilder()
-      .setLabel('Other')
-      .setValue('other')
-      .setDescription('View other categories')
-      .setDefault(true);
-    selectMenu.addOption(otherCategoryOption);
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
