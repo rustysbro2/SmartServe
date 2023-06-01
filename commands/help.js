@@ -42,8 +42,9 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     });
 
     commandsToShow.forEach((command) => {
-      categoryEmbed.addFields(command.name, command.description);
+        categoryEmbed.addFields({ name: command.name, value: command.description });
     });
+
 
     console.log('Category Embed:', categoryEmbed);
 
