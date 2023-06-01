@@ -1,5 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
+console.log('Guild ID from config.js:', guildId);
+
 
 async function handleSelectMenu(interaction, commandCategories, guildId) {
   console.log('Interaction Guild ID:', interaction.guildId);
