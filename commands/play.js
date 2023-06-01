@@ -1,4 +1,3 @@
-// commands/play.js
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus, entersState } = require('@discordjs/voice');
@@ -12,6 +11,7 @@ module.exports = {
         .setName('url')
         .setDescription('The YouTube URL of the song to play')
         .setRequired(true)),
+
   async execute(interaction, client) {
     try {
       console.log('Executing /play command...');
@@ -57,4 +57,7 @@ module.exports = {
       await interaction.editReply({ content: `There was an error while executing this command! Error details: ${error.message}`, ephemeral: true });
     }
   },
+
+  category: 'Music',
+  categoryDescription: 'Commands related to music functionality',
 };
