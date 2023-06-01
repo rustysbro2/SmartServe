@@ -31,13 +31,14 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
       categoryEmbed.setDescription('No description available.');
     }
 
+    console.log('Category Description:', category.categoryDescription); // Debug statement
+
     console.log(`Interaction Guild ID: ${interaction.guildId}, Guild ID from config.js: ${guildId}`);
     const commandsToShow = category.commands.filter((command) => {
       const shouldShow = command.global === true || (command.global === false && interaction.guildId === guildId);
       console.log(`Should show command "${command.name}": ${shouldShow}`);
       return shouldShow;
     });
-
 
     console.log('Commands to Show:');
     commandsToShow.forEach((command) => {
@@ -69,7 +70,6 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     return;
   }
 }
-
 
 
 module.exports = {
@@ -109,8 +109,6 @@ module.exports = {
             .setDescription(category.categoryDescription || 'No description available.') // Updated line
         );
         usedOptionValues.add(categoryName);
-        console.log(`Added category '${category.name}' to the select menu with description: '${category.categoryDescription || 'No description available.'}'`); // Debug statement
-
       }
     });
 
