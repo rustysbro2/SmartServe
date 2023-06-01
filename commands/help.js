@@ -1,57 +1,28 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
-console.log('Guild ID from config.js:', guildId);
-
 
 async function handleSelectMenu(interaction, commandCategories, guildId) {
-  console.log('Interaction Guild ID:', interaction.guildId);
-
   const selectedCategory = interaction.values[0];
   const category = commandCategories.find(
     (category) =>
       category.name.toLowerCase().replace(/\s/g, '_') === selectedCategory
   );
 
-  console.log('Command Categories:');
-  commandCategories.forEach((category) => {
-    console.log(`Category: ${category.name}`);
-    console.log(`Guild ID: ${category.guildId}`);
-    console.log('Commands:', category.commands);
-  });
-
   let categoryEmbed;
 
   if (category) {
     categoryEmbed = new EmbedBuilder();
     categoryEmbed.setTitle(`Commands - ${category.name}`);
+    categoryEmbed.setDescription(category.categoryDescription || 'No description available.');
 
-    if (category.categoryDescription && category.categoryDescription.length > 0) {
-      categoryEmbed.setDescription(category.categoryDescription);
-    } else {
-      categoryEmbed.setDescription('No description available.');
-    }
-
-    console.log(`Interaction Guild ID: ${interaction.guildId}, Guild ID from config.js: ${guildId}`);
     const commandsToShow = category.commands.filter((command) => {
       const shouldShow = command.global === true || (command.global === false && interaction.guildId === guildId);
-      console.log(`Should show command "${command.name}": ${shouldShow}`);
       return shouldShow;
     });
 
-
-    console.log('Commands to Show:');
     commandsToShow.forEach((command) => {
-      console.log(`Command: ${command.name}`);
-      console.log(`Category: ${category.name}`);
-      console.log(`Global: ${command.global}`);
+      categoryEmbed.addFields({ name: command.name, value: command.description });
     });
-
-    commandsToShow.forEach((command) => {
-        categoryEmbed.addFields({ name: command.name, value: command.description });
-    });
-
-
-    console.log('Category Embed:', categoryEmbed);
 
     try {
       if (interaction.message) {
@@ -70,30 +41,22 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
   }
 }
 
-
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client, commandCategories) {
-    console.log('Guild ID from config.js:', guildId);
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
     }
-
-    const isGlobal = !guildId || (interaction.guildId && interaction.guildId === guildId);
 
     const filteredCommandCategories = commandCategories
       .filter((category) => 
         category.commands.some((command) => command.global === true || (command.global === false && interaction.guildId === guildId))
       )
       .slice(0, 10);
-
-
-    const usedOptionValues = new Set();
 
     const selectMenu = new StringSelectMenuBuilder()
       .setCustomId('help_category')
@@ -106,9 +69,8 @@ module.exports = {
           new StringSelectMenuOptionBuilder()
             .setLabel(category.name)
             .setValue(categoryName)
-            .setDescription(category.description || 'No description available.') // Updated line
+            .setDescription(category.categoryDescription || 'No description available.')
         );
-        usedOptionValues.add(categoryName);
       }
     });
 
