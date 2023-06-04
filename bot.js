@@ -6,6 +6,7 @@ const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
+const slashCommands = require('./slashCommands.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -73,42 +74,45 @@ commandCategories.forEach((category) => {
 });
 
 client.once('ready', async () => {
-  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-  client.user.setPresence({
-    activities: [
-      {
-        name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-        type: ActivityType.WATCHING,
-      },
-    ],
-    status: "online",
-  });
+  try {
+    console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+    client.user.setPresence({
+      activities: [
+        {
+          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+          type: ActivityType.WATCHING,
+        },
+      ],
+      status: "online",
+    });
 
-  inviteTracker.execute(client);
+    inviteTracker.execute(client);
 
-  const slashCommands = require('./slashCommands.js');
-  await slashCommands(client);
+    await slashCommands(client);
 
-  console.log('Command Categories:');
-  commandCategories.forEach((category) => {
-    console.log(`Category: ${category.name}`);
-    console.log(`Guild ID: ${category.guildId}`);
-    console.log('Commands:', category.commands);
-  });
+    console.log('Command Categories:');
+    commandCategories.forEach((category) => {
+      console.log(`Category: ${category.name}`);
+      console.log(`Guild ID: ${category.guildId}`);
+      console.log('Commands:', category.commands);
+    });
+  } catch (error) {
+    console.error('Error during bot initialization:', error);
+  }
 });
 
 client.on('interactionCreate', async (interaction) => {
-  if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-    helpCommand.handleSelectMenu(interaction, commandCategories, guildId); // Pass guildId to the handleSelectMenu function
-  } else if (interaction.isCommand()) {
-    const command = client.commands.get(interaction.commandName);
-    if (command) {
-      try {
+  try {
+    if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
+      helpCommand.handleSelectMenu(interaction, commandCategories, guildId); // Pass guildId to the handleSelectMenu function
+    } else if (interaction.isCommand()) {
+      const command = client.commands.get(interaction.commandName);
+      if (command) {
         await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
-      } catch (error) {
-        console.error('Error executing command:', error);
       }
     }
+  } catch (error) {
+    console.error('Error handling interaction:', error);
   }
 });
 
