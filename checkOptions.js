@@ -1,28 +1,24 @@
-const { REST, Routes } = require('discord.js');
-const { guildId, clientId, token } = require('./config');
+const { REST, Routes, ApplicationCommandOptionType } = require('discord.js');
+const { clientId, token, guildId } = require('./config.js');
 
-// Create a REST client
 const rest = new REST({ version: '10' }).setToken(token);
 
-// Fetch the registered slash commands
-async function fetchCommands() {
+const fetchCommands = async () => {
   try {
-    const commands = await rest.get(
+    const guildCommands = await rest.get(
       Routes.applicationGuildCommands(clientId, guildId)
     );
+    console.log('Guild Commands:');
+    console.log(guildCommands);
 
-    // Find the 'play' command
-    const playCommand = commands.find(command => command.name === 'play');
-
-    // Check if the command exists
-    if (playCommand) {
-      console.log('Command Options:', playCommand.options);
-    } else {
-      console.log('Command not found');
-    }
+    const globalCommands = await rest.get(
+      Routes.applicationCommands(clientId)
+    );
+    console.log('Global Commands:');
+    console.log(globalCommands);
   } catch (error) {
-    console.error('Error fetching commands:', error);
+    console.log(`There was an error: ${error}`);
   }
-}
+};
 
 fetchCommands();
