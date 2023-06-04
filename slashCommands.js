@@ -2,7 +2,6 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
-const moment = require('moment');
 const pool = require('./database.js');
 
 async function createCommandIdsTable() {
@@ -43,14 +42,6 @@ async function updateCommandData(commands, rest, client) {
       return map;
     }, {});
 
-    const deletedCommands = [];
-
-    // Retrieve the command names from the commands directory
-    const commandNamesFromDirectory = commandFiles.map((file) => {
-      const command = require(`./commands/${file}`);
-      return command.data.name.toLowerCase();
-    });
-
     for (const command of commands) {
       const { name, description, options, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
@@ -58,7 +49,6 @@ async function updateCommandData(commands, rest, client) {
 
       if (!fileName) {
         console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
-        deletedCommands.push(command); // Add the command to the deletedCommands array
         continue; // Skip to the next iteration
       }
 
@@ -95,10 +85,10 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || !isSameLastModified(command.lastModified, newLastModified)) {
+              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
-                console.log(`- Last Modified: ${command.lastModified}`);
+                console.log(`- Last Modified: ${lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
                 const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
@@ -152,10 +142,10 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || !isSameLastModified(command.lastModified, newLastModified)) {
+              if (command.commandId === null) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
-                console.log(`- Last Modified: ${command.lastModified}`);
+                console.log(`- Last Modified: ${lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
                 const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
@@ -189,31 +179,24 @@ async function updateCommandData(commands, rest, client) {
       }
     }
 
-    // Delete the command data from the database for the deleted commands
-    for (const command of deletedCommands) {
-      const { name } = command;
+    // Update the command data in the database
+    for (const command of commands) {
+      const { name, commandId, lastModified } = command;
       const lowerCaseName = name.toLowerCase();
 
-      const deleteCommandQuery = `
-        DELETE FROM commandIds WHERE commandName = ?
+      const insertUpdateQuery = `
+        INSERT INTO commandIds (commandName, commandId, lastModified)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE commandId = IF(?, commandId, commandId), lastModified = ?
       `;
 
-      await pool.promise().query(deleteCommandQuery, [lowerCaseName]);
-      console.log(`Command data deleted: ${JSON.stringify(command)}`);
+      await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
     }
 
     console.log('Command data updated successfully.');
   } catch (error) {
     console.error('Error updating command data:', error);
   }
-}
-
-// Helper function to check if two last modified dates are the same
-function isSameLastModified(lastModified1, lastModified2) {
-  const format = 'YYYY-MM-DD HH:mm:ss';
-  const formatted1 = moment(lastModified1, format);
-  const formatted2 = moment(lastModified2, format);
-  return formatted1.isSame(formatted2);
 }
 
 module.exports = async function (client) {
@@ -234,12 +217,34 @@ module.exports = async function (client) {
       description: command.data.description,
       options: command.data.options || [], // Add the options to the command data
       commandId: null, // Set commandId to null initially
-      lastModified: moment(fs.statSync(`./commands/${file}`).mtime).utc().format('YYYY-MM-DD HH:mm:ss'), // Format the last modified date in UTC
+      lastModified: fs.statSync(`./commands/${file}`).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
     // Add the command data to the commands array
     commands.push(commandData);
+  }
+
+  // Retrieve the commandIds from the database and update the commandData object
+  const selectCommandIdsQuery = `
+    SELECT commandName, commandId, lastModified FROM commandIds
+  `;
+
+  const [rows] = await pool.promise().query(selectCommandIdsQuery);
+  const commandIdMap = rows.reduce((map, row) => {
+    map[row.commandName] = { commandId: row.commandId, lastModified: row.lastModified };
+    return map;
+  }, {});
+
+  for (const command of commands) {
+    const { name } = command;
+    const lowerCaseName = name.toLowerCase();
+
+    if (commandIdMap[lowerCaseName]) {
+      const { commandId, lastModified } = commandIdMap[lowerCaseName];
+      command.commandId = commandId;
+      command.lastModified = lastModified;
+    }
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
