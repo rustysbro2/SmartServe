@@ -1,7 +1,7 @@
 // commands/setStrikeChannel.js
 
 const { SlashCommandBuilder } = require('discord.js');
-const { pool } = require('../database.js');
+const pool = require('../database.js');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
