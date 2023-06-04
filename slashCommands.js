@@ -142,13 +142,13 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.toISOString() !== lastModified.toISOString())) {
+              if (command.commandId === null) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
-                console.log(`- Last Modified: ${lastModified.toISOString()}`);
-                console.log(`- New Last Modified: ${newLastModified.toISOString()}`);
+                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- New Last Modified: ${newLastModified}`);
 
-                const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
+                const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
                   body: commandData,
                 });
 
