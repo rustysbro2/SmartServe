@@ -4,6 +4,9 @@ const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
 const pool = require('./database.js');
 
+
+
+
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
   const createTableQuery = `
@@ -271,5 +274,3 @@ module.exports = async function (client) {
     }
   }
 };
-
-registerCommands(client);
