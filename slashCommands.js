@@ -4,9 +4,6 @@ const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
 const pool = require('./database.js');
 
-
-
-
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
   const createTableQuery = `
@@ -46,7 +43,7 @@ async function updateCommandData(commands, rest, client) {
     }, {});
 
     for (const command of commands) {
-      const { name, description, lastModified, global } = command;
+      const { name, description, options, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
       const fileName = commandNameToFileMap[lowerCaseName];
 
@@ -58,6 +55,7 @@ async function updateCommandData(commands, rest, client) {
       const commandData = {
         name: name, // Use the original command name
         description: description,
+        options: options, // Add the options to the command data
       };
 
       try {
@@ -217,6 +215,7 @@ module.exports = async function (client) {
     const commandData = {
       name: setName,
       description: command.data.description,
+      options: command.data.options || [], // Add the options to the command data
       commandId: null, // Set commandId to null initially
       lastModified: fs.statSync(`./commands/${file}`).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
