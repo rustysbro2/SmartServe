@@ -1,4 +1,5 @@
-const { MessageEmbed, EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
+const pool = require('../database');
 
 async function setStrikeChannel(pool, guildId, channelId) {
   try {
@@ -84,7 +85,7 @@ async function buildStrikeLogEmbed(pool, guildId) {
     if (rows.length === 0) {
       embed.addField('No strikes found', 'No users have been struck yet.');
     } else {
-      rows.forEach(row => {
+      rows.forEach((row) => {
         const { user_id, count } = row;
         embed.addField(`User: ${user_id}`, `Strikes: ${count}`);
       });
@@ -101,5 +102,5 @@ module.exports = {
   setStrikeChannel,
   logStrike,
   getStrikes,
-  buildStrikeLogEmbed
+  buildStrikeLogEmbed,
 };
