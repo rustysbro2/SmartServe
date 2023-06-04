@@ -1,33 +1,37 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { logStrike, getStrikes } = require('../features/strikeFeature');
-const pool = require('../database');
+const { logStrike } = require('../strikeFeature');
+
+async function execute(interaction, pool) {
+  const guildId = interaction.guildId;
+  const userId = interaction.options.getUser('user').id;
+  const reason = interaction.options.getString('reason');
+
+  try {
+    await logStrike(pool, guildId, userId, reason);
+    await interaction.reply(`Strike logged for user <@${userId}>. Reason: ${reason}`);
+  } catch (error) {
+    console.error('Error logging strike:', error);
+    await interaction.reply('An error occurred while logging the strike.');
+  }
+}
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('strike')
-    .setDescription('Strike a user')
-    .addUserOption(option =>
-      option.setName('user').setDescription('Select a user').setRequired(true)
-    )
-    .addStringOption(option =>
-      option.setName('reason').setDescription('Enter the reason for the strike').setRequired(true)
-    ),
-  async execute(interaction) {
-    const user = interaction.options.getUser('user');
-    const reason = interaction.options.getString('reason');
-    const guildId = interaction.guild.id;
-
-    logStrike(pool, guildId, user.id, reason);
-
-    const strikeCount = await getStrikes(pool, guildId, user.id);
-
-    const embed = new EmbedBuilder()
-      .setColor('#FF0000')
-      .setTitle('Strike Added')
-      .setDescription(`User: ${user.tag}\nReason: ${reason}\nTotal Strikes: ${strikeCount}`)
-      .setTimestamp()
-      .build();
-
-    await interaction.reply({ embeds: [embed] });
+  data: {
+    name: 'strike',
+    description: 'Log a strike for a user',
+    options: [
+      {
+        name: 'user',
+        description: 'The user to strike',
+        type: 'USER',
+        required: true,
+      },
+      {
+        name: 'reason',
+        description: 'The reason for the strike',
+        type: 'STRING',
+        required: true,
+      },
+    ],
   },
+  execute,
 };
