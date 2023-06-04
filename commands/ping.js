@@ -7,7 +7,9 @@ module.exports = {
 
   async execute(interaction) {
     try {
-      // Command logic
+      const sent = await interaction.reply('Pinging...');
+      const latency = sent.createdTimestamp - interaction.createdTimestamp;
+      interaction.editReply(`Pong! Bot latency: ${latency}ms, API latency: ${Math.round(interaction.client.ws.ping)}ms`);
     } catch (error) {
       console.error('Error replying to ping command:', error);
     }
