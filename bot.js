@@ -1,10 +1,11 @@
+// bot.js
+
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
-const { token, guildId, ecoToken, ecoServerIp, ecoServerPort } = require('./config.js');
+const { token, guildId } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
-const Eco = require('eco');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -71,22 +72,6 @@ commandCategories.forEach((category) => {
   }
 });
 
-// Create an instance of the Eco game client
-const ecoClient = new Eco.Client({
-  token: ecoToken,
-  serverIp: ecoServerIp,
-  serverPort: ecoServerPort
-});
-
-// Listen for Eco game chat messages
-ecoClient.on('message', (message) => {
-  // Forward the game chat message to the desired Discord channel
-  const channel = client.channels.cache.get('1113620017217548308');
-  if (channel) {
-    channel.send(`[Eco] ${message.author}: ${message.content}`);
-  }
-});
-
 client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
   client.user.setPresence({
@@ -127,8 +112,4 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-// Log in to Discord
 client.login(token);
-
-// Connect to the Eco game server
-ecoClient.connect();
