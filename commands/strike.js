@@ -1,13 +1,15 @@
 const { logStrike } = require('../features/strikeFeature');
 const pool = require('../database');
 
-async function execute(interaction, pool) {
+async function execute(interaction) {
   const guildId = interaction.guildId;
   const userId = interaction.options.getUser('user').id;
   const reason = interaction.options.getString('reason');
 
   try {
+    console.log(`Logging strike for user: ${userId}`);
     await logStrike(pool, guildId, userId, reason);
+    console.log(`Strike logged for user: ${userId}`);
     await interaction.reply(`Strike logged for user <@${userId}>. Reason: ${reason}`);
   } catch (error) {
     console.error('Error logging strike:', error);
