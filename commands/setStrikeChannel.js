@@ -1,4 +1,4 @@
-const { setStrikeChannel } = require('../strikeFeature');
+const { setStrikeChannel } = require('../features/strikeFeature');
 const pool = require('../database');
 
 async function execute(interaction, pool) {
