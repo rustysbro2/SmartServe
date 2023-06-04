@@ -1,4 +1,5 @@
 const { logStrike } = require('../strikeFeature');
+const pool = require('../database');
 
 async function execute(interaction, pool) {
   const guildId = interaction.guildId;
