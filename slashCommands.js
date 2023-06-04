@@ -225,7 +225,7 @@ module.exports = async function (client) {
       description: command.data.description,
       options: command.data.options || [], // Add the options to the command data
       commandId: null, // Set commandId to null initially
-      lastModified: fs.statSync(`./commands/${file}`).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
+      lastModified: new Date(fs.statSync(`./commands/${file}`).mtime).toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
