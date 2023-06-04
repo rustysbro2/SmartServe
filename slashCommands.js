@@ -105,7 +105,23 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command registered: ${commandData.name}`);
           } else {
-            console.log(`Command skipped (already registered): ${commandData.name}`);
+            const lastModified = existingGlobalCommand.lastModified;
+            const dbLastModified = commandIdMap[lowerCaseName];
+
+            if (lastModified !== dbLastModified) {
+              // Update the command as a global command
+              const commandId = existingGlobalCommand.id;
+              const response = await rest.patch(Routes.applicationCommand(clientId, commandId), {
+                body: commandData,
+              });
+
+              // Update the last modified date in the database
+              await pool.promise().query('UPDATE commandIds SET lastModified = ? WHERE commandName = ?', [lastModified, lowerCaseName]);
+
+              console.log(`Command updated (last modified): ${commandData.name}`);
+            } else {
+              console.log(`Command skipped (already registered): ${commandData.name}`);
+            }
           }
         } else {
           const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
@@ -123,11 +139,27 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command registered: ${commandData.name}`);
           } else {
-            console.log(`Command skipped (already registered): ${commandData.name}`);
+            const lastModified = existingGuildCommand.lastModified;
+            const dbLastModified = commandIdMap[lowerCaseName];
+
+            if (lastModified !== dbLastModified) {
+              // Update the command as a guild-specific command
+              const commandId = existingGuildCommand.id;
+              const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, commandId), {
+                body: commandData,
+              });
+
+              // Update the last modified date in the database
+              await pool.promise().query('UPDATE commandIds SET lastModified = ? WHERE commandName = ?', [lastModified, lowerCaseName]);
+
+              console.log(`Command updated (last modified): ${commandData.name}`);
+            } else {
+              console.log(`Command skipped (already registered): ${commandData.name}`);
+            }
           }
         }
       } catch (error) {
-        console.error(`Error registering command '${commandData.name}':`, error);
+        console.error(`Error registering/updating command '${commandData.name}':`, error);
       }
     }
 
@@ -166,7 +198,7 @@ module.exports = async function (client) {
   try {
     console.log('Started refreshing application (/) commands.');
 
-    // Update the command data and register the slash commands
+    // Update the command data and register/update the slash commands
     await updateCommandData(commands, rest, client);
 
     console.log('Successfully refreshed application (/) commands.');
