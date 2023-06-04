@@ -42,6 +42,8 @@ async function updateCommandData(commands, rest, client) {
       return map;
     }, {});
 
+    const deletedCommands = [];
+
     for (const command of commands) {
       const { name, description, options, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
@@ -49,6 +51,7 @@ async function updateCommandData(commands, rest, client) {
 
       if (!fileName) {
         console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
+        deletedCommands.push(command); // Add the command to the deletedCommands array
         continue; // Skip to the next iteration
       }
 
@@ -179,18 +182,17 @@ async function updateCommandData(commands, rest, client) {
       }
     }
 
-    // Update the command data in the database
-    for (const command of commands) {
-      const { name, commandId, lastModified } = command;
+    // Delete the command data from the database for the deleted commands
+    for (const command of deletedCommands) {
+      const { name } = command;
       const lowerCaseName = name.toLowerCase();
 
-      const insertUpdateQuery = `
-        INSERT INTO commandIds (commandName, commandId, lastModified)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = IF(?, commandId, commandId), lastModified = ?
+      const deleteCommandQuery = `
+        DELETE FROM commandIds WHERE commandName = ?
       `;
 
-      await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
+      await pool.promise().query(deleteCommandQuery, [lowerCaseName]);
+      console.log(`Command data deleted: ${JSON.stringify(command)}`);
     }
 
     console.log('Command data updated successfully.');
