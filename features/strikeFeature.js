@@ -1,42 +1,25 @@
-// features/strikeFeature.js
-
-const database = require('../database');
-
-module.exports.execute = async (client, interaction) => {
-  const subcommand = interaction.options.getSubcommand();
-  const user = interaction.options.getUser('user');
-  const action = interaction.options.getString('action');
-  const reason = interaction.options.getString('reason');
-
-  if (subcommand === 'manage') {
-    if (action === 'add') {
-      try {
-        // Add a strike for the user
-        await addStrike(user.id, reason);
-        await interaction.reply(`${user.username} has been given a strike for: ${reason}`);
-      } catch (error) {
-        console.error('Error adding strike:', error);
-        await interaction.reply('An error occurred while adding a strike.');
-      }
-    } else if (action === 'remove') {
-      try {
-        // Remove a strike for the user
-        await removeStrike(user.id);
-        await interaction.reply(`${user.username}'s strike has been removed.`);
-      } catch (error) {
-        console.error('Error removing strike:', error);
-        await interaction.reply('An error occurred while removing a strike.');
-      }
-    }
-  }
-};
+const pool = require('../database');
 
 async function addStrike(userId, reason) {
-  const query = 'INSERT INTO strikes (user_id, reason) VALUES (?, ?)';
-  await database.query(query, [userId, reason]);
+  try {
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS strikes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id VARCHAR(255) NOT NULL,
+        reason VARCHAR(255) NOT NULL,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    await pool.query(createTableQuery);
+
+    const insertQuery = 'INSERT INTO strikes (user_id, reason) VALUES (?, ?)';
+    await pool.query(insertQuery, [userId, reason]);
+    console.log(`Added strike for user with ID: ${userId}`);
+  } catch (error) {
+    console.error('Error adding strike:', error);
+  }
 }
 
-async function removeStrike(userId) {
-  const query = 'DELETE FROM strikes WHERE user_id = ? LIMIT 1';
-  await database.query(query, [userId]);
-}
+module.exports = {
+  addStrike,
+};
