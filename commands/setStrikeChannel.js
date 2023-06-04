@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { setStrikeChannel } = require('../features/strikeFeature');
 const pool = require('../database');
 
@@ -7,9 +7,7 @@ module.exports = {
     .setName('setstrikechannel')
     .setDescription('Set the strike channel')
     .addChannelOption(option =>
-      option.setName('channel')
-        .setDescription('Select the strike channel')
-        .setRequired(true)
+      option.setName('channel').setDescription('Select the strike channel').setRequired(true)
     ),
   async execute(interaction) {
     const channelId = interaction.options.getChannel('channel').id;
@@ -17,6 +15,13 @@ module.exports = {
 
     setStrikeChannel(pool, guildId, channelId);
 
-    await interaction.reply(`Strike channel has been set to <#${channelId}>.`);
+    const embed = new EmbedBuilder()
+      .setColor('#00FF00')
+      .setTitle('Strike Channel Set')
+      .setDescription(`Strike channel has been set to <#${channelId}>.`)
+      .setTimestamp()
+      .build();
+
+    await interaction.reply({ embeds: [embed] });
   },
 };
