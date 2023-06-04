@@ -18,18 +18,29 @@ function initializeDatabase() {
 }
 
 async function setStrikeChannel(guildId, channelId) {
-  const query = `
-    INSERT INTO strike_channels (guild_id, channel_id)
-    VALUES (?, ?)
-    ON DUPLICATE KEY UPDATE channel_id = ?;
-  `;
   try {
-    await database.query(query, [guildId, channelId, channelId]);
-    console.log('Strike channel set successfully');
+    const query = `
+      CREATE TABLE IF NOT EXISTS strike_channels (
+        guild_id VARCHAR(20) NOT NULL,
+        channel_id VARCHAR(20) NOT NULL,
+        PRIMARY KEY (guild_id)
+      )
+    `;
+    await pool.query(query);
+
+    const insertQuery = `
+      INSERT INTO strike_channels (guild_id, channel_id)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE channel_id = ?
+    `;
+    await pool.query(insertQuery, [guildId, channelId, channelId]);
+
+    console.log('Strike channel has been set successfully.');
   } catch (error) {
     console.error('Error setting strike channel:', error);
   }
 }
+
 
 async function getStrikeChannel(guildId) {
   const query = `
