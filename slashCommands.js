@@ -234,7 +234,7 @@ module.exports = async function (client) {
       description: command.data.description,
       options: command.data.options || [], // Add the options to the command data
       commandId: null, // Set commandId to null initially
-      lastModified: moment(fs.statSync(`./commands/${file}`).mtime).format('YYYY-MM-DD HH:mm:ss'), // Format the last modified date
+      lastModified: moment(fs.statSync(`./commands/${file}`).mtime).utc().format('YYYY-MM-DD HH:mm:ss'), // Format the last modified date in UTC
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
@@ -268,4 +268,3 @@ module.exports = async function (client) {
     }
   }
 };
-
