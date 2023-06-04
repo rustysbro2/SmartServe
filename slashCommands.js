@@ -2,6 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
+const moment = require('moment');
 const pool = require('./database.js');
 
 async function createCommandIdsTable() {
@@ -94,10 +95,10 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
+              if (command.commandId === null || !isSameLastModified(command.lastModified, newLastModified)) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
-                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- Last Modified: ${command.lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
                 const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
@@ -151,10 +152,10 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
+              if (command.commandId === null || !isSameLastModified(command.lastModified, newLastModified)) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
-                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- Last Modified: ${command.lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
                 const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
@@ -207,6 +208,14 @@ async function updateCommandData(commands, rest, client) {
   }
 }
 
+// Helper function to check if two last modified dates are the same
+function isSameLastModified(lastModified1, lastModified2) {
+  const format = 'YYYY-MM-DD HH:mm:ss';
+  const formatted1 = moment(lastModified1, format);
+  const formatted2 = moment(lastModified2, format);
+  return formatted1.isSame(formatted2);
+}
+
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
@@ -225,7 +234,7 @@ module.exports = async function (client) {
       description: command.data.description,
       options: command.data.options || [], // Add the options to the command data
       commandId: null, // Set commandId to null initially
-      lastModified: new Date(fs.statSync(`./commands/${file}`).mtime).toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
+      lastModified: moment(fs.statSync(`./commands/${file}`).mtime).format('YYYY-MM-DD HH:mm:ss'), // Format the last modified date
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
     };
 
