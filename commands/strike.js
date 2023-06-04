@@ -1,4 +1,4 @@
-const { logStrike } = require('../strikeFeature');
+const { logStrike } = require('../features/strikeFeature');
 const pool = require('../database');
 
 async function execute(interaction, pool) {
