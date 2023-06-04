@@ -44,6 +44,12 @@ async function updateCommandData(commands, rest, client) {
 
     const deletedCommands = [];
 
+    // Retrieve the command names from the commands directory
+    const commandNamesFromDirectory = commandFiles.map((file) => {
+      const command = require(`./commands/${file}`);
+      return command.data.name.toLowerCase();
+    });
+
     for (const command of commands) {
       const { name, description, options, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
@@ -145,7 +151,7 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null) {
+              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
                 console.log(`- Last Modified: ${lastModified}`);
@@ -179,25 +185,6 @@ async function updateCommandData(commands, rest, client) {
         }
       } catch (error) {
         console.error(`Error updating command data: ${error.message}`);
-      }
-
-      // Save the command data to the database
-      if (command.commandId) {
-        const { name, commandId, lastModified } = command;
-        const lowerCaseName = name.toLowerCase();
-
-        const upsertCommandQuery = `
-          INSERT INTO commandIds (commandName, commandId, lastModified)
-          VALUES (?, ?, ?)
-          ON DUPLICATE KEY UPDATE commandId = VALUES(commandId), lastModified = VALUES(lastModified)
-        `;
-
-        try {
-          await pool.promise().query(upsertCommandQuery, [lowerCaseName, commandId, lastModified]);
-          console.log(`Command data saved to the database: ${JSON.stringify(command)}`);
-        } catch (error) {
-          console.error(`Error saving command data to the database: ${error}`);
-        }
       }
     }
 
@@ -244,28 +231,6 @@ module.exports = async function (client) {
 
     // Add the command data to the commands array
     commands.push(commandData);
-  }
-
-  // Retrieve the commandIds from the database and update the commandData object
-  const selectCommandIdsQuery = `
-    SELECT commandName, commandId, lastModified FROM commandIds
-  `;
-
-  const [rows] = await pool.promise().query(selectCommandIdsQuery);
-  const commandIdMap = rows.reduce((map, row) => {
-    map[row.commandName] = { commandId: row.commandId, lastModified: row.lastModified };
-    return map;
-  }, {});
-
-  for (const command of commands) {
-    const { name } = command;
-    const lowerCaseName = name.toLowerCase();
-
-    if (commandIdMap[lowerCaseName]) {
-      const { commandId, lastModified } = commandIdMap[lowerCaseName];
-      command.commandId = commandId;
-      command.lastModified = lastModified;
-    }
   }
 
   const rest = new REST({ version: '10' }).setToken(token);
