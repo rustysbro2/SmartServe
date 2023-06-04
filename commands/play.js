@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs');
+const { SlashCommandBuilder } = require('@discord.js');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus, entersState } = require('@discordjs/voice');
 
