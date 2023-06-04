@@ -44,12 +44,6 @@ async function updateCommandData(commands, rest, client) {
 
     const deletedCommands = [];
 
-    // Retrieve the command names from the commands directory
-    const commandNamesFromDirectory = commandFiles.map((file) => {
-      const command = require(`./commands/${file}`);
-      return command.data.name.toLowerCase();
-    });
-
     for (const command of commands) {
       const { name, description, options, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
@@ -91,13 +85,13 @@ async function updateCommandData(commands, rest, client) {
 
             if (commandFileExists) {
               // Check if the last modified date has changed
-              const newLastModified = fs.statSync(commandFilePath).mtime;
+              const newLastModified = new Date(fs.statSync(commandFilePath).mtime).toISOString().slice(0, 16);
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
+              if (command.commandId === null || command.lastModified !== newLastModified) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
-                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- Last Modified: ${command.lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
                 const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
@@ -148,13 +142,13 @@ async function updateCommandData(commands, rest, client) {
 
             if (commandFileExists) {
               // Check if the last modified date has changed
-              const newLastModified = fs.statSync(commandFilePath).mtime;
+              const newLastModified = new Date(fs.statSync(commandFilePath).mtime).toISOString().slice(0, 16);
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
+              if (command.commandId === null || command.lastModified !== newLastModified) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
-                console.log(`- Last Modified: ${lastModified}`);
+                console.log(`- Last Modified: ${command.lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
                 const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
