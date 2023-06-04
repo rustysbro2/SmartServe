@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder, StringOption } = require('discord.js');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus, entersState } = require('@discordjs/voice');
 
@@ -10,7 +10,8 @@ module.exports = {
       option
         .setName('url')
         .setDescription('The YouTube URL of the song to play')
-        .setRequired(true)),
+        .setRequired(true)
+    ),
 
   async execute(interaction, client) {
     try {
