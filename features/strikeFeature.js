@@ -100,6 +100,7 @@ async function buildStrikeLogEmbed(guildId) {
   }
 }
 
+
 module.exports = {
   setStrikeChannel,
   logStrike,
