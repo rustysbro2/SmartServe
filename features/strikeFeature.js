@@ -1,23 +1,6 @@
-const database = require('../database.js');
+const { MessageEmbed, EmbedBuilder } = require('discord.js');
 
-function initializeDatabase() {
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS strike_channels (
-      guild_id VARCHAR(20) NOT NULL,
-      channel_id VARCHAR(20) NOT NULL,
-      PRIMARY KEY (guild_id)
-    );
-  `;
-  database.query(createTableQuery)
-    .then(() => {
-      console.log('strike_channels table created');
-    })
-    .catch((error) => {
-      console.error('Error creating strike_channels table:', error);
-    });
-}
-
-async function setStrikeChannel(guildId, channelId) {
+async function setStrikeChannel(pool, guildId, channelId) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS strike_channels (
@@ -41,27 +24,82 @@ async function setStrikeChannel(guildId, channelId) {
   }
 }
 
-
-async function getStrikeChannel(guildId) {
-  const query = `
-    SELECT channel_id
-    FROM strike_channels
-    WHERE guild_id = ?;
-  `;
+async function logStrike(pool, guildId, userId, reason) {
   try {
-    const [rows] = await database.query(query, [guildId]);
-    if (rows.length > 0) {
-      return rows[0].channel_id;
-    }
-    return null;
+    const query = `
+      CREATE TABLE IF NOT EXISTS strikes (
+        guild_id VARCHAR(20) NOT NULL,
+        user_id VARCHAR(20) NOT NULL,
+        reason VARCHAR(255) NOT NULL,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (guild_id, user_id, timestamp)
+      )
+    `;
+    await pool.query(query);
+
+    const insertQuery = `
+      INSERT INTO strikes (guild_id, user_id, reason)
+      VALUES (?, ?, ?)
+    `;
+    await pool.query(insertQuery, [guildId, userId, reason]);
+
+    console.log('Strike logged successfully.');
   } catch (error) {
-    console.error('Error getting strike channel:', error);
+    console.error('Error logging strike:', error);
+  }
+}
+
+async function getStrikes(pool, guildId, userId) {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM strikes
+      WHERE guild_id = ? AND user_id = ?
+    `;
+    const [rows] = await pool.query(query, [guildId, userId]);
+
+    return rows[0].count;
+  } catch (error) {
+    console.error('Error retrieving strikes:', error);
+    return 0;
+  }
+}
+
+async function buildStrikeLogEmbed(pool, guildId) {
+  try {
+    const query = `
+      SELECT user_id, COUNT(*) AS count
+      FROM strikes
+      WHERE guild_id = ?
+      GROUP BY user_id
+    `;
+    const [rows] = await pool.query(query, [guildId]);
+
+    const embed = new EmbedBuilder()
+      .setColor('#FF0000')
+      .setTitle('Strike Log')
+      .setDescription('Here is the strike log for this guild:')
+      .setTimestamp();
+
+    if (rows.length === 0) {
+      embed.addField('No strikes found', 'No users have been struck yet.');
+    } else {
+      rows.forEach(row => {
+        const { user_id, count } = row;
+        embed.addField(`User: ${user_id}`, `Strikes: ${count}`);
+      });
+    }
+
+    return embed.build();
+  } catch (error) {
+    console.error('Error building strike log embed:', error);
     return null;
   }
 }
 
 module.exports = {
-  initializeDatabase,
   setStrikeChannel,
-  getStrikeChannel,
+  logStrike,
+  getStrikes,
+  buildStrikeLogEmbed
 };
