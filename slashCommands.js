@@ -145,7 +145,7 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (command.commandId === null) {
+              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
                 console.log(`- Last Modified: ${lastModified}`);
@@ -193,6 +193,21 @@ async function updateCommandData(commands, rest, client) {
 
       await pool.promise().query(deleteCommandQuery, [lowerCaseName]);
       console.log(`Command data deleted: ${JSON.stringify(command)}`);
+    }
+
+    // Save the command data to the database
+    for (const command of commands) {
+      const { name, commandId, lastModified } = command;
+      const lowerCaseName = name.toLowerCase();
+
+      const updateCommandQuery = `
+        INSERT INTO commandIds (commandName, commandId, lastModified)
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE commandId = VALUES(commandId), lastModified = VALUES(lastModified)
+      `;
+
+      await pool.promise().query(updateCommandQuery, [lowerCaseName, commandId, lastModified]);
+      console.log(`Command data saved to the database: ${JSON.stringify(command)}`);
     }
 
     console.log('Command data updated successfully.');
