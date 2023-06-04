@@ -77,77 +77,111 @@ async function updateCommandData(commands, rest, client) {
 
         if (fileLastModified > dbLastModified) {
           // File has been modified, update the command
-          // ...
+          const commandData = {
+            name: commandName,
+            description: command.data.description,
+            options: command.data.options || [],
+          };
 
-          // Update the last modified date in the database
-          await pool.promise().query('UPDATE commandIds SET lastModified = ? WHERE commandName = ?', [fileLastModified, commandName]);
+          try {
+            if (command.global) {
+              const existingGlobalCommand = existingGlobalCommands.find(
+                (cmd) => cmd.name.toLowerCase() === commandName.toLowerCase()
+              );
 
-          console.log(`Command updated (last modified): ${commandData.name}`);
-          console.log(`Old Modified Date: ${dbLastModified}`);
-          console.log(`New Modified Date: ${fileLastModified}`);
-        } else {
-          console.log(`Command skipped (already registered): ${commandData.name}`);
-        }
-      }
-    }
+              if (!existingGlobalCommand) {
+                // Register the command as a global command
+                const response = await rest.post(Routes.applicationCommands(clientId), {
+                  body: commandData,
+                });
 
-    // Register or update commands
-    for (const command of commands) {
-      const { name, description, options, global } = command;
-      const lowerCaseName = name.toLowerCase();
-      const fileName = commandNameToFileMap[lowerCaseName];
+                const newCommandId = response.id;
 
-      if (!fileName) {
-        console.log(`Skipping command update due to missing command file: ${JSON.stringify(command)}`);
-        continue; // Skip to the next iteration
-      }
+                // Insert the command data into the database
+                await pool.promise().query(
+                  'INSERT INTO commandIds (commandName, commandId, lastModified) VALUES (?, ?, ?)',
+                  [commandName, newCommandId, response.lastModified]
+                );
 
-      const commandData = {
-        name: name,
-        description: description,
-        options: options,
-      };
+                console.log(`Command registered: ${commandName}`);
+              } else {
+                const lastModified = existingGlobalCommand.lastModified;
+                const dbLastModified = commandDataMap[commandName].lastModified;
 
-      try {
-        if (global) {
-          const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
+                if (lastModified !== dbLastModified) {
+                  // Update the command as a global command
+                  const commandId = existingGlobalCommand.id;
+                  const response = await rest.patch(Routes.applicationCommand(clientId, commandId), {
+                    body: commandData,
+                  });
 
-          if (!existingGlobalCommand) {
-            // Register the command as a global command
-            const response = await rest.post(Routes.applicationCommands(clientId), {
-              body: commandData,
-            });
+                  // Update the last modified date in the database
+                  await pool.promise().query(
+                    'UPDATE commandIds SET lastModified = ? WHERE commandName = ?',
+                    [response.lastModified, commandName]
+                  );
 
-            const newCommandId = response.id;
+                  console.log(`Command updated (last modified): ${commandName}`);
+                  console.log(`Old Modified Date: ${dbLastModified}`);
+                  console.log(`New Modified Date: ${response.lastModified}`);
+                } else {
+                  console.log(`Command skipped (already registered): ${commandName}`);
+                }
+              }
+            } else {
+              const existingGuildCommand = existingGuildCommands.find(
+                (cmd) => cmd.name.toLowerCase() === commandName.toLowerCase()
+              );
 
-            // Insert the command data into the database
-            await pool.promise().query('INSERT INTO commandIds (commandName, commandId, lastModified) VALUES (?, ?, ?)', [lowerCaseName, newCommandId, response.lastModified]);
+              if (!existingGuildCommand) {
+                // Register the command as a guild-specific command
+                const response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
+                  body: commandData,
+                });
 
-            console.log(`Command registered: ${commandData.name}`);
-          } else {
-            // ...
+                const newCommandId = response.id;
+
+                // Insert the command data into the database
+                await pool.promise().query(
+                  'INSERT INTO commandIds (commandName, commandId, lastModified) VALUES (?, ?, ?)',
+                  [commandName, newCommandId, response.lastModified]
+                );
+
+                console.log(`Command registered: ${commandName}`);
+              } else {
+                const lastModified = existingGuildCommand.lastModified;
+                const dbLastModified = commandDataMap[commandName].lastModified;
+
+                if (lastModified !== dbLastModified) {
+                  // Update the command as a guild-specific command
+                  const commandId = existingGuildCommand.id;
+                  const response = await rest.patch(
+                    Routes.applicationGuildCommand(clientId, guildId, commandId),
+                    {
+                      body: commandData,
+                    }
+                  );
+
+                  // Update the last modified date in the database
+                  await pool.promise().query(
+                    'UPDATE commandIds SET lastModified = ? WHERE commandName = ?',
+                    [response.lastModified, commandName]
+                  );
+
+                  console.log(`Command updated (last modified): ${commandName}`);
+                  console.log(`Old Modified Date: ${dbLastModified}`);
+                  console.log(`New Modified Date: ${response.lastModified}`);
+                } else {
+                  console.log(`Command skipped (already registered): ${commandName}`);
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`Error registering/updating command '${commandName}':`, error);
           }
         } else {
-          const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
-
-          if (!existingGuildCommand) {
-            // Register the command as a guild-specific command
-            const response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
-              body: commandData,
-            });
-
-            const newCommandId = response.id;
-
-            // Insert the command data into the database
-            await pool.promise().query('INSERT INTO commandIds (commandName, commandId, lastModified) VALUES (?, ?, ?)', [lowerCaseName, newCommandId, response.lastModified]);
-
-            console.log(`Command registered: ${commandData.name}`);
-          } else {
-            // ...
-          }
+          console.log(`Command skipped (already registered): ${commandName}`);
         }
-      } catch (error) {
-        console.error(`Error registering/updating command '${commandData.name}':`, error);
       }
     }
 
