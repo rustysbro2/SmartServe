@@ -1,27 +1,24 @@
-const { REST, Routes, ApplicationCommandOptionType } = require('discord.js');
-const { clientId, token, guildId } = require('./config.js');
+require('dotenv').config();
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { clientId, guildId, token } = require('./config.js');
 
-const rest = new REST({ version: '10' }).setToken(token);
+const rest = new REST({ version: '9' }).setToken(token);
 
-const fetchCommands = async () => {
+(async () => {
   try {
-    const globalCommands = await rest.get(
-      Routes.applicationCommands(clientId)
+    console.log('Fetching slash commands...');
+    const commands = await rest.get(
+      Routes.applicationGuildCommands(clientId, guildId)
     );
-    console.log('Global Commands:');
-    console.log(globalCommands);
+    console.log('Slash commands:', commands);
 
-    console.log('Global Command Options:');
-    for (const command of globalCommands) {
-      const commandDetails = await rest.get(
-        Routes.applicationCommand(clientId, command.id)
-      );
+    console.log('Command Options:');
+    commands.forEach((command) => {
       console.log('Command:', command.name);
-      console.log('Options:', commandDetails.options);
-    }
+      console.log('Options:', command.options);
+    });
   } catch (error) {
-    console.log(`There was an error: ${error}`);
+    console.error('Error fetching slash commands:', error);
   }
-};
-
-fetchCommands();
+})();
