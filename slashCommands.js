@@ -34,11 +34,14 @@ async function updateCommandData(commands, rest, client) {
     // Read command files from the commands directory
     const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
 
-    // Map command names to lowercase file names
+    // Map command names to lowercase file names and retrieve last modified date of command files
     const commandNameToFileMap = commandFiles.reduce((map, file) => {
       const command = require(`./commands/${file}`);
       const lowerCaseName = command.data.name.toLowerCase();
-      map[lowerCaseName] = file;
+      map[lowerCaseName] = {
+        file: file,
+        lastModified: fs.statSync(`./commands/${file}`).mtime,
+      };
       return map;
     }, {});
 
@@ -67,6 +70,23 @@ async function updateCommandData(commands, rest, client) {
           console.log(`Command deleted: ${commandName}`);
         } catch (error) {
           console.error(`Error deleting command '${commandName}' from the API:`, error);
+        }
+      } else {
+        const { file, lastModified: fileLastModified } = commandNameToFileMap[commandName];
+        const { commandId, lastModified: dbLastModified } = commandDataMap[commandName];
+
+        if (fileLastModified > dbLastModified) {
+          // File has been modified, update the command
+          // ...
+
+          // Update the last modified date in the database
+          await pool.promise().query('UPDATE commandIds SET lastModified = ? WHERE commandName = ?', [fileLastModified, commandName]);
+
+          console.log(`Command updated (last modified): ${commandData.name}`);
+          console.log(`Old Modified Date: ${dbLastModified}`);
+          console.log(`New Modified Date: ${fileLastModified}`);
+        } else {
+          console.log(`Command skipped (already registered): ${commandData.name}`);
         }
       }
     }
@@ -105,25 +125,7 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command registered: ${commandData.name}`);
           } else {
-            const lastModified = existingGlobalCommand.lastModified;
-            const dbLastModified = commandDataMap[lowerCaseName].lastModified;
-
-            if (lastModified !== dbLastModified) {
-              // Update the command as a global command
-              const commandId = existingGlobalCommand.id;
-              const response = await rest.patch(Routes.applicationCommand(clientId, commandId), {
-                body: commandData,
-              });
-
-              // Update the last modified date in the database
-              await pool.promise().query('UPDATE commandIds SET lastModified = ? WHERE commandName = ?', [response.lastModified, lowerCaseName]);
-
-              console.log(`Command updated (last modified): ${commandData.name}`);
-              console.log(`Old Modified Date: ${dbLastModified}`);
-              console.log(`New Modified Date: ${response.lastModified}`);
-            } else {
-              console.log(`Command skipped (already registered): ${commandData.name}`);
-            }
+            // ...
           }
         } else {
           const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
@@ -141,25 +143,7 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command registered: ${commandData.name}`);
           } else {
-            const lastModified = existingGuildCommand.lastModified;
-            const dbLastModified = commandDataMap[lowerCaseName].lastModified;
-
-            if (lastModified !== dbLastModified) {
-              // Update the command as a guild-specific command
-              const commandId = existingGuildCommand.id;
-              const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, commandId), {
-                body: commandData,
-              });
-
-              // Update the last modified date in the database
-              await pool.promise().query('UPDATE commandIds SET lastModified = ? WHERE commandName = ?', [response.lastModified, lowerCaseName]);
-
-              console.log(`Command updated (last modified): ${commandData.name}`);
-              console.log(`Old Modified Date: ${dbLastModified}`);
-              console.log(`New Modified Date: ${response.lastModified}`);
-            } else {
-              console.log(`Command skipped (already registered): ${commandData.name}`);
-            }
+            // ...
           }
         }
       } catch (error) {
