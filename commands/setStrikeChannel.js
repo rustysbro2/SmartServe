@@ -1,13 +1,15 @@
 const { setStrikeChannel } = require('../features/strikeFeature');
 const pool = require('../database');
 
-async function execute(interaction, pool) {
+async function execute(interaction) {
   const guildId = interaction.guildId;
   const channelId = interaction.options.getChannel('channel').id;
 
   try {
+    console.log(`Setting strike channel for guild: ${guildId}`);
     await setStrikeChannel(pool, guildId, channelId);
-    await interaction.reply('Strike channel has been set successfully.');
+    console.log(`Strike channel set for guild: ${guildId}`);
+    await interaction.reply(`Strike channel has been set successfully.`);
   } catch (error) {
     console.error('Error setting strike channel:', error);
     await interaction.reply('An error occurred while setting the strike channel.');
@@ -17,12 +19,12 @@ async function execute(interaction, pool) {
 module.exports = {
   data: {
     name: 'setstrikechannel',
-    description: 'Set the channel where strikes will be logged',
+    description: 'Set the channel for strike notifications',
     options: [
       {
         name: 'channel',
-        description: 'The channel to set as the strike channel',
-        type: 'CHANNEL',
+        description: 'The channel to set for strike notifications',
+        type: 7, // Channel type: 7
         required: true,
       },
     ],
