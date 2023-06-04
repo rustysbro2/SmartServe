@@ -25,13 +25,13 @@ module.exports = {
       {
         name: 'user',
         description: 'The user to strike',
-        type: 6, // User type: 6
+        type: 6,
         required: true,
       },
       {
         name: 'reason',
         description: 'The reason for the strike',
-        type: 3, // String type: 3
+        type: 3,
         required: true,
       },
     ],
