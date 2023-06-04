@@ -52,29 +52,21 @@ async function updateCommandData(commands, rest, client) {
       return map;
     }, {});
 
-    // Delete commands that are in the API but not in the database or command files
-    for (const command of existingGlobalCommands) {
-      const lowerCaseName = command.name.toLowerCase();
+    // Delete commands that are in the database but no longer exist as command files
+    for (const commandName in commandIdMap) {
+      if (!commandNamesSet.has(commandName)) {
+        const commandId = commandIdMap[commandName];
+        delete commandIdMap[commandName];
 
-      if (!commandNamesSet.has(lowerCaseName) && !commandIdMap[lowerCaseName]) {
+        // Delete the command from the database
+        await pool.promise().query('DELETE FROM commandIds WHERE commandName = ?', [commandName]);
+
+        // Delete the command from the API
         try {
-          await rest.delete(Routes.applicationCommand(clientId, command.id));
-          console.log(`Command deleted from API: ${command.name}`);
+          await rest.delete(Routes.applicationCommand(clientId, commandId));
+          console.log(`Command deleted: ${commandName}`);
         } catch (error) {
-          console.error(`Error deleting command '${command.name}' from the API:`, error);
-        }
-      }
-    }
-
-    for (const command of existingGuildCommands) {
-      const lowerCaseName = command.name.toLowerCase();
-
-      if (!commandNamesSet.has(lowerCaseName) && !commandIdMap[lowerCaseName]) {
-        try {
-          await rest.delete(Routes.applicationGuildCommand(clientId, guildId, command.id));
-          console.log(`Guild-specific command deleted from API: ${command.name}`);
-        } catch (error) {
-          console.error(`Error deleting guild-specific command '${command.name}' from the API:`, error);
+          console.error(`Error deleting command '${commandName}' from the API:`, error);
         }
       }
     }
@@ -113,7 +105,7 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command registered: ${commandData.name}`);
           } else {
-            console.log(`Command already registered: ${commandData.name}`);
+            console.log(`Command skipped (already registered): ${commandData.name}`);
           }
         } else {
           const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
@@ -131,7 +123,7 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command registered: ${commandData.name}`);
           } else {
-            console.log(`Command already registered: ${commandData.name}`);
+            console.log(`Command skipped (already registered): ${commandData.name}`);
           }
         }
       } catch (error) {
