@@ -1,7 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const pool = require('../database');
 
-async function setStrikeChannel(pool, guildId, channelId) {
+async function setStrikeChannel(guildId, channelId) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS strike_channels (
@@ -25,7 +25,7 @@ async function setStrikeChannel(pool, guildId, channelId) {
   }
 }
 
-async function logStrike(pool, guildId, userId, reason) {
+async function logStrike(guildId, userId, reason) {
   try {
     const query = `
       CREATE TABLE IF NOT EXISTS strikes (
@@ -50,7 +50,7 @@ async function logStrike(pool, guildId, userId, reason) {
   }
 }
 
-async function getStrikes(pool, guildId, userId) {
+async function getStrikes(guildId, userId) {
   try {
     const query = `
       SELECT COUNT(*) AS count
@@ -66,7 +66,7 @@ async function getStrikes(pool, guildId, userId) {
   }
 }
 
-async function buildStrikeLogEmbed(pool, guildId) {
+async function buildStrikeLogEmbed(guildId) {
   try {
     const query = `
       SELECT user_id, COUNT(*) AS count
@@ -82,12 +82,14 @@ async function buildStrikeLogEmbed(pool, guildId) {
       .setDescription('Here is the strike log for this guild:')
       .setTimestamp();
 
-    if (rows.length === 0) {
-      embed.addField('No strikes found', 'No users have been struck yet.');
+    const usersWithStrikes = rows.filter((row) => row.count > 0);
+
+    if (usersWithStrikes.length === 0) {
+      embed.addFields({ name: 'No strikes found', value: 'No users have been struck yet.' });
     } else {
-      rows.forEach((row) => {
+      usersWithStrikes.forEach((row) => {
         const { user_id, count } = row;
-        embed.addField(`User: ${user_id}`, `Strikes: ${count}`);
+        embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
       });
     }
 
