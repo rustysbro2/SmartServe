@@ -64,7 +64,7 @@ async function updateCommandData(commands, rest, client) {
         // Delete the command from the API
         try {
           await rest.delete(Routes.applicationCommand(clientId, commandId));
-          console.log(`Command deleted: ${commandName}`);
+          console.log(`Deleted command: ${commandName}`);
         } catch (error) {
           console.error(`Error deleting command '${commandName}' from the API:`, error);
         }
@@ -78,7 +78,7 @@ async function updateCommandData(commands, rest, client) {
       const fileName = commandNameToFileMap[lowerCaseName];
 
       if (!fileName) {
-        console.log(`Skipping command update due to missing command file: ${JSON.stringify(command)}`);
+        console.log(`Skipping command update due to missing command file: ${name}`);
         continue; // Skip to the next iteration
       }
 
@@ -103,7 +103,7 @@ async function updateCommandData(commands, rest, client) {
             // Update the command data in the database
             await pool.promise().query('INSERT INTO commandIds (commandName, commandId) VALUES (?, ?) ON DUPLICATE KEY UPDATE commandId = ?', [lowerCaseName, newCommandId, newCommandId]);
 
-            console.log(`Command registered: ${commandData.name}`);
+            console.log(`Registered command: ${commandData.name}`);
           } else if (existingGlobalCommand.lastModified !== commandIdMap[lowerCaseName].lastModified) {
             // Update the command as a global command
             const commandId = commandIdMap[lowerCaseName].commandId;
@@ -114,7 +114,7 @@ async function updateCommandData(commands, rest, client) {
             // Update the last modified date in the database
             await pool.promise().query('UPDATE commandIds SET lastModified = ? WHERE commandName = ?', [new Date(), lowerCaseName]);
 
-            console.log(`Command updated (last modified): ${commandData.name}`);
+            console.log(`Updated command (last modified): ${commandData.name}`);
           }
         } else {
           const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
@@ -130,7 +130,7 @@ async function updateCommandData(commands, rest, client) {
             // Update the command data in the database
             await pool.promise().query('INSERT INTO commandIds (commandName, commandId) VALUES (?, ?) ON DUPLICATE KEY UPDATE commandId = ?', [lowerCaseName, newCommandId, newCommandId]);
 
-            console.log(`Command registered: ${commandData.name}`);
+            console.log(`Registered command: ${commandData.name}`);
           } else if (existingGuildCommand.lastModified !== commandIdMap[lowerCaseName].lastModified) {
             // Update the command as a guild-specific command
             const commandId = commandIdMap[lowerCaseName].commandId;
@@ -141,7 +141,7 @@ async function updateCommandData(commands, rest, client) {
             // Update the last modified date in the database
             await pool.promise().query('UPDATE commandIds SET lastModified = ? WHERE commandName = ?', [new Date(), lowerCaseName]);
 
-            console.log(`Command updated (last modified): ${commandData.name}`);
+            console.log(`Updated command (last modified): ${commandData.name}`);
           }
         }
       } catch (error) {
