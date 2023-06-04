@@ -79,8 +79,8 @@ async function updateCommandData(commands, rest, client) {
           // File has been modified, update the command
           const commandData = {
             name: commandName,
-            description: command.data.description,
-            options: command.data.options || [],
+            description: commandNameToFileMap[commandName].description,
+            options: commandNameToFileMap[commandName].options || [],
           };
 
           try {
