@@ -2,7 +2,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const { clientId, token, guildId } = require('./config.js');
 
-const rest = new REST({ version: '1' }).setToken(token);
+const rest = new REST({ version: '10' }).setToken(token);
 
 async function fetchSlashCommands() {
   try {
