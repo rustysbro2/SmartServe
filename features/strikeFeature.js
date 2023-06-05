@@ -71,91 +71,91 @@ async function logStrike(userId, reason, client) {
 
     if (!row || !row.guild_id) {
       console.log('No existing strikes found for the user.');
-    } else {
-      const guildId = row.guild_id;
-      console.log('Guild ID:', guildId);
+      return;
+    }
 
-      const insertReasonQuery = `
-        INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
-        VALUES (?, ?, ?)
-      `;
-      await pool.query(insertReasonQuery, [reason, guildId, userId]);
+    const guildId = row.guild_id;
 
-      console.log('Strike logged successfully.');
+    const insertReasonQuery = `
+      INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
+      VALUES (?, ?, ?)
+    `;
+    await pool.query(insertReasonQuery, [reason, guildId, userId]);
 
-      // Get the strike channel ID from the database
-      const selectChannelQuery = `
-        SELECT channel_id
-        FROM strike_channels
-        WHERE guild_id = ?
-      `;
-      const [channelRow] = await pool.query(selectChannelQuery, [guildId]);
+    console.log('Strike logged successfully.');
 
-      console.log('Channel Rows:', channelRow);
+    // Get the strike channel ID from the database
+    const selectChannelQuery = `
+      SELECT channel_id
+      FROM strike_channels
+      WHERE guild_id = ?
+    `;
+    const [channelRow] = await pool.query(selectChannelQuery, [guildId]);
 
-      if (!channelRow || !channelRow.channel_id) {
-        console.log('Strike channel not set.');
-      } else {
-        const strikeChannelId = channelRow.channel_id;
-        console.log('Channel ID:', strikeChannelId);
+    console.log('Channel Rows:', channelRow);
 
-        // Fetch the guild using the guildId from the database
-        const guild = client.guilds.cache.get(guildId);
-        console.log('Guild:', guild);
-        if (!guild) {
-          console.log('Guild not found.');
-        } else {
-          // Get the strike channel
-          const strikeChannel = guild.channels.cache.get(strikeChannelId);
-          console.log('Strike Channel:', strikeChannel);
-          if (!strikeChannel) {
-            console.log('Strike channel not found.');
-          } else {
-            // Get updated strike data for the guild
-            const strikeData = await getStrikeData(guildId);
+    if (!channelRow || !channelRow.channel_id) {
+      console.log('Strike channel not set.');
+      return;
+    }
 
-            console.log('Strike Data:', strikeData);
+    const strikeChannelId = channelRow.channel_id;
+    console.log('Channel ID:', strikeChannelId);
 
-            if (!strikeData || !Array.isArray(strikeData)) {
-              console.log('Invalid strike data.');
-            } else {
-              // Create and update the embed
-              const embed = new EmbedBuilder()
-                .setColor(0xFF0000)
-                .setTitle('Strike Record')
-                .setDescription(`Strike record for guild: ${guildId}`)
-                .setTimestamp();
+    // Fetch the guild using the guildId from the database
+    const guild = client.guilds.cache.get(guildId);
+    if (!guild) {
+      console.log('Guild not found.');
+      return;
+    }
 
-              for (const strike of strikeData) {
-                const { user_id, count } = strike;
-                const user = await client.users.fetch(user_id);
-                console.log('User:', user);
-                if (user) {
-                  const username = user.tag;
-                  const reasons = await getStrikeReasons(guildId, user_id);
-                  console.log('Reasons:', reasons);
-                  const reasonsText = reasons.map((reason) => reason.strike_reason).join('\n');
-                  embed.addFields({ name: `${username} (${user_id}) - Strikes: ${count}`, value: reasonsText || 'No reasons provided' });
-                }
-              }
+    // Get the strike channel
+    const strikeChannel = guild.channels.cache.get(strikeChannelId);
+    if (!strikeChannel) {
+      console.log('Strike channel not found.');
+      return;
+    }
 
-              // Find the existing strike record message in the strike channel
-              const messages = await strikeChannel.messages.fetch({ limit: 100 });
-              const strikeRecordMessage = messages.find((msg) => msg.author.id === client.user.id && msg.embeds.length > 0 && msg.embeds[0].title === 'Strike Record');
+    // Get updated strike data for the guild
+    const strikeData = await getStrikeData(guildId);
 
-              if (strikeRecordMessage) {
-                // If an existing strike record message is found, edit the message with the updated embed
-                await strikeRecordMessage.edit({ embeds: [embed] });
-                console.log('Strike record message updated.');
-              } else {
-                // If no existing strike record message is found, send a new message with the embed
-                await strikeChannel.send({ embeds: [embed] });
-                console.log('New strike record message sent.');
-              }
-            }
-          }
-        }
+    console.log('Strike Data:', strikeData);
+
+    if (!strikeData || !Array.isArray(strikeData)) {
+      console.log('Invalid strike data.');
+      return;
+    }
+
+    // Create and update the embed
+    const embed = new EmbedBuilder()
+      .setColor(0xFF0000)
+      .setTitle('Strike Record')
+      .setDescription(`Strike record for guild: ${guildId}`)
+      .setTimestamp();
+
+    for (const strike of strikeData) {
+      const { user_id, count } = strike;
+      const user = await client.users.fetch(user_id);
+      if (user) {
+        const username = user.tag;
+        const reasons = await getStrikeReasons(guildId, user_id);
+        const reasonsText = reasons.map((reason) => reason.strike_reason).join('\n');
+        embed.addFields({ name: `${username} (${user_id}) - Strikes: ${count}`, value: reasonsText || 'No reasons provided' });
       }
+    }
+
+    // Find the existing strike record message in the strike channel
+    const messages = await strikeChannel.messages.fetch({ limit: 100 });
+    const strikeRecordMessage = messages.find((msg) => msg.author.id === client.user.id && msg.embeds.length > 0 && msg.embeds[0].title === 'Strike Record');
+
+    if (strikeRecordMessage) {
+      // If an existing strike record message is found, edit the message with the updated embed
+      await strikeRecordMessage.edit({ embeds: [embed] });
+      console.log('Strike record message updated.');
+    } else {
+      // If no existing strike record message is found, send a new message with the embed
+      await strikeChannel.send({ embeds: [embed] });
+      console.log('New strike record message sent.');
     }
   } catch (error) {
     console.error('Error logging strike:', error);
