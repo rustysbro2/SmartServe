@@ -105,11 +105,6 @@ async function logStrike(guildId, userId, reason, client) {
     const strikeChannelId = channelRows[0].channel_id;
     console.log('Strike Channel ID:', strikeChannelId);
 
-
-
-
-
-
     // Fetch strike data
     const strikeData = await getStrikeData(guildId);
 
@@ -133,10 +128,10 @@ async function logStrike(guildId, userId, reason, client) {
     }
 
     // Send or update the embed in the strike channel
-    if (channel_id) {
+    if (strikeChannelId) {
       console.log('Strike channel ID is not undefined.');
       try {
-        const strikeChannel = client.channels.cache.get(channel_id);
+        const strikeChannel = client.channels.cache.get(strikeChannelId);
         if (strikeChannel && strikeChannel.isText()) {
           const messages = await strikeChannel.messages.fetch();
           const lastMessage = messages.first();
@@ -160,8 +155,6 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
-
-
 
 async function getStrikes(guildId, userId) {
   try {
