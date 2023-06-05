@@ -123,6 +123,16 @@ async function logStrike(guildId, userId, reason, client) {
     const messages = await strikeChannel.messages.fetch({ limit: 100 });
     const strikeRecordMessage = messages.find((msg) => msg.author.id === client.user.id && msg.embeds.length > 0 && msg.embeds[0].title === 'Strike Record');
 
+    // Get updated strike data for the guild
+    const strikeData = await getStrikeData(guildId);
+
+    console.log('Strike Data:', strikeData);
+
+    if (!strikeData || !Array.isArray(strikeData)) {
+      console.log('Invalid strike data.');
+      return;
+    }
+
     // Create and update the embed
     const embed = new EmbedBuilder()
       .setColor('#FF0000')
