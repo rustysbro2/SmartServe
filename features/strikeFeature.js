@@ -207,4 +207,5 @@ module.exports = {
   logStrike,
   getStrikes,
   getStrikeData,
+  createStrikeTables,
 };
