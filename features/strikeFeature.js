@@ -111,16 +111,17 @@ async function logStrike(guildId, userId, reason, client) {
       .setDescription(`User: <@${userId}>\nReason: ${reason}`)
       .setTimestamp();
 
-    const strikeChannel = await client.channels.fetch(strikeChannelId);
-    if (strikeChannel) {
-      await strikeChannel.send({ embeds: [exampleEmbed] });
-      console.log('Embed sent to strike channel.');
+    if (strikeChannelId) {
+      const strikeChannel = await client.channels.fetch(strikeChannelId);
+      if (strikeChannel) {
+        await strikeChannel.send({ embeds: [exampleEmbed] });
+        console.log('Embed sent to strike channel.');
+      } else {
+        console.log('Strike channel not found.');
+      }
     } else {
-      console.log('Strike channel not found.');
+      console.log('Strike channel ID is undefined.');
     }
-  } catch (error) {
-    console.error('Error logging strike:', error);
-  }
 }
 
 async function getStrikes(guildId, userId) {
