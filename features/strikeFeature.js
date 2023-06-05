@@ -107,25 +107,48 @@ async function logStrike(guildId, userId, reason, client) {
     const strikeChannelId = channelRows.channel_id;
     console.log('Strike Channel ID:', strikeChannelId);
 
-    // Create and send the embed
+    // Fetch strike data
+    const strikeData = await getStrikeData(guildId);
+
+    // Create the embed dynamically
     const exampleEmbed = new EmbedBuilder()
       .setColor(0xFF0000)
-      .setTitle('Strike Logged')
-      .setDescription(`User: <@${userId}>\nReason: ${reason}`)
+      .setTitle('Strikes Report')
       .setTimestamp();
 
+    if (strikeData.length > 0) {
+      exampleEmbed.setDescription('List of users and their strikes:');
+      strikeData.forEach((row) => {
+        const { user_id, count } = row;
+        exampleEmbed.addFields(
+          { name: 'User', value: `<@${user_id}>`, inline: true },
+          { name: 'Strikes', value: count, inline: true }
+        );
+      });
+    } else {
+      exampleEmbed.setDescription('No strikes recorded.');
+    }
+
+    // Send the embed to the strike channel
     if (strikeChannelId) {
       console.log('Strike channel ID is not undefined.');
       try {
         const strikeChannel = await client.channels.fetch(strikeChannelId);
         if (strikeChannel) {
-          await strikeChannel.send({ embeds: [exampleEmbed] });
-          console.log('Embed sent to strike channel.');
+          const messages = await strikeChannel.messages.fetch({ limit: 1 });
+          const lastMessage = messages.first();
+          if (lastMessage) {
+            await lastMessage.edit({ embeds: [exampleEmbed] });
+            console.log('Embed updated in strike channel.');
+          } else {
+            await strikeChannel.send({ embeds: [exampleEmbed] });
+            console.log('Embed sent to strike channel.');
+          }
         } else {
           console.log('Strike channel not found.');
         }
       } catch (error) {
-        console.error('Error fetching strike channel:', error);
+        console.error('Error fetching or updating strike channel:', error);
       }
     } else {
       console.log('Strike channel ID is undefined.');
@@ -134,6 +157,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 
