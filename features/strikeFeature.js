@@ -57,6 +57,7 @@ async function setStrikeChannel(guildId, channelId) {
   }
 }
 
+
 async function logStrike(guildId, userId, reason, client) {
   try {
     await createStrikeTables();
