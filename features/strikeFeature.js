@@ -85,15 +85,6 @@ async function logStrike(userId, reason, client) {
 
     console.log('Strike logged successfully.');
 
-    const selectChannelQuery = `
-      SELECT channel_id
-      FROM strike_channels
-      WHERE guild_id = ?
-      LIMIT 1
-    `;
-    const [channelRow] = await pool.query(selectChannelQuery, [guildId]);
-    const strikeChannelId = channelRow?.[0]?.channel_id || '';
-
     console.log('Channel ID:', strikeChannelId);
 
     if (!strikeChannelId) {
