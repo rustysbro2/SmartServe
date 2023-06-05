@@ -1,11 +1,10 @@
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
-const { token, guildId } = require('./config.js');
+const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
-const { logStrike } = require('./features/strikeFeature.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -103,25 +102,11 @@ client.once('ready', async () => {
 client.on('interactionCreate', async (interaction) => {
   try {
     if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-      helpCommand.handleSelectMenu(interaction, commandCategories, guildId); // Pass guildId to the handleSelectMenu function
+      helpCommand.handleSelectMenu(interaction, commandCategories);
     } else if (interaction.isCommand()) {
       const command = client.commands.get(interaction.commandName);
       if (command) {
-        await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
-
-        // Log the strike after executing the command
-        const guild = interaction.guild;
-        const user = interaction.user;
-        const reason = interaction.options.getString('reason'); // Replace 'reason' with the actual name of your slash command option
-
-        if (guild && user && reason) {
-          await logStrike(guild.id, user.id, reason, client);
-        } else {
-          console.log('Missing required information to log a strike.');
-          console.log('Guild:', guild);
-          console.log('User:', user);
-          console.log('Reason:', reason);
-        }
+        await command.execute(interaction, client, commandCategories);
       }
     }
   } catch (error) {
