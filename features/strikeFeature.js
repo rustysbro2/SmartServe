@@ -192,12 +192,15 @@ async function getStrikeData(guildId) {
     `;
     const [rows] = await pool.query(query, [guildId]);
 
+    console.log('Strike Data:', rows);
+
     return Array.isArray(rows) ? rows : [];
   } catch (error) {
     console.error('Error retrieving strike data:', error);
     return [];
   }
 }
+
 
 
 module.exports = {
