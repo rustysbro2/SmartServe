@@ -66,7 +66,7 @@ async function logStrike(userId, reason, client) {
       FROM strike_channels
       WHERE channel_id = ?
       LIMIT 1
-    `;o
+    `;
     const [channelRow] = await pool.query(selectChannelQuery, [channelId]);
     const guildId = channelRow?.guild_id;
 
