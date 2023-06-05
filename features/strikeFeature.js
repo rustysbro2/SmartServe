@@ -67,11 +67,13 @@ async function logStrike(guildId, userId, reason) {
     }
 
     console.log('Strike logged successfully.');
+
+    // Add debug message when strike is logged
+    console.log('Sending strike log embed...');
   } catch (error) {
     console.error('Error logging strike:', error);
   }
 }
-
 
 async function getStrikes(guildId, userId) {
   try {
@@ -119,12 +121,13 @@ async function buildStrikeLogEmbed(guildId) {
 
         embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
 
-        // Add individual strike reasons as separate fields
         reasonsArray.forEach((reason, index) => {
           embed.addFields({ name: `Strike Reason ${index + 1}`, value: reason });
         });
       });
     }
+
+    console.log('Strike log embed built successfully.');
 
     return embed;
   } catch (error) {
