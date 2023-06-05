@@ -185,10 +185,11 @@ async function getStrikeData(guildId) {
     await createStrikeTables();
 
     const query = `
-      SELECT user_id, COUNT(*) AS count
+      SELECT strikes.user_id, COUNT(strikes.user_id) AS count
       FROM strikes
-      WHERE guild_id = ?
-      GROUP BY user_id
+      JOIN strike_reasons ON strikes.guild_id = strike_reasons.guild_id AND strikes.user_id = strike_reasons.user_id
+      WHERE strikes.guild_id = ?
+      GROUP BY strikes.user_id
     `;
     const [rows] = await pool.query(query, [guildId]);
 
