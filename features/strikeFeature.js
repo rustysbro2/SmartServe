@@ -57,27 +57,24 @@ async function setStrikeChannel(guildId, channelId) {
   }
 }
 
-async function logStrike(guildId, userId, reason, client) {
+async function logStrike(userId, reason, client) {
   try {
     await createStrikeTables();
 
     const selectQuery = `
-      SELECT strike_reason
-      FROM strike_reasons
-      WHERE guild_id = ? AND user_id = ?
+      SELECT guild_id
+      FROM strikes
+      WHERE user_id = ?
+      LIMIT 1
     `;
-    const rows = await pool.query(selectQuery, [guildId, userId]);
+    const [row] = await pool.query(selectQuery, [userId]);
 
-    console.log('Rows:', rows);
-
-    if (!rows || rows.length === 0) {
+    if (!row || !row.guild_id) {
       console.log('No existing strikes found for the user.');
-      const insertQuery = `
-        INSERT INTO strikes (guild_id, user_id)
-        VALUES (?, ?)
-      `;
-      await pool.query(insertQuery, [guildId, userId]);
+      return;
     }
+
+    const guildId = row.guild_id;
 
     const insertReasonQuery = `
       INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
@@ -105,7 +102,7 @@ async function logStrike(guildId, userId, reason, client) {
     const strikeChannelId = channelRow.channel_id;
     console.log('Channel ID:', strikeChannelId);
 
-    // Get the guild object
+    // Fetch the guild using the guildId from the database
     const guild = client.guilds.cache.get(guildId);
     if (!guild) {
       console.log('Guild not found.');
@@ -164,6 +161,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 
