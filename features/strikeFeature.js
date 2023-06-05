@@ -56,10 +56,21 @@ async function logStrike(guildId, userId, reason) {
     await pool.query(updateQuery, [guildId, userId, updatedReasons, updatedReasons]);
 
     console.log('Strike logged successfully.');
+
+    // Retrieve the strike count and reasons after the strike is logged
+    const strikeCount = await getStrikes(guildId, userId);
+    const strikeReasons = await getStrikeReasons(guildId, userId);
+
+    // Build and send the strike log embed
+    const strikeLogEmbed = buildStrikeLogEmbed(guildId, userId, strikeCount, strikeReasons);
+    if (strikeLogEmbed) {
+      await sendStrikeLogEmbed(guildId, strikeLogEmbed);
+    }
   } catch (error) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 async function getStrikes(guildId, userId) {
