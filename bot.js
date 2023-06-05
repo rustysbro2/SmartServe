@@ -5,7 +5,7 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
-const logStrike = require('./features/strikeFeature.js'); // Import the logStrike function
+const { logStrike, getStrikeDataFromInteraction } = require('./features/strikeFeature.js'); // Import the logStrike function and getStrikeDataFromInteraction function
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -111,7 +111,9 @@ client.on('interactionCreate', async (interaction) => {
 
         // Log the strike after executing the command
         const { guild, user, reason } = getStrikeDataFromInteraction(interaction); // Replace with your own function to extract strike data from the interaction
-        await logStrike(guild.id, user.id, reason);
+        if (guild && user && reason) {
+          await logStrike(guild.id, user.id, reason, client);
+        }
       }
     }
   } catch (error) {
