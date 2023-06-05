@@ -15,18 +15,13 @@ module.exports = {
       option
         .setName('reason')
         .setDescription('The reason for the strike')
-        .setRequired(false) // Make the reason option optional
+        .setRequired(true) // Set the reason option as required
     ),
 
   async execute(interaction) {
     const guildId = interaction.guildId;
     const user = interaction.options.getUser('user');
-    let reason = interaction.options.getString('reason');
-
-    // Check if reason is null and provide a default value
-    if (!reason) {
-      reason = 'No reason provided';
-    }
+    const reason = interaction.options.getString('reason');
 
     try {
       await logStrike(guildId, user.id, reason);
@@ -37,4 +32,3 @@ module.exports = {
     }
   },
 };
-
