@@ -75,6 +75,10 @@ async function getStrikes(guildId, userId) {
     `;
     const [rows] = await pool.query(query, [guildId, userId]);
 
+    if (rows.length === 0) {
+      return 0;
+    }
+
     return rows[0].count;
   } catch (error) {
     console.error('Error retrieving strikes:', error);
