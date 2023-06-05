@@ -21,7 +21,7 @@ module.exports = {
   async execute(interaction) {
     const guildId = interaction.guildId;
     const userId = interaction.options.getUser('user').id;
-    const reason = interaction.options.get('reason').value;
+    const reason = interaction.options.getString('reason');
 
     try {
       await logStrike(pool, guildId, userId, reason);
