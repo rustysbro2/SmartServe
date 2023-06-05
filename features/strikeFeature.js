@@ -72,8 +72,6 @@ async function logStrike(guildId, userId, reason) {
   }
 }
 
-}
-
 async function getStrikes(guildId, userId) {
   try {
     const query = `
