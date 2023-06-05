@@ -25,7 +25,7 @@ module.exports = {
 
     try {
       await setStrikeChannel(guildId, interaction.channelId); // Set the strike channel
-      await logStrike(guildId, user.id, reason);
+      await logStrike(guildId, user.id, reason, interaction.client);
 
       await interaction.reply(`Strike logged for user <@${user.id}>. Reason: ${reason}`);
     } catch (error) {
