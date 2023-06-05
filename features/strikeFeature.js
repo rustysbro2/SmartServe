@@ -192,12 +192,13 @@ async function getStrikeData(guildId) {
     `;
     const [rows] = await pool.query(query, [guildId]);
 
-    return rows || []; // Return an empty array if no rows are found
+    return Array.isArray(rows) ? rows : [];
   } catch (error) {
     console.error('Error retrieving strike data:', error);
     return [];
   }
 }
+
 
 module.exports = {
   setStrikeChannel,
