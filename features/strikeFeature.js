@@ -71,7 +71,6 @@ async function logStrike(userId, reason, client) {
 
     if (!row || !row.guild_id) {
       console.log('No existing strikes found for the user.');
-      return;
     }
 
     const guildId = row.guild_id;
