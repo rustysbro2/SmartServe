@@ -58,7 +58,7 @@ async function setStrikeChannel(guildId, channelId) {
   }
 }
 
-async function logStrike(guildId, userId, reason) {
+async function logStrike(guildId, userId, reason, client) {
   try {
     await createStrikeTables();
 
@@ -123,6 +123,7 @@ async function logStrike(guildId, userId, reason) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 
