@@ -87,6 +87,36 @@ async function logStrike(guildId, userId, reason) {
     await pool.query(insertReasonQuery, [reason, guildId, userId]);
 
     console.log('Strike logged successfully.');
+
+    // Get the strike channel ID from the database
+    const selectChannelQuery = `
+      SELECT channel_id
+      FROM strike_channels
+      WHERE guild_id = ?
+    `;
+    const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
+
+    if (!channelRows || channelRows.length === 0) {
+      console.log('Strike channel not set.');
+      return;
+    }
+
+    const strikeChannelId = channelRows[0].channel_id;
+
+    // Create and send the embed
+    const exampleEmbed = new EmbedBuilder()
+      .setColor(0xFF0000)
+      .setTitle('Strike Logged')
+      .setDescription(`User: ${userId}\nReason: ${reason}`)
+      .setTimestamp();
+
+    const strikeChannel = client.channels.cache.get(strikeChannelId);
+    if (strikeChannel) {
+      await strikeChannel.send({ embeds: [exampleEmbed] });
+      console.log('Embed sent to strike channel.');
+    } else {
+      console.log('Strike channel not found.');
+    }
   } catch (error) {
     console.error('Error logging strike:', error);
   }
