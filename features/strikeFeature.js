@@ -102,7 +102,7 @@ async function logStrike(guildId, userId, reason, client) {
       return;
     }
 
-    const strikeChannelId = channelRows.channel_id;
+    const strikeChannelId = channelRows[0].channel_id;
     console.log('Strike Channel ID:', strikeChannelId);
 
     // Fetch the strike channel
@@ -122,16 +122,16 @@ async function logStrike(guildId, userId, reason, client) {
       .setDescription(`Strike record for guild: ${guildId}`)
       .setTimestamp();
 
-    strikeData.forEach(async (strike) => {
+    for (const strike of strikeData) {
       const { user_id, count } = strike;
-      const user = guild.members.cache.get(user_id);
+      const user = await client.users.fetch(user_id);
       if (user) {
-        const username = user.user.tag;
-        const reasons = strikeReasons.filter((reason) => reason.user_id === user_id);
+        const username = user.tag;
+        const reasons = await getStrikeReasons(guildId, user_id);
         const reasonsText = reasons.map((reason) => reason.strike_reason).join('\n');
         embed.addFields({ name: `${username} (${user_id}) - Strikes: ${count}`, value: reasonsText || 'No reasons provided' });
       }
-    });
+    }
 
     // Find the existing strike record message in the strike channel
     const messages = await strikeChannel.messages.fetch({ limit: 100 });
@@ -150,6 +150,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 
