@@ -19,12 +19,18 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    const guildId = interaction.guild.id;
+    const guildId = interaction.guild?.id;
     const user = interaction.options.getUser('user');
     const reason = interaction.options.getString('reason');
 
+    if (!guildId) {
+      console.log('Invalid guild ID.');
+      await interaction.reply('Invalid guild ID.');
+      return;
+    }
+
     try {
-      await logStrike(user.id, reason);
+      await logStrike(user.id, reason, guildId);
       await interaction.reply(`Strike logged for user <@${user.id}>. Reason: ${reason}`);
     } catch (error) {
       console.error('Error logging strike:', error);
