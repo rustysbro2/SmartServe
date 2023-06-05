@@ -97,7 +97,7 @@ async function logStrike(guildId, userId, reason, client) {
 
     console.log('Channel Rows:', channelRows);
 
-    if (!channelRows || channelRows.length === 0) {
+    if (!channelRows || channelRows.length === 0 || !channelRows[0].channel_id) {
       console.log('Strike channel not set.');
       return;
     }
