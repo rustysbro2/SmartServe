@@ -5,7 +5,7 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
-const { logStrike } = require('./features/strikeFeature.js'); // Import the logStrike function
+const { logStrike } = require('./features/strikeFeature.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -35,7 +35,7 @@ for (const file of commandFiles) {
         description: '',
         commands: [],
         guildId: command.guildId,
-        categoryDescription: command.categoryDescription // Assign category description here
+        categoryDescription: command.categoryDescription
       };
       commandCategories.push(category);
     }
@@ -43,7 +43,7 @@ for (const file of commandFiles) {
       name: command.data.name,
       description: command.data.description,
       global: command.global !== false,
-      categoryDescription: command.categoryDescription // Include the categoryDescription property
+      categoryDescription: command.categoryDescription
     });
   } else {
     let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
@@ -64,7 +64,6 @@ for (const file of commandFiles) {
   }
 }
 
-// Remove empty categories
 commandCategories.forEach((category) => {
   if (category.commands.length === 0) {
     const index = commandCategories.indexOf(category);
@@ -103,16 +102,16 @@ client.once('ready', async () => {
 client.on('interactionCreate', async (interaction) => {
   try {
     if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-      helpCommand.handleSelectMenu(interaction, commandCategories, guildId); // Pass guildId to the handleSelectMenu function
+      helpCommand.handleSelectMenu(interaction, commandCategories, guildId);
     } else if (interaction.isCommand()) {
       const command = client.commands.get(interaction.commandName);
       if (command) {
-        await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
+        await command.execute(interaction, client, commandCategories, guildId);
 
         // Log the strike after executing the command
         const guild = interaction.guild;
-        const user = interaction.user;
-        const reason = interaction.options.getString('reason'); // Replace 'reason' with the actual name of your slash command option
+        const user = interaction.options.getUser('user');
+        const reason = interaction.options.getString('reason');
 
         if (guild && user && reason) {
           await logStrike(guild.id, user.id, reason, client);
