@@ -26,19 +26,23 @@ async function createStrikeTables() {
     `;
     await pool.query(strikeReasonsTableQuery);
 
-    const strikeChannelsTableQuery = `
-      CREATE TABLE IF NOT EXISTS strike_channels (
-        guild_id VARCHAR(20) PRIMARY KEY,
-        channel_id VARCHAR(20) NOT NULL
-      )
-    `;
-    await pool.query(strikeChannelsTableQuery);
+    async function setStrikeChannel(guildId, channelId) {
+      try {
+        await createStrikeTables();
 
-    console.log('Strike tables created successfully.');
-  } catch (error) {
-    console.error('Error creating strike tables:', error);
-  }
-}
+        const insertQuery = `
+          INSERT INTO strike_channels (guild_id, channel_id)
+          VALUES (?, ?)
+          ON DUPLICATE KEY UPDATE channel_id = ?
+        `;
+        await pool.query(insertQuery, [guildId, channelId, channelId]);
+
+        console.log('Strike channel has been set successfully.');
+      } catch (error) {
+        console.error('Error setting strike channel:', error);
+      }
+    }
+
 
 async function setStrikeChannel(guildId, channelId) {
   try {
