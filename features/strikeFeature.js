@@ -40,6 +40,23 @@ async function createStrikeTables() {
   }
 }
 
+async function setStrikeChannel(guildId, channelId) {
+  try {
+    await createStrikeTables();
+
+    const insertQuery = `
+      INSERT INTO strike_channels (guild_id, channel_id)
+      VALUES (?, ?)
+      ON DUPLICATE KEY UPDATE channel_id = ?
+    `;
+    await pool.query(insertQuery, [guildId, channelId, channelId]);
+
+    console.log('Strike channel has been set successfully.');
+  } catch (error) {
+    console.error('Error setting strike channel:', error);
+  }
+}
+
 async function logStrike(guildId, userId, reason, client) {
   try {
     await createStrikeTables();
@@ -113,7 +130,6 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
-
 
 async function getStrikes(guildId, userId) {
   try {
