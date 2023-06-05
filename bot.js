@@ -6,6 +6,7 @@ const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
 const { logStrike, createStrikeTables  } = require('./features/strikeFeature.js');
+createStrikeTables();
 
 const intents = [
   GatewayIntentBits.Guilds,
