@@ -1,5 +1,3 @@
-// bot.js
-
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
 const { token, guildId } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
@@ -7,6 +5,7 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
+const { logStrike } = require('./features/strikeFeature.js'); // Import the logStrike function
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -109,6 +108,10 @@ client.on('interactionCreate', async (interaction) => {
       const command = client.commands.get(interaction.commandName);
       if (command) {
         await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
+
+        // Log the strike after executing the command
+        const { guild, user, reason } = getStrikeDataFromInteraction(interaction); // Replace with your own function to extract strike data from the interaction
+        await logStrike(guild.id, user.id, reason);
       }
     }
   } catch (error) {
