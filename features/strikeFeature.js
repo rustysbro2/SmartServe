@@ -71,8 +71,6 @@ async function logStrike(guildId, userId, reason) {
   }
 }
 
-
-
 async function getStrikes(guildId, userId) {
   try {
     const query = `
@@ -93,43 +91,80 @@ async function getStrikes(guildId, userId) {
   }
 }
 
-async function buildStrikeLogEmbed(guildId) {
+async function getStrikeReasons(guildId, userId) {
   try {
     const query = `
-      SELECT user_id, strike_reasons
+      SELECT strike_reasons
       FROM strikes
-      WHERE guild_id = ?
-      GROUP BY user_id
+      WHERE guild_id = ? AND user_id = ?
     `;
-    const [rows] = await pool.query(query, [guildId]);
+    const [rows] = await pool.query(query, [guildId, userId]);
 
+    if (rows.length === 0) {
+      return '';
+    }
+
+    return rows[0].strike_reasons;
+  } catch (error) {
+    console.error('Error retrieving strike reasons:', error);
+    return '';
+  }
+}
+
+async function buildStrikeLogEmbed(guildId, userId, strikeCount, strikeReasons) {
+  try {
     const embed = new EmbedBuilder()
       .setColor(0x0099FF)
       .setTitle('Strike Log')
       .setDescription('Here is the strike log for this guild:')
       .setTimestamp();
 
-    if (rows.length === 0) {
+    if (strikeCount === 0) {
       embed.addFields({ name: 'No strikes found', value: 'No users have been struck yet.' });
     } else {
-      rows.forEach((row) => {
-        const { user_id, strike_reasons } = row;
-        const reasonsArray = strike_reasons.split(','); // Modify this based on the stored format
-        const count = reasonsArray.length;
+      embed.addFields({ name: `User: ${userId}`, value: `Strikes: ${strikeCount}`, inline: true });
 
-        embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
+      // Add individual strike reasons as separate fields
+      if (strikeReasons) {
+        const reasonsArray = strikeReasons.split(',');
 
-        // Add individual strike reasons as separate fields
         reasonsArray.forEach((reason, index) => {
           embed.addFields({ name: `Strike Reason ${index + 1}`, value: reason });
         });
-      });
+      }
     }
 
     return embed;
   } catch (error) {
     console.error('Error building strike log embed:', error);
     return null;
+  }
+}
+
+async function sendStrikeLogEmbed(guildId, embed) {
+  try {
+    const query = `
+      SELECT channel_id
+      FROM strike_channels
+      WHERE guild_id = ?
+    `;
+    const [rows] = await pool.query(query, [guildId]);
+
+    if (rows.length === 0) {
+      console.error('No strike channel found for guild:', guildId);
+      return;
+    }
+
+    const channelId = rows[0].channel_id;
+
+    // Retrieve the channel object
+    const channel = client.channels.cache.get(channelId);
+
+    // Send the embed to the channel
+    await channel.send({ embeds: [embed] });
+    console.log('Strike log embed sent successfully.');
+  } catch (error) {
+    console.error('Error sending strike log embed:', error);
   }
 }
 
