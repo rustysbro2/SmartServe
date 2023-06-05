@@ -90,7 +90,7 @@ async function logStrike(userId, reason, client) {
 
     console.log('Channel Row:', channelRow);
 
-    if (!channelRow || !channelRow[0]?.channel_id) {
+    if (!channelRow || !channelRow?.channel_id) {
       console.log('Strike channel not set.');
       return;
     }
