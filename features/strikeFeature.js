@@ -105,7 +105,6 @@ async function logStrike(userId, reason, client) {
       return;
     }
 
-    // Get the strike channel
     const strikeChannel = guild.channels.cache.get(strikeChannelId);
     if (!strikeChannel) {
       console.log('Strike channel not found.');
