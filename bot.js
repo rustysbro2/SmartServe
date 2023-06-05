@@ -106,14 +106,14 @@ client.on('interactionCreate', async (interaction) => {
     } else if (interaction.isCommand()) {
       const command = client.commands.get(interaction.commandName);
       if (command) {
-        await command.execute(interaction, client, commandCategories, guildId);
-
-        // Log the strike after executing the command
         const guild = interaction.guild;
         const user = interaction.options.getUser('user');
         const reason = interaction.options.getString('reason');
 
         if (guild && user && reason) {
+          await command.execute(interaction, client, commandCategories, guildId);
+
+          // Log the strike after executing the command
           await logStrike(guild.id, user.id, reason, client);
         } else {
           console.log('Missing required information to log a strike.');
@@ -127,6 +127,7 @@ client.on('interactionCreate', async (interaction) => {
     console.error('Error handling interaction:', error);
   }
 });
+
 
 client.on('error', (error) => {
   console.error('Discord client error:', error);
