@@ -96,8 +96,11 @@ async function logStrike(guildId, userId, reason, client) {
     const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
 
     console.log('Channel Rows:', channelRows);
-    console.log('Guild ID:', guildId);
-    console.log('Reason:', reason);
+    console.log('typeof channelRows:', typeof channelRows);
+    console.log('channelRows.length:', channelRows.length);
+    console.log('!channelRows:', !channelRows);
+    console.log('!channelRows[0].channel_id:', !channelRows[0].channel_id);
+
 
     if (!channelRows || channelRows.length === 0 || !channelRows[0]?.channel_id) {
       console.log('Strike channel not set.');
