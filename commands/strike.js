@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { logStrike } = require('../features/strikeFeature');
-const pool = require('../database');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,7 +20,7 @@ module.exports = {
 
   async execute(interaction) {
     const guildId = interaction.guildId;
-    const user = interaction.options.get('user').user;
+    const user = interaction.options.getUser('user');
     const reason = interaction.options.getString('reason');
 
     try {
