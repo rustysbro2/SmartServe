@@ -55,7 +55,7 @@ async function logStrike(guildId, userId, reason) {
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
-      const existingReasons = rows.strike_reasons;
+      const existingReasons = rows[0].strike_reasons;
       const updatedReasons = existingReasons ? `${existingReasons}, ${reason}` : reason;
 
       const updateQuery = `
@@ -64,6 +64,7 @@ async function logStrike(guildId, userId, reason) {
         WHERE guild_id = ? AND user_id = ?
       `;
       await pool.query(updateQuery, [updatedReasons, guildId, userId]);
+
     }
 
     console.log('Strike logged successfully.');
