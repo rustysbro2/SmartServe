@@ -30,6 +30,8 @@ module.exports = {
 
     setStrikeChannel(guildId, channelId);
 
+    console.log('Strike channel set');
+
     interaction.reply(`Strike channel set to ${strikeChannel}.`);
   },
 };
