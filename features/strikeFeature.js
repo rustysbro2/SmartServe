@@ -122,6 +122,9 @@ async function logStrike(guildId, userId, reason, client) {
     } else {
       console.log('Strike channel ID is undefined.');
     }
+  } catch (error) {
+    console.error('Error logging strike:', error);
+  }
 }
 
 async function getStrikes(guildId, userId) {
