@@ -7,7 +7,8 @@ module.exports = {
     .setName('setstrikechannel')
     .setDescription('Set the strike channel')
     .addChannelOption(option =>
-      option.setName('channel')
+      option
+        .setName('channel')
         .setDescription('The channel for strikes')
         .setRequired(true)
     ),
