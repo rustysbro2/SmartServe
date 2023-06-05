@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, ChannelBuilder } = require('discord.js');
 const pool = require('../database');
 
 async function setStrikeChannel(guildId, channelId) {
@@ -68,30 +68,41 @@ async function logStrike(guildId, userId, reason) {
 
     console.log('Strike logged successfully.');
 
-    // Add debug message when strike is logged
-    console.log('Sending strike log embed...');
+    // Send strike log embed to the strike channel
+    const strikeLogEmbed = await buildStrikeLogEmbed(guildId);
+    const channel = await getStrikeChannel(guildId);
+
+    if (channel && strikeLogEmbed) {
+      channel.send({ embeds: [strikeLogEmbed] });
+      console.log('Strike log embed sent.');
+    } else {
+      console.log('Strike log embed or channel not found.');
+    }
   } catch (error) {
     console.error('Error logging strike:', error);
   }
 }
 
-async function getStrikes(guildId, userId) {
+async function getStrikeChannel(guildId) {
   try {
     const query = `
-      SELECT COUNT(*) AS count
-      FROM strikes
-      WHERE guild_id = ? AND user_id = ?
+      SELECT channel_id
+      FROM strike_channels
+      WHERE guild_id = ?
     `;
-    const [rows] = await pool.query(query, [guildId, userId]);
+    const [rows] = await pool.query(query, [guildId]);
 
     if (rows.length === 0) {
-      return 0;
+      return null;
     }
 
-    return rows[0].count;
+    const channelId = rows[0].channel_id;
+    const channel = ChannelBuilder.create(channelId);
+
+    return channel;
   } catch (error) {
-    console.error('Error retrieving strikes:', error);
-    return 0;
+    console.error('Error retrieving strike channel:', error);
+    return null;
   }
 }
 
