@@ -14,7 +14,7 @@ module.exports = {
 
   async execute(interaction) {
     const guildId = interaction.guildId;
-    const channelId = interaction.options.getChannel('channel').value;
+    const channelId = interaction.options.getChannel('channel').id;
 
     try {
       await setStrikeChannel(guildId, channelId);
