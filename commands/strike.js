@@ -1,6 +1,6 @@
 // strike.js
 const { SlashCommandBuilder } = require('discord.js');
-const { logStrike, setStrikeChannel } = require('../features/strikeFeature');
+const { logStrike } = require('../features/strikeFeature');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -25,7 +25,7 @@ module.exports = {
     const reason = interaction.options.getString('reason');
 
     try {
-      await logStrike(guildId, user.id, reason, interaction.client);
+      await logStrike(guildId, user.id, reason);
 
       await interaction.reply(`Strike logged for user <@${user.id}>. Reason: ${reason}`);
     } catch (error) {
