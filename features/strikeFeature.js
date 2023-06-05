@@ -102,7 +102,7 @@ async function logStrike(guildId, userId, reason, client) {
       return;
     }
 
-    const strikeChannelId = channelRows[0].channel_id;
+    const strikeChannelId = channelRows.channel_id;
     console.log('Strike Channel ID:', strikeChannelId);
 
     // Fetch the strike channel
