@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
 const pool = require('../database');
-const client = require('../bot'); // Assuming you have a separate file where the Discord client is instantiated and exported
+const { getStrikeChannel } = require('./strikeFeature');
 
 async function setStrikeChannel(guildId, channelId) {
   try {
@@ -129,37 +129,9 @@ async function getStrikeChannel(guildId) {
   }
 }
 
-async function execute(interaction) {
-  try {
-    const { guildId, userId } = interaction;
-    const reason = interaction.options.getString('reason');
-
-    console.log('Received interaction:', interaction);
-
-    await logStrike(guildId, userId, reason);
-
-    const strikeCount = await getStrikes(guildId, userId);
-    const strikeChannel = await getStrikeChannel(guildId);
-
-    if (strikeChannel) {
-      const embed = new EmbedBuilder()
-        .setTitle('Strike Logged')
-        .setDescription(`User: <@${userId}>\nReason: ${reason}\nTotal Strikes: ${strikeCount}`)
-        .setColor('#FF0000')
-        .setTimestamp();
-
-      await strikeChannel.send(embed);
-    } else {
-      console.log('Strike channel not found. Cannot send strike embed.');
-    }
-
-    console.log('Strike command executed successfully.');
-  } catch (error) {
-    console.error('Error handling interaction:', error);
-  }
-}
-
 module.exports = {
   setStrikeChannel,
-  execute,
+  logStrike,
+  getStrikes,
+  getStrikeChannel,
 };
