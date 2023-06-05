@@ -93,6 +93,7 @@ async function buildStrikeLogEmbed(guildId) {
       });
     }
 
+
     return embed.build();
   } catch (error) {
     console.error('Error building strike log embed:', error);
