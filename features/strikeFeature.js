@@ -129,7 +129,7 @@ async function logStrike(guildId, userId, reason, client) {
       exampleEmbed.setDescription('No strikes recorded.');
     }
 
-    // Send the embed to the strike channel
+    // Send or update the embed in the strike channel
     if (strikeChannelId) {
       console.log('Strike channel ID is not undefined.');
       try {
@@ -157,13 +157,6 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
-
-
-
-
-
-
-
 
 async function getStrikes(guildId, userId) {
   try {
