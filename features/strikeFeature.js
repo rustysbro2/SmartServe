@@ -31,8 +31,8 @@ async function logStrike(guildId, userId, reason) {
       CREATE TABLE IF NOT EXISTS strikes (
         guild_id VARCHAR(20) NOT NULL,
         user_id VARCHAR(20) NOT NULL,
-        strike_reasons TEXT,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        strike_reasons TEXT,
         PRIMARY KEY (guild_id, user_id, timestamp)
       )
     `;
@@ -109,8 +109,8 @@ async function buildStrikeLogEmbed(guildId) {
         embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
 
         // Add individual strike reasons as separate fields
-        reasonsArray.forEach((reason) => {
-          embed.addFields({ name: 'Strike Reason', value: reason });
+        reasonsArray.forEach((reason, index) => {
+          embed.addFields({ name: `Strike Reason ${index + 1}`, value: reason });
         });
       });
     }
@@ -121,8 +121,6 @@ async function buildStrikeLogEmbed(guildId) {
     return null;
   }
 }
-
-
 
 module.exports = {
   setStrikeChannel,
