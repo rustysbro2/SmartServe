@@ -89,11 +89,13 @@ async function buildStrikeLogEmbed(guildId, userId, strikeCount) {
       .setColor('#FF0000')
       .setTitle('Strike Log')
       .setDescription(`Strike logged for user ${user.toString()} (${user.id})`)
-      .addField('Reason', reason)
-      .addField('Total Strikes', strikeCount)
+      .addFields(
+        { name: 'Reason', value: reason },
+        { name: 'Total Strikes', value: strikeCount }
+      )
       .setTimestamp();
 
-    return embed.build();
+    return embed;
   } catch (error) {
     console.error('Error building strike log embed:', error);
     return null;
