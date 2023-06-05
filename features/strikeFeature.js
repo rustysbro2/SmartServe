@@ -45,6 +45,22 @@ async function logStrike(guildId, userId, reason) {
     await pool.query(insertQuery, [guildId, userId, reason]);
 
     console.log('Strike logged successfully.');
+
+    const strikeCount = await getStrikes(guildId, userId);
+    const strikeLogEmbed = await buildStrikeLogEmbed(guildId, userId, strikeCount);
+
+    const channelQuery = `
+      SELECT channel_id
+      FROM strike_channels
+      WHERE guild_id = ?
+    `;
+    const [rows] = await pool.query(channelQuery, [guildId]);
+
+    if (rows.length > 0) {
+      const channelId = rows[0].channel_id;
+      const channel = await interaction.guild.channels.cache.get(channelId);
+      await channel.send({ embeds: [strikeLogEmbed] });
+    }
   } catch (error) {
     console.error('Error logging strike:', error);
   }
@@ -66,47 +82,16 @@ async function getStrikes(guildId, userId) {
   }
 }
 
-async function buildStrikeLogEmbed(guildId, strikeChannelId) {
+async function buildStrikeLogEmbed(guildId, userId, strikeCount) {
   try {
-    const query = `
-      SELECT user_id, COUNT(*) AS count
-      FROM strikes
-      WHERE guild_id = ?
-      GROUP BY user_id
-    `;
-    const [rows] = await pool.query(query, [guildId]);
-
+    const user = await interaction.guild.members.fetch(userId);
     const embed = new EmbedBuilder()
-      .setColor(0x0099FF)
+      .setColor('#FF0000')
       .setTitle('Strike Log')
-      .setDescription('Here is the strike log for this guild:')
+      .setDescription(`Strike logged for user ${user.toString()} (${user.id})`)
+      .addField('Reason', reason)
+      .addField('Total Strikes', strikeCount)
       .setTimestamp();
-
-    if (rows.length === 0) {
-      embed.addFields({ name: 'No strikes found', value: 'No users have been struck yet.' });
-    } else {
-      rows.forEach((row) => {
-        const { user_id, count } = row;
-        embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
-      });
-    }
-
-    // Retrieve the strike channel from the database
-    const getChannelQuery = `
-      SELECT channel_id
-      FROM strike_channels
-      WHERE guild_id = ?
-    `;
-    const [channelRows] = await pool.query(getChannelQuery, [guildId]);
-    const strikeChannel = channelRows[0]?.channel_id;
-
-    // Send the embed message to the strike channel
-    if (strikeChannel) {
-      const channel = await interaction.client.channels.fetch(strikeChannel);
-      if (channel && channel.isText()) {
-        await channel.send({ embeds: [embed.build()] });
-      }
-    }
 
     return embed.build();
   } catch (error) {
