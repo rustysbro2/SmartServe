@@ -69,11 +69,7 @@ async function logStrike(userId, reason, client) {
     `;
     const [row] = await pool.query(selectQuery, [userId]);
 
-    if (!row || !row.guild_id) {
-      console.log('No existing strikes found for the user.');
-    }
-
-    const guildId = row.guild_id;
+    const guildId = row?.guild_id;
 
     const insertReasonQuery = `
       INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
@@ -82,6 +78,7 @@ async function logStrike(userId, reason, client) {
     await pool.query(insertReasonQuery, [reason, guildId, userId]);
 
     console.log('Strike logged successfully.');
+
 
     // Get the strike channel ID from the database
     const selectChannelQuery = `
