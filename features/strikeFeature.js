@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const pool = require('../database');
+const { pool } = require('../database');
 
 async function setStrikeChannel(guildId, channelId) {
   try {
@@ -55,7 +55,7 @@ async function logStrike(guildId, userId, reason) {
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
-      const existingReasons = rows.strike_reasons;
+      const existingReasons = rows[0].strike_reasons;
       const reasonsArray = existingReasons.split(', ');
 
       if (!reasonsArray.includes(reason)) {
@@ -99,8 +99,26 @@ async function getStrikes(guildId, userId) {
   }
 }
 
+async function getStrikeData(guildId) {
+  try {
+    const query = `
+      SELECT user_id, COUNT(*) AS count
+      FROM strikes
+      WHERE guild_id = ?
+      GROUP BY user_id
+    `;
+    const [rows] = await pool.query(query, [guildId]);
+
+    return rows;
+  } catch (error) {
+    console.error('Error retrieving strike data:', error);
+    return [];
+  }
+}
+
 module.exports = {
   setStrikeChannel,
   logStrike,
   getStrikes,
+  getStrikeData,
 };
