@@ -64,7 +64,7 @@ async function logStrike(guildId, userId, reason) {
 
     const selectQuery = `
       SELECT strike_reason
-      FROM strikes
+      FROM strike_reasons
       WHERE guild_id = ? AND user_id = ?
     `;
     const [rows] = await pool.query(selectQuery, [guildId, userId]);
