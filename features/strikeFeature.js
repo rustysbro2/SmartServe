@@ -96,7 +96,7 @@ async function logStrike(guildId, userId, reason) {
     `;
     const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
 
-    if (!channelRows || channelRows.length === 0) {
+    if (!channelRows || channelRows.length === 0 || !channelRows[0].channel_id) {
       console.log('Strike channel not set.');
       return;
     }
@@ -107,7 +107,7 @@ async function logStrike(guildId, userId, reason) {
     const exampleEmbed = new EmbedBuilder()
       .setColor(0xFF0000)
       .setTitle('Strike Logged')
-      .setDescription(`User: ${userId}\nReason: ${reason}`)
+      .setDescription(`User: <@${userId}>\nReason: ${reason}`)
       .setTimestamp();
 
     const strikeChannel = client.channels.cache.get(strikeChannelId);
