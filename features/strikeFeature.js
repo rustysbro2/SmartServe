@@ -48,26 +48,16 @@ async function logStrike(guildId, userId, reason) {
 
     console.log('Rows:', rows);
 
-    if (!rows || rows.length === 0) {
+    const existingReasons = rows[0]?.strike_reasons || ''; // Use optional chaining and fallback to an empty string if rows[0] or strike_reasons is undefined
+
+    if (!existingReasons) {
       console.log('No existing strikes found for the user.');
       const insertQuery = `
         INSERT INTO strikes (guild_id, user_id, strike_reasons)
         VALUES (?, ?, ?)
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
-
-      // Get the strike channel
-      const strikeChannel = await getStrikeChannel(guildId);
-
-      if (strikeChannel) {
-        // Build the strike log embed
-        const embed = await buildStrikeLogEmbed(guildId);
-
-        // Send the embed to the strike channel
-        strikeChannel.send({ embeds: [embed] });
-      }
     } else {
-      const existingReasons = rows[0].strike_reasons;
       const reasonsArray = existingReasons.split(', ');
 
       if (!reasonsArray.includes(reason)) {
@@ -87,9 +77,7 @@ async function logStrike(guildId, userId, reason) {
       }
     }
   } catch (error) {
-    console.error('Error logging strike:', error);
-  }
-}
+
 
 async function getStrikes(guildId, userId) {
   try {
