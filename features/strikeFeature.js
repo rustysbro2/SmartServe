@@ -70,7 +70,12 @@ async function logStrike(userId, reason, client) {
     const [channelRow] = await pool.query(selectChannelQuery, [userId]);
     const guildId = channelRow?.guild_id;
 
-    console.log('Guild ID:', guildId); // Log the guild ID for troubleshooting purposes
+    console.log('Guild ID:', guildId);
+
+    if (!guildId) {
+      console.log('Invalid guild ID.');
+      return;
+    }
 
     const insertReasonQuery = `
       INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
@@ -80,11 +85,6 @@ async function logStrike(userId, reason, client) {
 
     console.log('Strike logged successfully.');
 
-    if (!guildId) {
-      console.log('Invalid guild ID.');
-      return;
-    }
-
     const selectChannelQuery = `
       SELECT channel_id
       FROM strike_channels
@@ -92,10 +92,7 @@ async function logStrike(userId, reason, client) {
       LIMIT 1
     `;
     const [channelRow] = await pool.query(selectChannelQuery, [guildId]);
-
-    console.log('Channel Row:', channelRow);
-
-    const strikeChannelId = channelRow?.channel_id || '';
+    const strikeChannelId = channelRow?.[0]?.channel_id || '';
 
     console.log('Channel ID:', strikeChannelId);
 
@@ -162,12 +159,6 @@ async function logStrike(userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
-
-
-
-
-
-
 
 async function getStrikes(guildId, userId) {
   try {
