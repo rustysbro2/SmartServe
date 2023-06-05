@@ -66,7 +66,7 @@ async function getStrikes(guildId, userId) {
   }
 }
 
-async function buildStrikeLogEmbed(guildId) {
+async function buildStrikeLogEmbed(guildId, strikeChannelId) {
   try {
     const query = `
       SELECT user_id, COUNT(*) AS count
@@ -89,6 +89,23 @@ async function buildStrikeLogEmbed(guildId) {
         const { user_id, count } = row;
         embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
       });
+    }
+
+    // Retrieve the strike channel from the database
+    const getChannelQuery = `
+      SELECT channel_id
+      FROM strike_channels
+      WHERE guild_id = ?
+    `;
+    const [channelRows] = await pool.query(getChannelQuery, [guildId]);
+    const strikeChannel = channelRows[0]?.channel_id;
+
+    // Send the embed message to the strike channel
+    if (strikeChannel) {
+      const channel = await interaction.client.channels.fetch(strikeChannel);
+      if (channel && channel.isText()) {
+        await channel.send({ embeds: [embed.build()] });
+      }
     }
 
     return embed.build();
