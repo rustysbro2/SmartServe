@@ -19,7 +19,7 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    const guildId = interaction.guildId;
+    const guildId = interaction.guild.id; // Use interaction.guild.id instead of interaction.guildId
     const user = interaction.options.getUser('user');
     let reason = interaction.options.getString('reason');
 
