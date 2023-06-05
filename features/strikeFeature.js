@@ -106,14 +106,14 @@ async function logStrike(guildId, userId, reason, client) {
     console.log('Channel ID:', strikeChannelId);
 
     // Get the guild object
-    const guild = client.guilds.resolve(guildId);
+    const guild = client.guilds.cache.get(guildId);
     if (!guild) {
       console.log('Guild not found.');
       return;
     }
 
     // Get the strike channel
-    const strikeChannel = guild.channels.resolve(strikeChannelId);
+    const strikeChannel = guild.channels.cache.get(strikeChannelId);
     if (!strikeChannel) {
       console.log('Strike channel not found.');
       return;
@@ -164,6 +164,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 async function getStrikes(guildId, userId) {
