@@ -57,21 +57,29 @@ async function logStrike(guildId, userId, reason) {
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
       const existingReasons = rows[0].strike_reasons;
-      const updatedReasons = existingReasons ? `${existingReasons}, ${reason}` : reason;
+      const reasonsArray = existingReasons.split(', ');
 
-      const updateQuery = `
-        UPDATE strikes
-        SET strike_reasons = ?
-        WHERE guild_id = ? AND user_id = ?
-      `;
-      await pool.query(updateQuery, [updatedReasons, guildId, userId]);
+      if (!reasonsArray.includes(reason)) {
+        reasonsArray.push(reason);
+        const updatedReasons = reasonsArray.join(', ');
+
+        const updateQuery = `
+          UPDATE strikes
+          SET strike_reasons = ?
+          WHERE guild_id = ? AND user_id = ?
+        `;
+        await pool.query(updateQuery, [updatedReasons, guildId, userId]);
+
+        console.log('Strike logged successfully.');
+      } else {
+        console.log('Duplicate strike reason. Strike not logged.');
+      }
     }
-
-    console.log('Strike logged successfully.');
   } catch (error) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
