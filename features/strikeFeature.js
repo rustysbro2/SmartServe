@@ -114,6 +114,7 @@ async function logStrike(guildId, userId, reason, client) {
 
     if (strikeChannelId) {
       try {
+        console.log('Fetching strike channel...');
         const strikeChannel = await client.channels.fetch(strikeChannelId);
         if (strikeChannel) {
           await strikeChannel.send({ embeds: [exampleEmbed] });
@@ -131,6 +132,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
