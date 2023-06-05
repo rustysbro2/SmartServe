@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
 const pool = require('../database');
+const client = require('../bot'); // Assuming you have a separate file where the Discord client is instantiated and exported
 
 async function setStrikeChannel(guildId, channelId) {
   try {
@@ -47,7 +48,7 @@ async function logStrike(guildId, userId, reason) {
 
     console.log('Rows:', rows);
 
-    if (!rows || Object.keys(rows).length === 0) {
+    if (!rows || rows.length === 0) {
       console.log('No existing strikes found for the user.');
       const insertQuery = `
         INSERT INTO strikes (guild_id, user_id, strike_reasons)
@@ -64,7 +65,6 @@ async function logStrike(guildId, userId, reason) {
         WHERE guild_id = ? AND user_id = ?
       `;
       await pool.query(updateQuery, [updatedReasons, guildId, userId]);
-
     }
 
     console.log('Strike logged successfully.');
