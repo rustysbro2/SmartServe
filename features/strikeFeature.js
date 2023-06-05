@@ -57,18 +57,11 @@ async function setStrikeChannel(guildId, channelId) {
   }
 }
 
-async function logStrike(userId, reason, channelId, client) {
+async function logStrike(userId, reason, channelId, message, client) {
   try {
     await createStrikeTables();
 
-    const selectChannelQuery = `
-      SELECT guild_id
-      FROM strike_channels
-      WHERE channel_id = ?
-      LIMIT 1
-    `;
-    const [channelRow] = await pool.query(selectChannelQuery, [channelId]);
-    const guildId = channelRow?.guild_id;
+    const guildId = message.guild?.id;
 
     console.log('Guild ID:', guildId);
 
@@ -85,14 +78,14 @@ async function logStrike(userId, reason, channelId, client) {
 
     console.log('Strike logged successfully.');
 
-    const selectChannelQuery2 = `
+    const selectChannelQuery = `
       SELECT channel_id
       FROM strike_channels
       WHERE guild_id = ?
       LIMIT 1
     `;
-    const [channelRow2] = await pool.query(selectChannelQuery2, [guildId]);
-    const strikeChannelId = channelRow2?.[0]?.channel_id || '';
+    const [channelRow] = await pool.query(selectChannelQuery, [guildId]);
+    const strikeChannelId = channelRow?.[0]?.channel_id || '';
 
     console.log('Channel ID:', strikeChannelId);
 
