@@ -97,9 +97,9 @@ async function logStrike(guildId, userId, reason, client) {
 
     console.log('Channel Rows:', channelRows);
     console.log('Channel Rows Type:', typeof channelRows);
-    console.log('Channel Rows Length:', channelRows.length);
+    console.log('Channel Rows Keys:', Object.keys(channelRows));
 
-    if (!channelRows || channelRows.length === 0) {
+    if (!channelRows || Object.keys(channelRows).length === 0) {
       console.log('Strike channel not set.');
       return;
     }
@@ -134,6 +134,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 
