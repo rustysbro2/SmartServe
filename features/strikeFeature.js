@@ -61,15 +61,14 @@ async function logStrike(userId, reason, client) {
   try {
     await createStrikeTables();
 
-    const selectQuery = `
+    const selectChannelQuery = `
       SELECT guild_id
-      FROM strikes
-      WHERE user_id = ?
+      FROM strike_channels
+      WHERE channel_id = ?
       LIMIT 1
     `;
-    const [row] = await pool.query(selectQuery, [userId]);
-
-    const guildId = row?.guild_id;
+    const [channelRow] = await pool.query(selectChannelQuery, [userId]);
+    const guildId = channelRow?.guild_id;
 
     console.log('Guild ID:', guildId); // Log the guild ID for troubleshooting purposes
 
