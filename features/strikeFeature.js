@@ -112,9 +112,15 @@ async function logStrike(guildId, userId, reason, client) {
       return;
     }
 
-
     // Get updated strike data for the guild
     const strikeData = await getStrikeData(guildId);
+
+    console.log('Strike Data:', strikeData);
+
+    if (!strikeData || !Array.isArray(strikeData)) {
+      console.log('Invalid strike data.');
+      return;
+    }
 
     // Create and update the embed
     const embed = new EmbedBuilder()
