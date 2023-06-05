@@ -134,18 +134,20 @@ async function logStrike(guildId, userId, reason, client) {
       console.log('Strike channel ID is not undefined.');
       try {
         const strikeChannel = await client.channels.fetch(strikeChannelId);
-        if (strikeChannel) {
-          const messages = await strikeChannel.messages.fetch({ limit: 1 });
-          const lastMessage = messages.first();
-          if (lastMessage) {
-            await lastMessage.edit({ embeds: [exampleEmbed] });
+        if (strikeChannel && strikeChannel.isText()) {
+          const existingMessages = await strikeChannel.messages.fetch();
+          const embedMessage = existingMessages.find((message) =>
+            message.author.id === client.user.id && message.embeds.length > 0 && message.embeds[0].title === 'Strikes Report'
+          );
+          if (embedMessage) {
+            await embedMessage.edit({ embeds: [exampleEmbed] });
             console.log('Embed updated in strike channel.');
           } else {
             await strikeChannel.send({ embeds: [exampleEmbed] });
             console.log('Embed sent to strike channel.');
           }
         } else {
-          console.log('Strike channel not found.');
+          console.log('Strike channel not found or is not a text channel.');
         }
       } catch (error) {
         console.error('Error fetching or updating strike channel:', error);
@@ -185,11 +187,10 @@ async function getStrikeData(guildId) {
     await createStrikeTables();
 
     const query = `
-      SELECT strikes.user_id, COUNT(strikes.user_id) AS count
+      SELECT user_id, COUNT(*) AS count
       FROM strikes
-      JOIN strike_reasons ON strikes.guild_id = strike_reasons.guild_id AND strikes.user_id = strike_reasons.user_id
-      WHERE strikes.guild_id = ?
-      GROUP BY strikes.user_id
+      WHERE guild_id = ?
+      GROUP BY user_id
     `;
     const [rows] = await pool.query(query, [guildId]);
 
