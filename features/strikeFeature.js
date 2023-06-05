@@ -105,24 +105,19 @@ async function logStrike(guildId, userId, reason, client) {
     const strikeChannelId = channelRow.channel_id;
     console.log('Channel ID:', strikeChannelId);
 
-    // Fetch the guild
-    const guild = await client.guilds.fetch(guildId);
+    // Get the guild object
+    const guild = client.guilds.resolve(guildId);
     if (!guild) {
       console.log('Guild not found.');
       return;
     }
 
-    // Fetch the strike channel
-    const strikeChannel = guild.channels.cache.get(strikeChannelId);
+    // Get the strike channel
+    const strikeChannel = guild.channels.resolve(strikeChannelId);
     if (!strikeChannel) {
       console.log('Strike channel not found.');
       return;
     }
-
-
-    // Fetch the messages from the strike channel
-    const messages = await strikeChannel.messages.fetch({ limit: 100 });
-    const strikeRecordMessage = messages.find((msg) => msg.author.id === client.user.id && msg.embeds.length > 0 && msg.embeds[0].title === 'Strike Record');
 
     // Get updated strike data for the guild
     const strikeData = await getStrikeData(guildId);
@@ -136,7 +131,7 @@ async function logStrike(guildId, userId, reason, client) {
 
     // Create and update the embed
     const embed = new EmbedBuilder()
-      .setColor('#FF0000')
+      .setColor(0xFF0000)
       .setTitle('Strike Record')
       .setDescription(`Strike record for guild: ${guildId}`)
       .setTimestamp();
@@ -152,6 +147,10 @@ async function logStrike(guildId, userId, reason, client) {
       }
     }
 
+    // Find the existing strike record message in the strike channel
+    const messages = await strikeChannel.messages.fetch({ limit: 100 });
+    const strikeRecordMessage = messages.find((msg) => msg.author.id === client.user.id && msg.embeds.length > 0 && msg.embeds[0].title === 'Strike Record');
+
     if (strikeRecordMessage) {
       // If an existing strike record message is found, edit the message with the updated embed
       await strikeRecordMessage.edit({ embeds: [embed] });
@@ -165,6 +164,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
