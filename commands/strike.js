@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { logStrike } = require('../features/strikeFeature');
+const { logStrike, buildStrikeLogEmbed } = require('../features/strikeFeature');
 const pool = require('../database');
 
 module.exports = {
@@ -18,15 +18,32 @@ module.exports = {
         .setDescription('The reason for the strike')
         .setRequired(true)
     ),
-
   async execute(interaction) {
     const guildId = interaction.guildId;
-    const user = interaction.options.get('user').user;
+    const userId = interaction.options.getUser('user').id;
     const reason = interaction.options.getString('reason');
 
     try {
-      await logStrike(guildId, user.id, reason);
-      await interaction.reply(`Strike logged for user <@${user.id}>. Reason: ${reason}`);
+      await logStrike(pool, guildId, userId, reason);
+      await interaction.reply(`Strike logged for user <@${userId}>. Reason: ${reason}`);
+
+      // Retrieve the strike channel from the database
+      const getChannelQuery = `
+        SELECT channel_id
+        FROM strike_channels
+        WHERE guild_id = ?
+      `;
+      const [channelRows] = await pool.query(getChannelQuery, [guildId]);
+      const strikeChannel = channelRows[0]?.channel_id;
+
+      // Send the strike log embed to the strike channel
+      if (strikeChannel) {
+        const strikeLogEmbed = await buildStrikeLogEmbed(guildId);
+        const channel = await interaction.client.channels.fetch(strikeChannel);
+        if (strikeLogEmbed && channel && channel.isText()) {
+          await channel.send({ embeds: [strikeLogEmbed] });
+        }
+      }
     } catch (error) {
       console.error('Error logging strike:', error);
       await interaction.reply('An error occurred while logging the strike.');
