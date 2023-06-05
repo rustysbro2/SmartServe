@@ -1,22 +1,4 @@
-async function logStrike(userId, reason, channelId, client) {
-  try {
-    await createStrikeTables();
-
-    const selectGuildIdQuery = `
-      SELECT guild_id
-      FROM strike_channels
-      WHERE channel_id = ?
-    `;
-
-    const [guildRow] = await pool.query(selectGuildIdQuery, [channelId]);
-    const guildId = guildRow?.[0]?.guild_id ?? null;
-
-    console.log('Retrieved Guild ID:', guildId); // Debug output
-
-    if (guildId === null) {
-      console.log('Invalid guild ID.');
-      return;
-    }const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const pool = require('../database.js');
 
 async function createStrikeTables() {
