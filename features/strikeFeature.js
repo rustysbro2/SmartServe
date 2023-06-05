@@ -101,11 +101,13 @@ async function logStrike(userId, reason, client) {
 
         // Fetch the guild using the guildId from the database
         const guild = client.guilds.cache.get(guildId);
+        console.log('Guild:', guild);
         if (!guild) {
           console.log('Guild not found.');
         } else {
           // Get the strike channel
           const strikeChannel = guild.channels.cache.get(strikeChannelId);
+          console.log('Strike Channel:', strikeChannel);
           if (!strikeChannel) {
             console.log('Strike channel not found.');
           } else {
@@ -127,9 +129,11 @@ async function logStrike(userId, reason, client) {
               for (const strike of strikeData) {
                 const { user_id, count } = strike;
                 const user = await client.users.fetch(user_id);
+                console.log('User:', user);
                 if (user) {
                   const username = user.tag;
                   const reasons = await getStrikeReasons(guildId, user_id);
+                  console.log('Reasons:', reasons);
                   const reasonsText = reasons.map((reason) => reason.strike_reason).join('\n');
                   embed.addFields({ name: `${username} (${user_id}) - Strikes: ${count}`, value: reasonsText || 'No reasons provided' });
                 }
