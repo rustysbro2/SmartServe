@@ -56,8 +56,8 @@ async function logStrike(guildId, userId, reason) {
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
-      const existingReasons = rows[0]?.strike_reasons; // Use optional chaining to handle undefined values
-      const reasonsArray = existingReasons ? existingReasons.split(', ') : [];
+      const existingReasons = rows[0].strike_reasons;
+      const reasonsArray = existingReasons.split(', ');
 
       if (!reasonsArray.includes(reason)) {
         reasonsArray.push(reason);
@@ -109,6 +109,8 @@ async function getStrikeChannel(guildId) {
     `;
     const [rows] = await pool.query(query, [guildId]);
 
+    console.log('Rows:', rows);
+
     if (rows.length === 0) {
       console.log('Strike channel not set or not found.');
       return null;
@@ -119,6 +121,8 @@ async function getStrikeChannel(guildId) {
     console.log('Channel ID:', channelId);
 
     const channel = await client.channels.fetch(channelId);
+
+    console.log('Channel:', channel);
 
     return channel;
   } catch (error) {
@@ -161,6 +165,8 @@ async function buildStrikeLogEmbed(guildId) {
         });
       });
     }
+
+    console.log('Built embed:', embed);
 
     return embed;
   } catch (error) {
