@@ -40,7 +40,6 @@ async function createStrikeTables() {
   }
 }
 
-
 async function setStrikeChannel(guildId, channelId) {
   try {
     await createStrikeTables();
@@ -112,7 +111,7 @@ async function logStrike(guildId, userId, reason, client) {
       .setDescription(`User: <@${userId}>\nReason: ${reason}`)
       .setTimestamp();
 
-    const strikeChannel = client.channels.cache.get(strikeChannelId);
+    const strikeChannel = await client.channels.fetch(strikeChannelId);
     if (strikeChannel) {
       await strikeChannel.send({ embeds: [exampleEmbed] });
       console.log('Embed sent to strike channel.');
@@ -123,9 +122,6 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
-
-
-
 
 async function getStrikes(guildId, userId) {
   try {
