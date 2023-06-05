@@ -1,4 +1,4 @@
-// commands/setstrikechannel.js
+// commands/setStrikeChannel.js
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { setStrikeChannel } = require('../features/strikeFeature.js');
@@ -15,14 +15,15 @@ module.exports = {
   async execute(interaction) {
     const strikeChannel = interaction.options.getChannel('channel');
 
-    if (!strikeChannel || strikeChannel.type !== 'GUILD_TEXT') {
-      return interaction.reply('Invalid command usage. Please provide a valid text channel.');
+    if (!strikeChannel || !strikeChannel.isText()) {
+      return interaction.reply('Invalid channel provided. Please provide a valid text channel.');
     }
 
     const guildId = interaction.guildId;
     const channelId = strikeChannel.id;
 
     setStrikeChannel(guildId, channelId);
+
     interaction.reply(`Strike channel set to ${strikeChannel}.`);
   },
 };
