@@ -66,7 +66,7 @@ async function logStrike(guildId, userId, reason, client) {
       FROM strike_reasons
       WHERE guild_id = ? AND user_id = ?
     `;
-    const [rows] = await pool.query(selectQuery, [guildId, userId]);
+    const rows = await pool.query(selectQuery, [guildId, userId]);
 
     console.log('Rows:', rows);
 
@@ -93,16 +93,16 @@ async function logStrike(guildId, userId, reason, client) {
       FROM strike_channels
       WHERE guild_id = ?
     `;
-    const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
+    const [channelRow] = await pool.query(selectChannelQuery, [guildId]);
 
-    console.log('Channel Rows:', channelRows);
+    console.log('Channel Rows:', channelRow);
 
-    if (!channelRows || channelRows.length === 0 || !channelRows[0].channel_id) {
+    if (!channelRow || !channelRow.channel_id) {
       console.log('Strike channel not set.');
       return;
     }
 
-    const strikeChannelId = channelRows[0].channel_id;
+    const strikeChannelId = channelRow.channel_id;
     console.log('Channel ID:', strikeChannelId);
 
     // Fetch the strike channel
@@ -111,6 +111,7 @@ async function logStrike(guildId, userId, reason, client) {
       console.log('Strike channel not found.');
       return;
     }
+
 
     // Get updated strike data for the guild
     const strikeData = await getStrikeData(guildId);
