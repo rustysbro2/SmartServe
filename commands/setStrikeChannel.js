@@ -1,27 +1,28 @@
-const { SlashCommandBuilder } = require('discord.js');
-const { setStrikeChannel } = require('../features/strikeFeature');
+// commands/setstrikechannel.js
+
+const { SlashCommandBuilder } = require('@discordjs/builders');
+const { setStrikeChannel } = require('../features/strikeFeature.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setstrikechannel')
-    .setDescription('Set the channel to log strike messages')
-    .addChannelOption((option) =>
-      option
-        .setName('channel')
-        .setDescription('The channel to log strike messages')
+    .setDescription('Set the strike channel for logging strikes')
+    .addChannelOption(option =>
+      option.setName('channel')
+        .setDescription('The channel to set as the strike channel')
         .setRequired(true)
     ),
-
   async execute(interaction) {
-    const guildId = interaction.guildId;
-    const channelId = interaction.options.getChannel('channel').id;
+    const strikeChannel = interaction.options.getChannel('channel');
 
-    try {
-      await setStrikeChannel(guildId, channelId);
-      await interaction.reply(`Strike channel has been set to <#${channelId}>.`);
-    } catch (error) {
-      console.error('Error setting strike channel:', error);
-      await interaction.reply('An error occurred while setting the strike channel.');
+    if (!strikeChannel || !strikeChannel.isText()) {
+      return interaction.reply('Invalid command usage. Please provide a valid text channel.');
     }
+
+    const guildId = interaction.guildId;
+    const channelId = strikeChannel.id;
+
+    setStrikeChannel(guildId, channelId);
+    interaction.reply(`Strike channel set to ${strikeChannel}.`);
   },
 };
