@@ -15,7 +15,7 @@ module.exports = {
   async execute(interaction) {
     const strikeChannel = interaction.options.getChannel('channel');
 
-    if (!strikeChannel || !strikeChannel.isText()) {
+    if (!strikeChannel || strikeChannel.type !== 'GUILD_TEXT') {
       return interaction.reply('Invalid command usage. Please provide a valid text channel.');
     }
 
