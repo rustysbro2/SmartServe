@@ -1,45 +1,29 @@
-// commands/strike.js
+// commands/setStrikeChannel.js
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { logStrike, getStrikeChannel } = require('../features/strikeFeature.js');
+const { setStrikeChannel } = require('../features/strikeFeature.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('strike')
-    .setDescription('Log a strike for a user')
-    .addUserOption(option =>
-      option.setName('user')
-        .setDescription('The user to strike')
-        .setRequired(true)
-    )
-    .addStringOption(option =>
-      option.setName('reason')
-        .setDescription('The reason for the strike')
+    .setName('setstrikechannel')
+    .setDescription('Set the strike channel for logging strikes')
+    .addChannelOption(option =>
+      option.setName('channel')
+        .setDescription('The channel to set as the strike channel')
         .setRequired(true)
     ),
-  async execute(interaction, client) {
-    const user = interaction.options.getUser('user');
-    const reason = interaction.options.getString('reason');
+  async execute(interaction) {
+    const strikeChannel = interaction.options.getChannel('channel');
+
+    if (!strikeChannel || !strikeChannel.isText()) {
+      return interaction.reply('Invalid channel provided. Please provide a valid text channel.');
+    }
+
     const guildId = interaction.guildId;
+    const channelId = strikeChannel.id;
 
-    if (!user || !reason) {
-      return interaction.reply('Invalid command usage. Please provide a valid user and reason.');
-    }
+    setStrikeChannel(guildId, channelId);
 
-    const strikeChannelId = getStrikeChannel(guildId);
-
-    if (!strikeChannelId) {
-      return interaction.reply('Strike channel has not been set. Please set the strike channel first.');
-    }
-
-    await logStrike(guildId, user.id, reason, client);
-
-    const strikeChannel = await interaction.guild.channels.fetch(strikeChannelId);
-    if (strikeChannel) {
-      strikeChannel.send(`User <@${user.id}> has received a strike: ${reason}`);
-      console.log(`Strike logged in guild ${guildId} and sent to strike channel ${strikeChannelId}`);
-    }
-
-    interaction.reply(`Strike logged for user <@${user.id}>: ${reason}`);
+    interaction.reply(`Strike channel set to ${strikeChannel}.`);
   },
 };
