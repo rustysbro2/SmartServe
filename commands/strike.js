@@ -19,17 +19,13 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    const guildId = interaction.guild.id; // Use interaction.guild.id instead of interaction.guildId
+    const guildId = interaction.guild.id;
+    const channelId = interaction.channel.id; // Fetch the channel ID where the command is invoked
     const user = interaction.options.getUser('user');
-    let reason = interaction.options.getString('reason');
-
-    // Check if reason is null and provide a default value
-    if (!reason) {
-      reason = 'No reason provided';
-    }
+    const reason = interaction.options.getString('reason'); // No need to check for null
 
     try {
-      await logStrike(guildId, user.id, reason);
+      await logStrike(user.id, reason, channelId); // Update the argument order
       await interaction.reply(`Strike logged for user <@${user.id}>. Reason: ${reason}`);
     } catch (error) {
       console.error('Error logging strike:', error);
