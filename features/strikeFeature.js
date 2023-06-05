@@ -77,7 +77,6 @@ async function logStrike(userId, reason, channelId, client) {
       console.log('Invalid guild ID.');
       return;
     }
-
     const insertReasonQuery = `
       INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
       VALUES (?, ?, ?)
