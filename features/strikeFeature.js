@@ -1,6 +1,6 @@
 // strikeFeature.js
 
-const pool = require('./database.js');
+const pool = require('../database.js');
 
 let strikeChannels = {}; // Object to store the strike channels by guild ID
 
