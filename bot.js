@@ -110,7 +110,10 @@ client.on('interactionCreate', async (interaction) => {
         await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
 
         // Log the strike after executing the command
-        const { guild, user, reason } = getStrikeDataFromInteraction(interaction); // Replace with your own function to extract strike data from the interaction
+        const guild = interaction.guild;
+        const user = interaction.user;
+        const reason = interaction.options.getString('reason'); // Replace 'reason' with the actual name of your slash command option
+
         if (guild && user && reason) {
           await logStrike(guild.id, user.id, reason, client);
         }
