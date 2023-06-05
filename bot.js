@@ -12,9 +12,7 @@ const intents = [
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildVoiceStates,
-  GatewayIntentBits.GuildPresences,
-  GatewayIntentBits.GuildChannels 
-
+  GatewayIntentBits.GuildPresences
 ];
 
 const client = new Client({ shards: "auto", intents });
