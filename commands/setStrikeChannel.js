@@ -1,7 +1,7 @@
 // commands/setstrikechannel.js
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { setStrikeChannel } = require('../strikeFeature.js');
+const { setStrikeChannel } = require('../features/strikeFeature.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
