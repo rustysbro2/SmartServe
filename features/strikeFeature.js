@@ -69,12 +69,11 @@ async function logStrike(userId, reason, channelId, client) {
 
     const [guildRow] = await pool.query(selectGuildIdQuery, [channelId]);
     console.log('Guild Row:', guildRow); // Debug output
-    const guildId = guildRow.guild_id;
-
+    const guildId = guildRow?.guild_id;
 
     console.log('Retrieved Guild ID:', guildId); // Debug output
 
-    if (guildId === null) {
+    if (!guildId) {
       console.log('Invalid guild ID.');
       return;
     }
@@ -115,6 +114,7 @@ async function logStrike(userId, reason, channelId, client) {
       console.log('Strike channel not found.');
       return;
     }
+
 
     // Get updated strike data for the guild
     const strikeData = await getStrikeData(guildId);
