@@ -56,7 +56,7 @@ async function logStrike(guildId, userId, reason) {
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
-      const existingReasons = rows[0].strike_reasons;
+      const existingReasons = rows[0]?.strike_reasons || '';
       const reasonsArray = existingReasons.split(', ');
 
       if (!reasonsArray.includes(reason)) {
