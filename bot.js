@@ -116,12 +116,21 @@ client.on('interactionCreate', async (interaction) => {
 
         if (guild && user && reason) {
           await logStrike(guild.id, user.id, reason, client);
+        } else {
+          console.log('Missing required information to log a strike.');
+          console.log('Guild:', guild);
+          console.log('User:', user);
+          console.log('Reason:', reason);
         }
       }
     }
   } catch (error) {
     console.error('Error handling interaction:', error);
   }
+});
+
+client.on('error', (error) => {
+  console.error('Discord client error:', error);
 });
 
 client.login(token);
