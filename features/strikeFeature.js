@@ -1,16 +1,40 @@
 const { EmbedBuilder } = require('discord.js');
 const pool = require('../database.js');
 
-async function setStrikeChannel(guildId, channelId) {
+async function createStrikeTables() {
   try {
-    const query = `
-      CREATE TABLE IF NOT EXISTS strike_channels (
+    const strikesTableQuery = `
+      CREATE TABLE IF NOT EXISTS strikes (
         guild_id VARCHAR(20) NOT NULL,
-        channel_id VARCHAR(20) NOT NULL,
-        PRIMARY KEY (guild_id)
+        user_id VARCHAR(20) NOT NULL,
+        PRIMARY KEY (guild_id, user_id)
       )
     `;
-    await pool.query(query);
+    await pool.query(strikesTableQuery);
+
+    const strikeReasonsTableQuery = `
+      CREATE TABLE IF NOT EXISTS strike_reasons (
+        strike_id INT AUTO_INCREMENT PRIMARY KEY,
+        strike_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        strike_reason TEXT,
+        guild_id VARCHAR(20),
+        user_id VARCHAR(20),
+        FOREIGN KEY (guild_id, user_id)
+          REFERENCES strikes(guild_id, user_id)
+          ON DELETE CASCADE
+      )
+    `;
+    await pool.query(strikeReasonsTableQuery);
+
+    console.log('Strike tables created successfully.');
+  } catch (error) {
+    console.error('Error creating strike tables:', error);
+  }
+}
+
+async function setStrikeChannel(guildId, channelId) {
+  try {
+    await createStrikeTables();
 
     const insertQuery = `
       INSERT INTO strike_channels (guild_id, channel_id)
@@ -27,16 +51,7 @@ async function setStrikeChannel(guildId, channelId) {
 
 async function logStrike(guildId, userId, reason) {
   try {
-    const query = `
-      CREATE TABLE IF NOT EXISTS strikes (
-        guild_id VARCHAR(20) NOT NULL,
-        user_id VARCHAR(20) NOT NULL,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        strike_reasons TEXT,
-        PRIMARY KEY (guild_id, user_id, timestamp)
-      )
-    `;
-    await pool.query(query);
+    await createStrikeTables();
 
     const selectQuery = `
       SELECT strike_reasons
@@ -50,40 +65,28 @@ async function logStrike(guildId, userId, reason) {
     if (!rows || rows.length === 0) {
       console.log('No existing strikes found for the user.');
       const insertQuery = `
-        INSERT INTO strikes (guild_id, user_id, strike_reasons)
-        VALUES (?, ?, ?)
+        INSERT INTO strikes (guild_id, user_id)
+        VALUES (?, ?)
       `;
-      await pool.query(insertQuery, [guildId, userId, reason]);
-    } else {
-      const existingReasons = rows[0].strike_reasons;
-      const reasonsArray = existingReasons.split(', ');
-
-      if (!reasonsArray.includes(reason)) {
-        reasonsArray.push(reason);
-        const updatedReasons = reasonsArray.join(', ');
-
-        const updateQuery = `
-          UPDATE strikes
-          SET strike_reasons = ?
-          WHERE guild_id = ? AND user_id = ?
-        `;
-        await pool.query(updateQuery, [updatedReasons, guildId, userId]);
-
-        console.log('Strike logged successfully.');
-      } else {
-        console.log('Duplicate strike reason. Strike not logged.');
-      }
+      await pool.query(insertQuery, [guildId, userId]);
     }
+
+    const insertReasonQuery = `
+      INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
+      VALUES (?, ?, ?)
+    `;
+    await pool.query(insertReasonQuery, [reason, guildId, userId]);
+
+    console.log('Strike logged successfully.');
   } catch (error) {
     console.error('Error logging strike:', error);
   }
 }
 
-
-
-
 async function getStrikes(guildId, userId) {
   try {
+    await createStrikeTables();
+
     const query = `
       SELECT COUNT(*) AS count
       FROM strikes
@@ -104,6 +107,8 @@ async function getStrikes(guildId, userId) {
 
 async function getStrikeData(guildId) {
   try {
+    await createStrikeTables();
+
     const query = `
       SELECT user_id, COUNT(*) AS count
       FROM strikes
