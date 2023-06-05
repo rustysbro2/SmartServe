@@ -83,6 +83,26 @@ async function logStrike(guildId, userId, reason) {
   }
 }
 
+async function getStrikes(guildId, userId) {
+  try {
+    const query = `
+      SELECT COUNT(*) AS count
+      FROM strikes
+      WHERE guild_id = ? AND user_id = ?
+    `;
+    const [rows] = await pool.query(query, [guildId, userId]);
+
+    if (rows.length === 0) {
+      return 0;
+    }
+
+    return rows[0].count;
+  } catch (error) {
+    console.error('Error retrieving strikes:', error);
+    return 0;
+  }
+}
+
 async function getStrikeChannel(guildId) {
   try {
     const query = `
@@ -93,6 +113,7 @@ async function getStrikeChannel(guildId) {
     const [rows] = await pool.query(query, [guildId]);
 
     if (rows.length === 0) {
+      console.log('Strike channel not set.');
       return null;
     }
 
@@ -151,5 +172,6 @@ module.exports = {
   setStrikeChannel,
   logStrike,
   getStrikes,
+  getStrikeChannel,
   buildStrikeLogEmbed,
 };
