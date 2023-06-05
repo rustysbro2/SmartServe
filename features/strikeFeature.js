@@ -96,6 +96,7 @@ async function logStrike(guildId, userId, reason, client) {
     const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
 
     console.log('Channel Rows:', channelRows);
+    console.log('Strike channel ID:', channelRows[0]?.channel_id);
 
     console.log('Guild ID:', guildId);
     console.log('User ID:', userId);
