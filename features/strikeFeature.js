@@ -56,7 +56,7 @@ async function logStrike(guildId, userId, reason) {
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
-      const existingReasons = rows[0]?.strike_reasons || '';
+      const existingReasons = rows[0].strike_reasons;
       const reasonsArray = existingReasons.split(', ');
 
       if (!reasonsArray.includes(reason)) {
@@ -109,20 +109,18 @@ async function getStrikeChannel(guildId) {
     `;
     const [rows] = await pool.query(query, [guildId]);
 
-    console.log('Rows:', rows);
-
     if (rows.length === 0) {
       console.log('Strike channel not set or not found.');
       return null;
     }
 
     const channelId = rows[0].channel_id;
-
-    console.log('Channel ID:', channelId);
-
     const channel = await client.channels.fetch(channelId);
 
-    console.log('Channel:', channel);
+    if (!channel) {
+      console.log('Strike channel not found.');
+      return null;
+    }
 
     return channel;
   } catch (error) {
@@ -131,54 +129,37 @@ async function getStrikeChannel(guildId) {
   }
 }
 
-async function buildStrikeLogEmbed(guildId) {
+async function execute(interaction) {
   try {
-    const query = `
-      SELECT user_id, GROUP_CONCAT(strike_reasons SEPARATOR ', ') AS strike_reasons
-      FROM strikes
-      WHERE guild_id = ?
-      GROUP BY user_id
-    `;
-    const [rows] = await pool.query(query, [guildId]);
+    const { guildId, userId } = interaction;
+    const reason = interaction.options.getString('reason');
 
-    console.log('Rows:', rows);
+    console.log('Received interaction:', interaction);
 
-    const embed = new EmbedBuilder()
-      .setColor(0x0099FF)
-      .setTitle('Strike Log')
-      .setDescription('Here is the strike log for this guild:')
-      .setTimestamp();
+    await logStrike(guildId, userId, reason);
 
-    if (rows.length === 0) {
-      embed.addFields({ name: 'No strikes found', value: 'No users have been struck yet.' });
+    const strikeCount = await getStrikes(guildId, userId);
+    const strikeChannel = await getStrikeChannel(guildId);
+
+    if (strikeChannel) {
+      const embed = new EmbedBuilder()
+        .setTitle('Strike Logged')
+        .setDescription(`User: <@${userId}>\nReason: ${reason}\nTotal Strikes: ${strikeCount}`)
+        .setColor('#FF0000')
+        .setTimestamp();
+
+      await strikeChannel.send(embed);
     } else {
-      rows.forEach((row) => {
-        const { user_id, strike_reasons } = row;
-        const reasonsArray = strike_reasons.split(', '); // Modify this based on the stored format
-        const count = reasonsArray.length;
-
-        embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
-
-        // Add individual strike reasons as separate fields
-        reasonsArray.forEach((reason, index) => {
-          embed.addFields({ name: `Strike Reason ${index + 1}`, value: reason });
-        });
-      });
+      console.log('Strike channel not found. Cannot send strike embed.');
     }
 
-    console.log('Built embed:', embed);
-
-    return embed;
+    console.log('Strike command executed successfully.');
   } catch (error) {
-    console.error('Error building strike log embed:', error);
-    return null;
+    console.error('Error handling interaction:', error);
   }
 }
 
 module.exports = {
   setStrikeChannel,
-  logStrike,
-  getStrikes,
-  getStrikeChannel,
-  buildStrikeLogEmbed,
+  execute,
 };
