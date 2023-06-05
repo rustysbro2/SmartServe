@@ -18,14 +18,15 @@ module.exports = {
         .setDescription('The reason for the strike')
         .setRequired(true)
     ),
+
   async execute(interaction) {
     const guildId = interaction.guildId;
-    const userId = interaction.options.getUser('user').id;
+    const user = interaction.options.get('user').user;
     const reason = interaction.options.getString('reason');
 
     try {
-      await logStrike(pool, guildId, userId, reason);
-      await interaction.reply(`Strike logged for user <@${userId}>. Reason: ${reason}`);
+      await logStrike(guildId, user.id, reason);
+      await interaction.reply(`Strike logged for user <@${user.id}>. Reason: ${reason}`);
     } catch (error) {
       console.error('Error logging strike:', error);
       await interaction.reply('An error occurred while logging the strike.');
