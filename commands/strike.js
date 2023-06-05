@@ -15,7 +15,7 @@ module.exports = {
       option
         .setName('reason')
         .setDescription('The reason for the strike')
-        .setRequired(false) // Make the reason option optional
+        .setRequired(true) // Make the reason option optional
     ),
 
   async execute(interaction) {
