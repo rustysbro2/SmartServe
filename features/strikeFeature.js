@@ -77,22 +77,19 @@ async function buildStrikeLogEmbed(guildId) {
     const [rows] = await pool.query(query, [guildId]);
 
     const embed = new EmbedBuilder()
-      .setColor('#FF0000')
+      .setColor(0x0099FF)
       .setTitle('Strike Log')
       .setDescription('Here is the strike log for this guild:')
       .setTimestamp();
 
-    const usersWithStrikes = rows.filter((row) => row.count > 0);
-
-    if (usersWithStrikes.length === 0) {
+    if (rows.length === 0) {
       embed.addFields({ name: 'No strikes found', value: 'No users have been struck yet.' });
     } else {
-      usersWithStrikes.forEach((row) => {
+      rows.forEach((row) => {
         const { user_id, count } = row;
         embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
       });
     }
-
 
     return embed.build();
   } catch (error) {
@@ -100,7 +97,6 @@ async function buildStrikeLogEmbed(guildId) {
     return null;
   }
 }
-
 
 module.exports = {
   setStrikeChannel,
