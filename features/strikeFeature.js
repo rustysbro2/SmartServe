@@ -109,7 +109,7 @@ async function logStrike(guildId, userId, reason, client) {
     }
 
     // Fetch the strike channel
-    const strikeChannel = await client.channels.fetch(channelID);
+    const strikeChannel = await client.channels.fetch(strikeChannelId);
     if (!strikeChannel) {
       console.log('Strike channel not found.');
       return;
