@@ -104,7 +104,7 @@ async function logStrike(guildId, userId, reason, client) {
       return;
     }
 
-    const strikeChannelId = channelRows[0]?.channel_id;
+    const strikeChannelId = channelRows.channel_id;
     console.log('Strike Channel ID:', strikeChannelId);
 
     // Create and send the embed
@@ -134,6 +134,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 
