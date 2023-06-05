@@ -90,7 +90,7 @@ async function buildStrikeLogEmbed(userId, reason, strikeCount) {
       .setDescription(`Strike logged for user <@${userId}>`)
       .addFields(
         { name: 'Reason', value: reason },
-        { name: 'Total Strikes', value: strikeCount }
+        { name: 'Total Strikes', value: strikeCount.toString() }
       )
       .setTimestamp();
 
