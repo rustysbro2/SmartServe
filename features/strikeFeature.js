@@ -56,8 +56,8 @@ async function logStrike(guildId, userId, reason) {
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
-      const existingReasons = rows[0].strike_reasons;
-      const reasonsArray = existingReasons.split(', ');
+      const existingReasons = rows[0]?.strike_reasons; // Use optional chaining to handle undefined values
+      const reasonsArray = existingReasons ? existingReasons.split(', ') : [];
 
       if (!reasonsArray.includes(reason)) {
         reasonsArray.push(reason);
@@ -79,7 +79,6 @@ async function logStrike(guildId, userId, reason) {
     console.error('Error logging strike:', error);
   }
 }
-
 
 async function getStrikes(guildId, userId) {
   try {
@@ -116,6 +115,9 @@ async function getStrikeChannel(guildId) {
     }
 
     const channelId = rows[0].channel_id;
+
+    console.log('Channel ID:', channelId);
+
     const channel = await client.channels.fetch(channelId);
 
     return channel;
