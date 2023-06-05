@@ -66,7 +66,7 @@ async function logStrike(guildId, userId, reason, client) {
       FROM strike_reasons
       WHERE guild_id = ? AND user_id = ?
     `;
-    const [rows] = await pool.query(selectQuery, [guildId, userId]);
+    const rows = await pool.query(selectQuery, [guildId, userId]);
 
     console.log('Rows:', rows);
 
@@ -105,13 +105,6 @@ async function logStrike(guildId, userId, reason, client) {
     const strikeChannelId = channelRow.channel_id;
     console.log('Channel ID:', strikeChannelId);
 
-    // Fetch the strike channel
-    const strikeChannel = await client.channels.fetch(strikeChannelId);
-    if (!strikeChannel) {
-      console.log('Strike channel not found.');
-      return;
-    }
-
     // Get updated strike data for the guild
     const strikeData = await getStrikeData(guildId);
 
@@ -141,7 +134,7 @@ async function logStrike(guildId, userId, reason, client) {
     }
 
     // Find the existing strike record message in the strike channel
-    const messages = await strikeChannel.messages.fetch({ limit: 100 });
+    const messages = await client.channels.cache.get(strikeChannelId).messages.fetch({ limit: 100 });
     const strikeRecordMessage = messages.find((msg) => msg.author.id === client.user.id && msg.embeds.length > 0 && msg.embeds[0].title === 'Strike Record');
 
     if (strikeRecordMessage) {
@@ -150,13 +143,19 @@ async function logStrike(guildId, userId, reason, client) {
       console.log('Strike record message updated.');
     } else {
       // If no existing strike record message is found, send a new message with the embed
-      await strikeChannel.send({ embeds: [embed] });
-      console.log('New strike record message sent.');
+      const strikeChannel = client.channels.cache.get(strikeChannelId);
+      if (strikeChannel) {
+        await strikeChannel.send({ embeds: [embed] });
+        console.log('New strike record message sent.');
+      } else {
+        console.log('Strike channel not found.');
+      }
     }
   } catch (error) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
