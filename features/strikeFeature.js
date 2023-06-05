@@ -97,13 +97,13 @@ async function logStrike(guildId, userId, reason, client) {
 
     console.log('Channel Rows:', channelRows);
 
-    if (!channelRows || channelRows.length === 0 || !channelRows[0].channel_id) {
+    if (!channelRows || channelRows.length === 0) {
       console.log('Strike channel not set.');
       return;
     }
 
-    const strikeChannelId = channelRows[0].channel_id;
-    console.log('Strike Channel ID:', strikeChannelId);
+    const { channel_id } = channelRows[0];
+    console.log('Strike Channel ID:', channel_id);
 
     // Fetch strike data
     const strikeData = await getStrikeData(guildId);
@@ -128,17 +128,15 @@ async function logStrike(guildId, userId, reason, client) {
     }
 
     // Send or update the embed in the strike channel
-    if (strikeChannelId) {
+    if (channel_id) {
       console.log('Strike channel ID is not undefined.');
       try {
-        const strikeChannel = client.channels.cache.get(strikeChannelId);
+        const strikeChannel = client.channels.cache.get(channel_id);
         if (strikeChannel && strikeChannel.isText()) {
-          const existingMessages = await strikeChannel.messages.fetch();
-          const embedMessage = existingMessages.find((message) =>
-            message.author.id === client.user.id && message.embeds.length > 0 && message.embeds[0].title === 'Strikes Report'
-          );
-          if (embedMessage) {
-            await embedMessage.edit({ embeds: [exampleEmbed] });
+          const messages = await strikeChannel.messages.fetch();
+          const lastMessage = messages.first();
+          if (lastMessage) {
+            await lastMessage.edit({ embeds: [exampleEmbed] });
             console.log('Embed updated in strike channel.');
           } else {
             await strikeChannel.send({ embeds: [exampleEmbed] });
@@ -157,6 +155,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 async function getStrikes(guildId, userId) {
