@@ -44,10 +44,10 @@ async function logStrike(guildId, userId, reason) {
       WHERE guild_id = ? AND user_id = ?
     `;
     const [rows] = await pool.query(selectQuery, [guildId, userId]);
-    
+
     console.log('Rows:', rows);
 
-    if (!rows || rows.length === 0) {
+    if (!rows || Object.keys(rows).length === 0) {
       console.log('No existing strikes found for the user.');
       const insertQuery = `
         INSERT INTO strikes (guild_id, user_id, strike_reasons)
@@ -55,7 +55,7 @@ async function logStrike(guildId, userId, reason) {
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
-      const existingReasons = rows[0].strike_reasons;
+      const existingReasons = rows.strike_reasons;
       const updatedReasons = existingReasons ? `${existingReasons}, ${reason}` : reason;
 
       const updateQuery = `
@@ -71,6 +71,7 @@ async function logStrike(guildId, userId, reason) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
