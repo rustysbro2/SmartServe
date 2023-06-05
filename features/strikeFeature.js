@@ -47,7 +47,7 @@ async function logStrike(guildId, userId, reason) {
     console.log('Strike logged successfully.');
 
     const strikeCount = await getStrikes(guildId, userId);
-    const strikeLogEmbed = await buildStrikeLogEmbed(guildId, userId, strikeCount);
+    const strikeLogEmbed = await buildStrikeLogEmbed(userId, reason, strikeCount);
 
     const channelQuery = `
       SELECT channel_id
@@ -82,13 +82,12 @@ async function getStrikes(guildId, userId) {
   }
 }
 
-async function buildStrikeLogEmbed(guildId, userId, strikeCount) {
+async function buildStrikeLogEmbed(userId, reason, strikeCount) {
   try {
-    const user = await interaction.guild.members.fetch(userId);
     const embed = new EmbedBuilder()
       .setColor('#FF0000')
       .setTitle('Strike Log')
-      .setDescription(`Strike logged for user ${user.toString()} (${user.id})`)
+      .setDescription(`Strike logged for user <@${userId}>`)
       .addFields(
         { name: 'Reason', value: reason },
         { name: 'Total Strikes', value: strikeCount }
