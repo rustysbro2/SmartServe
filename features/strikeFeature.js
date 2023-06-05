@@ -96,62 +96,36 @@ async function logStrike(guildId, userId, reason, client) {
     const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
 
     console.log('Channel Rows:', channelRows);
-    console.log('typeof channelRows:', typeof channelRows);
-    console.log('channelRows.length:', channelRows.length);
-    console.log('!channelRows:', !channelRows);
-    console.log('channelRows[0]:', channelRows[0]);
-    console.log('channelRows[0]?.channel_id:', channelRows[0]?.channel_id);
+    console.log('Channel Rows Type:', typeof channelRows);
+    console.log('Channel Rows Keys:', Object.keys(channelRows));
 
-    if (!channelRows || channelRows.length === 0 || !channelRows[0]?.channel_id) {
+    if (!channelRows || Object.keys(channelRows).length === 0) {
       console.log('Strike channel not set.');
       return;
     }
 
-    const strikeChannelId = channelRows[0].channel_id;
+    const strikeChannelId = channelRows.channel_id;
     console.log('Strike Channel ID:', strikeChannelId);
 
-    // Fetch strike data
-    const strikeData = await getStrikeData(guildId);
-
-    // Create the embed dynamically
+    // Create and send the embed
     const exampleEmbed = new EmbedBuilder()
       .setColor(0xFF0000)
-      .setTitle('Strikes Report')
+      .setTitle('Strike Logged')
+      .setDescription(`User: <@${userId}>\nReason: ${reason}`)
       .setTimestamp();
 
-    if (strikeData.length > 0) {
-      exampleEmbed.setDescription('List of users and their strikes:');
-      strikeData.forEach((row) => {
-        const { user_id, count } = row;
-        exampleEmbed.addFields(
-          { name: 'User', value: `<@${user_id}>`, inline: true },
-          { name: 'Strikes', value: count, inline: true }
-        );
-      });
-    } else {
-      exampleEmbed.setDescription('No strikes recorded.');
-    }
-
-    // Send or update the embed in the strike channel
     if (strikeChannelId) {
       console.log('Strike channel ID is not undefined.');
       try {
-        const strikeChannel = client.channels.cache.get(strikeChannelId);
-        if (strikeChannel && strikeChannel.isText()) {
-          const messages = await strikeChannel.messages.fetch();
-          const lastMessage = messages.first();
-          if (lastMessage) {
-            await lastMessage.edit({ embeds: [exampleEmbed] });
-            console.log('Embed updated in strike channel.');
-          } else {
-            await strikeChannel.send({ embeds: [exampleEmbed] });
-            console.log('Embed sent to strike channel.');
-          }
+        const strikeChannel = await client.channels.fetch(strikeChannelId);
+        if (strikeChannel) {
+          await strikeChannel.send({ embeds: [exampleEmbed] });
+          console.log('Embed sent to strike channel.');
         } else {
-          console.log('Strike channel not found or is not a text channel.');
+          console.log('Strike channel not found.');
         }
       } catch (error) {
-        console.error('Error fetching or updating strike channel:', error);
+        console.error('Error fetching strike channel:', error);
       }
     } else {
       console.log('Strike channel ID is undefined.');
@@ -160,6 +134,12 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
+
+
+
+
+
 
 async function getStrikes(guildId, userId) {
   try {
@@ -207,5 +187,4 @@ module.exports = {
   logStrike,
   getStrikes,
   getStrikeData,
-  createStrikeTables,
 };
