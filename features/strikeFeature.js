@@ -96,15 +96,13 @@ async function logStrike(guildId, userId, reason, client) {
     const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
 
     console.log('Channel Rows:', channelRows);
-    console.log('Channel Rows Type:', typeof channelRows);
-    console.log('Channel Rows Keys:', Object.keys(channelRows));
 
-    if (!channelRows || Object.keys(channelRows).length === 0) {
+    if (!channelRows || channelRows.length === 0) {
       console.log('Strike channel not set.');
       return;
     }
 
-    const strikeChannelId = channelRows.channel_id;
+    const strikeChannelId = channelRows[0].channel_id;
     console.log('Strike Channel ID:', strikeChannelId);
 
     // Fetch strike data
@@ -133,7 +131,7 @@ async function logStrike(guildId, userId, reason, client) {
     if (strikeChannelId) {
       console.log('Strike channel ID is not undefined.');
       try {
-        const strikeChannel = await client.channels.fetch(strikeChannelId);
+        const strikeChannel = client.channels.cache.get(strikeChannelId);
         if (strikeChannel && strikeChannel.isText()) {
           const existingMessages = await strikeChannel.messages.fetch();
           const embedMessage = existingMessages.find((message) =>
@@ -159,6 +157,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
