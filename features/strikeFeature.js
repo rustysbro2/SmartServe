@@ -97,18 +97,14 @@ async function logStrike(guildId, userId, reason, client) {
 
     console.log('Channel Rows:', channelRows);
 
-    if (!channelRows || channelRows.length === 0) {
+    if (!channelRows || channelRows.length === 0 || !channelRows[0].hasOwnProperty('channel_id')) {
       console.log('Strike channel not set.');
       return;
     }
 
     const strikeChannelId = channelRows[0].channel_id;
-    if (!strikeChannelId) {
-      console.log('Strike channel ID is undefined.');
-      return;
-    }
-
     console.log('Strike Channel ID:', strikeChannelId);
+
 
 
 
