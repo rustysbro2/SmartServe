@@ -1,4 +1,4 @@
-const guildId = guildRow.guild_id;const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const pool = require('../database.js');
 
 async function createStrikeTables() {
