@@ -71,6 +71,8 @@ async function logStrike(userId, reason, client) {
 
     const guildId = row?.guild_id;
 
+    console.log('Guild ID:', guildId); // Log the guild ID for troubleshooting purposes
+
     const insertReasonQuery = `
       INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
       VALUES (?, ?, ?)
