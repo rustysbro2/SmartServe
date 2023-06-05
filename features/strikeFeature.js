@@ -56,6 +56,7 @@ async function setStrikeChannel(guildId, channelId) {
     console.error('Error setting strike channel:', error);
   }
 }
+
 async function logStrike(guildId, userId, reason, client) {
   try {
     await createStrikeTables();
@@ -92,10 +93,12 @@ async function logStrike(guildId, userId, reason, client) {
       FROM strike_channels
       WHERE guild_id = ?
     `;
-    const channelRows = await pool.query(selectChannelQuery, [guildId]);
+    const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
+
     console.log('Channel Rows:', channelRows);
 
     if (!channelRows || channelRows.length === 0) {
+      console.log('Strike channel not set.');
       return;
     }
 
@@ -119,7 +122,7 @@ async function logStrike(guildId, userId, reason, client) {
     const strikeData = await getStrikeData(guildId);
 
     // Create and update the embed
-    const embed = new EmbedBuilder()
+    const embed = new MessageEmbed()
       .setColor(0xFF0000)
       .setTitle('Strike Record')
       .setDescription(`Strike record for guild: ${guildId}`)
@@ -153,16 +156,6 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
-
-
-
-
-
-
-
-
-
-
 
 async function getStrikes(guildId, userId) {
   try {
@@ -198,7 +191,7 @@ async function getStrikeData(guildId) {
     `;
     const [rows] = await pool.query(query, [guildId]);
 
-    return rows;
+    return rows || []; // Return an empty array if no rows are found
   } catch (error) {
     console.error('Error retrieving strike data:', error);
     return [];
