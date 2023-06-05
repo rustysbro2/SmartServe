@@ -57,11 +57,18 @@ async function setStrikeChannel(guildId, channelId) {
   }
 }
 
-async function logStrike(userId, reason, channelId, message, client) {
+async function logStrike(userId, reason, channelId, client) {
   try {
     await createStrikeTables();
 
-    const guildId = message.guild?.id;
+    const selectGuildIdQuery = `
+      SELECT guild_id
+      FROM strike_channels
+      WHERE channel_id = ?
+      LIMIT 1
+    `;
+    const [guildRow] = await pool.query(selectGuildIdQuery, [channelId]);
+    const guildId = guildRow?.[0]?.guild_id;
 
     console.log('Guild ID:', guildId);
 
