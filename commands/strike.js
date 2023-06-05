@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { logStrike } = require('../features/strikeFeature');
+const { logStrike, setStrikeChannel } = require('../features/strikeFeature');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -15,7 +15,7 @@ module.exports = {
       option
         .setName('reason')
         .setDescription('The reason for the strike')
-        .setRequired(true) // Set the reason option as required
+        .setRequired(true)
     ),
 
   async execute(interaction) {
@@ -24,7 +24,9 @@ module.exports = {
     const reason = interaction.options.getString('reason');
 
     try {
+      await setStrikeChannel(guildId, interaction.channelId); // Set the strike channel
       await logStrike(guildId, user.id, reason);
+
       await interaction.reply(`Strike logged for user <@${user.id}>. Reason: ${reason}`);
     } catch (error) {
       console.error('Error logging strike:', error);
