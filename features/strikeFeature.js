@@ -31,40 +31,36 @@ async function logStrike(guildId, userId, reason) {
       CREATE TABLE IF NOT EXISTS strikes (
         guild_id VARCHAR(20) NOT NULL,
         user_id VARCHAR(20) NOT NULL,
-        reason VARCHAR(255) NOT NULL,
+        strike_reasons TEXT,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (guild_id, user_id, timestamp)
       )
     `;
     await pool.query(query);
 
-    const insertQuery = `
-      INSERT INTO strikes (guild_id, user_id, reason)
-      VALUES (?, ?, ?)
+    const selectQuery = `
+      SELECT strike_reasons
+      FROM strikes
+      WHERE guild_id = ? AND user_id = ?
     `;
-    await pool.query(insertQuery, [guildId, userId, reason]);
+    const [rows] = await pool.query(selectQuery, [guildId, userId]);
+    const existingReasons = rows[0]?.strike_reasons || '';
+
+    const updatedReasons = existingReasons ? `${existingReasons}, ${reason}` : reason;
+
+    const updateQuery = `
+      INSERT INTO strikes (guild_id, user_id, strike_reasons)
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE strike_reasons = ?
+    `;
+    await pool.query(updateQuery, [guildId, userId, updatedReasons, updatedReasons]);
 
     console.log('Strike logged successfully.');
-
-    const strikeCount = await getStrikes(guildId, userId);
-    const strikeLogEmbed = await buildStrikeLogEmbed(userId, reason, strikeCount);
-
-    const channelQuery = `
-      SELECT channel_id
-      FROM strike_channels
-      WHERE guild_id = ?
-    `;
-    const [rows] = await pool.query(channelQuery, [guildId]);
-
-    if (rows.length > 0) {
-      const channelId = rows[0].channel_id;
-      const channel = await interaction.guild.channels.cache.get(channelId);
-      await channel.send({ embeds: [strikeLogEmbed] });
-    }
   } catch (error) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
@@ -86,17 +82,38 @@ async function getStrikes(guildId, userId) {
   }
 }
 
-async function buildStrikeLogEmbed(userId, reason, strikeCount) {
+async function buildStrikeLogEmbed(guildId) {
   try {
+    const query = `
+      SELECT user_id, strike_reasons
+      FROM strikes
+      WHERE guild_id = ?
+      GROUP BY user_id
+    `;
+    const [rows] = await pool.query(query, [guildId]);
+
     const embed = new EmbedBuilder()
-      .setColor('#FF0000')
+      .setColor(0x0099FF)
       .setTitle('Strike Log')
-      .setDescription(`Strike logged for user <@${userId}>`)
-      .addFields(
-        { name: 'Reason', value: reason },
-        { name: 'Total Strikes', value: strikeCount.toString() }
-      )
+      .setDescription('Here is the strike log for this guild:')
       .setTimestamp();
+
+    if (rows.length === 0) {
+      embed.addFields({ name: 'No strikes found', value: 'No users have been struck yet.' });
+    } else {
+      rows.forEach((row) => {
+        const { user_id, strike_reasons } = row;
+        const reasonsArray = strike_reasons.split(','); // Modify this based on the stored format
+        const count = reasonsArray.length;
+
+        embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
+
+        // Add individual strike reasons as separate fields
+        reasonsArray.forEach((reason) => {
+          embed.addFields({ name: 'Strike Reason', value: reason });
+        });
+      });
+    }
 
     return embed;
   } catch (error) {
@@ -104,6 +121,8 @@ async function buildStrikeLogEmbed(userId, reason, strikeCount) {
     return null;
   }
 }
+
+
 
 module.exports = {
   setStrikeChannel,
