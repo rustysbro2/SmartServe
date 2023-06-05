@@ -1,4 +1,4 @@
-const { EmbedBuilder, ChannelBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const pool = require('../database');
 
 async function setStrikeChannel(guildId, channelId) {
@@ -67,17 +67,6 @@ async function logStrike(guildId, userId, reason) {
     }
 
     console.log('Strike logged successfully.');
-
-    // Send strike log embed to the strike channel
-    const strikeLogEmbed = await buildStrikeLogEmbed(guildId);
-    const channel = await getStrikeChannel(guildId);
-
-    if (channel && strikeLogEmbed) {
-      channel.send({ embeds: [strikeLogEmbed] });
-      console.log('Strike log embed sent.');
-    } else {
-      console.log('Strike log embed or channel not found.');
-    }
   } catch (error) {
     console.error('Error logging strike:', error);
   }
@@ -113,12 +102,12 @@ async function getStrikeChannel(guildId) {
     const [rows] = await pool.query(query, [guildId]);
 
     if (rows.length === 0) {
-      console.log('Strike channel not set.');
+      console.log('Strike channel not set or not found.');
       return null;
     }
 
     const channelId = rows[0].channel_id;
-    const channel = ChannelBuilder.create(channelId);
+    const channel = await client.channels.fetch(channelId);
 
     return channel;
   } catch (error) {
@@ -130,7 +119,7 @@ async function getStrikeChannel(guildId) {
 async function buildStrikeLogEmbed(guildId) {
   try {
     const query = `
-      SELECT user_id, strike_reasons
+      SELECT user_id, GROUP_CONCAT(strike_reasons SEPARATOR ', ') AS strike_reasons
       FROM strikes
       WHERE guild_id = ?
       GROUP BY user_id
@@ -148,18 +137,17 @@ async function buildStrikeLogEmbed(guildId) {
     } else {
       rows.forEach((row) => {
         const { user_id, strike_reasons } = row;
-        const reasonsArray = strike_reasons.split(','); // Modify this based on the stored format
+        const reasonsArray = strike_reasons.split(', '); // Modify this based on the stored format
         const count = reasonsArray.length;
 
         embed.addFields({ name: `User: ${user_id}`, value: `Strikes: ${count}`, inline: true });
 
+        // Add individual strike reasons as separate fields
         reasonsArray.forEach((reason, index) => {
           embed.addFields({ name: `Strike Reason ${index + 1}`, value: reason });
         });
       });
     }
-
-    console.log('Strike log embed built successfully.');
 
     return embed;
   } catch (error) {
