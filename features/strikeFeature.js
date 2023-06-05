@@ -1,4 +1,6 @@
-const { EmbedBuilder } = require('discord.js');
+const [guildRow] = await pool.query(selectGuildIdQuery, [channelId]);
+console.log('Guild Row:', guildRow); // Debug output
+const guildId = guildRow.guild_id;const { EmbedBuilder } = require('discord.js');
 const pool = require('../database.js');
 
 async function createStrikeTables() {
@@ -68,6 +70,7 @@ async function logStrike(userId, reason, channelId, client) {
     `;
 
     const [guildRow] = await pool.query(selectGuildIdQuery, [channelId]);
+    console.log('Guild Row:', guildRow); // Debug output
     const guildId = guildRow.guild_id;
 
 
