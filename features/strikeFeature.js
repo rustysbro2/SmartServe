@@ -102,8 +102,6 @@ async function logStrike(guildId, userId, reason, client) {
     console.log('channelRows[0]:', channelRows[0]);
     console.log('channelRows[0]?.channel_id:', channelRows[0]?.channel_id);
 
-
-
     if (!channelRows || channelRows.length === 0 || !channelRows[0]?.channel_id) {
       console.log('Strike channel not set.');
       return;
@@ -113,7 +111,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.log('Strike Channel ID:', strikeChannelId);
 
     // Fetch strike data
-    const strikeData = await getStrikeData(guildId);
+    const strikeData = await getStrikeData(guildId); // Add await statement here
 
     // Create the embed dynamically
     const exampleEmbed = new EmbedBuilder()
@@ -162,6 +160,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
