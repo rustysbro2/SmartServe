@@ -68,7 +68,8 @@ async function logStrike(userId, reason, channelId, client) {
     `;
 
     const [guildRow] = await pool.query(selectGuildIdQuery, [channelId]);
-    const guildId = guildRow ? guildRow.guild_id : null;
+    const guildId = guildRow.guild_id;
+
 
     console.log('Retrieved Guild ID:', guildId); // Debug output
 
