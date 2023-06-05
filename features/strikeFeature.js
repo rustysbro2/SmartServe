@@ -48,9 +48,7 @@ async function logStrike(guildId, userId, reason) {
 
     console.log('Rows:', rows);
 
-    const existingReasons = rows[0]?.strike_reasons || ''; // Use optional chaining and fallback to an empty string if rows[0] or strike_reasons is undefined
-
-    if (!existingReasons) {
+    if (!rows || rows.length === 0) {
       console.log('No existing strikes found for the user.');
       const insertQuery = `
         INSERT INTO strikes (guild_id, user_id, strike_reasons)
@@ -58,6 +56,7 @@ async function logStrike(guildId, userId, reason) {
       `;
       await pool.query(insertQuery, [guildId, userId, reason]);
     } else {
+      const existingReasons = rows[0].strike_reasons;
       const reasonsArray = existingReasons.split(', ');
 
       if (!reasonsArray.includes(reason)) {
@@ -135,6 +134,8 @@ async function buildStrikeLogEmbed(guildId) {
       GROUP BY user_id
     `;
     const [rows] = await pool.query(query, [guildId]);
+
+    console.log('Rows:', rows);
 
     const embed = new EmbedBuilder()
       .setColor(0x0099FF)
