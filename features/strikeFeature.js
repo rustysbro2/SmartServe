@@ -44,7 +44,7 @@ async function logStrike(guildId, userId, reason) {
       WHERE guild_id = ? AND user_id = ?
     `;
     const [rows] = await pool.query(selectQuery, [guildId, userId]);
-    const existingReasons = rows[0]?.strike_reasons || '';
+    const existingReasons = rows[0]?.strike_reasons ?? '';
 
     const updatedReasons = existingReasons ? `${existingReasons}, ${reason}` : reason;
 
