@@ -75,6 +75,7 @@ async function logStrike(userId, reason, client) {
     }
 
     const guildId = row.guild_id;
+    console.log('Guild ID:', guildId);
 
     const insertReasonQuery = `
       INSERT INTO strike_reasons (strike_reason, guild_id, user_id)
@@ -83,6 +84,7 @@ async function logStrike(userId, reason, client) {
     await pool.query(insertReasonQuery, [reason, guildId, userId]);
 
     console.log('Strike logged successfully.');
+
 
     // Get the strike channel ID from the database
     const selectChannelQuery = `
