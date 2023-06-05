@@ -77,6 +77,9 @@ async function logStrike(guildId, userId, reason) {
       }
     }
   } catch (error) {
+    console.error('Error logging strike:', error);
+  }
+}
 
 
 async function getStrikes(guildId, userId) {
