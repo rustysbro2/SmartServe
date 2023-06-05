@@ -25,59 +25,14 @@ async function setStrikeChannel(guildId, channelId) {
   }
 }
 
-async function logStrike(guildId, userId, reason) {
-  try {
-    const query = `
-      CREATE TABLE IF NOT EXISTS strikes (
-        guild_id VARCHAR(20) NOT NULL,
-        user_id VARCHAR(20) NOT NULL,
-        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        strike_reasons TEXT,
-        PRIMARY KEY (guild_id, user_id, timestamp)
-      )
-    `;
-    await pool.query(query);
+Rows: { strike_reasons: ', e, t' }
+Error logging strike: TypeError: Cannot read properties of undefined (reading 'strike_reasons')
+    at logStrike (/root/SmartServe/features/strikeFeature.js:58:39)
+    at processTicksAndRejections (node:internal/process/task_queues:96:5)
+    at async Object.execute (/root/SmartServe/commands/strike.js:27:7)
+    at async Client.<anonymous> (/root/SmartServe/bot.js:111:9)
+^C
 
-    const selectQuery = `
-      SELECT strike_reasons
-      FROM strikes
-      WHERE guild_id = ? AND user_id = ?
-    `;
-    const [rows] = await pool.query(selectQuery, [guildId, userId]);
-
-    console.log('Rows:', rows);
-
-    if (!rows || rows.length === 0) {
-      console.log('No existing strikes found for the user.');
-      const insertQuery = `
-        INSERT INTO strikes (guild_id, user_id, strike_reasons)
-        VALUES (?, ?, ?)
-      `;
-      await pool.query(insertQuery, [guildId, userId, reason]);
-    } else {
-      const existingReasons = rows[0].strike_reasons;
-      const reasonsArray = existingReasons.split(', ');
-
-      if (!reasonsArray.includes(reason)) {
-        reasonsArray.push(reason);
-        const updatedReasons = reasonsArray.join(', ');
-
-        const updateQuery = `
-          UPDATE strikes
-          SET strike_reasons = ?
-          WHERE guild_id = ? AND user_id = ?
-        `;
-        await pool.query(updateQuery, [updatedReasons, guildId, userId]);
-
-        console.log('Strike logged successfully.');
-      } else {
-        console.log('Duplicate strike reason. Strike not logged.');
-      }
-    }
-  } catch (error) {
-    console.error('Error logging strike:', error);
-  }
-}
 
 async function getStrikes(guildId, userId) {
   try {
