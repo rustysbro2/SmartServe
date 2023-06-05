@@ -117,7 +117,7 @@ async function logStrike(guildId, userId, reason, client) {
     const strikeData = await getStrikeData(guildId);
 
     // Create and update the embed
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setColor(0xFF0000)
       .setTitle('Strike Record')
       .setDescription(`Strike record for guild: ${guildId}`)
