@@ -85,7 +85,6 @@ async function logStrike(userId, reason, client) {
 
     console.log('Strike logged successfully.');
 
-
     // Get the strike channel ID from the database
     const selectChannelQuery = `
       SELECT channel_id
@@ -163,6 +162,7 @@ async function logStrike(userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 
