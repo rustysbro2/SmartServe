@@ -66,7 +66,7 @@ async function logStrike(guildId, userId, reason, client) {
       FROM strike_reasons
       WHERE guild_id = ? AND user_id = ?
     `;
-    const rows = await pool.query(selectQuery, [guildId, userId]);
+    const [rows] = await pool.query(selectQuery, [guildId, userId]);
 
     console.log('Rows:', rows);
 
@@ -200,8 +200,6 @@ async function getStrikeData(guildId) {
     return [];
   }
 }
-
-
 
 module.exports = {
   setStrikeChannel,
