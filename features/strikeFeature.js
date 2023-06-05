@@ -95,19 +95,15 @@ async function logStrike(guildId, userId, reason, client) {
     const channelRows = await pool.query(selectChannelQuery, [guildId]);
     console.log('Channel Rows:', channelRows);
 
-
- 
-
     if (!channelRows || channelRows.length === 0) {
-      console.log('Strike channel not set.');
       return;
     }
 
     const { channel_id } = channelRows[0]; // Destructure the value from channelRows
     const strikeChannelId = channel_id; // Assign the value to strikeChannelId
-    console.log('Channel ID:', channelID);
+    console.log('Channel ID:', strikeChannelId);
 
-    if (!channelID) {
+    if (!strikeChannelId) {
       console.log('Invalid strike channel ID.');
       return;
     }
