@@ -5,8 +5,7 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
-const { logStrike, createStrikeTables  } = require('./features/strikeFeature.js');
-createStrikeTables();
+const { logStrike } = require('./features/strikeFeature.js'); // Import the logStrike function
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -36,7 +35,7 @@ for (const file of commandFiles) {
         description: '',
         commands: [],
         guildId: command.guildId,
-        categoryDescription: command.categoryDescription
+        categoryDescription: command.categoryDescription // Assign category description here
       };
       commandCategories.push(category);
     }
@@ -44,7 +43,7 @@ for (const file of commandFiles) {
       name: command.data.name,
       description: command.data.description,
       global: command.global !== false,
-      categoryDescription: command.categoryDescription
+      categoryDescription: command.categoryDescription // Include the categoryDescription property
     });
   } else {
     let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
@@ -65,6 +64,7 @@ for (const file of commandFiles) {
   }
 }
 
+// Remove empty categories
 commandCategories.forEach((category) => {
   if (category.commands.length === 0) {
     const index = commandCategories.indexOf(category);
@@ -103,18 +103,18 @@ client.once('ready', async () => {
 client.on('interactionCreate', async (interaction) => {
   try {
     if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-      helpCommand.handleSelectMenu(interaction, commandCategories, guildId);
+      helpCommand.handleSelectMenu(interaction, commandCategories, guildId); // Pass guildId to the handleSelectMenu function
     } else if (interaction.isCommand()) {
       const command = client.commands.get(interaction.commandName);
       if (command) {
+        await command.execute(interaction, client, commandCategories, guildId); // Pass guildId to the execute function
+
+        // Log the strike after executing the command
         const guild = interaction.guild;
-        const user = interaction.options.getUser('user');
-        const reason = interaction.options.getString('reason');
+        const user = interaction.user;
+        const reason = interaction.options.getString('reason'); // Replace 'reason' with the actual name of your slash command option
 
         if (guild && user && reason) {
-          await command.execute(interaction, client, commandCategories, guildId);
-
-          // Log the strike after executing the command
           await logStrike(guild.id, user.id, reason, client);
         } else {
           console.log('Missing required information to log a strike.');
@@ -128,7 +128,6 @@ client.on('interactionCreate', async (interaction) => {
     console.error('Error handling interaction:', error);
   }
 });
-
 
 client.on('error', (error) => {
   console.error('Discord client error:', error);
