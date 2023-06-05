@@ -98,12 +98,12 @@ async function logStrike(guildId, userId, reason) {
 
     console.log('Channel Rows:', channelRows);
 
-    if (!channelRows || channelRows.length === 0 || !channelRows[0].channel_id) {
+    if (!channelRows || channelRows.length === 0) {
       console.log('Strike channel not set.');
       return;
     }
 
-    const strikeChannelId = channelRows[0].channel_id;
+    const strikeChannelId = channelRows[0]?.channel_id;
 
     // Create and send the embed
     const exampleEmbed = new EmbedBuilder()
@@ -123,6 +123,7 @@ async function logStrike(guildId, userId, reason) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 
 async function getStrikes(guildId, userId) {
