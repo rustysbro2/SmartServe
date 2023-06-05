@@ -1,6 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
 const pool = require('../database');
-const { getStrikeChannel } = require('./strikeFeature');
 
 async function setStrikeChannel(guildId, channelId) {
   try {
@@ -100,38 +99,8 @@ async function getStrikes(guildId, userId) {
   }
 }
 
-async function getStrikeChannel(guildId) {
-  try {
-    const query = `
-      SELECT channel_id
-      FROM strike_channels
-      WHERE guild_id = ?
-    `;
-    const [rows] = await pool.query(query, [guildId]);
-
-    if (rows.length === 0) {
-      console.log('Strike channel not set or not found.');
-      return null;
-    }
-
-    const channelId = rows[0].channel_id;
-    const channel = await client.channels.fetch(channelId);
-
-    if (!channel) {
-      console.log('Strike channel not found.');
-      return null;
-    }
-
-    return channel;
-  } catch (error) {
-    console.error('Error retrieving strike channel:', error);
-    return null;
-  }
-}
-
 module.exports = {
   setStrikeChannel,
   logStrike,
   getStrikes,
-  getStrikeChannel,
 };
