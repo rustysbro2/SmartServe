@@ -65,7 +65,6 @@ async function logStrike(userId, reason, channelId, client) {
       SELECT guild_id
       FROM strike_channels
       WHERE channel_id = ?
-      LIMIT 1
     `;
 
     console.log('Channel ID:', channelId);
