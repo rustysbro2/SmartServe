@@ -63,7 +63,7 @@ async function logStrike(guildId, userId, reason) {
     await createStrikeTables();
 
     const selectQuery = `
-      SELECT strike_reasons
+      SELECT strike_reason
       FROM strikes
       WHERE guild_id = ? AND user_id = ?
     `;
