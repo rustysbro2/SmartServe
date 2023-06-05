@@ -40,23 +40,6 @@ async function createStrikeTables() {
   }
 }
 
-async function setStrikeChannel(guildId, channelId) {
-  try {
-    await createStrikeTables();
-
-    const insertQuery = `
-      INSERT INTO strike_channels (guild_id, channel_id)
-      VALUES (?, ?)
-      ON DUPLICATE KEY UPDATE channel_id = ?
-    `;
-    await pool.query(insertQuery, [guildId, channelId, channelId]);
-
-    console.log('Strike channel has been set successfully.');
-  } catch (error) {
-    console.error('Error setting strike channel:', error);
-  }
-}
-
 async function logStrike(guildId, userId, reason, client) {
   try {
     await createStrikeTables();
@@ -112,12 +95,16 @@ async function logStrike(guildId, userId, reason, client) {
       .setTimestamp();
 
     if (strikeChannelId) {
-      const strikeChannel = await client.channels.fetch(strikeChannelId);
-      if (strikeChannel) {
-        await strikeChannel.send({ embeds: [exampleEmbed] });
-        console.log('Embed sent to strike channel.');
-      } else {
-        console.log('Strike channel not found.');
+      try {
+        const strikeChannel = await client.channels.fetch(strikeChannelId);
+        if (strikeChannel) {
+          await strikeChannel.send({ embeds: [exampleEmbed] });
+          console.log('Embed sent to strike channel.');
+        } else {
+          console.log('Strike channel not found.');
+        }
+      } catch (error) {
+        console.error('Error fetching strike channel:', error);
       }
     } else {
       console.log('Strike channel ID is undefined.');
@@ -126,6 +113,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.error('Error logging strike:', error);
   }
 }
+
 
 async function getStrikes(guildId, userId) {
   try {
