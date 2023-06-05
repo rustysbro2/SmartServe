@@ -101,7 +101,8 @@ async function logStrike(guildId, userId, reason, client) {
       return;
     }
 
-    const channelID = channelRows[0]?.channel_id;
+    const { channel_id } = channelRows[0]; // Destructure the value from channelRows
+    const strikeChannelId = channel_id; // Assign the value to strikeChannelId
     console.log('Channel ID:', channelID);
 
     if (!channelID) {
