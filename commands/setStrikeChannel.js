@@ -15,12 +15,18 @@ module.exports = {
   async execute(interaction) {
     const strikeChannel = interaction.options.getChannel('channel');
 
+    console.log('Strike Channel:', strikeChannel);
+
     if (!strikeChannel || !strikeChannel.isText()) {
+      console.log('Invalid Channel');
       return interaction.reply('Invalid channel provided. Please provide a valid text channel.');
     }
 
     const guildId = interaction.guildId;
     const channelId = strikeChannel.id;
+
+    console.log('Guild ID:', guildId);
+    console.log('Channel ID:', channelId);
 
     setStrikeChannel(guildId, channelId);
 
