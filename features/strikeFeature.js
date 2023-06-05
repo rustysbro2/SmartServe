@@ -68,9 +68,9 @@ async function logStrike(userId, reason, channelId, client) {
     `;
 
     const [guildRow] = await pool.query(selectGuildIdQuery, [channelId]);
-    const guildId = guildRow[0]?.guild_id;
+    const guildId = guildRow?.[0]?.guild_id ?? null;
 
-    if (!guildId) {
+    if (guildId === null) {
       console.log('Invalid guild ID.');
       return;
     }
