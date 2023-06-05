@@ -93,8 +93,6 @@ async function logStrike(guildId, userId, reason, client) {
       FROM strike_channels
       WHERE guild_id = ?
     `;
-    const [channelRows] = await pool.query(selectChannelQuery, [guildId]);
-
     console.log('Channel Rows:', channelRows);
 
     if (!channelRows || channelRows.length === 0) {
@@ -103,6 +101,8 @@ async function logStrike(guildId, userId, reason, client) {
     }
 
     const strikeChannelId = channelRows[0]?.channel_id;
+    console.log('Strike Channel ID:', strikeChannelId);
+
 
     // Create and send the embed
     const exampleEmbed = new EmbedBuilder()
