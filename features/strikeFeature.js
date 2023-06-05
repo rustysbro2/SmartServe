@@ -135,6 +135,7 @@ async function logStrike(guildId, userId, reason, client) {
 
 
 
+
 async function getStrikes(guildId, userId) {
   try {
     await createStrikeTables();
