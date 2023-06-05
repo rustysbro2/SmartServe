@@ -106,7 +106,7 @@ async function logStrike(guildId, userId, reason, client) {
     console.log('Channel ID:', strikeChannelId);
 
     // Fetch the guild
-    const guild = client.guilds.cache.get(guildId);
+    const guild = await client.guilds.fetch(guildId);
     if (!guild) {
       console.log('Guild not found.');
       return;
@@ -118,6 +118,7 @@ async function logStrike(guildId, userId, reason, client) {
       console.log('Strike channel not found.');
       return;
     }
+
 
     // Fetch the messages from the strike channel
     const messages = await strikeChannel.messages.fetch({ limit: 100 });
