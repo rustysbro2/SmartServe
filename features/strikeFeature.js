@@ -42,22 +42,21 @@ async function createStrikeTables() {
 
 async function setStrikeChannel(guildId, channelId) {
   try {
-    console.log('Creating Strike Tables...');
     await createStrikeTables();
-    console.log('Strike Tables Created.');
 
     const insertQuery = `
       INSERT INTO strike_channels (guild_id, channel_id)
       VALUES (?, ?)
       ON DUPLICATE KEY UPDATE channel_id = ?
     `;
-    console.log(`Inserting strike channel for guild ${guildId} into database...`);
     await pool.query(insertQuery, [guildId, channelId, channelId]);
+
     console.log('Strike channel has been set successfully.');
   } catch (error) {
     console.error('Error setting strike channel:', error);
   }
 }
+
 
 
 async function logStrike(guildId, userId, reason, client) {
