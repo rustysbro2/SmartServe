@@ -80,23 +80,24 @@ async function logStrike(userId, reason, client) {
     console.log('Strike logged successfully.');
 
 
-    // Get the strike channel ID from the database
     const selectChannelQuery = `
       SELECT channel_id
       FROM strike_channels
       WHERE guild_id = ?
+      LIMIT 1
     `;
     const [channelRow] = await pool.query(selectChannelQuery, [guildId]);
 
     console.log('Channel Row:', channelRow);
 
-    if (!channelRow || !channelRow.channel_id) {
+    if (!channelRow || !channelRow[0]?.channel_id) {
       console.log('Strike channel not set.');
       return;
     }
 
-    const strikeChannelId = channelRow.channel_id;
+    const strikeChannelId = channelRow[0].channel_id;
     console.log('Channel ID:', strikeChannelId);
+
 
     // Fetch the guild using the guildId from the database
     const guild = client.guilds.cache.get(guildId);
