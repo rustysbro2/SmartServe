@@ -56,7 +56,6 @@ async function setStrikeChannel(guildId, channelId) {
     console.error('Error setting strike channel:', error);
   }
 }
-
 async function logStrike(guildId, userId, reason, client) {
   try {
     await createStrikeTables();
@@ -101,6 +100,15 @@ async function logStrike(guildId, userId, reason, client) {
       console.log('Strike channel not set.');
       return;
     }
+
+    const strikeChannelId = channelRows[0]?.channel_id;
+    console.log('Strike Channel ID:', strikeChannelId);
+
+    if (!strikeChannelId) {
+      console.log('Invalid strike channel ID.');
+      return;
+    }
+
 
     const strikeChannelId = channelRows[0].channel_id;
     console.log('Strike Channel ID:', strikeChannelId);
