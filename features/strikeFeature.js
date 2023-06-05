@@ -101,20 +101,16 @@ async function logStrike(guildId, userId, reason, client) {
       return;
     }
 
-    const strikeChannelId = channelRows[0]?.channel_id;
-    console.log('Strike Channel ID:', strikeChannelId);
+    const channelID = channelRows[0]?.channel_id;
+    console.log('Channel ID:', channelID);
 
-    if (!strikeChannelId) {
+    if (!channelID) {
       console.log('Invalid strike channel ID.');
       return;
     }
 
-
-    const strikeChannelId = channelRows[0].channel_id;
-    console.log('Strike Channel ID:', strikeChannelId);
-
     // Fetch the strike channel
-    const strikeChannel = await client.channels.fetch(strikeChannelId);
+    const strikeChannel = await client.channels.fetch(channelID);
     if (!strikeChannel) {
       console.log('Strike channel not found.');
       return;
