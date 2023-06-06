@@ -28,7 +28,7 @@ module.exports = {
       // Save the join message channel ID in the database
       await saveJoinMessageChannelToDatabase(guildId, channel.id);
 
-      const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guildId}`;
+      const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guildId}\nJoin Message Channel: ${channel}`;
 
       // Send the join message in the provided channel
       if (channel && channel.isText()) {
@@ -42,9 +42,9 @@ module.exports = {
     }
   },
   
-  global: 'false',
   category: 'Administration',
   categoryDescription: 'Commands for server administration', // Add a meaningful category description here
+  global: false, // Set the command to not be global (default is true)
 };
 
 async function saveJoinMessageChannelToDatabase(guildId, channelId) {
@@ -52,3 +52,7 @@ async function saveJoinMessageChannelToDatabase(guildId, channelId) {
     // Update the join message channel in the database for the guild
     await pool.promise().query('INSERT INTO guilds (guild_id, join_message_channel) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?', [guildId, channelId, channelId]);
   } catch (error) {
+    console.error('Error saving join message channel to the database:', error);
+    throw error;
+  }
+}
