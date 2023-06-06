@@ -128,6 +128,9 @@ client.on('guildCreate', async (guild) => {
 
     const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
 
+    console.log('Target Guild ID:', joinMessageChannel.target_guild_id);
+    console.log('Join Message Channel ID:', joinMessageChannel.join_message_channel);
+
     const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
     if (!targetGuild) {
       console.log('Target guild not found.');
