@@ -49,9 +49,23 @@ module.exports = {
 
 async function saveJoinMessageChannelToDatabase(channelId) {
   try {
+    // Create the guilds table if it doesn't exist
+    const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS guilds (
+        guild_id VARCHAR(255) COLLATE utf8mb4_general_ci,
+        join_message_channel VARCHAR(255),
+        PRIMARY KEY (guild_id)
+      )
+      DEFAULT CHARACTER SET utf8mb4
+      COLLATE utf8mb4_general_ci
+    `;
+    await pool.promise().query(createTableQuery);
+
+    // Update the join message channel for all guilds
     const updateQuery = `
-      INSERT INTO guilds (join_message_channel)
-      VALUES (?)
+      INSERT INTO guilds (guild_id, join_message_channel)
+      SELECT guild_id, ?
+      FROM guilds
       ON DUPLICATE KEY UPDATE join_message_channel = VALUES(join_message_channel)
     `;
     await pool.promise().query(updateQuery, [channelId]);
@@ -60,4 +74,5 @@ async function saveJoinMessageChannelToDatabase(channelId) {
     throw error;
   }
 }
+
 
