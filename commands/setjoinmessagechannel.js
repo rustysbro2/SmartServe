@@ -41,6 +41,10 @@ module.exports = {
       interaction.reply('Failed to set the join message channel. Please try again.');
     }
   },
+  
+  Global: 'True',
+  category: 'Administration',
+  categoryDescription: 'Commands for server administration', // Add a meaningful category description here
 };
 
 async function saveJoinMessageChannelToDatabase(guildId, channelId) {
@@ -48,7 +52,3 @@ async function saveJoinMessageChannelToDatabase(guildId, channelId) {
     // Update the join message channel in the database for the guild
     await pool.promise().query('INSERT INTO guilds (guild_id, join_message_channel) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?', [guildId, channelId, channelId]);
   } catch (error) {
-    console.error('Error saving join message channel to the database:', error);
-    throw error;
-  }
-}
