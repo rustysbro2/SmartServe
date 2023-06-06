@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const pool = require('../database.js');
+const { client } = require('../bot.js');
+
 
 module.exports = {
   data: new SlashCommandBuilder()
