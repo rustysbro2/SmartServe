@@ -1,4 +1,4 @@
-const { Client, Collection, GatewayIntentBits, Presence, ActivityType, CHANNEL_TYPES } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -6,6 +6,7 @@ const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
+const { CHANNEL_TYPES } = require('discord.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -153,7 +154,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Channel Type:', channel?.type);
 
     if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
-      console.log('Text channel not found in the target guild or invalid channel type.');
+      console.log('Text channel not found in the target guild.');
       return;
     }
 
@@ -197,7 +198,7 @@ client.on('guildDelete', async (guild) => {
     console.log('Channel Type:', channel?.type);
 
     if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
-      console.log('Text channel not found in the target guild or invalid channel type.');
+      console.log('Text channel not found in the target guild.');
       return;
     }
 
@@ -217,7 +218,6 @@ client.login(token);
 async function getJoinMessageChannelFromDatabase(guildId) {
   try {
     const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
-    console.log('Rows:', rows);
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
@@ -229,7 +229,6 @@ async function getJoinMessageChannelFromDatabase(guildId) {
     throw error;
   }
 }
-
 
 async function getLeaveMessageChannelFromDatabase(guildId) {
   try {
