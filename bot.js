@@ -159,23 +159,18 @@ client.login(token);
 
 async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    console.log('Retrieving join message channel from the database for guild ID:', guildId);
-
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
-
-    console.log('Rows:', rows);
-
+    const [rows] = await pool.promise().query('SELECT join_message_channel FROM guilds WHERE target_guild_id = ?', [guildId]);
     if (rows.length > 0) {
-      const joinMessageChannel = rows[0];
+      const joinMessageChannel = rows[0].join_message_channel;
       console.log('Retrieved join message channel:', joinMessageChannel);
       return joinMessageChannel;
     }
-
     return null;
   } catch (error) {
     console.error('Error retrieving join message channel from the database:', error);
     throw error;
   }
 }
+
 
 
