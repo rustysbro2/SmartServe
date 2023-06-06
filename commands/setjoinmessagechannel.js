@@ -12,26 +12,15 @@ module.exports = {
 
   async execute(interaction) {
     const channel = interaction.options.getChannel('channel');
-    const guildId = interaction.guild.id;
 
     try {
-      // Create the guilds table if it doesn't exist
-      const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS guilds (
-          guild_id VARCHAR(255) COLLATE utf8mb4_general_ci,
-          join_message_channel VARCHAR(255),
-          PRIMARY KEY (guild_id)
-        )
-      `;
-      await pool.promise().query(createTableQuery);
-
       // Save the join message channel ID in the database
-      await saveJoinMessageChannelToDatabase(guildId, channel.id);
+      await saveJoinMessageChannelToDatabase(channel.id);
 
-      const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guildId}\nJoin Message Channel: ${channel}`;
+      const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${interaction.guildId}`;
 
-      // Send the join message in the provided channel
-      if (channel && channel.type === 'GUILD_TEXT') {
+      // Send the join message in the specified channel
+      if (channel && channel.isText()) {
         await channel.send(joinMessage);
       }
 
@@ -47,10 +36,10 @@ module.exports = {
   global: false,
 };
 
-async function saveJoinMessageChannelToDatabase(guildId, channelId) {
+async function saveJoinMessageChannelToDatabase(channelId) {
   try {
-    // Update the join message channel in the database for the guild
-    await pool.promise().query('INSERT INTO guilds (guild_id, join_message_channel) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?', [guildId, channelId, channelId]);
+    // Update the join message channel in the database
+    await pool.promise().query('UPDATE guilds SET join_message_channel = ? WHERE id = 1', [channelId]);
   } catch (error) {
     console.error('Error saving join message channel to the database:', error);
     throw error;
