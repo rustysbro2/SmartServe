@@ -96,27 +96,7 @@ client.once('ready', async () => {
   }
 });
 
-client.on('interactionCreate', async (interaction) => {
-  try {
-    if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-      helpCommand.handleSelectMenu(interaction, commandCategories);
-    } else if (interaction.isCommand()) {
-      const command = client.commands.get(interaction.commandName);
-      if (command) {
-        await command.execute(interaction, client, commandCategories);
-      }
-    }
-  } catch (error) {
-    console.error('Error handling interaction:', error);
-  }
-});
-
-client.on('error', (error) => {
-  console.error('Discord client error:', error);
-});
-
-
 module.exports = {
-  client,
+  client, // Export the client object
   login: () => client.login(token)
 };
