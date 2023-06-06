@@ -39,13 +39,12 @@ module.exports = {
     } catch (error) {
       console.error('Error setting join message channel:', error);
       interaction.reply('Failed to set the join message channel. Please try again.');
-    },
-  }
+    }
+  },
 
-  
   category: 'Administration',
-  categoryDescription: 'Commands for server administration', // Add a meaningful category description here
-  global: false, // Set the command to not be global (default is true)
+  categoryDescription: 'Commands for server administration',
+  global: false,
 };
 
 async function saveJoinMessageChannelToDatabase(guildId, channelId) {
