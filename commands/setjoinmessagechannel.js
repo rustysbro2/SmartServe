@@ -5,35 +5,15 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('setjoinmessagechannel')
     .setDescription('Set the channel for the bot to send a join message when added to a new guild')
-    .addChannelOption(option =>
-      option.setName('channel')
-        .setDescription('The channel to send the join message')
-        .setRequired(true)),
+    .addChannelOption((option) =>
+      option.setName('channel').setDescription('The channel to send the join message').setRequired(true)),
 
   async execute(interaction) {
     const channel = interaction.options.getChannel('channel');
-    const guildId = interaction.guildId;
 
     try {
-      // Create the guilds table if it doesn't exist
-      const createTableQuery = `
-        CREATE TABLE IF NOT EXISTS guilds (
-          guild_id VARCHAR(255),
-          join_message_channel VARCHAR(255),
-          PRIMARY KEY (guild_id)
-        )
-      `;
-      await pool.promise().query(createTableQuery);
-
       // Save the join message channel ID in the database
-      await saveJoinMessageChannelToDatabase(guildId, channel.id);
-
-      const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guildId}`;
-
-      // Send the join message in the specified channel
-      if (channel && channel.type === 'GUILD_TEXT') {
-        await channel.send(joinMessage);
-      }
+      await saveJoinMessageChannelToDatabase(channel.id);
 
       interaction.reply(`Join message channel set to ${channel} for this guild.`);
     } catch (error) {
@@ -52,9 +32,8 @@ async function saveJoinMessageChannelToDatabase(channelId) {
     // Create the guilds table if it doesn't exist
     const createTableQuery = `
       CREATE TABLE IF NOT EXISTS guilds (
-        guild_id VARCHAR(255) COLLATE utf8mb4_general_ci,
-        join_message_channel VARCHAR(255),
-        PRIMARY KEY (guild_id)
+        guild_id VARCHAR(255) COLLATE utf8mb4_general_ci PRIMARY KEY,
+        join_message_channel VARCHAR(255)
       )
       DEFAULT CHARACTER SET utf8mb4
       COLLATE utf8mb4_general_ci
@@ -74,5 +53,3 @@ async function saveJoinMessageChannelToDatabase(channelId) {
     throw error;
   }
 }
-
-
