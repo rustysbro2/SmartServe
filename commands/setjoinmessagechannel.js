@@ -88,14 +88,22 @@ async function createGuildsTable() {
   }
 }
 
-async function saveJoinMessageChannelToDatabase(channelId, guildId) {
+async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    await pool.promise().query('UPDATE guilds SET join_message_channel = ? WHERE target_guild_id = ?', [channelId, guildId]);
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
+    console.log('Rows:', rows);
+    if (rows.length > 0) {
+      const joinMessageChannel = rows[0];
+      console.log('Retrieved join message channel:', joinMessageChannel);
+      return joinMessageChannel;
+    }
+    return null;
   } catch (error) {
-    console.error('Error saving join message channel to the database:', error);
+    console.error('Error retrieving join message channel from the database:', error);
     throw error;
   }
 }
+
 
 async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
   try {
