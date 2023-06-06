@@ -119,30 +119,32 @@ client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
 
-    const joinMessageChannel = await getJoinMessageChannelFromDatabase();
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
 
     if (!joinMessageChannel) {
       console.log('Join message channel not set in the database.');
       return;
     }
 
+    console.log('Retrieved join message channel:', joinMessageChannel);
+
     const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
 
     const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
-    console.log('Target Guild:', targetGuild);
-    
     if (!targetGuild) {
       console.log('Target guild not found.');
       return;
     }
 
+    console.log('Target Guild:', targetGuild);
+
     const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
-    console.log('Target Channel:', channel);
-    
     if (!channel || channel.type !== 'GUILD_TEXT') {
       console.log('Text channel not found in the target guild.');
       return;
     }
+
+    console.log('Target Channel:', channel);
 
     await channel.send(joinMessage);
     console.log('Join message sent successfully.');
@@ -157,9 +159,9 @@ client.on('error', (error) => {
 
 client.login(token);
 
-async function getJoinMessageChannelFromDatabase() {
+async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds');
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
@@ -168,6 +170,29 @@ async function getJoinMessageChannelFromDatabase() {
     return null;
   } catch (error) {
     console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}
+
+async function createGuildsTable() {
+  try {
+    await pool.promise().query(`
+      CREATE TABLE IF NOT EXISTS guilds (
+        join_message_channel VARCHAR(255) NOT NULL,
+        target_guild_id VARCHAR(255) NOT NULL
+      )
+    `);
+  } catch (error) {
+    console.error('Error creating guilds table:', error);
+    throw error;
+  }
+}
+
+async function saveJoinMessageChannelToDatabase(channelId, guildId) {
+  try {
+    await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+  } catch (error) {
+    console.error('Error saving join message channel to the database:', error);
     throw error;
   }
 }
