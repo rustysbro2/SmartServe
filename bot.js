@@ -130,9 +130,12 @@ client.on('guildCreate', async (guild) => {
 
     const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
     if (!targetGuild) {
-      console.log('Target guild not found.');
+      console.log('Target guild not found. Join message cannot be sent.');
       return;
     }
+
+    console.log('Join Message Channel:', joinMessageChannel);
+    console.log('Target Guild:', targetGuild);
 
     const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
     if (!channel || channel.type !== 'GUILD_TEXT') {
@@ -140,6 +143,7 @@ client.on('guildCreate', async (guild) => {
       return;
     }
 
+    console.log('Sending Join Message:', joinMessage);
     await channel.send(joinMessage);
     console.log('Join message sent successfully.');
   } catch (error) {
