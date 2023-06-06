@@ -116,3 +116,4 @@ client.on('error', (error) => {
 });
 
 client.login(token);
+module.exports = { client };
