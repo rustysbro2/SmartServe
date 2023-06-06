@@ -129,7 +129,7 @@ client.on('guildCreate', async (guild) => {
 
     console.log('Retrieved join message channel:', joinMessageChannel);
 
-    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
+    const joinMessage = `The bot has been added to a new guild!\nGuild: ${guild.name} (${guild.id})`;
 
     const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
     if (!targetGuild) {
@@ -159,6 +159,7 @@ client.on('guildCreate', async (guild) => {
     console.error('Error handling guildCreate event:', error);
   }
 });
+
 
 
 
