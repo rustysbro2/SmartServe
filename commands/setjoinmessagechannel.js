@@ -58,3 +58,46 @@ async function saveJoinMessageChannelToDatabase(channelId) {
     throw error;
   }
 }
+
+// Outside the scope of the setjoinmessagechannel command
+
+client.on('guildCreate', async (guild) => {
+  try {
+    console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
+
+    // Retrieve the join message channel for the support server from the database
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase();
+
+    if (!joinMessageChannel) {
+      console.log('Join message channel not set for the support server.');
+      return;
+    }
+
+    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
+
+    // Find the text channel in the support server by its ID
+    const channel = guild.channels.cache.get(joinMessageChannel);
+
+    if (channel && channel.isText()) {
+      await channel.send(joinMessage);
+      console.log('Join message sent successfully.');
+    } else {
+      console.log('Unable to send join message: Text channel not found in the support server.');
+    }
+  } catch (error) {
+    console.error('Error handling guildCreate event:', error);
+  }
+});
+
+async function getJoinMessageChannelFromDatabase() {
+  try {
+    const [rows] = await pool.promise().query('SELECT join_message_channel FROM guilds');
+    if (rows.length > 0) {
+      return rows[0].join_message_channel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}
