@@ -14,6 +14,8 @@ module.exports = {
     const channel = interaction.options.getChannel('channel');
 
     try {
+      await createGuildsTable();
+
       await saveJoinMessageChannelToDatabase(channel.id);
 
       const joinMessage = 'The bot has been added to a new guild!';
@@ -33,6 +35,20 @@ module.exports = {
   categoryDescription: 'Commands for server administration',
   global: false,
 };
+
+async function createGuildsTable() {
+  try {
+    await pool.promise().query(`
+      CREATE TABLE IF NOT EXISTS guilds (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        join_message_channel VARCHAR(255) NOT NULL
+      )
+    `);
+  } catch (error) {
+    console.error('Error creating guilds table:', error);
+    throw error;
+  }
+}
 
 async function saveJoinMessageChannelToDatabase(channelId) {
   try {
