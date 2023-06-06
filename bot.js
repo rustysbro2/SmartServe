@@ -96,7 +96,5 @@ client.once('ready', async () => {
   }
 });
 
-module.exports = {
-  client, // Export the client object
-  login: () => client.login(token)
-};
+module.exports = client;
+client.login(token);
