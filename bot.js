@@ -119,7 +119,7 @@ client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
 
-    const joinMessageChannel = await getJoinMessageChannelFromDatabase();
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
 
     if (!joinMessageChannel) {
       console.log('Join message channel not set in the database.');
@@ -140,8 +140,13 @@ client.on('guildCreate', async (guild) => {
 
     const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
     if (!channel || channel.type !== 'GUILD_TEXT') {
-      console.log('Text channel not found in the target guild.');
-      return;
+      console.log('Text channel not found in the target guild. Retrieving from MySQL...');
+      const channelFromDB = await targetGuild.channels.fetch(joinMessageChannel.join_message_channel);
+      if (!channelFromDB || channelFromDB.type !== 'GUILD_TEXT') {
+        console.log('Text channel not found in the target guild.');
+        return;
+      }
+      channel = channelFromDB;
     }
 
     console.log('Target Channel:', channel);
