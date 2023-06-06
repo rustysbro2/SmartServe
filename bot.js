@@ -217,6 +217,7 @@ client.login(token);
 async function getJoinMessageChannelFromDatabase(guildId) {
   try {
     const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
+    console.log('Rows:', rows);
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
@@ -228,6 +229,7 @@ async function getJoinMessageChannelFromDatabase(guildId) {
     throw error;
   }
 }
+
 
 async function getLeaveMessageChannelFromDatabase(guildId) {
   try {
