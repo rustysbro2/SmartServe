@@ -6,6 +6,7 @@ const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
+const { CHANNEL_TYPES } = require('discord.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -142,7 +143,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 'GUILD_TEXT') {
+    if (!channel || channel.type !== CHANNEL_TYPES.TEXT) {
       console.log('Text channel not found in the target guild.');
       return;
     }
