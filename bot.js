@@ -5,7 +5,7 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
-const pool = require('../database.js');
+const pool = require('./database.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
