@@ -43,7 +43,7 @@ async function updateCommandData(commands, rest, client) {
     }, {});
 
     for (const command of commands) {
-      const { name, description, options, subcommands, lastModified, global } = command;
+      const { name, description, options, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
       const fileName = commandNameToFileMap[lowerCaseName];
 
@@ -56,22 +56,11 @@ async function updateCommandData(commands, rest, client) {
         name: name, // Use the original command name
         description: description,
         options: options, // Add the options to the command data
-        defaultPermission: true, // Set defaultPermission to true for all commands
       };
-
-      if (subcommands.length > 0) {
-        // Add subcommands to the command data
-        commandData.options = subcommands.map((subcommand) => ({
-          name: subcommand.name,
-          description: subcommand.description,
-          type: 'SUB_COMMAND',
-          options: subcommand.options || [], // Add subcommand options if available
-        }));
-      }
 
       try {
         if (global) {
-          const existingGlobalCommand = existingGlobalCommands.find((cmd) => cmd.name.toLowerCase() === lowerCaseName);
+          const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
 
           if (!existingGlobalCommand) {
             // Register the command as a global command
@@ -96,10 +85,7 @@ async function updateCommandData(commands, rest, client) {
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
               // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
-              if (
-                command.commandId === null ||
-                (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))
-              ) {
+              if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
                 console.log(`- Last Modified: ${lastModified}`);
@@ -125,13 +111,13 @@ async function updateCommandData(commands, rest, client) {
           }
 
           // Delete the command if it exists as a guild-specific command
-          const existingGuildCommand = existingGuildCommands.find((cmd) => cmd.name.toLowerCase() === lowerCaseName);
+          const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
           if (existingGuildCommand) {
             await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id));
             console.log(`Command deleted as it needs to be registered as a global command: ${JSON.stringify(command)}`);
           }
         } else {
-          const existingGuildCommand = existingGuildCommands.find((cmd) => cmd.name.toLowerCase() === lowerCaseName);
+          const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
 
           if (!existingGuildCommand) {
             // Register the command as a guild-specific command
@@ -162,12 +148,9 @@ async function updateCommandData(commands, rest, client) {
                 console.log(`- Last Modified: ${lastModified}`);
                 console.log(`- New Last Modified: ${newLastModified}`);
 
-                const response = await rest.patch(
-                  Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id),
-                  {
-                    body: commandData,
-                  }
-                );
+                const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
+                  body: commandData,
+                });
 
                 const newCommandId = response.id;
 
@@ -185,7 +168,7 @@ async function updateCommandData(commands, rest, client) {
           }
 
           // Delete the command if it exists as a global command
-          const existingGlobalCommand = existingGlobalCommands.find((cmd) => cmd.name.toLowerCase() === lowerCaseName);
+          const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
           if (existingGlobalCommand) {
             await rest.delete(Routes.applicationCommand(clientId, existingGlobalCommand.id));
             console.log(`Command deleted as it needs to be registered as a guild-specific command: ${JSON.stringify(command)}`);
@@ -233,7 +216,6 @@ module.exports = async function (client) {
       name: setName,
       description: command.data.description,
       options: command.data.options || [], // Add the options to the command data
-      subcommands: command.data.subcommands || [], // Add the subcommands to the command data
       commandId: null, // Set commandId to null initially
       lastModified: fs.statSync(`./commands/${file}`).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
       global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
