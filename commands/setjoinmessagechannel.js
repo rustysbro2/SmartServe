@@ -1,100 +1,105 @@
-const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
-const { token } = require('./config.js');
-const inviteTracker = require('./features/inviteTracker.js');
-const fs = require('fs');
-const helpCommand = require('./commands/help');
-const countingCommand = require('./commands/count');
-const slashCommands = require('./slashCommands.js');
+const { SlashCommandBuilder } = require('discord.js');
+const pool = require('../database.js');
+const { client } = require('../bot.js');
 
-const intents = [
-  GatewayIntentBits.Guilds,
-  GatewayIntentBits.GuildMessages,
-  GatewayIntentBits.GuildMembers,
-  GatewayIntentBits.GuildVoiceStates,
-  GatewayIntentBits.GuildPresences
-];
 
-const client = new Client({ shards: "auto", intents });
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('setjoinmessagechannel')
+    .setDescription('Set the channel for the bot to send a join message when added to a new guild')
+    .addChannelOption(option =>
+      option.setName('channel')
+        .setDescription('The channel to send the join message')
+        .setRequired(true)),
 
-client.commands = new Collection();
-client.musicPlayers = new Map();
+  async execute(interaction) {
+    const channel = interaction.options.getChannel('channel');
+    const guildId = interaction.guild.id;
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-const commandCategories = [];
+    try {
+      await createGuildsTable();
 
-for (const file of commandFiles) {
-  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
-  client.commands.set(command.data.name, command);
+      await saveJoinMessageChannelToDatabase(channel.id);
 
-  if (command.category) {
-    let category = commandCategories.find(category => category.name === command.category);
-    if (!category) {
-      category = {
-        name: command.category,
-        description: '',
-        commands: [],
-        categoryDescription: command.categoryDescription // Assign category description here
-      };
-      commandCategories.push(category);
+      const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guildId}`;
+
+      if (channel && channel.type === 'GUILD_TEXT') {
+        await channel.send(joinMessage);
+      }
+
+      interaction.reply(`Join message channel set to ${channel} for all new guilds.`);
+    } catch (error) {
+      console.error('Error setting join message channel:', error);
+      interaction.reply('Failed to set the join message channel. Please try again.');
     }
-    category.commands.push({
-      name: command.data.name,
-      description: command.data.description,
-      global: command.global !== false,
-      categoryDescription: command.categoryDescription // Include the categoryDescription property
-    });
-  } else {
-    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
-    if (!defaultCategory) {
-      defaultCategory = {
-        name: 'Uncategorized',
-        description: 'Commands that do not belong to any specific category',
-        commands: [],
-      };
-      commandCategories.push(defaultCategory);
-    }
-    defaultCategory.commands.push({
-      name: command.data.name,
-      description: command.data.description,
-      global: command.global !== false
-    });
+  },
+
+  category: 'Administration',
+  categoryDescription: 'Commands for server administration',
+  global: false,
+};
+
+async function createGuildsTable() {
+  try {
+    await pool.promise().query(`
+      CREATE TABLE IF NOT EXISTS guilds (
+        join_message_channel VARCHAR(255) NOT NULL
+      )
+    `);
+  } catch (error) {
+    console.error('Error creating guilds table:', error);
+    throw error;
   }
 }
 
-// Remove empty categories
-commandCategories.forEach((category) => {
-  if (category.commands.length === 0) {
-    const index = commandCategories.indexOf(category);
-    commandCategories.splice(index, 1);
-  }
-});
-
-client.once('ready', async () => {
+async function saveJoinMessageChannelToDatabase(channelId) {
   try {
-    console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-    client.user.setPresence({
-      activities: [
-        {
-          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-          type: ActivityType.WATCHING,
-        },
-      ],
-      status: "online",
-    });
-
-    inviteTracker.execute(client);
-
-    await slashCommands(client);
-
-    console.log('Command Categories:');
-    commandCategories.forEach((category) => {
-      console.log(`Category: ${category.name}`);
-      console.log('Commands:', category.commands);
-    });
+    await pool.promise().query('INSERT INTO guilds (join_message_channel) VALUES (?) ON DUPLICATE KEY UPDATE join_message_channel = ?', [channelId, channelId]);
   } catch (error) {
-    console.error('Error during bot initialization:', error);
+    console.error('Error saving join message channel to the database:', error);
+    throw error;
+  }
+}
+
+// Outside the scope of the setjoinmessagechannel command
+
+client.on('guildCreate', async (guild) => {
+  try {
+    console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
+
+    // Retrieve the join message channel for the support server from the database
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase();
+
+    if (!joinMessageChannel) {
+      console.log('Join message channel not set for the support server.');
+      return;
+    }
+
+    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
+
+    // Find the text channel in the support server by its ID
+    const channel = guild.channels.cache.get(joinMessageChannel);
+
+    if (channel && channel.isText()) {
+      await channel.send(joinMessage);
+      console.log('Join message sent successfully.');
+    } else {
+      console.log('Unable to send join message: Text channel not found in the support server.');
+    }
+  } catch (error) {
+    console.error('Error handling guildCreate event:', error);
   }
 });
 
-module.exports = { client, commandCategories };
-client.login(token);
+async function getJoinMessageChannelFromDatabase() {
+  try {
+    const [rows] = await pool.promise().query('SELECT join_message_channel FROM guilds');
+    if (rows.length > 0) {
+      return rows[0].join_message_channel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}
