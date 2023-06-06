@@ -47,12 +47,17 @@ module.exports = {
   global: false,
 };
 
-async function saveJoinMessageChannelToDatabase(guildId, channelId) {
+async function saveJoinMessageChannelToDatabase(channelId) {
   try {
-    // Update the join message channel in the database
-    await pool.promise().query('INSERT INTO guilds (guild_id, join_message_channel) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?', [guildId, channelId, channelId]);
+    const updateQuery = `
+      INSERT INTO guilds (join_message_channel)
+      VALUES (?)
+      ON DUPLICATE KEY UPDATE join_message_channel = VALUES(join_message_channel)
+    `;
+    await pool.promise().query(updateQuery, [channelId]);
   } catch (error) {
     console.error('Error saving join message channel to the database:', error);
     throw error;
   }
 }
+
