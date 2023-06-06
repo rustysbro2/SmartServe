@@ -42,7 +42,7 @@ module.exports = {
     }
   },
   
-  Global: 'False',
+  global: 'false',
   category: 'Administration',
   categoryDescription: 'Commands for server administration', // Add a meaningful category description here
 };
