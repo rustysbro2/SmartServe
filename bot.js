@@ -6,7 +6,6 @@ const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
-const { CHANNEL_TYPES } = require('discord.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -243,3 +242,4 @@ async function getLeaveMessageChannelFromDatabase(guildId) {
   }
 }
 
+client.login(token);
