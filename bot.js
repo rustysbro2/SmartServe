@@ -1,4 +1,4 @@
-const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
+const { Client, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -108,26 +108,6 @@ client.on('interactionCreate', async (interaction) => {
     }
   } catch (error) {
     console.error('Error handling interaction:', error);
-  }
-});
-
-client.on('guildCreate', async (guild) => {
-  try {
-    console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
-
-    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
-
-    // Find a text channel in the guild to send the join message
-    const channel = guild.channels.cache.find(channel => channel.type === 'GUILD_TEXT');
-
-    if (channel) {
-      await channel.send(joinMessage);
-      console.log('Join message sent successfully.');
-    } else {
-      console.log('Unable to send join message: Text channel not found in the guild.');
-    }
-  } catch (error) {
-    console.error('Error handling guildCreate event:', error);
   }
 });
 
