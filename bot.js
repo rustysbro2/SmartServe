@@ -148,3 +148,16 @@ client.on('error', (error) => {
 });
 
 client.login(token);
+
+async function getJoinMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT join_message_channel FROM guilds WHERE guild_id = ?', [guildId]);
+    if (rows.length > 0) {
+      return rows[0].join_message_channel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}
