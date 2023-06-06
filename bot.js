@@ -130,12 +130,9 @@ client.on('guildCreate', async (guild) => {
 
     const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
     if (!targetGuild) {
-      console.log('Target guild not found. Join message cannot be sent.');
+      console.log('Target guild not found.');
       return;
     }
-
-    console.log('Join Message Channel:', joinMessageChannel);
-    console.log('Target Guild:', targetGuild);
 
     const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
     if (!channel || channel.type !== 'GUILD_TEXT') {
@@ -143,7 +140,6 @@ client.on('guildCreate', async (guild) => {
       return;
     }
 
-    console.log('Sending Join Message:', joinMessage);
     await channel.send(joinMessage);
     console.log('Join message sent successfully.');
   } catch (error) {
@@ -162,7 +158,8 @@ async function getJoinMessageChannelFromDatabase(guildId) {
     const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
-      console.log('Retrieved join message channel:', joinMessageChannel);
+      console.log('Retrieved join message channel:');
+      console.log(joinMessageChannel);
       return joinMessageChannel;
     }
     return null;
