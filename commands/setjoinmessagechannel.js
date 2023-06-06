@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const pool = require('../database.js');
+const pool = require('./database.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -33,10 +33,6 @@ module.exports = {
       interaction.reply('Failed to set the join message channel. Please try again.');
     }
   },
-
-  category: 'Administration',
-  categoryDescription: 'Commands for server administration',
-  global: false,
 };
 
 async function createGuildsTable() {
