@@ -119,18 +119,19 @@ client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
 
-    const joinMessageChannel = await getJoinMessageChannelFromDatabase();
+    const targetGuildId = guild.id;
+    const joinMessageChannelId = await getJoinMessageChannelFromDatabase(targetGuildId);
 
-    if (!joinMessageChannel) {
+    if (!joinMessageChannelId) {
       console.log('Join message channel not set in the database.');
       return;
     }
 
-    console.log('Retrieved join message channel:', joinMessageChannel);
+    console.log('Retrieved join message channel:', joinMessageChannelId);
 
-    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
+    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${targetGuildId}`;
 
-    const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
+    const targetGuild = client.guilds.cache.get(targetGuildId);
     if (!targetGuild) {
       console.log('Target guild not found.');
       return;
@@ -138,15 +139,10 @@ client.on('guildCreate', async (guild) => {
 
     console.log('Target Guild:', targetGuild);
 
-    const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
+    const channel = targetGuild.channels.cache.get(joinMessageChannelId);
     if (!channel || channel.type !== 'GUILD_TEXT') {
-      console.log('Text channel not found in the target guild. Retrieving from MySQL...');
-      const channelFromDB = await targetGuild.channels.fetch(joinMessageChannel.join_message_channel);
-      if (!channelFromDB || channelFromDB.type !== 'GUILD_TEXT') {
-        console.log('Text channel not found in the target guild.');
-        return;
-      }
-      channel = channelFromDB;
+      console.log('Text channel not found in the target guild.');
+      return;
     }
 
     console.log('Target Channel:', channel);
@@ -157,6 +153,7 @@ client.on('guildCreate', async (guild) => {
     console.error('Error handling guildCreate event:', error);
   }
 });
+
 
 
 client.on('error', (error) => {
