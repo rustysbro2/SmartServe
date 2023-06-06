@@ -115,5 +115,6 @@ client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
+
+module.exports = client;
 client.login(token);
-module.exports = { client };
