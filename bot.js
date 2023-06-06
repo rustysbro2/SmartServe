@@ -119,19 +119,18 @@ client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
 
-    const targetGuildId = guild.id;
-    const joinMessageChannelId = await getJoinMessageChannelFromDatabase(targetGuildId);
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
 
-    if (!joinMessageChannelId) {
+    if (!joinMessageChannel) {
       console.log('Join message channel not set in the database.');
       return;
     }
 
-    console.log('Retrieved join message channel:', joinMessageChannelId);
+    console.log('Retrieved join message channel:', joinMessageChannel);
 
-    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${targetGuildId}`;
+    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
 
-    const targetGuild = client.guilds.cache.get(targetGuildId);
+    const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
     if (!targetGuild) {
       console.log('Target guild not found.');
       return;
@@ -139,13 +138,13 @@ client.on('guildCreate', async (guild) => {
 
     console.log('Target Guild:', targetGuild);
 
-    const channel = targetGuild.channels.cache.get(joinMessageChannelId);
+    const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
+    console.log('Target Channel:', channel); // Add this debug statement
+
     if (!channel || channel.type !== 'GUILD_TEXT') {
       console.log('Text channel not found in the target guild.');
       return;
     }
-
-    console.log('Target Channel:', channel);
 
     await channel.send(joinMessage);
     console.log('Join message sent successfully.');
@@ -155,14 +154,13 @@ client.on('guildCreate', async (guild) => {
 });
 
 
-
 client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
 client.login(token);
 
-async function getJoinMessageChannelFromDatabase() {
+async function getJoinMessageChannelFromDatabase(guildId) {
   try {
     const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds LIMIT 1');
     if (rows.length > 0) {
@@ -176,8 +174,6 @@ async function getJoinMessageChannelFromDatabase() {
     throw error;
   }
 }
-
-
 
 async function createGuildsTable() {
   try {
