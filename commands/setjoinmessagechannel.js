@@ -4,7 +4,7 @@ const pool = require('../database.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setjoinmessagechannel')
-    .setDescription('Set the channel for the bot to send a join message when added to a new guild')
+    .setDescription('Set the channel for the bot to send a join or leave message when added to or removed from a guild')
     .addSubcommand(subcommand =>
       subcommand
         .setName('join')
@@ -25,16 +25,17 @@ module.exports = {
     ),
 
   async execute(interaction) {
-    if (interaction.options.getSubcommand() === 'join') {
-      const channel = interaction.options.getChannel('channel');
-      const guildId = interaction.guild.id;
+    const subcommand = interaction.options.getSubcommand();
+    const channel = interaction.options.getChannel('channel');
+    const guildId = interaction.guild.id;
 
-      console.log('Join Channel ID:', channel.id);
-      console.log('Guild ID:', guildId);
+    console.log(`${subcommand.charAt(0).toUpperCase() + subcommand.slice(1)} Channel ID:`, channel.id);
+    console.log('Guild ID:', guildId);
 
-      try {
-        await createGuildsTable();
+    try {
+      await createGuildsTable();
 
+      if (subcommand === 'join') {
         await saveJoinMessageChannelToDatabase(channel.id, guildId);
 
         const joinMessage = `The bot has been added to a new guild!\nGuild: ${interaction.guild.name} (${guildId})`;
@@ -47,20 +48,7 @@ module.exports = {
         }
 
         interaction.reply(`Join message channel set to ${channel} for all new guilds.`);
-      } catch (error) {
-        console.error('Error setting join message channel:', error);
-        interaction.reply('Failed to set the join message channel. Please try again.');
-      }
-    } else if (interaction.options.getSubcommand() === 'leave') {
-      const channel = interaction.options.getChannel('channel');
-      const guildId = interaction.guild.id;
-
-      console.log('Leave Channel ID:', channel.id);
-      console.log('Guild ID:', guildId);
-
-      try {
-        await createGuildsTable();
-
+      } else if (subcommand === 'leave') {
         await saveLeaveMessageChannelToDatabase(channel.id, guildId);
 
         const leaveMessage = `The bot has left a guild!\nGuild: ${interaction.guild.name} (${guildId})`;
@@ -73,10 +61,10 @@ module.exports = {
         }
 
         interaction.reply(`Leave message channel set to ${channel} for all new guilds.`);
-      } catch (error) {
-        console.error('Error setting leave message channel:', error);
-        interaction.reply('Failed to set the leave message channel. Please try again.');
       }
+    } catch (error) {
+      console.error(`Error setting ${subcommand} message channel:`, error);
+      interaction.reply(`Failed to set the ${subcommand} message channel. Please try again.`);
     }
   },
 
@@ -95,4 +83,25 @@ async function createGuildsTable() {
       )
     `);
   } catch (error) {
-    console.error('Error creating guilds table:',
+    console.error('Error creating guilds table:', error);
+    throw error;
+  }
+}
+
+async function saveJoinMessageChannelToDatabase(channelId, guildId) {
+  try {
+    await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+  } catch (error) {
+    console.error('Error saving join message channel to the database:', error);
+    throw error;
+  }
+}
+
+async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
+  try {
+    await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+  } catch (error) {
+    console.error('Error saving leave message channel to the database:', error);
+    throw error;
+  }
+}
