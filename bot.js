@@ -5,6 +5,7 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
+const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -112,6 +113,10 @@ client.on('interactionCreate', async (interaction) => {
   } catch (error) {
     console.error('Error handling interaction:', error);
   }
+});
+
+client.on('guildCreate', guild => {
+  setJoinMessageChannelCommand.eventHandler(client, guild);
 });
 
 client.on('error', (error) => {
