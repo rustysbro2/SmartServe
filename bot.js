@@ -139,7 +139,8 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Guild:', targetGuild);
 
     const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
-    console.log('Target Channel:', channel); // Add this debug statement
+    console.log('Target Channel:', channel);
+    console.log('Channel Type:', channel?.type);
 
     if (!channel || channel.type !== 'GUILD_TEXT') {
       console.log('Text channel not found in the target guild.');
