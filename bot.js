@@ -5,7 +5,6 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
-const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -34,6 +33,7 @@ for (const file of commandFiles) {
         name: command.category,
         description: '',
         commands: [],
+        guildId: command.guildId,
         categoryDescription: command.categoryDescription // Assign category description here
       };
       commandCategories.push(category);
@@ -51,6 +51,7 @@ for (const file of commandFiles) {
         name: 'Uncategorized',
         description: 'Commands that do not belong to any specific category',
         commands: [],
+        guildId: undefined
       };
       commandCategories.push(defaultCategory);
     }
@@ -90,6 +91,7 @@ client.once('ready', async () => {
     console.log('Command Categories:');
     commandCategories.forEach((category) => {
       console.log(`Category: ${category.name}`);
+      console.log(`Guild ID: ${category.guildId}`);
       console.log('Commands:', category.commands);
     });
   } catch (error) {
@@ -97,7 +99,23 @@ client.once('ready', async () => {
   }
 });
 
-setJoinMessageChannelCommand(client);
+client.on('interactionCreate', async (interaction) => {
+  try {
+    if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
+      helpCommand.handleSelectMenu(interaction, commandCategories);
+    } else if (interaction.isCommand()) {
+      const command = client.commands.get(interaction.commandName);
+      if (command) {
+        await command.execute(interaction, client, commandCategories);
+      }
+    }
+  } catch (error) {
+    console.error('Error handling interaction:', error);
+  }
+});
 
-module.exports = client;
+client.on('error', (error) => {
+  console.error('Discord client error:', error);
+});
+
 client.login(token);
