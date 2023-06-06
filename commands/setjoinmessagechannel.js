@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const pool = require('../database.js');
 
-module.exports.command = {
+module.exports = {
   data: new SlashCommandBuilder()
     .setName('setjoinmessagechannel')
     .setDescription('Set the channel for the bot to send a join message when added to a new guild')
