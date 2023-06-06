@@ -5,6 +5,7 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
+const pool = require('../database.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -118,7 +119,7 @@ client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
 
-    const joinMessageChannel = await getJoinMessageChannelFromDatabase();
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
 
     if (!joinMessageChannel) {
       console.log('Join message channel not set in the database.');
@@ -151,3 +152,18 @@ client.on('error', (error) => {
 });
 
 client.login(token);
+
+async function getJoinMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
+    if (rows.length > 0) {
+      const joinMessageChannel = rows[0];
+      console.log('Retrieved join message channel:', joinMessageChannel);
+      return joinMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}
