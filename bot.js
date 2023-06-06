@@ -5,7 +5,6 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
-const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -115,8 +114,36 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-client.on('guildCreate', guild => {
-  setJoinMessageChannelCommand.eventHandler(client, guild);
+client.on('guildCreate', async (guild) => {
+  try {
+    console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
+
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase();
+
+    if (!joinMessageChannel) {
+      console.log('Join message channel not set in the database.');
+      return;
+    }
+
+    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
+
+    const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
+    if (!targetGuild) {
+      console.log('Target guild not found.');
+      return;
+    }
+
+    const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
+    if (!channel || channel.type !== 'GUILD_TEXT') {
+      console.log('Text channel not found in the target guild.');
+      return;
+    }
+
+    await channel.send(joinMessage);
+    console.log('Join message sent successfully.');
+  } catch (error) {
+    console.error('Error handling guildCreate event:', error);
+  }
 });
 
 client.on('error', (error) => {
