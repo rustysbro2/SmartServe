@@ -119,7 +119,7 @@ client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
 
-    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase();
 
     if (!joinMessageChannel) {
       console.log('Join message channel not set in the database.');
@@ -167,7 +167,7 @@ client.login(token);
 
 async function getJoinMessageChannelFromDatabase() {
   try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds');
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds LIMIT 1');
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
@@ -179,6 +179,7 @@ async function getJoinMessageChannelFromDatabase() {
     throw error;
   }
 }
+
 
 
 async function createGuildsTable() {
