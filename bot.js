@@ -150,6 +150,7 @@ client.on('guildCreate', async (guild) => {
   }
 });
 
+
 client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
