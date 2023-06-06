@@ -6,6 +6,7 @@ const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
+const { CHANNEL_TYPES } = require('discord.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -109,11 +110,6 @@ client.on('interactionCreate', async (interaction) => {
       if (command) {
         await command.execute(interaction, client, commandCategories);
       }
-    } else if (interaction.isContextMenu()) {
-      const command = client.commands.get(interaction.commandName);
-      if (command) {
-        await command.execute(interaction, client, commandCategories);
-      }
     }
   } catch (error) {
     console.error('Error handling interaction:', error);
@@ -133,12 +129,9 @@ client.on('guildCreate', async (guild) => {
 
     console.log('Retrieved join message channel:', joinMessageChannel);
 
-    const targetGuildId = joinMessageChannel.target_guild_id;
+    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
 
-    const joinMessage = `The bot has been added to a new guild!\nGuild: ${guild.name} (${guild.id})`;
-
-    const targetGuild = await client.guilds.fetch(targetGuildId, { cache: false });
-
+    const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
     if (!targetGuild) {
       console.log('Target guild not found.');
       return;
@@ -146,17 +139,16 @@ client.on('guildCreate', async (guild) => {
 
     console.log('Target Guild:', targetGuild);
 
-    const channels = await targetGuild.channels.fetch();
     console.log('Target Guild Channels:');
-    channels.forEach((channel) => {
+    targetGuild.channels.cache.forEach((channel) => {
       console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
     });
 
-    const channel = channels.get(joinMessageChannel.join_message_channel);
+    const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 'GUILD_TEXT') {
+    if (!channel || channel.type !== 0) {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -168,65 +160,23 @@ client.on('guildCreate', async (guild) => {
   }
 });
 
-client.on('guildDelete', async (guild) => {
-  try {
-    console.log(`Bot left a guild: ${guild.name} (${guild.id})`);
 
-    const leaveMessageChannel = await getLeaveMessageChannelFromDatabase(guild.id);
 
-    if (!leaveMessageChannel) {
-      console.log('Leave message channel not set in the database.');
-      return;
-    }
 
-    console.log('Retrieved leave message channel:', leaveMessageChannel);
-
-    const targetGuildId = leaveMessageChannel.target_guild_id;
-
-    const leaveMessage = `The bot has left a guild!\nGuild: ${guild.name} (${guild.id})`;
-
-    const targetGuild = await client.guilds.fetch(targetGuildId, { cache: false });
-
-    if (!targetGuild) {
-      console.log('Target guild not found.');
-      return;
-    }
-
-    console.log('Target Guild:', targetGuild);
-
-    const channels = await targetGuild.channels.fetch();
-    console.log('Target Guild Channels:');
-    channels.forEach((channel) => {
-      console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
-    });
-
-    const channel = channels.get(leaveMessageChannel.leave_message_channel);
-    console.log('Target Channel:', channel);
-    console.log('Channel Type:', channel?.type);
-
-    if (!channel || channel.type !== 'GUILD_TEXT') {
-      console.log('Text channel not found in the target guild.');
-      return;
-    }
-
-    await channel.send(leaveMessage);
-    console.log('Leave message sent successfully.');
-  } catch (error) {
-    console.error('Error handling guildDelete event:', error);
-  }
+client.on('error', (error) => {
+  console.error('Discord client error:', error);
 });
+
+client.login(token);
 
 async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    const sql = 'SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?';
-    const [rows] = await pool.promise().query(sql, [guildId]);
-
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds LIMIT 1');
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
       return joinMessageChannel;
     }
-
     return null;
   } catch (error) {
     console.error('Error retrieving join message channel from the database:', error);
@@ -234,22 +184,25 @@ async function getJoinMessageChannelFromDatabase(guildId) {
   }
 }
 
-async function getLeaveMessageChannelFromDatabase(guildId) {
+async function createGuildsTable() {
   try {
-    const sql = 'SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?';
-    const [rows] = await pool.promise().query(sql, [guildId]);
-
-    if (rows.length > 0) {
-      const leaveMessageChannel = rows[0];
-      console.log('Retrieved leave message channel:', leaveMessageChannel);
-      return leaveMessageChannel;
-    }
-
-    return null;
+    await pool.promise().query(`
+      CREATE TABLE IF NOT EXISTS guilds (
+        join_message_channel VARCHAR(255) NOT NULL,
+        target_guild_id VARCHAR(255) NOT NULL
+      )
+    `);
   } catch (error) {
-    console.error('Error retrieving leave message channel from the database:', error);
+    console.error('Error creating guilds table:', error);
     throw error;
   }
 }
 
-client.login(token);
+async function saveJoinMessageChannelToDatabase(channelId, guildId) {
+  try {
+    await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+  } catch (error) {
+    console.error('Error saving join message channel to the database:', error);
+    throw error;
+  }
+}
