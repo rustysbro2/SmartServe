@@ -1,77 +1,249 @@
-const { SlashCommandBuilder, channelMention } = require('discord.js');
-const pool = require('../database.js');
+const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
+const { token } = require('./config.js');
+const inviteTracker = require('./features/inviteTracker.js');
+const fs = require('fs');
+const helpCommand = require('./commands/help');
+const countingCommand = require('./commands/count');
+const slashCommands = require('./slashCommands.js');
+const pool = require('./database.js');
+const { CHANNEL_TYPES } = require('discord.js');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('setjoinmessagechannel')
-    .setDescription('Set the channel for the bot to send a join or leave message when added to or removed from a guild')
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName('join')
-        .setDescription('Set the join message channel')
-        .addChannelOption(option =>
-          option.setName('channel')
-            .setDescription('The channel to send the join message')
-            .setRequired(true))
-    )
-    .addSubcommand(subcommand =>
-      subcommand
-        .setName('leave')
-        .setDescription('Set the leave message channel')
-        .addChannelOption(option =>
-          option.setName('channel')
-            .setDescription('The channel to send the leave message')
-            .setRequired(true))
-    ),
+const intents = [
+  GatewayIntentBits.Guilds,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildVoiceStates,
+  GatewayIntentBits.GuildPresences
+];
 
-  async execute(interaction) {
-    const subcommand = interaction.options.getSubcommand();
-    const channel = interaction.options.getChannel('channel');
-    const guildId = interaction.guild.id;
+const client = new Client({ shards: "auto", intents });
 
-    console.log(`${subcommand.charAt(0).toUpperCase() + subcommand.slice(1)} Channel ID:`, channel.id);
-    console.log('Guild ID:', guildId);
+client.commands = new Collection();
+client.musicPlayers = new Map();
 
-    try {
-      await createGuildsTable();
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandCategories = [];
 
-      if (subcommand === 'join') {
-        await saveJoinMessageChannelToDatabase(channel.id, guildId);
+for (const file of commandFiles) {
+  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
+  client.commands.set(command.data.name, command);
 
-        const joinMessage = `The bot has been added to a new guild!\nGuild: ${interaction.guild.name} (${guildId})`;
-
-        if (channel && channel.type === 'GUILD_TEXT') {
-          console.log('Join message channel:', channel.name);
-          await channel.send(joinMessage);
-        } else {
-          console.log('Channel not found or invalid channel type:', channel);
-        }
-
-        interaction.reply(`Join message channel set to ${channel} for all new guilds.`);
-      } else if (subcommand === 'leave') {
-        await saveLeaveMessageChannelToDatabase(channel.id, guildId);
-
-        const leaveMessage = `The bot has left a guild!\nGuild: ${interaction.guild.name} (${guildId})`;
-
-        if (channel && channel.type === 'GUILD_TEXT') {
-          console.log('Leave message channel:', channel.name);
-          await channel.send(leaveMessage);
-        } else {
-          console.log('Channel not found or invalid channel type:', channel);
-        }
-
-        interaction.reply(`Leave message channel set to ${channel} for all new guilds.`);
-      }
-    } catch (error) {
-      console.error(`Error setting ${subcommand} message channel:`, error);
-      interaction.reply(`Failed to set the ${subcommand} message channel. Please try again.`);
+  if (command.category) {
+    let category = commandCategories.find(category => category.name === command.category);
+    if (!category) {
+      category = {
+        name: command.category,
+        description: '',
+        commands: [],
+        guildId: command.guildId,
+        categoryDescription: command.categoryDescription // Assign category description here
+      };
+      commandCategories.push(category);
     }
-  },
+    category.commands.push({
+      name: command.data.name,
+      description: command.data.description,
+      global: command.global !== false,
+      categoryDescription: command.categoryDescription // Include the categoryDescription property
+    });
+  } else {
+    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
+    if (!defaultCategory) {
+      defaultCategory = {
+        name: 'Uncategorized',
+        description: 'Commands that do not belong to any specific category',
+        commands: [],
+        guildId: undefined
+      };
+      commandCategories.push(defaultCategory);
+    }
+    defaultCategory.commands.push({
+      name: command.data.name,
+      description: command.data.description,
+      global: command.global !== false
+    });
+  }
+}
 
-  category: 'Administration',
-  categoryDescription: 'Commands for server administration',
-  global: false,
-};
+// Remove empty categories
+commandCategories.forEach((category) => {
+  if (category.commands.length === 0) {
+    const index = commandCategories.indexOf(category);
+    commandCategories.splice(index, 1);
+  }
+});
+
+client.once('ready', async () => {
+  try {
+    console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+    client.user.setPresence({
+      activities: [
+        {
+          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+          type: ActivityType.WATCHING,
+        },
+      ],
+      status: "online",
+    });
+
+    inviteTracker.execute(client);
+
+    await slashCommands(client);
+
+    console.log('Command Categories:');
+    commandCategories.forEach((category) => {
+      console.log(`Category: ${category.name}`);
+      console.log(`Guild ID: ${category.guildId}`);
+      console.log('Commands:', category.commands);
+    });
+  } catch (error) {
+    console.error('Error during bot initialization:', error);
+  }
+});
+
+client.on('interactionCreate', async (interaction) => {
+  try {
+    if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
+      helpCommand.handleSelectMenu(interaction, commandCategories);
+    } else if (interaction.isCommand()) {
+      const command = client.commands.get(interaction.commandName);
+      if (command) {
+        await command.execute(interaction, client, commandCategories);
+      }
+    } else if (interaction.isContextMenu()) {
+      const command = client.commands.get(interaction.commandName);
+      if (command) {
+        await command.execute(interaction, client, commandCategories);
+      }
+    }
+  } catch (error) {
+    console.error('Error handling interaction:', error);
+  }
+});
+
+client.on('guildCreate', async (guild) => {
+  try {
+    console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
+
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
+
+    if (!joinMessageChannel) {
+      console.log('Join message channel not set in the database.');
+      return;
+    }
+
+    console.log('Retrieved join message channel:', joinMessageChannel);
+
+    const joinMessage = `The bot has been added to a new guild!\nGuild: ${guild.name} (${guild.id})`;
+
+    const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
+    if (!targetGuild) {
+      console.log('Target guild not found.');
+      return;
+    }
+
+    console.log('Target Guild:', targetGuild);
+
+    console.log('Target Guild Channels:');
+    targetGuild.channels.cache.forEach((channel) => {
+      console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
+    });
+
+    const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
+    console.log('Target Channel:', channel);
+    console.log('Channel Type:', channel?.type);
+
+    if (!channel || channel.type !== 0) {
+      console.log('Text channel not found in the target guild.');
+      return;
+    }
+
+    await channel.send(joinMessage);
+    console.log('Join message sent successfully.');
+  } catch (error) {
+    console.error('Error handling guildCreate event:', error);
+  }
+});
+
+client.on('guildDelete', async (guild) => {
+  try {
+    console.log(`Bot left a guild: ${guild.name} (${guild.id})`);
+
+    const leaveMessageChannel = await getLeaveMessageChannelFromDatabase(guild.id);
+
+    if (!leaveMessageChannel) {
+      console.log('Leave message channel not set in the database.');
+      return;
+    }
+
+    console.log('Retrieved leave message channel:', leaveMessageChannel);
+
+    const leaveMessage = `The bot has left a guild!\nGuild: ${guild.name} (${guild.id})`;
+
+    const targetGuild = client.guilds.cache.get(leaveMessageChannel.target_guild_id);
+    if (!targetGuild) {
+      console.log('Target guild not found.');
+      return;
+    }
+
+    console.log('Target Guild:', targetGuild);
+
+    console.log('Target Guild Channels:');
+    targetGuild.channels.cache.forEach((channel) => {
+      console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
+    });
+
+    const channel = targetGuild.channels.cache.get(leaveMessageChannel.leave_message_channel);
+    console.log('Target Channel:', channel);
+    console.log('Channel Type:', channel?.type);
+
+    if (!channel || channel.type !== 0) {
+      console.log('Text channel not found in the target guild.');
+      return;
+    }
+
+    await channel.send(leaveMessage);
+    console.log('Leave message sent successfully.');
+  } catch (error) {
+    console.error('Error handling guildDelete event:', error);
+  }
+});
+
+client.on('error', (error) => {
+  console.error('Discord client error:', error);
+});
+
+client.login(token);
+
+async function getJoinMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
+    if (rows.length > 0) {
+      const joinMessageChannel = rows[0];
+      console.log('Retrieved join message channel:', joinMessageChannel);
+      return joinMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}
+
+async function getLeaveMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
+    if (rows.length > 0) {
+      const leaveMessageChannel = rows[0];
+      console.log('Retrieved leave message channel:', leaveMessageChannel);
+      return leaveMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving leave message channel from the database:', error);
+    throw error;
+  }
+}
 
 async function createGuildsTable() {
   try {
@@ -90,7 +262,7 @@ async function createGuildsTable() {
 
 async function saveJoinMessageChannelToDatabase(channelId, guildId) {
   try {
-    await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+    await pool.promise().query('INSERT INTO guilds (join_message_channel, leave_message_channel, target_guild_id) VALUES (?, "", ?) ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
   } catch (error) {
     console.error('Error saving join message channel to the database:', error);
     throw error;
@@ -99,7 +271,7 @@ async function saveJoinMessageChannelToDatabase(channelId, guildId) {
 
 async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
   try {
-    await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+    await pool.promise().query('INSERT INTO guilds (leave_message_channel, join_message_channel, target_guild_id) VALUES (?, "", ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
   } catch (error) {
     console.error('Error saving leave message channel to the database:', error);
     throw error;
