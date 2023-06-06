@@ -137,7 +137,8 @@ client.on('guildCreate', async (guild) => {
 
     const joinMessage = `The bot has been added to a new guild!\nGuild: ${guild.name} (${guild.id})`;
 
-    const targetGuild = client.guilds.cache.get(targetGuildId);
+    const targetGuild = await client.guilds.fetch(targetGuildId, { cache: false });
+
     if (!targetGuild) {
       console.log('Target guild not found.');
       return;
@@ -145,12 +146,13 @@ client.on('guildCreate', async (guild) => {
 
     console.log('Target Guild:', targetGuild);
 
+    const channels = await targetGuild.channels.fetch();
     console.log('Target Guild Channels:');
-    targetGuild.channels.cache.forEach((channel) => {
+    channels.forEach((channel) => {
       console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
     });
 
-    const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
+    const channel = channels.get(joinMessageChannel.join_message_channel);
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
@@ -183,7 +185,8 @@ client.on('guildDelete', async (guild) => {
 
     const leaveMessage = `The bot has left a guild!\nGuild: ${guild.name} (${guild.id})`;
 
-    const targetGuild = client.guilds.cache.get(targetGuildId);
+    const targetGuild = await client.guilds.fetch(targetGuildId, { cache: false });
+
     if (!targetGuild) {
       console.log('Target guild not found.');
       return;
@@ -191,12 +194,13 @@ client.on('guildDelete', async (guild) => {
 
     console.log('Target Guild:', targetGuild);
 
+    const channels = await targetGuild.channels.fetch();
     console.log('Target Guild Channels:');
-    targetGuild.channels.cache.forEach((channel) => {
+    channels.forEach((channel) => {
       console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
     });
 
-    const channel = targetGuild.channels.cache.get(leaveMessageChannel.leave_message_channel);
+    const channel = channels.get(leaveMessageChannel.leave_message_channel);
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
@@ -214,12 +218,15 @@ client.on('guildDelete', async (guild) => {
 
 async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
+    const sql = 'SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?';
+    const [rows] = await pool.promise().query(sql, [guildId]);
+
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
       return joinMessageChannel;
     }
+
     return null;
   } catch (error) {
     console.error('Error retrieving join message channel from the database:', error);
@@ -229,12 +236,15 @@ async function getJoinMessageChannelFromDatabase(guildId) {
 
 async function getLeaveMessageChannelFromDatabase(guildId) {
   try {
-    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
+    const sql = 'SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?';
+    const [rows] = await pool.promise().query(sql, [guildId]);
+
     if (rows.length > 0) {
       const leaveMessageChannel = rows[0];
       console.log('Retrieved leave message channel:', leaveMessageChannel);
       return leaveMessageChannel;
     }
+
     return null;
   } catch (error) {
     console.error('Error retrieving leave message channel from the database:', error);
