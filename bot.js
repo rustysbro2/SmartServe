@@ -1,4 +1,4 @@
-const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Presence, ActivityType, CHANNEL_TYPES } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -6,7 +6,6 @@ const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
-const { CHANNEL_TYPES } = require('discord.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -153,8 +152,8 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
-      console.log('Text channel not found in the target guild.');
+    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
+      console.log('Text channel not found in the target guild or invalid channel type.');
       return;
     }
 
@@ -197,8 +196,8 @@ client.on('guildDelete', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
-      console.log('Text channel not found in the target guild.');
+    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
+      console.log('Text channel not found in the target guild or invalid channel type.');
       return;
     }
 
