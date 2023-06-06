@@ -34,7 +34,6 @@ for (const file of commandFiles) {
         name: command.category,
         description: '',
         commands: [],
-        guildId: command.guildId,
         categoryDescription: command.categoryDescription // Assign category description here
       };
       commandCategories.push(category);
@@ -52,7 +51,6 @@ for (const file of commandFiles) {
         name: 'Uncategorized',
         description: 'Commands that do not belong to any specific category',
         commands: [],
-        guildId: undefined
       };
       commandCategories.push(defaultCategory);
     }
@@ -92,7 +90,6 @@ client.once('ready', async () => {
     console.log('Command Categories:');
     commandCategories.forEach((category) => {
       console.log(`Category: ${category.name}`);
-      console.log(`Guild ID: ${category.guildId}`);
       console.log('Commands:', category.commands);
     });
   } catch (error) {
@@ -119,24 +116,16 @@ client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
 
-    // Retrieve the join message channel for the guild from the database
-    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
-
-    if (!joinMessageChannel) {
-      console.log('Join message channel not set for this guild.');
-      return;
-    }
-
     const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
 
-    // Find the channel in the guild by its ID
-    const channel = guild.channels.cache.get(joinMessageChannel);
+    // Find a text channel in the guild to send the join message
+    const channel = guild.channels.cache.find(channel => channel.type === 'GUILD_TEXT');
 
-    if (channel && channel.isText()) {
+    if (channel) {
       await channel.send(joinMessage);
       console.log('Join message sent successfully.');
     } else {
-      console.log('Unable to send join message: Channel not found or is not a text channel.');
+      console.log('Unable to send join message: Text channel not found in the guild.');
     }
   } catch (error) {
     console.error('Error handling guildCreate event:', error);
@@ -148,16 +137,3 @@ client.on('error', (error) => {
 });
 
 client.login(token);
-
-async function getJoinMessageChannelFromDatabase(guildId) {
-  try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel FROM guilds WHERE guild_id = ?', [guildId]);
-    if (rows.length > 0) {
-      return rows[0].join_message_channel;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error retrieving join message channel from the database:', error);
-    throw error;
-  }
-}
