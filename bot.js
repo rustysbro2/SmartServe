@@ -304,20 +304,37 @@ async function createGuildsTable() {
   }
 }
 
-async function saveJoinMessageChannelToDatabase(channelId, guildId) {
+async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    await pool.promise().query('INSERT INTO guilds (join_message_channel, leave_message_channel, target_guild_id) VALUES (?, "", ?) ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+    const query = 'SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?';
+    console.log('Executing query:', query, 'with parameters:', guildId);
+    const [rows] = await pool.promise().query(query, [guildId]);
+    if (rows.length > 0) {
+      const joinMessageChannel = rows[0];
+      console.log('Retrieved join message channel:', joinMessageChannel);
+      return joinMessageChannel;
+    }
+    return null;
   } catch (error) {
-    console.error('Error saving join message channel to the database:', error);
+    console.error('Error retrieving join message channel from the database:', error);
     throw error;
   }
 }
 
-async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
+async function getLeaveMessageChannelFromDatabase(guildId) {
   try {
-    await pool.promise().query('INSERT INTO guilds (leave_message_channel, join_message_channel, target_guild_id) VALUES (?, "", ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+    const query = 'SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?';
+    console.log('Executing query:', query, 'with parameters:', guildId);
+    const [rows] = await pool.promise().query(query, [guildId]);
+    if (rows.length > 0) {
+      const leaveMessageChannel = rows[0];
+      console.log('Retrieved leave message channel:', leaveMessageChannel);
+      return leaveMessageChannel;
+    }
+    return null;
   } catch (error) {
-    console.error('Error saving leave message channel to the database:', error);
+    console.error('Error retrieving leave message channel from the database:', error);
     throw error;
   }
 }
+
