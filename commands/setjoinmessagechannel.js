@@ -23,6 +23,8 @@ module.exports = {
 
       if (channel && channel.type === 'GUILD_TEXT') {
         await channel.send(joinMessage);
+      } else {
+        console.log('Channel not found or invalid channel type:', channel);
       }
 
       interaction.reply(`Join message channel set to ${channel} for all new guilds.`);
@@ -91,7 +93,9 @@ async function getJoinMessageChannelFromDatabase() {
   try {
     const [rows] = await pool.promise().query('SELECT join_message_channel FROM guilds');
     if (rows.length > 0) {
-      return rows[0].join_message_channel;
+      const joinMessageChannel = rows[0].join_message_channel;
+      console.log('Retrieved join message channel:', joinMessageChannel);
+      return joinMessageChannel;
     }
     return null;
   } catch (error) {
