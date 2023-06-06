@@ -20,7 +20,7 @@ module.exports = {
 
       const joinMessage = 'The bot has been added to a new guild!';
 
-      if (channel && channel.isText()) {
+      if (channel && channel.type === 'GUILD_TEXT') {
         await channel.send(joinMessage);
       }
 
