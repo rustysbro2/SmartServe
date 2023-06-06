@@ -5,6 +5,7 @@ const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
 const slashCommands = require('./slashCommands.js');
+const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -95,6 +96,8 @@ client.once('ready', async () => {
     console.error('Error during bot initialization:', error);
   }
 });
+
+setJoinMessageChannelCommand(client);
 
 module.exports = client;
 client.login(token);
