@@ -139,6 +139,11 @@ client.on('guildCreate', async (guild) => {
 
     console.log('Target Guild:', targetGuild);
 
+    console.log('Target Guild Channels:');
+    targetGuild.channels.cache.forEach((channel) => {
+      console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
+    });
+
     const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
@@ -154,6 +159,7 @@ client.on('guildCreate', async (guild) => {
     console.error('Error handling guildCreate event:', error);
   }
 });
+
 
 
 client.on('error', (error) => {
