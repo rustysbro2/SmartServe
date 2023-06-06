@@ -14,6 +14,9 @@ module.exports = {
     const channel = interaction.options.getChannel('channel');
     const guildId = interaction.guild.id;
 
+    console.log('Channel ID:', channel.id);
+    console.log('Guild ID:', guildId);
+
     try {
       await createGuildsTable();
 
@@ -22,6 +25,7 @@ module.exports = {
       const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guildId}`;
 
       if (channel && channel.type === 'GUILD_TEXT') {
+        console.log('Join message channel:', channel.name);
         await channel.send(joinMessage);
       } else {
         console.log('Channel not found or invalid channel type:', channel);
