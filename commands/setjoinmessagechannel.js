@@ -39,8 +39,9 @@ module.exports = {
     } catch (error) {
       console.error('Error setting join message channel:', error);
       interaction.reply('Failed to set the join message channel. Please try again.');
-    }
-  },
+    },
+  }
+
   
   category: 'Administration',
   categoryDescription: 'Commands for server administration', // Add a meaningful category description here
