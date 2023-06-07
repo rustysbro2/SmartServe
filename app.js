@@ -52,12 +52,13 @@ passport.deserializeUser((id, done) => {
 
 // Redirect middleware
 app.use((req, res, next) => {
-  if (req.hostname !== 'smartserve.cc' && req.get('host') === 'YOUR_IP_ADDRESS') {
+  if (req.hostname !== 'smartserve.cc' && req.get('host') !== 'smartserve.cc') {
     // Redirect to the domain with the same port
     return res.redirect(`http://smartserve.cc:${req.get('port')}${req.originalUrl}`);
   }
   next();
 });
+
 
 // Initialize Passport and restore authentication state, if any
 app.use(passport.initialize());
