@@ -58,8 +58,13 @@ app.use(passport.session());
 
 // Define routes
 app.get('/', (req, res) => {
-  res.render('login.ejs');
+  if (req.headers['x-forwarded-proto'] !== 'https') {
+    res.redirect('https://' + req.headers.host + req.url);
+  } else {
+    res.render('login.ejs');
+  }
 });
+
 
 app.get('/login', passport.authenticate('discord'));
 
