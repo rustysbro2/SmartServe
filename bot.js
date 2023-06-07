@@ -93,7 +93,7 @@ client.once('ready', async () => {
       activities: [
         {
           name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-          type: 'WATCHING',
+          type: ActivityType.Watching,
         },
       ],
       status: 'online',
@@ -104,7 +104,7 @@ client.once('ready', async () => {
         activities: [
           {
             name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-            type: 'WATCHING',
+            type: ActivityType.Watching,
           },
         ],
         status: 'online',
