@@ -18,7 +18,12 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     categoryEmbed.setDescription(category.categoryDescription || 'No description available.');
 
     const commandsToShow = category.commands.filter((command) => {
+      console.log('Command:', command.name);
+      console.log('Global:', command.global);
+      console.log('Interaction guild ID:', interaction.guildId);
+      console.log('Stored guild ID:', guildId);
       const shouldShow = command.global === true || (command.global === false && interaction.guildId === guildId);
+      console.log('Should Show:', shouldShow);
       return shouldShow;
     });
 
@@ -44,6 +49,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     return;
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
