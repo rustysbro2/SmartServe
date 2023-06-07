@@ -1,6 +1,30 @@
 const { SlashCommandBuilder } = require('discord.js');
 const pool = require('../database.js');
 
+async function createGuildsTable() {
+  try {
+    await pool.promise().query(`
+      CREATE TABLE IF NOT EXISTS guilds (
+        join_message_channel VARCHAR(255) NOT NULL,
+        leave_message_channel VARCHAR(255) NOT NULL,
+        target_guild_id VARCHAR(255) NOT NULL
+      )
+    `);
+  } catch (error) {
+    console.error('Error creating guilds table:', error);
+    throw error;
+  }
+}
+
+async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
+  try {
+    await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+  } catch (error) {
+    console.error('Error saving leave message channel to the database:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setleavemessagechannel')
@@ -31,7 +55,7 @@ module.exports = {
         console.log('Channel not found or invalid channel type:', channel);
       }
 
-      interaction.reply(`Leave message channel set to ${channel} for all removed guilds.`);
+      interaction.reply(`Leave message channel set to ${channel} for all guilds.`);
     } catch (error) {
       console.error('Error setting leave message channel:', error);
       interaction.reply('Failed to set the leave message channel. Please try again.');
@@ -42,26 +66,3 @@ module.exports = {
   categoryDescription: 'Commands for server administration',
   global: false,
 };
-
-async function createGuildsTable() {
-  try {
-    await pool.promise().query(`
-      CREATE TABLE IF NOT EXISTS guilds (
-        leave_message_channel VARCHAR(255) NOT NULL,
-        target_guild_id VARCHAR(255) NOT NULL
-      )
-    `);
-  } catch (error) {
-    console.error('Error creating guilds table:', error);
-    throw error;
-  }
-}
-
-async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
-  try {
-    await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
-  } catch (error) {
-    console.error('Error saving leave message channel to the database:', error);
-    throw error;
-  }
-}
