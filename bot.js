@@ -78,7 +78,8 @@ commandCategories.forEach((category) => {
 client.once('ready', async () => {
   try {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-    inviteTracker.execute(client);
+
+    await inviteTracker.execute(client);
     await slashCommands(client);
 
     console.log('Command Categories:');
@@ -88,8 +89,8 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 
-    setInterval(updatePresence, 60000); // Update presence every 1 minute
     updatePresence(); // Initial presence update
+    setInterval(updatePresence, 60000); // Update presence every 1 minute
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
@@ -110,6 +111,7 @@ async function updatePresence() {
     console.error('Failed to update presence:', error);
   }
 }
+
 
 
 
