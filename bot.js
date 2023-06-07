@@ -117,22 +117,6 @@ async function updatePresence() {
   }
 }
 
-
-    inviteTracker.execute(client);
-
-    await slashCommands(client);
-
-    console.log('Command Categories:');
-    commandCategories.forEach((category) => {
-      console.log(`Category: ${category.name}`);
-      console.log(`Guild ID: ${category.guildId}`);
-      console.log('Commands:', category.commands);
-    });
-  } catch (error) {
-    console.error('Error during bot initialization:', error);
-  }
-});
-
 client.on('interactionCreate', async (interaction) => {
   try {
     if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
@@ -299,19 +283,6 @@ async function getJoinMessageChannelFromDatabase(guildId) {
     return null;
   } catch (error) {
     console.error('Error retrieving join message channel from the database:', error);
-    throw error;
-  }
-}async function getLeaveMessageChannelFromDatabase(guildId) {
-  try {
-    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
-    if (rows.length > 0) {
-      const leaveMessageChannel = rows[0];
-      console.log('Retrieved leave message channel:', leaveMessageChannel);
-      return leaveMessageChannel;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error retrieving leave message channel from the database:', error);
     throw error;
   }
 }
