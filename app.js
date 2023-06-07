@@ -1,8 +1,10 @@
+// Import necessary modules
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const crypto = require('crypto');
+const ejs = require('ejs');
 
 const app = express();
 
@@ -20,11 +22,10 @@ app.use(session({
 passport.use(new DiscordStrategy({
   clientID: '1107025578047058030',
   clientSecret: 'WsaWCO4d9Giw2GOTtZL9anGWP0_-01Dp',
-  callbackURL: 'http://smartserve.cc/auth/discord/callback', // Replace with your callback URL
+  callbackURL: 'http://smartserve.cc/auth/discord/callback',
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
   // Verify and retrieve user data
-  // Replace this with your own implementation
   const user = {
     id: profile.id,
     username: profile.username,
@@ -41,17 +42,13 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser((id, done) => {
   // Retrieve user data from database or cache
-  // Replace this with your own implementation
   const user = {
     id: id,
-    username: 'exampleUser' // Replace with actual username retrieval
+    username: 'exampleUser'
   };
 
   done(null, user);
 });
-
-
-
 
 // Initialize Passport and restore authentication state, if any
 app.use(passport.initialize());
@@ -59,7 +56,7 @@ app.use(passport.session());
 
 // Define routes
 app.get('/', (req, res) => {
-  res.send('Welcome to the homepage');
+  res.render('login.ejs');
 });
 
 app.get('/login', passport.authenticate('discord'));
@@ -76,6 +73,9 @@ app.get('/dashboard', (req, res) => {
     res.redirect('/login');
   }
 });
+
+// Set the view engine to EJS
+app.set('view engine', 'ejs');
 
 // Start the server
 const port = 3000;
