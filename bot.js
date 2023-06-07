@@ -78,7 +78,7 @@ commandCategories.forEach((category) => {
 client.once('ready', async () => {
   try {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-    updatePresence(); // Initial presence update
+    await updatePresence(); // Initial presence update
 
     inviteTracker.execute(client);
 
@@ -97,6 +97,7 @@ client.once('ready', async () => {
     console.error('Error during bot initialization:', error);
   }
 });
+
 
 async function updatePresence() {
   try {
