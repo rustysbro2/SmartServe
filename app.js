@@ -50,14 +50,7 @@ passport.deserializeUser((id, done) => {
   done(null, user);
 });
 
-// Redirect middleware
-app.use((req, res, next) => {
-  if (req.hostname !== 'smartserve.cc' && req.get('host') !== 'smartserve.cc') {
-    // Redirect to the domain with the same port
-    return res.redirect(`http://smartserve.cc:${req.get('port')}${req.originalUrl}`);
-  }
-  next();
-});
+
 
 
 // Initialize Passport and restore authentication state, if any
