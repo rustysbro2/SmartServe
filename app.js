@@ -19,7 +19,7 @@ app.use(session({
 // Passport configuration
 passport.use(new DiscordStrategy({
   clientID: '1107025578047058030',
-  clientSecret: 'MTEwNzAyNTU3ODA0NzA1ODAzMA.GbELVo.t6ZThKW8oBDYcxhJRHuSuI9cCD5sBqsxQi6USs',
+  clientSecret: 'WsaWCO4d9Giw2GOTtZL9anGWP0_-01Dp',
   callbackURL: 'http://smartserve.cc/auth/discord/callback', // Replace with your callback URL
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
