@@ -54,7 +54,7 @@ module.exports = {
 
     const filteredCommandCategories = commandCategories
       .filter((category) => 
-        category.commands.some((command) => command.global === true || (command.global === false && interaction.guildId === guildId))
+        category.commands.filter((command) => command.global === true || (command.global === false && (command.guildId === undefined || command.guildId === interaction.guildId)))
       )
       .slice(0, 10);
 
