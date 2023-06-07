@@ -40,7 +40,8 @@ module.exports = {
       .setName('setjoinmessagechannel')
       .setDescription('Set the channel for the bot to send a join message when added to a new guild')
       .addChannelOption(option =>
-        option.setName('channel')
+        option
+          .setName('channel')
           .setDescription('The channel to send the join message')
           .setRequired(true)),
 
