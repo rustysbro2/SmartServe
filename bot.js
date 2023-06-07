@@ -150,7 +150,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
+    if (!channel || channel.type !== 0) {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -194,7 +194,7 @@ client.on('guildDelete', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
+    if (!channel || channel.type !== 0) {
       console.log('Text channel not found in the target guild.');
       return;
     }
