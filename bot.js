@@ -212,9 +212,9 @@ client.on('error', (error) => {
 
 client.login(token);
 
-async function getJoinMessageChannelFromDatabase(guildId) {
+async function getJoinMessageChannelFromDatabase() {
   try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds LIMIT 1');
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
@@ -227,9 +227,9 @@ async function getJoinMessageChannelFromDatabase(guildId) {
   }
 }
 
-async function getLeaveMessageChannelFromDatabase(guildId) {
+async function getLeaveMessageChannelFromDatabase() {
   try {
-    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds LIMIT 1');
     if (rows.length > 0) {
       const leaveMessageChannel = rows[0];
       console.log('Retrieved leave message channel:', leaveMessageChannel);
@@ -241,6 +241,7 @@ async function getLeaveMessageChannelFromDatabase(guildId) {
     throw error;
   }
 }
+
 
 async function createGuildsTable() {
   try {
