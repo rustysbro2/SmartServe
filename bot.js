@@ -109,12 +109,21 @@ client.once('ready', async () => {
 });
 
 
+
 async function updatePresence() {
   try {
     await client.guilds.fetch(); // Fetches the latest guild information
     const serverCount = client.guilds.cache.size;
 
-    client.user.setActivity(`${serverCount} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
+    client.user.setPresence({
+      activities: [
+        {
+          name: `${serverCount} servers | Shard ${client.shard.ids[0]}`,
+          type: 'WATCHING',
+        },
+      ],
+      status: 'online',
+    });
   } catch (error) {
     console.error('Failed to update presence:', error);
   }
