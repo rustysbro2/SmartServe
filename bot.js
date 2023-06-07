@@ -107,7 +107,7 @@ async function updatePresence() {
       activities: [
         {
           name: `${serverCount} servers | Shard ${client.shard.ids[0]}`,
-          type: ActivityType.WATCHING,
+          type: 'WATCHING', // Update the activity type to 'WATCHING'
         },
       ],
       status: 'online',
@@ -116,6 +116,7 @@ async function updatePresence() {
     console.error('Failed to update presence:', error);
   }
 }
+
 
 client.on('interactionCreate', async (interaction) => {
   try {
