@@ -131,7 +131,7 @@ client.on('guildCreate', async (guild) => {
 
     console.log('Retrieved join message channel:', joinMessageChannel);
 
-    const joinMessage = `The bot has been added to a new guild!\nGuild ID: ${guild.id}`;
+    const joinMessage = `The bot has been added to a new guild!\nGuild Name: ${guild.name}\nGuild ID: ${guild.id}`;
 
     const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
     if (!targetGuild) {
@@ -175,7 +175,7 @@ client.on('guildDelete', async (guild) => {
 
     console.log('Retrieved leave message channel:', leaveMessageChannel);
 
-    const leaveMessage = `The bot has been removed from a guild!\nGuild ID: ${guild.id}`;
+    const leaveMessage = `The bot has been removed from a guild!\nGuild Name: ${guild.name}\nGuild ID: ${guild.id}`;
 
     const targetGuild = client.guilds.cache.get(leaveMessageChannel.target_guild_id);
     if (!targetGuild) {
