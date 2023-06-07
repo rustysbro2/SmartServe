@@ -18,9 +18,9 @@ app.use(session({
 
 // Passport configuration
 passport.use(new DiscordStrategy({
-  clientID: 'YOUR_DISCORD_CLIENT_ID',
-  clientSecret: 'YOUR_DISCORD_CLIENT_SECRET',
-  callbackURL: 'YOUR_CALLBACK_URL',
+  clientID: '1107025578047058030',
+  clientSecret: 'MTEwNzAyNTU3ODA0NzA1ODAzMA.GbELVo.t6ZThKW8oBDYcxhJRHuSuI9cCD5sBqsxQi6USs',
+  callbackURL: 'http://smartserve.cc/auth/discord/callback', // Replace with your callback URL
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
   // Verify and retrieve user data
@@ -61,7 +61,7 @@ app.get('/', (req, res) => {
 
 app.get('/login', passport.authenticate('discord'));
 
-app.get('/callback', passport.authenticate('discord', {
+app.get('/auth/discord/callback', passport.authenticate('discord', {
   successRedirect: '/dashboard',
   failureRedirect: '/login'
 }));
