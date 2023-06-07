@@ -15,6 +15,7 @@ module.exports = {
     }
   },
 
+  global: false,
   category: 'General',
   categoryDescription: 'Commands related to general functionality', // Ensure this is a non-empty string
 };
