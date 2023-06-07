@@ -18,12 +18,17 @@ async function createGuildsTable() {
 
 async function saveJoinMessageChannelToDatabase(channelId, guildId) {
   try {
-    await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+    await pool.promise().query(
+      'INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ' +
+        'ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?',
+      [channelId, guildId, channelId, guildId]
+    );
   } catch (error) {
     console.error('Error saving join message channel to the database:', error);
     throw error;
   }
 }
+
 
 module.exports = {
   data: new SlashCommandBuilder()
