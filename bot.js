@@ -104,15 +104,45 @@ commandCategories.forEach((category) => {
 client.once('ready', async () => {
   try {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+    updatePresence(); // Initial presence update
+
+    inviteTracker.execute(client);
+
+    await slashCommands(client);
+
+    console.log('Command Categories:');
+    commandCategories.forEach((category) => {
+      console.log(`Category: ${category.name}`);
+      console.log(`Guild ID: ${category.guildId}`);
+      console.log('Commands:', category.commands);
+    });
+
+    // Update presence every 1 minute
+    setInterval(updatePresence, 60000);
+  } catch (error) {
+    console.error('Error during bot initialization:', error);
+  }
+});
+
+async function updatePresence() {
+  try {
+    await client.guilds.fetch(); // Fetches the latest guild information
+    const serverCount = client.guilds.cache.size;
+
     client.user.setPresence({
       activities: [
         {
-          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+          name: `${serverCount} servers | Shard ${client.shard.ids[0]}`,
           type: ActivityType.WATCHING,
         },
       ],
-      status: "online",
+      status: 'online',
     });
+  } catch (error) {
+    console.error('Failed to update presence:', error);
+  }
+}
+
 
     inviteTracker.execute(client);
 
