@@ -1,5 +1,7 @@
 // Import necessary modules
 const express = require('express');
+const https = require('https');
+const fs = require('fs');
 const session = require('express-session');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
