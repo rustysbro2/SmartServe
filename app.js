@@ -79,8 +79,15 @@ app.get('/dashboard', (req, res) => {
 // Set the view engine to EJS
 app.set('view engine', 'ejs');
 
-// Start the server
-const port = 3000;
-app.listen(port, () => {
+// HTTPS and SSL configuration
+const options = {
+  key: fs.readFileSync('/var/lib/mysql/Key.key'), // Replace with the path to your private key file
+  cert: fs.readFileSync('/var/lib/mysql/smartserve_cc.crt') // Replace with the path to your SSL certificate file
+};
+
+// Start the HTTPS server
+const port = 443; // Use the desired HTTPS port
+
+https.createServer(options, app).listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
