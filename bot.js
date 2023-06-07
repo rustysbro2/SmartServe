@@ -1,13 +1,3 @@
-async function updatePresence() {
-  try {
-    await client.guilds.fetch(); // Fetches the latest guild information
-    const serverCount = client.guilds.cache.size;
-
-    client.user.setActivity(`${serverCount} servers | Shard ${client.shard.ids[0]}`, { type: 'WATCHING' });
-  } catch (error) {
-    console.error('Failed to update presence:', error);
-  }
-}
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
