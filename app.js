@@ -23,7 +23,7 @@ app.use(session({
 passport.use(new DiscordStrategy({
   clientID: '1107025578047058030',
   clientSecret: 'WsaWCO4d9Giw2GOTtZL9anGWP0_-01Dp',
-  callbackURL: 'https://smartserve.cc/auth/discord/callback', // Update the callback URL to use HTTPS
+  callbackURL: 'https://smartserve.cc/auth/discord/callback',
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
   // Verify and retrieve user data
@@ -57,11 +57,7 @@ app.use(passport.session());
 
 // Define routes
 app.get('/', (req, res) => {
-  if (req.headers['x-forwarded-proto'] !== 'https') {
-    res.redirect('https://' + req.headers.host + req.url);
-  } else {
-    res.render('login.ejs');
-  }
+  res.render('login.ejs');
 });
 
 app.get('/login', passport.authenticate('discord'));
