@@ -18,7 +18,12 @@ async function createGuildsTable() {
 
 async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
   try {
-    await pool.promise().query('UPDATE guilds SET leave_message_channel = ? WHERE target_guild_id = ?', [channelId, guildId]);
+    const [rows] = await pool.promise().query('SELECT * FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    if (rows.length > 0) {
+      await pool.promise().query('UPDATE guilds SET leave_message_channel = ? WHERE target_guild_id = ?', [channelId, guildId]);
+    } else {
+      await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?)', [channelId, guildId]);
+    }
   } catch (error) {
     console.error('Error saving leave message channel to the database:', error);
     throw error;
