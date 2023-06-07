@@ -75,4 +75,5 @@ module.exports = {
     category: 'Administration',
     categoryDescription: 'Commands for server administration',
     global: false,
-  },
+  }
+};
