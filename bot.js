@@ -79,7 +79,7 @@ client.once('ready', async () => {
   try {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
 
-    await inviteTracker.execute(client);
+    inviteTracker.execute(client);
     await slashCommands(client);
 
     console.log('Command Categories:');
@@ -89,28 +89,32 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 
-    updatePresence(); // Initial presence update
-    setInterval(updatePresence, 60000); // Update presence every 1 minute
+    client.user.setPresence({
+      activities: [
+        {
+          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+          type: 'WATCHING',
+        },
+      ],
+      status: 'online',
+    });
+
+    setInterval(() => {
+      client.user.setPresence({
+        activities: [
+          {
+            name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+            type: 'WATCHING',
+          },
+        ],
+        status: 'online',
+      });
+    }, 60000); // Update presence every 1 minute
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
 });
 
-
-
-
-async function updatePresence() {
-  try {
-    await client.guilds.fetch(); // Fetches the latest guild information
-    const serverCount = client.guilds.cache.size;
-
-    client.user.setActivity(`${serverCount} servers | Shard ${client.shard.ids[0]}`, {
-      type: 'WATCHING'
-    });
-  } catch (error) {
-    console.error('Failed to update presence:', error);
-  }
-}
 
 
 
