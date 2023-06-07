@@ -52,9 +52,9 @@ passport.deserializeUser((id, done) => {
 
 // Redirect middleware
 app.use((req, res, next) => {
-  if (req.hostname === 'smartserve.cc' && req.get('host') !== 'localhost:3000') {
-    // Redirect to the full URL including 'http://'
-    return res.redirect(`http://${req.hostname}${req.originalUrl}`);
+  if (req.hostname !== 'smartserve.cc' && req.get('host') === 'YOUR_IP_ADDRESS') {
+    // Redirect to the domain with the same port
+    return res.redirect(`http://smartserve.cc:${req.get('port')}${req.originalUrl}`);
   }
   next();
 });
@@ -70,7 +70,7 @@ app.get('/', (req, res) => {
 
 app.get('/login', passport.authenticate('discord'));
 
-app.get('/callback', passport.authenticate('discord', {
+app.get('/auth/discord/callback', passport.authenticate('discord', {
   successRedirect: '/dashboard',
   failureRedirect: '/login'
 }));
