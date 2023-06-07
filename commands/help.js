@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
 const { guildId } = require('../config.js');
 
-async function handleSelectMenu(interaction, commandCategories, guildId) {
+async function handleSelectMenu(interaction, commandCategories) {
   console.log('Interaction guild ID:', interaction.guildId);
   console.log('Stored guild ID:', guildId);
   const selectedCategory = interaction.values[0];
@@ -22,7 +22,7 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
       console.log('Global:', command.global);
       console.log('Interaction guild ID:', interaction.guildId);
       console.log('Stored guild ID:', guildId);
-      const shouldShow = command.global === true || (command.global === false && interaction.guildId === guildId);
+      const shouldShow = command.global === true || (command.global === false && interaction.guildId === '1106643216125665350');
       console.log('Should Show:', shouldShow);
       return shouldShow;
     });
@@ -50,7 +50,6 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
   }
 }
 
-
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('help')
@@ -64,7 +63,7 @@ module.exports = {
 
     const filteredCommandCategories = commandCategories
       .filter((category) => 
-        category.commands.some((command) => command.global === true || (command.global === false && interaction.guildId === guildId))
+        category.commands.some((command) => command.global === true || (command.global === false && interaction.guildId === '1106643216125665350'))
       )
       .slice(0, 10);
 
