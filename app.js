@@ -1,4 +1,3 @@
-// Import necessary modules
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
@@ -24,7 +23,7 @@ app.use(session({
 passport.use(new DiscordStrategy({
   clientID: '1107025578047058030',
   clientSecret: 'WsaWCO4d9Giw2GOTtZL9anGWP0_-01Dp',
-  callbackURL: 'http://smartserve.cc/auth/discord/callback',
+  callbackURL: 'https://smartserve.cc/auth/discord/callback', // Update the callback URL to use HTTPS
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
   // Verify and retrieve user data
@@ -64,7 +63,6 @@ app.get('/', (req, res) => {
     res.render('login.ejs');
   }
 });
-
 
 app.get('/login', passport.authenticate('discord'));
 
