@@ -4,6 +4,8 @@ const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
+const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel.js');
+const setLeaveMessageChannelCommand = require('./commands/setleavemessagechannel.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
 const { CHANNEL_TYPES } = require('discord.js');
@@ -148,7 +150,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -192,7 +194,7 @@ client.on('guildDelete', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
       console.log('Text channel not found in the target guild.');
       return;
     }
