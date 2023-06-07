@@ -46,7 +46,7 @@ module.exports = {
 async function createGuildsTable() {
   try {
     await pool.promise().query(`
-      CREATE TABLE IF NOT EXISTS guildsleave (
+      CREATE TABLE IF NOT EXISTS guilds (
         leave_message_channel VARCHAR(255) NOT NULL,
         target_guild_id VARCHAR(255) NOT NULL
       )
