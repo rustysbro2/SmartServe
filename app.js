@@ -50,6 +50,15 @@ passport.deserializeUser((id, done) => {
   done(null, user);
 });
 
+// Redirect middleware
+app.use((req, res, next) => {
+  if (req.hostname === 'smartserve.cc' && req.get('host') !== 'localhost:3000') {
+    // Redirect to the full URL including 'http://'
+    return res.redirect(`http://${req.hostname}${req.originalUrl}`);
+  }
+  next();
+});
+
 // Initialize Passport and restore authentication state, if any
 app.use(passport.initialize());
 app.use(passport.session());
