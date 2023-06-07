@@ -1,4 +1,30 @@
-const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
+async function getJoinMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    if (rows.length > 0) {
+      const joinMessageChannel = rows[0];
+      console.log('Retrieved join message channel:', joinMessageChannel);
+      return joinMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}async function getLeaveMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    if (rows.length > 0) {
+      const leaveMessageChannel = rows[0];
+      console.log('Retrieved leave message channel:', leaveMessageChannel);
+      return leaveMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving leave message channel from the database:', error);
+    throw error;
+  }
+}const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
 const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
@@ -258,20 +284,45 @@ async function createGuildsTable() {
   }
 }
 
-async function saveJoinMessageChannelToDatabase(channelId, guildId) {
+async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?', [channelId, guildId, channelId]);
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    if (rows.length > 0) {
+      const joinMessageChannel = rows[0];
+      console.log('Retrieved join message channel:', joinMessageChannel);
+      return joinMessageChannel;
+    }
+    return null;
   } catch (error) {
-    console.error('Error saving join message channel to the database:', error);
+    console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}async function getLeaveMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    if (rows.length > 0) {
+      const leaveMessageChannel = rows[0];
+      console.log('Retrieved leave message channel:', leaveMessageChannel);
+      return leaveMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving leave message channel from the database:', error);
     throw error;
   }
 }
 
-async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
+async function getLeaveMessageChannelFromDatabase(guildId) {
   try {
-    await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?', [channelId, guildId, channelId]);
+    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    if (rows.length > 0) {
+      const leaveMessageChannel = rows[0];
+      console.log('Retrieved leave message channel:', leaveMessageChannel);
+      return leaveMessageChannel;
+    }
+    return null;
   } catch (error) {
-    console.error('Error saving leave message channel to the database:', error);
+    console.error('Error retrieving leave message channel from the database:', error);
     throw error;
   }
 }
