@@ -4,6 +4,8 @@ const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/help');
 const countingCommand = require('./commands/count');
+const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel');
+const setLeaveMessageChannelCommand = require('./commands/setleavemessagechannel');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
 const { CHANNEL_TYPES } = require('discord.js');
@@ -160,8 +162,49 @@ client.on('guildCreate', async (guild) => {
   }
 });
 
+client.on('guildDelete', async (guild) => {
+  try {
+    console.log(`Bot left a guild: ${guild.name} (${guild.id})`);
 
+    const leaveMessageChannel = await getLeaveMessageChannelFromDatabase(guild.id);
 
+    if (!leaveMessageChannel) {
+      console.log('Leave message channel not set in the database.');
+      return;
+    }
+
+    console.log('Retrieved leave message channel:', leaveMessageChannel);
+
+    const leaveMessage = `The bot has been removed from a guild!\nGuild ID: ${guild.id}`;
+
+    const targetGuild = client.guilds.cache.get(leaveMessageChannel.target_guild_id);
+    if (!targetGuild) {
+      console.log('Target guild not found.');
+      return;
+    }
+
+    console.log('Target Guild:', targetGuild);
+
+    console.log('Target Guild Channels:');
+    targetGuild.channels.cache.forEach((channel) => {
+      console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
+    });
+
+    const channel = targetGuild.channels.cache.get(leaveMessageChannel.leave_message_channel);
+    console.log('Target Channel:', channel);
+    console.log('Channel Type:', channel?.type);
+
+    if (!channel || channel.type !== 0) {
+      console.log('Text channel not found in the target guild.');
+      return;
+    }
+
+    await channel.send(leaveMessage);
+    console.log('Leave message sent successfully.');
+  } catch (error) {
+    console.error('Error handling guildDelete event:', error);
+  }
+});
 
 client.on('error', (error) => {
   console.error('Discord client error:', error);
@@ -171,7 +214,7 @@ client.login(token);
 
 async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds LIMIT 1');
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
@@ -184,11 +227,27 @@ async function getJoinMessageChannelFromDatabase(guildId) {
   }
 }
 
+async function getLeaveMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    if (rows.length > 0) {
+      const leaveMessageChannel = rows[0];
+      console.log('Retrieved leave message channel:', leaveMessageChannel);
+      return leaveMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving leave message channel from the database:', error);
+    throw error;
+  }
+}
+
 async function createGuildsTable() {
   try {
     await pool.promise().query(`
       CREATE TABLE IF NOT EXISTS guilds (
         join_message_channel VARCHAR(255) NOT NULL,
+        leave_message_channel VARCHAR(255) NOT NULL,
         target_guild_id VARCHAR(255) NOT NULL
       )
     `);
@@ -203,6 +262,15 @@ async function saveJoinMessageChannelToDatabase(channelId, guildId) {
     await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
   } catch (error) {
     console.error('Error saving join message channel to the database:', error);
+    throw error;
+  }
+}
+
+async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
+  try {
+    await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?, target_guild_id = ?', [channelId, guildId, channelId, guildId]);
+  } catch (error) {
+    console.error('Error saving leave message channel to the database:', error);
     throw error;
   }
 }
