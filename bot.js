@@ -82,7 +82,7 @@ client.once('ready', async () => {
       activities: [
         {
           name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-          type: ActivityType.WATCHING,
+          type: ActivityType.Watching,
         },
       ],
       status: "online",
