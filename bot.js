@@ -78,8 +78,18 @@ commandCategories.forEach((category) => {
 client.once('ready', async () => {
   try {
     console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+    client.user.setPresence({
+      activities: [
+        {
+          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+          type: ActivityType.WATCHING,
+        },
+      ],
+      status: "online",
+    });
 
     inviteTracker.execute(client);
+
     await slashCommands(client);
 
     console.log('Command Categories:');
@@ -88,37 +98,10 @@ client.once('ready', async () => {
       console.log(`Guild ID: ${category.guildId}`);
       console.log('Commands:', category.commands);
     });
-
-    client.user.setPresence({
-      activities: [
-        {
-          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-          type: ActivityType.Watching,
-        },
-      ],
-      status: 'online',
-    });
-
-    setInterval(() => {
-      client.user.setPresence({
-        activities: [
-          {
-            name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-            type: ActivityType.Watching,
-          },
-        ],
-        status: 'online',
-      });
-    }, 60000); // Update presence every 1 minute
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
 });
-
-
-
-
-
 
 client.on('interactionCreate', async (interaction) => {
   try {
@@ -183,7 +166,7 @@ client.on('guildDelete', async (guild) => {
   try {
     console.log(`Bot left a guild: ${guild.name} (${guild.id})`);
 
-    const leaveMessageChannel = await getLeaveMessageChannelFromDatabase(guild.id);
+    const leaveMessageChannel = await getLeaveMessageChannelFromDatabase();
 
     if (!leaveMessageChannel) {
       console.log('Leave message channel not set in the database.');
@@ -275,52 +258,28 @@ async function createGuildsTable() {
   }
 }
 
-async function getJoinMessageChannelFromDatabase(guildId) {
+async function saveJoinMessageChannelToDatabase(channelId, guildId) {
   try {
-    console.log('Retrieving join message channel for guild ID:', guildId);
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
-    console.log('Retrieved rows:', rows);
-    if (rows.length > 0) {
-      const joinMessageChannel = rows[0];
-      console.log('Retrieved join message channel:', joinMessageChannel);
-      return joinMessageChannel;
-    }
-    return null;
+    await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?', [channelId, guildId, channelId]);
   } catch (error) {
-    console.error('Error retrieving join message channel from the database:', error);
-    throw error;
-  }
-}
-async function getLeaveMessageChannelFromDatabase(guildId) {
-  try {
-    console.log('Retrieving leave message channel for guild ID:', guildId);
-    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
-    console.log('Retrieved rows:', rows);
-    if (rows.length > 0) {
-      const leaveMessageChannel = rows[0];
-      console.log('Retrieved leave message channel:', leaveMessageChannel);
-      return leaveMessageChannel;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error retrieving leave message channel from the database:', error);
+    console.error('Error saving join message channel to the database:', error);
     throw error;
   }
 }
 
-async function getLeaveMessageChannelFromDatabase(guildId) {
+async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
   try {
-    console.log('Retrieving leave message channel for guild ID:', guildId);
-    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
-    console.log('Retrieved rows:', rows);
-    if (rows.length > 0) {
-      const leaveMessageChannel = rows[0];
-      console.log('Retrieved leave message channel:', leaveMessageChannel);
-      return leaveMessageChannel;
-    }
-    return null;
+    await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?', [channelId, guildId, channelId]);
   } catch (error) {
-    console.error('Error retrieving leave message channel from the database:', error);
+    console.error('Error saving leave message channel to the database:', error);
     throw error;
   }
 }
+
+createGuildsTable();
+
+module.exports = {
+  client,
+  saveJoinMessageChannelToDatabase,
+  saveLeaveMessageChannelToDatabase
+};
