@@ -2,6 +2,8 @@ const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSe
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories, guildId) {
+  console.log('Interaction guild ID:', interaction.guildId);
+  console.log('Stored guild ID:', guildId);
   const selectedCategory = interaction.values[0];
   const category = commandCategories.find(
     (category) =>
@@ -14,6 +16,9 @@ async function handleSelectMenu(interaction, commandCategories, guildId) {
     categoryEmbed = new EmbedBuilder();
     categoryEmbed.setTitle(`Commands - ${category.name}`);
     categoryEmbed.setDescription(category.categoryDescription || 'No description available.');
+
+
+    
 
     const commandsToShow = category.commands.filter((command) => {
       const shouldShow = command.global === true || (command.global === false && interaction.guildId === guildId);
