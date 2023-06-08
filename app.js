@@ -61,7 +61,7 @@ passport.use(
 
         // Retrieve the user's avatar URL
         console.debug('Retrieving avatar...');
-        const avatarUrl = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`;
+        const avatarUrl = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png?timestamp=${Date.now()}`;
         console.debug('Avatar API URL:', avatarUrl);
 
         const avatarResponse = await fetch(avatarUrl, {
