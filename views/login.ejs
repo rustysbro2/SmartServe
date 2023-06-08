@@ -1,63 +1,150 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Login Page</title>
-    <style>
-      body {
-        background-image: url('https://i.imgur.com/jazpQtG.jpg');
-        background-size: cover;
-        background-position: center;
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        color: #fff;
+<head>
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .menu-icon {
+      display: none;
+      cursor: pointer;
+      padding: 10px;
+      background-color: #000; /* Change the background color to black or any other desired color */
+    }
+
+    .menu-icon span {
+      display: block;
+      width: 30px;
+      height: 3px;
+      background-color: #fff; /* Change the color of the hamburger lines to white or any other desired color */
+      margin-bottom: 5px;
+    }
+
+    .dropdown {
+      display: inline-block;
+      position: relative;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .profile-info {
+      margin-top: 30px;
+    }
+
+    @media (max-width: 768px) {
+      .menu-icon {
+        display: block;
+        background-color: #f00; /* Debug: Set the background color to red */
       }
 
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-        text-align: center;
+      .dropdown {
+        display: none;
       }
 
-      h1 {
-        font-size: 24px;
-        margin-bottom: 20px;
+      .dropdown.show {
+        display: block;
       }
 
-      p {
-        margin-bottom: 30px;
+      .profile-info {
+        margin-top: 10px;
+      }
+    }
+
+    @media (min-width: 769px) {
+      .menu-icon {
+        display: none;
       }
 
-      form {
-        display: flex;
-        justify-content: center;
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .dropdown {
+        display: inline-block;
+        background-color: #0f0; /* Debug: Set the background color to green */
       }
 
-      .login-button {
-        padding: 12px 30px;
-        background-color: #7289DA;
-        color: #fff;
-        text-decoration: none;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
+      .dropdown-content {
+        position: static;
+        min-width: auto;
+        box-shadow: none;
       }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to the Dashboard</h1>
 
-      .login-button:hover {
-        background-color: #5C6BC0;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Welcome to the Homepage</h1>
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque in fringilla ligula, et malesuada justo. Vestibulum auctor urna non mi dignissim, ut lobortis velit commodo. Fusce lacinia sem nec purus condimentum varius. Aliquam in neque eu sem dignissim vulputate. Sed ut urna ligula. Pellentesque sed justo vel mauris tristique commodo a non mi. Sed dapibus euismod mi, a rutrum ipsum aliquet id.</p>
-      <form action="/login/discord" method="GET">
-        <button type="submit" class="login-button">Login with Discord</button>
-      </form>
+    <div class="menu-icon" onclick="toggleDropdown()">
+      <span></span>
+      <span></span>
+      <span></span>
     </div>
-  </body>
+
+    <div class="dropdown" id="dropdownMenu">
+      <div class="dropdown-content">
+        <a href="#">Link 1</a>
+        <a href="#">Link 2</a>
+        <a href="#">Link 3</a>
+      </div>
+    </div>
+
+    <div class="profile-info">
+      <% if (user) { %>
+        <h2>Welcome, <%= user.username %>!</h2>
+        <p>User ID: <%= user.id %></p>
+      <% } else { %>
+        <p>User not logged in.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <script>
+    function toggleDropdown() {
+      const dropdownMenu = document.getElementById("dropdownMenu");
+      dropdownMenu.classList.toggle("show");
+    }
+
+    // Debug: Output screen dimensions to console
+    console.log("Window Width:", window.innerWidth, "Window Height:", window.innerHeight);
+    // Debug: Output menu icon display property to console
+    console.log("Menu Icon Display:", window.getComputedStyle(document.querySelector('.menu-icon')).display);
+    // Debug: Output dropdown display property to console
+    console.log("Dropdown Display:", window.getComputedStyle(document.querySelector('.dropdown')).display);
+  </script>
+</body>
 </html>
