@@ -37,6 +37,9 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.log('Retrieving avatar...');
+        console.log('Access token:', accessToken);
+
         // Check if the user already exists in the database
         const query = 'SELECT * FROM users WHERE discord_id = ?';
         const [rows] = await pool.query(query, [profile.id]);
@@ -60,23 +63,29 @@ passport.use(
         }
 
         // Retrieve the user's avatar URL
-        console.debug('Retrieving avatar...');
-        const avatarUrl = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png?timestamp=${Date.now()}`;
-        console.debug('Avatar API URL:', avatarUrl);
+        const avatarUrl = `https://discord.com/api/v10/users/${profile.id}`;
+        console.log('Avatar API URL:', avatarUrl);
+
+        const headers = {
+          Authorization: `Bearer ${accessToken}`,
+        };
+        console.log('Request headers:', headers);
 
         const avatarResponse = await fetch(avatarUrl, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+          headers,
         });
 
         if (avatarResponse.ok) {
-          console.debug('Avatar retrieved successfully');
-          user.avatar = avatarUrl;
+          const avatarData = await avatarResponse.json();
+          console.log('Avatar retrieved successfully');
+          console.log('Avatar API response:', avatarData);
+          user.avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${avatarData.avatar}.png`;
         } else {
-          console.debug('Unable to retrieve avatar. Using default avatar:', '/default-avatar.png');
-          user.avatar = null; // Use null to indicate that the avatar could not be retrieved
+          console.log('Unable to retrieve avatar. Using default avatar:', '/default-avatar.png');
+          user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
         }
+
+        console.log('Profile data:', profile);
 
         return done(null, user);
       } catch (error) {
@@ -138,36 +147,12 @@ app.get('/dashboard', (req, res) => {
   // Check if the user is authenticated and retrieve the user data
   if (req.isAuthenticated()) {
     const user = req.user; // Assuming req.user contains the user data
-
-    // Retrieve the user's avatar URL from the Discord API
-    const accessToken = req.session.passport.user.accessToken;
-    const authorizationHeader = `Bearer ${accessToken}`;
-    const avatarUrl = `https://discord.com/api/v10/users/${user.discord_id}`;
-    const headers = {
-      Authorization: authorizationHeader,
-    };
-
-    fetch(avatarUrl, { headers })
-      .then((response) => response.json())
-      .then((userData) => {
-        console.log('Avatar API response:', userData);
-        const profile = {
-          id: userData.id,
-          avatar: userData.avatar,
-        };
-        console.log('Profile data:', profile);
-        res.render('dashboard', { user, profile });
-      })
-      .catch((error) => {
-        console.error('Failed to retrieve user data from Discord API:', error);
-        res.redirect('/login');
-      });
+    console.log('User authenticated. User data:', user);
+    res.render('dashboard', { user });
   } else {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
 });
-
-
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'views')));
