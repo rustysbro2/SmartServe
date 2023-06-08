@@ -10,7 +10,7 @@ const path = require('path');
 const fetch = require('isomorphic-fetch');
 
 const { token, clientId, clientSecret } = require('./config.js');
-const { pool } = require('./database');
+const pool = require('./database');
 
 const app = express();
 
