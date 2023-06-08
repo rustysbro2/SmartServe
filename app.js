@@ -59,8 +59,19 @@ passport.use(
           };
         }
 
-        // Assign the avatar property with the URL of the user's profile picture
-        user.avatar = profile.avatar;
+        // Retrieve the user's avatar URL
+        const avatarResponse = await fetch(`https://discord.com/api/v10/users/${profile.id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (avatarResponse.ok) {
+          const avatarData = await avatarResponse.json();
+          user.avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${avatarData.avatar}.png`;
+        } else {
+          user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
+        }
 
         return done(null, user);
       } catch (error) {
@@ -129,7 +140,7 @@ app.get('/dashboard', (req, res) => {
 });
 
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'views')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // HTTPS and SSL configuration
 const options = {
