@@ -63,6 +63,10 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
 // Define routes
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
 app.get('/login', (req, res) => {
   const backgroundImageLoaded = true; // Set the value based on whether the background image is successfully loaded
 
