@@ -9,15 +9,15 @@
 </head>
 
 <body>
-  <div class="profile-info">
-    <% if (user.avatar) { %>
-      <img src="<%= user.avatar %>" alt="Profile Picture">
-    <% } else { %>
-      <img src="/default-avatar.png" alt="Default Profile Picture">
-    <% } %>
-  </div>
-
-
+  <div class="container">
+    <h1>Welcome, <%= user.username %>!</h1>
+    <div class="profile-info">
+      <% if (user.discord_id && user.avatar_hash) { %>
+        <img src="https://cdn.discordapp.com/avatars/<%= user.discord_id %>/<%= user.avatar_hash %>.png" alt="Profile Picture">
+      <% } else { %>
+        <img src="/default-avatar.png" alt="Default Profile Picture">
+      <% } %>
+    </div>
     <div class="dropdown">
       <div class="menu-icon" onclick="toggleDropdown()">
         <span></span>
