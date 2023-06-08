@@ -72,10 +72,11 @@ passport.use(
 
         if (avatarResponse.ok) {
           console.debug('Avatar retrieved successfully');
-          user.avatar = avatarUrl;
+          const avatarData = await avatarResponse.json();
+          user.avatar = avatarData.avatar;
         } else {
           console.debug('Unable to retrieve avatar. Using default avatar:', '/default-avatar.png');
-          user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
+          user.avatar = null; // Use null to indicate that the avatar could not be retrieved
         }
 
         return done(null, user);
