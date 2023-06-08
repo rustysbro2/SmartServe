@@ -143,6 +143,7 @@ app.get(
 );
 
 // Define the route for the dashboard
+// Define the route for the dashboard
 app.get('/dashboard', async (req, res) => {
   // Check if the user is authenticated
   if (req.isAuthenticated()) {
@@ -151,7 +152,7 @@ app.get('/dashboard', async (req, res) => {
 
     try {
       console.debug('Retrieving avatar...');
-      const avatarUrl = `https://discord.com/api/v10/users/@me`; // Updated API endpoint
+      const avatarUrl = `https://discord.com/api/v10/users/${user.discord_id}`; // Use user's discord_id instead of @me
       console.debug('Avatar API URL:', avatarUrl);
 
       const profileResponse = await fetch(avatarUrl, {
@@ -180,6 +181,7 @@ app.get('/dashboard', async (req, res) => {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
 });
+
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'views')));
