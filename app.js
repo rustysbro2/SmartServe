@@ -147,10 +147,12 @@ app.get('/dashboard', (req, res) => {
     })
       .then((response) => response.json())
       .then((userData) => {
+        console.log('Avatar API response:', userData);
         const profile = {
           id: userData.id,
           avatar: userData.avatar,
         };
+        console.log('Profile data:', profile);
         res.render('dashboard', { user, profile });
       })
       .catch((error) => {
