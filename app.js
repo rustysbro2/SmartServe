@@ -9,7 +9,8 @@ const ejs = require('ejs');
 const path = require('path');
 const fetch = require('isomorphic-fetch');
 
-const { token, clientId, clientSecret, guildId } = require('./config.js');
+const { token, clientId, clientSecret } = require('./config.js');
+const { pool } = require('./database');
 
 const app = express();
 
@@ -17,61 +18,68 @@ const app = express();
 const sessionSecret = crypto.randomBytes(32).toString('hex');
 
 // Configure session middleware
-app.use(session({
-  secret: sessionSecret,
-  resave: false,
-  saveUninitialized: false
-}));
+app.use(
+  session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
 // Passport configuration
-passport.use(new DiscordStrategy({
-  clientID: clientId,
-  clientSecret: clientSecret,
-  callbackURL: 'https://smartserve.cc/auth/discord/callback',
-  scope: ['identify']
-}, (accessToken, refreshToken, profile, done) => {
-  // Verify and retrieve user data
-  const userData = {
-    id: profile.id,
-    username: profile.username,
-    discriminator: profile.discriminator,
-    accessToken: accessToken
-  };
+passport.use(
+  new DiscordStrategy(
+    {
+      clientID: clientId,
+      clientSecret: clientSecret,
+      callbackURL: 'https://smartserve.cc/auth/discord/callback',
+      scope: ['identify'],
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        // Check if the user already exists in the database
+        const query = 'SELECT * FROM users WHERE discord_id = ?';
+        const [rows] = await pool.query(query, [profile.id]);
 
-  return done(null, userData);
-}));
+        let user;
+        if (rows.length > 0) {
+          user = rows[0];
+        } else {
+          // Create a new user in the database if it doesn't exist
+          const insertQuery =
+            'INSERT INTO users (discord_id, username) VALUES (?, ?)';
+          const [result] = await pool.query(insertQuery, [
+            profile.id,
+            profile.username,
+          ]);
+          user = {
+            id: result.insertId,
+            discord_id: profile.id,
+            username: profile.username,
+          };
+        }
 
-passport.serializeUser((userData, done) => {
-  done(null, userData.id);
+        return done(null, user);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
 });
 
 passport.deserializeUser(async (id, done) => {
   try {
-    // Retrieve the user's access token from the user object
-    const user = getUserById(id);
-    const accessToken = user.accessToken;
+    const query = 'SELECT * FROM users WHERE id = ?';
+    const [rows] = await pool.query(query, [id]);
 
-    // Make a request to the Discord API to retrieve the user's data
-    const response = await fetch(`https://discord.com/api/v10/users/${id}`, {
-      headers: {
-        'Authorization': `Bot ${token}`
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-
-    const userData = await response.json();
-    const userObj = {
-      id: userData.id,
-      username: `${userData.username}#${userData.discriminator}`,
-    };
-
-    done(null, userObj);
+    const user = rows[0];
+    done(null, user);
   } catch (error) {
-    console.error('Error during deserialization:', error);
-    done(error, null);
+    done(error);
   }
 });
 
@@ -98,10 +106,13 @@ app.get('/login', (req, res) => {
 
 app.get('/login/discord', passport.authenticate('discord'));
 
-app.get('/auth/discord/callback', passport.authenticate('discord', {
-  successRedirect: '/dashboard',
-  failureRedirect: '/login'
-}));
+app.get(
+  '/auth/discord/callback',
+  passport.authenticate('discord', {
+    successRedirect: '/dashboard',
+    failureRedirect: '/login',
+  })
+);
 
 // Define the route for the dashboard
 app.get('/dashboard', (req, res) => {
@@ -121,7 +132,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
   cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'), // Replace with the path to your SSL certificate file
-  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle') // Replace with the path to your CA bundle file
+  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'), // Replace with the path to your CA bundle file
 };
 
 // Start the HTTPS server
