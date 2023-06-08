@@ -7,7 +7,7 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const crypto = require('crypto');
 const ejs = require('ejs');
 const path = require('path');
-const fetch = require('node-fetch');
+const fetch = require('isomorphic-fetch');
 
 const app = express();
 
@@ -48,7 +48,7 @@ passport.deserializeUser(async (id, done) => {
     // Make a request to the Discord API to retrieve the user's data
     const response = await fetch(`https://discord.com/api/v10/users/${id}`, {
       headers: {
-        'Authorization': `Bearer ${process.env.DISCORD_API_TOKEN}`
+        'Authorization': `Bearer ${process.env.MTEwNzAyNTU3ODA0NzA1ODAzMA.GDu8Jm.aw7fATbcdZJBUEIQgT4z5RuB0t82pUDOqa1IF0}`
       }
     });
 
