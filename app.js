@@ -64,7 +64,11 @@ passport.use(
 
         // Retrieve the user's avatar URL
         console.debug('Retrieving avatar...');
-        const avatarUrl = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`;
+fetch(`https://discord.com/api/v10/users/${user.discord_id}`, {
+  headers: {
+    Authorization: `Bearer ${req.session.passport.user.accessToken}`,
+  },
+})
         console.debug('Avatar API URL:', avatarUrl);
 
         // Check if the avatar URL returns a valid response
@@ -148,6 +152,7 @@ app.get('/dashboard', (req, res) => {
         Authorization: `Bearer ${req.session.passport.user.accessToken}`,
       },
     })
+
       .then((response) => response.json())
       .then((userData) => {
         console.log('Profile data:', userData);
