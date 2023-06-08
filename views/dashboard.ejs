@@ -40,6 +40,7 @@
 
     .dropdown {
       display: inline-block;
+      position: relative; /* Add position relative */
     }
 
     .dropdown-content {
@@ -79,19 +80,13 @@
       }
     }
 
-    @media (min-width: 1201px) {
+    @media (min-width: 769px) {
       .menu-icon {
         display: none;
       }
 
-      .dropdown {
-        display: inline-block;
-      }
-
-      .dropdown-content {
-        position: static;
-        min-width: auto;
-        box-shadow: none;
+      .dropdown.show .dropdown-content { /* Update the selector to include .show */
+        display: block;
       }
     }
   </style>
