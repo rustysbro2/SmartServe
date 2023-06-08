@@ -12,8 +12,11 @@ h1 {
   color: #333;
 }
 
-.login-button {
+form {
   display: inline-block;
+}
+
+.login-button {
   padding: 10px 20px;
   background-color: #7289DA;
   color: #fff;
