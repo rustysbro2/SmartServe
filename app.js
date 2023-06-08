@@ -113,7 +113,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // HTTPS and SSL configuration
 const options = {
-  key: fs.readFileSync('/root/Certs/privae-key.key'), // Replace with the path to your private key file
+  key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
   cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'), // Replace with the path to your SSL certificate file
   ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle') // Replace with the path to your CA bundle file
 };
