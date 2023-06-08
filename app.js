@@ -7,7 +7,7 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const crypto = require('crypto');
 const ejs = require('ejs');
 const path = require('path');
-const axios = require('axios');
+const fetch = require('node-fetch');
 
 const app = express();
 
@@ -46,9 +46,17 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
   try {
     // Make a request to the Discord API to retrieve the user's data
-    const response = await axios.get(`https://discord.com/api/v10/users/${id}`);
+    const response = await fetch(`https://discord.com/api/v10/users/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${process.env.DISCORD_API_TOKEN}`
+      }
+    });
 
-    const userData = response.data;
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+
+    const userData = await response.json();
     const user = {
       id: userData.id,
       username: `${userData.username}#${userData.discriminator}`,
