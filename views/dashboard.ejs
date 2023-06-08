@@ -91,23 +91,52 @@
       }
     }
 
-    /* Small Devices (577px to 767px) */
-    @media (min-width: 577px) and (max-width: 767px) {
-      /* Modify styles for small devices here */
+    /* Small Devices (577px to 768px) */
+    @media (min-width: 577px) and (max-width: 768px) {
+      .menu-icon {
+        display: block;
+        background-color: #f00; /* Debug: Set the background color to red */
+      }
+
+      .dropdown {
+        display: none;
+      }
+
+      .dropdown.show {
+        display: block;
+      }
+
+      .profile-info {
+        margin-top: 10px;
+      }
     }
 
-    /* Medium Devices (768px to 991px) */
-    @media (min-width: 768px) and (max-width: 991px) {
-      /* Modify styles for medium devices here */
+    /* Medium Devices (769px to 992px) */
+    @media (min-width: 769px) and (max-width: 992px) {
+      .menu-icon {
+        display: block;
+        background-color: #f00; /* Debug: Set the background color to red */
+      }
+
+      .dropdown {
+        display: none;
+      }
+
+      .dropdown.show {
+        display: block;
+      }
+
+      .profile-info {
+        margin-top: 10px;
+      }
     }
 
-    /* Large Devices (992px to 1199px) */
-    @media (min-width: 992px) and (max-width: 1199px) {
-      /* Modify styles for large devices here */
-    }
+    /* Large Devices (993px and above) */
+    @media (min-width: 993px) {
+      .menu-icon {
+        display: none;
+      }
 
-    /* Extra Large Devices (1200px and above) */
-    @media (min-width: 1200px) {
       .dropdown {
         display: inline-block;
         background-color: #0f0; /* Debug: Set the background color to green */
