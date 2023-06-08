@@ -15,7 +15,7 @@ function updateDebugInfo() {
   // Update debug info with current values
   windowWidthElement.textContent = window.innerWidth;
   menuIconDisplayElement.textContent = window.getComputedStyle(document.querySelector('.menu-icon')).display;
-  dropdownDisplayElement.textContent = window.getComputedStyle(document.querySelector('.dropdown')).display;
+  dropdownDisplayElement.textContent = window.getComputedStyle(document.querySelector('.dropdown-content')).display;
 
   // Update debug message based on menu display property
   const menuDisplay = window.getComputedStyle(document.querySelector('.dropdown')).display;
