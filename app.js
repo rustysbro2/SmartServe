@@ -150,7 +150,7 @@ app.get('/dashboard', async (req, res) => {
 
       const profileResponse = await fetch(avatarUrl, {
         headers: {
-          Authorization: `Bearer ${user.accessToken}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
