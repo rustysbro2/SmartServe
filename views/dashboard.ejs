@@ -1,74 +1,114 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Dashboard</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        color: #333;
-      }
+<head>
+  <title>Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
 
-      .container {
-        max-width: 600px;
-        margin: 0 auto;
-        padding: 20px;
-        text-align: center;
-        background-color: rgba(255, 255, 255, 0.8);
-      }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
 
-      h1 {
-        font-size: 24px;
-        margin-bottom: 20px;
-      }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
 
-      .dropdown {
-        position: relative;
-        display: inline-block;
-      }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+    }
 
-      .dropdown-content {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        background-color: #f9f9f9;
-        min-width: 160px;
-        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-        z-index: 1;
-      }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #f9f9f9;
+      min-width: 160px;
+      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
 
-      .dropdown:hover .dropdown-content {
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .profile-info {
+      margin-top: 30px;
+    }
+
+    /* Hamburger Menu Styles */
+    .hamburger {
+      display: none;
+      cursor: pointer;
+    }
+
+    .profile-picture {
+      display: none;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .user-info {
+      display: none;
+    }
+
+    .user-info p {
+      margin: 0;
+    }
+
+    @media (max-width: 768px) {
+      .hamburger {
         display: block;
       }
 
-      .profile-info {
-        margin-top: 30px;
+      .user-info {
+        display: flex;
+        align-items: center;
       }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Welcome to the Dashboard</h1>
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to the Dashboard</h1>
 
-      <div class="dropdown">
-        <button class="dropbtn">Menu</button>
-        <div class="dropdown-content">
-          <a href="#">Link 1</a>
-          <a href="#">Link 2</a>
-          <a href="#">Link 3</a>
-        </div>
-      </div>
-
-      <div class="profile-info">
-        <% if (user) { %>
-          <h2>Welcome, <%= user.username %>!</h2>
-          <p>User ID: <%= user.id %></p>
-        <% } else { %>
-          <p>User not logged in.</p>
-        <% } %>
+    <div class="dropdown">
+      <button class="dropbtn">
+        <div class="hamburger"></div>
+        <div class="hamburger"></div>
+        <div class="hamburger"></div>
+      </button>
+      <div class="dropdown-content">
+        <a href="#">Link 1</a>
+        <a href="#">Link 2</a>
+        <a href="#">Link 3</a>
       </div>
     </div>
-  </body>
+
+    <div class="profile-info">
+      <% if (user) { %>
+        <div class="user-info">
+          <img class="profile-picture" src="<%= user.profilePicture %>" alt="Profile Picture">
+          <p>Welcome, <%= user.username %>!</p>
+        </div>
+        <p>User ID: <%= user.id %></p>
+      <% } else { %>
+        <p>User not logged in.</p>
+      <% } %>
+    </div>
+  </div>
+</body>
 </html>
