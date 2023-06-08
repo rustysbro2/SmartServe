@@ -30,14 +30,14 @@ passport.use(new DiscordStrategy({
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
   // Verify and retrieve user data
-  const user = {
+  const userObject = {
     id: profile.id,
     username: profile.username,
     discriminator: profile.discriminator,
     accessToken: accessToken
   };
 
-  return done(null, user);
+  return done(null, userObject);
 }));
 
 passport.serializeUser((user, done) => {
@@ -62,12 +62,12 @@ passport.deserializeUser(async (id, done) => {
     }
 
     const userData = await response.json();
-    const user = {
+    const userObject = {
       id: userData.id,
       username: `${userData.username}#${userData.discriminator}`,
     };
 
-    done(null, user);
+    done(null, userObject);
   } catch (error) {
     console.error('Error during deserialization:', error);
     done(error, null);
@@ -106,8 +106,8 @@ app.get('/auth/discord/callback', passport.authenticate('discord', {
 app.get('/dashboard', (req, res) => {
   // Check if the user is authenticated and retrieve the user data
   if (req.isAuthenticated()) {
-    const user = req.user; // Assuming req.user contains the user data
-    res.render('dashboard', { user });
+    const userObject = req.user; // Assuming req.user contains the user data
+    res.render('dashboard', { user: userObject });
   } else {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
