@@ -8,7 +8,7 @@
       margin: 0;
       padding: 0;
       color: #333;
-      background-image: url('https://i.imgur.com/r4WWYN2.jpg');
+      background-image: url('https://example.com/path/to/your/image.jpg');
       background-repeat: no-repeat;
       background-size: cover;
     }
@@ -31,6 +31,10 @@
       cursor: pointer;
       padding: 10px;
       background-color: #000;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 9999;
     }
 
     .menu-icon span {
@@ -44,7 +48,7 @@
     .dropdown {
       display: none;
       position: absolute;
-      top: 100%;
+      top: 45px;
       left: 0;
       background-color: #f9f9f9;
       min-width: 160px;
@@ -54,6 +58,17 @@
 
     .dropdown.show {
       display: block;
+    }
+
+    .dropdown-content {
+      padding: 10px;
+    }
+
+    .dropdown-content a {
+      display: block;
+      padding: 5px 0;
+      text-decoration: none;
+      color: #333;
     }
 
     .profile-info {
