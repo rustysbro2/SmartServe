@@ -60,6 +60,7 @@ passport.use(
         }
 
         // Retrieve the user's avatar URL
+        console.log('Retrieving avatar...');
         const avatarResponse = await fetch(`https://discord.com/api/v10/users/${profile.id}`, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -70,8 +71,10 @@ passport.use(
           const avatarData = await avatarResponse.json();
           const avatarExtension = user.avatar.startsWith('a_') ? 'gif' : 'png';
           user.avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${avatarData.avatar}.${avatarExtension}`;
+          console.log('Avatar retrieved:', user.avatar);
         } else {
           user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
+          console.log('Unable to retrieve avatar. Using default avatar:', user.avatar);
         }
 
         return done(null, user);
@@ -134,6 +137,7 @@ app.get('/dashboard', (req, res) => {
   // Check if the user is authenticated and retrieve the user data
   if (req.isAuthenticated()) {
     const user = req.user; // Assuming req.user contains the user data
+    console.log('User authenticated. User data:', user);
     res.render('dashboard', { user });
   } else {
     res.redirect('/login'); // Redirect to the login page if not authenticated
