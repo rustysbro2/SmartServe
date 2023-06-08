@@ -63,27 +63,20 @@ passport.use(
         }
 
         // Retrieve the user's avatar URL
-        const avatarUrl = `https://discord.com/api/v10/users/${profile.id}`;
-        console.log('Avatar API URL:', avatarUrl);
+        console.debug('Retrieving avatar...');
+        const avatarUrl = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`;
+        console.debug('Avatar API URL:', avatarUrl);
 
-        const headers = {
-          Authorization: `Bearer ${accessToken}`,
-        };
-        console.log('Request headers:', headers);
-
-        const avatarResponse = await fetch(avatarUrl, {
-          headers,
-        });
-
+        // Check if the avatar URL returns a valid response
+        const avatarResponse = await fetch(avatarUrl);
         if (avatarResponse.ok) {
-          const avatarData = await avatarResponse.json();
-          console.log('Avatar retrieved successfully');
-          console.log('Avatar API response:', avatarData);
-          user.avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${avatarData.avatar}.png`;
+          console.debug('Avatar retrieved successfully');
+          user.avatar = avatarUrl;
         } else {
-          console.log('Unable to retrieve avatar. Using default avatar:', '/default-avatar.png');
+          console.debug('Unable to retrieve avatar. Using default avatar:', '/default-avatar.png');
           user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
         }
+
 
         console.log('Profile data:', profile);
 
