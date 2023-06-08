@@ -43,7 +43,7 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (accessToken, id, done) => {
   try {
     // Make a request to the Discord API to retrieve the user's data
     const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
