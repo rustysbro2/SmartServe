@@ -56,11 +56,11 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Define routes
-app.get('/', (req, res) => {
-  res.render('login.ejs');
-});
+app.get('/login', (req, res) => {
+  const backgroundImageLoaded = true; // Set the value based on whether the background image is successfully loaded
 
-app.get('/login', passport.authenticate('discord'));
+  res.render('login', { backgroundImageLoaded });
+});
 
 app.get('/login/discord', passport.authenticate('discord'));
 
