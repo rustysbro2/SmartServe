@@ -59,6 +59,9 @@ passport.use(
           };
         }
 
+        // Assign the avatar property with the URL of the user's profile picture
+        user.avatar = profile.avatar;
+
         return done(null, user);
       } catch (error) {
         return done(error);
@@ -126,7 +129,7 @@ app.get('/dashboard', (req, res) => {
 });
 
 // Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'views')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // HTTPS and SSL configuration
 const options = {
