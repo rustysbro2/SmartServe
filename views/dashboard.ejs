@@ -11,7 +11,7 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 1200px; /* Increase the max-width to accommodate larger screens */
       margin: 0 auto;
       padding: 20px;
       text-align: center;
@@ -39,7 +39,6 @@
     }
 
     .dropdown {
-      position: relative;
       display: inline-block;
     }
 
@@ -80,11 +79,20 @@
       }
     }
 
-    /* Debug styles */
-    .debug {
-      margin-top: 20px;
-      font-size: 12px;
-      color: #999;
+    @media (min-width: 769px) {
+      .menu-icon {
+        display: none;
+      }
+
+      .dropdown {
+        display: inline-block;
+      }
+
+      .dropdown-content {
+        position: static;
+        min-width: auto;
+        box-shadow: none;
+      }
     }
   </style>
 </head>
@@ -114,53 +122,13 @@
         <p>User not logged in.</p>
       <% } %>
     </div>
-
-    <!-- Debug information -->
-    <div class="debug">
-      <p>Window Width: <span id="windowWidth"></span></p>
-      <p>Menu Icon Display: <span id="menuIconDisplay"></span></p>
-      <p>Dropdown Display: <span id="dropdownDisplay"></span></p>
-    </div>
   </div>
 
   <script>
     function toggleDropdown() {
       const dropdownMenu = document.getElementById("dropdownMenu");
       dropdownMenu.classList.toggle("show");
-
-      updateDebugInfo();
     }
-
-    function handleWindowResize() {
-      const menuIcon = document.querySelector(".menu-icon");
-      const dropdown = document.querySelector(".dropdown");
-      const profileInfo = document.querySelector(".profile-info");
-
-      if (window.innerWidth <= 768) {
-        menuIcon.style.display = "block";
-        dropdown.style.display = "none";
-        profileInfo.style.marginTop = "10px";
-      } else {
-        menuIcon.style.display = "none";
-        dropdown.style.display = "inline-block";
-        profileInfo.style.marginTop = "30px";
-      }
-
-      updateDebugInfo();
-    }
-
-    function updateDebugInfo() {
-      const windowWidth = document.getElementById("windowWidth");
-      const menuIconDisplay = document.getElementById("menuIconDisplay");
-      const dropdownDisplay = document.getElementById("dropdownDisplay");
-
-      windowWidth.textContent = window.innerWidth;
-      menuIconDisplay.textContent = getComputedStyle(document.querySelector(".menu-icon")).display;
-      dropdownDisplay.textContent = getComputedStyle(document.querySelector(".dropdown")).display;
-    }
-
-    window.addEventListener("resize", handleWindowResize);
-    handleWindowResize();
   </script>
 </body>
 </html>
