@@ -26,6 +26,7 @@ app.use(
   })
 );
 
+// Passport configuration
 passport.use(
   new DiscordStrategy(
     {
@@ -88,7 +89,6 @@ passport.use(
   )
 );
 
-
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -137,34 +137,39 @@ app.get(
 );
 
 // Define the route for the dashboard
-app.get('/dashboard', (req, res) => {
-  // Check if the user is authenticated and retrieve the user data
+app.get('/dashboard', async (req, res) => {
+  // Check if the user is authenticated
   if (req.isAuthenticated()) {
     const user = req.user; // Assuming req.user contains the user data
     console.log('User authenticated. User data:', user);
 
-    const avatarUrl = `https://discord.com/api/v10/users/${user.discord_id}`;
-    console.debug('Avatar API URL:', avatarUrl);
+    try {
+      console.debug('Retrieving avatar...');
+      const avatarUrl = `https://discord.com/api/v10/users/${user.discord_id}`;
+      console.debug('Avatar API URL:', avatarUrl);
 
-    fetch(avatarUrl, {
-      headers: {
-        Authorization: `Bearer ${req.session.passport.user.accessToken}`,
-      },
-    })
-      .then((response) => response.json())
-      .then((profile) => {
+      const profileResponse = await fetch(avatarUrl, {
+        headers: {
+          Authorization: `Bearer ${user.accessToken}`,
+        },
+      });
+
+      if (profileResponse.ok) {
+        const profile = await profileResponse.json();
         console.debug('Profile data:', profile);
         res.render('dashboard', { user, profile });
-      })
-      .catch((error) => {
-        console.error('Error retrieving profile:', error);
+      } else {
+        console.debug('Failed to retrieve profile:', profileResponse.status);
         res.redirect('/login');
-      });
+      }
+    } catch (error) {
+      console.error('Error retrieving profile:', error);
+      res.redirect('/login');
+    }
   } else {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
 });
-
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'views')));
