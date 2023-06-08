@@ -71,7 +71,8 @@
       font-weight: normal;
     }
 
-    @media (max-width: 768px) {
+    /* Extra Small Devices (up to 576px) */
+    @media (max-width: 576px) {
       .menu-icon {
         display: block;
         background-color: #f00; /* Debug: Set the background color to red */
@@ -90,16 +91,22 @@
       }
     }
 
-    @media (min-width: 769px) {
-      .menu-icon {
-        display: none;
-      }
-
-      .dropdown:hover .dropdown-content {
-        display: block;
-      }
+    /* Small Devices (577px to 767px) */
+    @media (min-width: 577px) and (max-width: 767px) {
+      /* Modify styles for small devices here */
     }
 
+    /* Medium Devices (768px to 991px) */
+    @media (min-width: 768px) and (max-width: 991px) {
+      /* Modify styles for medium devices here */
+    }
+
+    /* Large Devices (992px to 1199px) */
+    @media (min-width: 992px) and (max-width: 1199px) {
+      /* Modify styles for large devices here */
+    }
+
+    /* Extra Large Devices (1200px and above) */
     @media (min-width: 1200px) {
       .dropdown {
         display: inline-block;
