@@ -4,6 +4,7 @@
     <title>Login Page</title>
     <style>
       body {
+        background-color: lightgray; /* Debug background color */
         background-image: url('background.jpg');
         background-size: cover;
         background-position: center;
@@ -60,5 +61,12 @@
         <button type="submit" class="login-button">Login with Discord</button>
       </form>
     </div>
+
+    <% if (!backgroundImageLoaded) { %>
+      <script>
+        document.body.style.backgroundColor = "red"; // Debug background color
+        console.log("Background image not loaded.");
+      </script>
+    <% } %>
   </body>
 </html>
