@@ -1,195 +1,110 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Dashboard</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      color: #333;
-    }
+const express = require('express');
+const https = require('https');
+const fs = require('fs');
+const session = require('express-session');
+const passport = require('passport');
+const DiscordStrategy = require('passport-discord').Strategy;
+const crypto = require('crypto');
+const ejs = require('ejs');
+const path = require('path');
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-      text-align: center;
-      background-color: rgba(255, 255, 255, 0.8);
-    }
+const app = express();
 
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
+// Generate a random session secret
+const sessionSecret = crypto.randomBytes(32).toString('hex');
 
-    .menu-icon {
-      display: none;
-      cursor: pointer;
-      padding: 10px;
-      background-color: #000; /* Change the background color to black or any other desired color */
-    }
+// Configure session middleware
+app.use(session({
+  secret: sessionSecret,
+  resave: false,
+  saveUninitialized: false
+}));
 
-    .menu-icon span {
-      display: block;
-      width: 30px;
-      height: 3px;
-      background-color: #fff; /* Change the color of the hamburger lines to white or any other desired color */
-      margin-bottom: 5px;
-    }
+// Passport configuration
+passport.use(new DiscordStrategy({
+  clientID: '1107025578047058030',
+  clientSecret: 'WsaWCO4d9Giw2GOTtZL9anGWP0_-01Dp',
+  callbackURL: 'https://smartserve.cc/auth/discord/callback',
+  scope: ['identify']
+}, (accessToken, refreshToken, profile, done) => {
+  // Verify and retrieve user data
+  const user = {
+    id: profile.id,
+    username: profile.username,
+    discriminator: profile.discriminator,
+    accessToken: accessToken
+  };
 
-    .dropdown {
-      display: inline-block;
-      position: relative;
-    }
+  return done(null, user);
+}));
 
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      top: 100%;
-      left: 0;
-      background-color: #f9f9f9;
-      min-width: 160px;
-      box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-      z-index: 1;
-    }
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
 
-    .dropdown:hover .dropdown-content {
-      display: block;
-    }
+passport.deserializeUser((id, done) => {
+  // Retrieve user data from database or cache
+  const user = {
+    id: id,
+    username: 'exampleUser'
+  };
 
-    .profile-info {
-      margin-top: 30px;
-    }
+  done(null, user);
+});
 
-    .debug-info {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
+// Initialize Passport and restore authentication state, if any
+app.use(passport.initialize());
+app.use(passport.session());
 
-    .debug-info span {
-      font-weight: normal;
-    }
+// Set the views directory
+app.set('views', path.join(__dirname, 'views'));
 
-    @media (max-width: 768px) {
-      .menu-icon {
-        display: block;
-        background-color: #f00; /* Debug: Set the background color to red */
-      }
+// Set the view engine to EJS
+app.set('view engine', 'ejs');
 
-      .dropdown {
-        display: none;
-      }
+// Define routes
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
 
-      .dropdown.show {
-        display: block;
-      }
+app.get('/login', (req, res) => {
+  const backgroundImageLoaded = true; // Set the value based on whether the background image is successfully loaded
 
-      .profile-info {
-        margin-top: 10px;
-      }
-    }
+  res.render('login', { backgroundImageLoaded });
+});
 
-    @media (min-width: 769px) {
-      .menu-icon {
-        display: none;
-      }
+app.get('/login/discord', passport.authenticate('discord'));
 
-      .dropdown:hover .dropdown-content {
-        display: block;
-      }
-    }
+app.get('/auth/discord/callback', passport.authenticate('discord', {
+  successRedirect: '/dashboard',
+  failureRedirect: '/login'
+}));
 
-    @media (min-width: 1200px) {
-      .dropdown {
-        display: inline-block;
-        background-color: #0f0; /* Debug: Set the background color to green */
-      }
+// Define the route for the dashboard
+app.get('/dashboard', (req, res) => {
+  // Check if the user is authenticated and retrieve the user data
+  if (req.isAuthenticated()) {
+    const user = req.user; // Assuming req.user contains the user data
+    res.render('dashboard', { user });
+  } else {
+    res.redirect('/login'); // Redirect to the login page if not authenticated
+  }
+});
 
-      .dropdown-content {
-        position: static;
-        min-width: auto;
-        box-shadow: none;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>Welcome to the Dashboard</h1>
 
-    <div class="menu-icon" onclick="toggleDropdown()">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
 
-    <div class="dropdown" id="dropdownMenu">
-      <div class="dropdown-content">
-        <a href="#">Link 1</a>
-        <a href="#">Link 2</a>
-        <a href="#">Link 3</a>
-      </div>
-    </div>
+// HTTPS and SSL configuration
+const options = {
+  key: fs.readFileSync('/root/Certs/privae-key.key'), // Replace with the path to your private key file
+  cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'), // Replace with the path to your SSL certificate file
+  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle') // Replace with the path to your CA bundle file
+};
 
-    <div class="profile-info">
-      <% if (user) { %>
-        <h2>Welcome, <%= user.username %>!</h2>
-        <p>User ID: <%= user.id %></p>
-      <% } else { %>
-        <p>User not logged in.</p>
-      <% } %>
-    </div>
+// Start the HTTPS server
+const port = 443; // Use the desired HTTPS port
 
-    <div class="debug-info">
-      <span>Window Width:</span> <span id="windowWidth"></span>
-    </div>
-    <div class="debug-info">
-      <span>Menu Icon Display:</span> <span id="menuIconDisplay"></span>
-    </div>
-    <div class="debug-info">
-      <span>Dropdown Display:</span> <span id="dropdownDisplay"></span>
-    </div>
-    <div class="debug-info">
-      <span>Debug Message:</span> <span id="debugMessage"></span>
-    </div>
-
-  </div>
-
-  <script>
-    function toggleDropdown() {
-      const dropdownMenu = document.getElementById("dropdownMenu");
-      dropdownMenu.classList.toggle("show");
-
-      updateDebugInfo(); // Update debug info when the dropdown is toggled
-    }
-
-    function updateDebugInfo() {
-      // Get the debug elements
-      const windowWidthElement = document.getElementById("windowWidth");
-      const menuIconDisplayElement = document.getElementById("menuIconDisplay");
-      const dropdownDisplayElement = document.getElementById("dropdownDisplay");
-      const debugMessageElement = document.getElementById("debugMessage");
-
-      // Update debug info with current values
-      windowWidthElement.textContent = window.innerWidth;
-      menuIconDisplayElement.textContent = window.getComputedStyle(document.querySelector('.menu-icon')).display;
-      dropdownDisplayElement.textContent = window.getComputedStyle(document.querySelector('.dropdown')).display;
-
-      // Update debug message based on menu display property
-      const menuDisplay = window.getComputedStyle(document.querySelector('.dropdown')).display;
-      if (menuDisplay === 'none') {
-        debugMessageElement.textContent = "Menu is not showing on this screen size.";
-      } else {
-        debugMessageElement.textContent = "";
-      }
-    }
-
-    // Debug: Output initial debug info
-    updateDebugInfo();
-
-    // Debug: Log window resize events
-    window.addEventListener('resize', updateDebugInfo);
-  </script>
-</body>
-</html>
+https.createServer(options, app).listen(port, () => {
+  console.log(`Server is listening on port ${port}`);
+});
