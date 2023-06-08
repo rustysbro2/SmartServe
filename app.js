@@ -43,14 +43,10 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser(async (accessToken, id, done) => {
+passport.deserializeUser(async (id, done) => {
   try {
     // Make a request to the Discord API to retrieve the user's data
-    const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`, // Replace with the access token from the user's data
-      },
-    });
+    const response = await axios.get(`https://discord.com/api/v10/users/${id}`);
 
     const userData = response.data;
     const user = {
@@ -102,7 +98,6 @@ app.get('/dashboard', (req, res) => {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
 });
-
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
