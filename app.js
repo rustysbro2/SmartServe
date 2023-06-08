@@ -73,8 +73,11 @@ passport.use(
           user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
         }
 
+        console.log('User:', user); // Debug logging
+
         return done(null, user);
       } catch (error) {
+        console.error('Error:', error); // Debug logging
         return done(error);
       }
     }
@@ -93,6 +96,7 @@ passport.deserializeUser(async (id, done) => {
     const user = rows[0];
     done(null, user);
   } catch (error) {
+    console.error('Error:', error); // Debug logging
     done(error);
   }
 });
