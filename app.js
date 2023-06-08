@@ -9,6 +9,16 @@ const ejs = require('ejs');
 
 const app = express();
 
+// Redirect HTTP to HTTPS
+app.use((req, res, next) => {
+  if (req.protocol === 'http' && req.get('X-Forwarded-Proto') !== 'https') {
+    const httpsUrl = `https://${req.headers.host}${req.url}`;
+    res.redirect(301, httpsUrl);
+  } else {
+    next();
+  }
+});
+
 // Generate a random session secret
 const sessionSecret = crypto.randomBytes(32).toString('hex');
 
@@ -80,8 +90,8 @@ app.set('view engine', 'ejs');
 
 // HTTPS and SSL configuration
 const options = {
-  key: fs.readFileSync('/var/lib/mysql/Key.key'), // Replace with the path to your private key file
-  cert: fs.readFileSync('/var/lib/mysql/smartserve_cc.crt') // Replace with the path to your SSL certificate file
+  key: fs.readFileSync('/path/to/private_key.pem'), // Replace with the path to your private key file
+  cert: fs.readFileSync('/path/to/ssl_certificate.pem') // Replace with the path to your SSL certificate file
 };
 
 // Start the HTTPS server
