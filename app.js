@@ -155,6 +155,10 @@ app.get('/dashboard', async (req, res) => {
         },
       });
 
+      console.debug('Profile response status:', profileResponse.status);
+      console.debug('Profile response headers:', profileResponse.headers.raw());
+      console.debug('Profile response body:', await profileResponse.text());
+
       if (profileResponse.ok) {
         const profile = await profileResponse.json();
         console.debug('Profile data:', profile);
