@@ -62,6 +62,8 @@ app.get('/', (req, res) => {
 
 app.get('/login', passport.authenticate('discord'));
 
+app.get('/login/discord', passport.authenticate('discord'));
+
 app.get('/auth/discord/callback', passport.authenticate('discord', {
   successRedirect: '/dashboard',
   failureRedirect: '/login'
