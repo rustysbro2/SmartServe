@@ -72,11 +72,10 @@ passport.use(
 
         if (avatarResponse.ok) {
           console.debug('Avatar retrieved successfully');
-          const avatarData = await avatarResponse.json();
-          user.avatar = avatarData.avatar;
+          user.avatar = avatarUrl;
         } else {
           console.debug('Unable to retrieve avatar. Using default avatar:', '/default-avatar.png');
-          user.avatar = null; // Use null to indicate that the avatar could not be retrieved
+          user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
         }
 
         return done(null, user);
@@ -140,7 +139,25 @@ app.get('/dashboard', (req, res) => {
   if (req.isAuthenticated()) {
     const user = req.user; // Assuming req.user contains the user data
     console.log('User authenticated. User data:', user);
-    res.render('dashboard', { user });
+    console.debug('Access token:', req.session.passport.user.accessToken);
+    console.debug('Retrieving avatar...');
+    const avatarUrl = `https://discord.com/api/v10/users/${user.discord_id}`;
+    console.debug('Avatar API URL:', avatarUrl);
+
+    fetch(avatarUrl, {
+      headers: {
+        Authorization: `Bearer ${req.session.passport.user.accessToken}`,
+      },
+    })
+      .then((response) => response.json())
+      .then((profile) => {
+        console.debug('Profile data:', profile);
+        res.render('dashboard', { user, profile });
+      })
+      .catch((error) => {
+        console.error('Error retrieving profile:', error);
+        res.redirect('/login');
+      });
   } else {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
