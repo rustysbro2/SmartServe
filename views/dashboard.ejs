@@ -89,6 +89,10 @@
       .dropdown:hover .dropdown-content {
         display: block;
       }
+
+      .debug-message {
+        display: none; /* Hide the debug message by default */
+      }
     }
 
     @media (min-width: 1200px) {
@@ -101,6 +105,12 @@
         position: static;
         min-width: auto;
         box-shadow: none;
+      }
+
+      .debug-message {
+        display: block; /* Show the debug message for larger screens */
+        color: #f00; /* Debug: Set the debug message color to red */
+        font-weight: bold; /* Debug: Set the debug message font weight to bold */
       }
     }
   </style>
@@ -131,6 +141,8 @@
         <p>User not logged in.</p>
       <% } %>
     </div>
+
+    <p class="debug-message">Menu is not showing on this screen size.</p>
   </div>
 
   <script>
@@ -145,6 +157,15 @@
     console.log("Menu Icon Display:", window.getComputedStyle(document.querySelector('.menu-icon')).display);
     // Debug: Output dropdown display property to console
     console.log("Dropdown Display:", window.getComputedStyle(document.querySelector('.dropdown')).display);
+
+    // Debug: Show/hide debug message based on menu display property
+    const menuDisplay = window.getComputedStyle(document.querySelector('.dropdown')).display;
+    const debugMessage = document.querySelector('.debug-message');
+    if (menuDisplay === 'none') {
+      debugMessage.style.display = 'block';
+    } else {
+      debugMessage.style.display = 'none';
+    }
   </script>
 </body>
 </html>
