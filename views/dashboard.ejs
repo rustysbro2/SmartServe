@@ -10,12 +10,13 @@
 
 <body>
   <div class="profile-info">
-    <% if (user) { %>
-      <img src="<%= 'https://cdn.discordapp.com/avatars/' + user.discord_id + '/' + user.avatar + '.png' %>" alt="Profile Picture">
+    <% if (user.avatar) { %>
+      <img src="<%= user.avatar %>" alt="Profile Picture">
     <% } else { %>
       <img src="/default-avatar.png" alt="Default Profile Picture">
     <% } %>
   </div>
+
 
     <div class="dropdown">
       <div class="menu-icon" onclick="toggleDropdown()">
