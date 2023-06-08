@@ -62,10 +62,13 @@
       margin-top: 30px;
     }
 
-    .debug-message {
-      display: none;
-      color: #f00;
+    .debug-info {
       font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .debug-info span {
+      font-weight: normal;
     }
 
     @media (max-width: 768px) {
@@ -86,7 +89,7 @@
         margin-top: 10px;
       }
 
-      .debug-message {
+      .debug-info {
         display: block;
       }
     }
@@ -142,30 +145,54 @@
       <% } %>
     </div>
 
-    <p class="debug-message">Menu is not showing on this screen size.</p>
+    <div class="debug-info">
+      <span>Window Width:</span> <span id="windowWidth"></span>
+    </div>
+    <div class="debug-info">
+      <span>Menu Icon Display:</span> <span id="menuIconDisplay"></span>
+    </div>
+    <div class="debug-info">
+      <span>Dropdown Display:</span> <span id="dropdownDisplay"></span>
+    </div>
+    <div class="debug-info">
+      <span>Debug Message:</span> <span id="debugMessage"></span>
+    </div>
   </div>
 
   <script>
     function toggleDropdown() {
       const dropdownMenu = document.getElementById("dropdownMenu");
       dropdownMenu.classList.toggle("show");
+
+      updateDebugInfo(); // Update debug info when the dropdown is toggled
     }
 
-    // Debug: Output screen dimensions to console
-    console.log("Window Width:", window.innerWidth, "Window Height:", window.innerHeight);
-    // Debug: Output menu icon display property to console
-    console.log("Menu Icon Display:", window.getComputedStyle(document.querySelector('.menu-icon')).display);
-    // Debug: Output dropdown display property to console
-    console.log("Dropdown Display:", window.getComputedStyle(document.querySelector('.dropdown')).display);
+    function updateDebugInfo() {
+      // Get the debug elements
+      const windowWidthElement = document.getElementById("windowWidth");
+      const menuIconDisplayElement = document.getElementById("menuIconDisplay");
+      const dropdownDisplayElement = document.getElementById("dropdownDisplay");
+      const debugMessageElement = document.getElementById("debugMessage");
 
-    // Debug: Show/hide debug message based on menu display property
-    const menuDisplay = window.getComputedStyle(document.querySelector('.dropdown')).display;
-    const debugMessage = document.querySelector('.debug-message');
-    if (menuDisplay === 'none') {
-      debugMessage.style.display = 'block';
-    } else {
-      debugMessage.style.display = 'none';
+      // Update debug info with current values
+      windowWidthElement.textContent = window.innerWidth;
+      menuIconDisplayElement.textContent = window.getComputedStyle(document.querySelector('.menu-icon')).display;
+      dropdownDisplayElement.textContent = window.getComputedStyle(document.querySelector('.dropdown')).display;
+
+      // Update debug message based on menu display property
+      const menuDisplay = window.getComputedStyle(document.querySelector('.dropdown')).display;
+      if (menuDisplay === 'none') {
+        debugMessageElement.textContent = "Menu is not showing on this screen size.";
+      } else {
+        debugMessageElement.textContent = "";
+      }
     }
+
+    // Debug: Output initial debug info
+    updateDebugInfo();
+
+    // Debug: Log window resize events
+    window.addEventListener('resize', updateDebugInfo);
   </script>
 </body>
 </html>
