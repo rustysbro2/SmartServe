@@ -65,6 +65,7 @@
     @media (max-width: 768px) {
       .menu-icon {
         display: block;
+        background-color: #f00; /* Debug: Set the background color to red */
       }
 
       .dropdown {
@@ -93,6 +94,7 @@
     @media (min-width: 1200px) {
       .dropdown {
         display: inline-block;
+        background-color: #0f0; /* Debug: Set the background color to green */
       }
 
       .dropdown-content {
@@ -136,6 +138,13 @@
       const dropdownMenu = document.getElementById("dropdownMenu");
       dropdownMenu.classList.toggle("show");
     }
+
+    // Debug: Output screen dimensions to console
+    console.log("Window Width:", window.innerWidth, "Window Height:", window.innerHeight);
+    // Debug: Output menu icon display property to console
+    console.log("Menu Icon Display:", window.getComputedStyle(document.querySelector('.menu-icon')).display);
+    // Debug: Output dropdown display property to console
+    console.log("Dropdown Display:", window.getComputedStyle(document.querySelector('.dropdown')).display);
   </script>
 </body>
 </html>
