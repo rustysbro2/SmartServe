@@ -74,6 +74,10 @@
       .dropdown.show {
         display: block;
       }
+
+      .profile-info {
+        margin-top: 10px; /* Adjust the margin-top value for smaller screens */
+      }
     }
   </style>
 </head>
@@ -110,6 +114,25 @@
       const dropdownMenu = document.getElementById("dropdownMenu");
       dropdownMenu.classList.toggle("show");
     }
+
+    function handleWindowResize() {
+      const menuIcon = document.querySelector(".menu-icon");
+      const dropdown = document.querySelector(".dropdown");
+      const profileInfo = document.querySelector(".profile-info");
+
+      if (window.innerWidth <= 768) {
+        menuIcon.style.display = "block";
+        dropdown.style.display = "none";
+        profileInfo.style.marginTop = "10px";
+      } else {
+        menuIcon.style.display = "none";
+        dropdown.style.display = "inline-block";
+        profileInfo.style.marginTop = "30px";
+      }
+    }
+
+    window.addEventListener("resize", handleWindowResize);
+    handleWindowResize();
   </script>
 </body>
 </html>
