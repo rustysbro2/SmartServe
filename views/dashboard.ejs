@@ -12,8 +12,8 @@
   <div class="container">
     <h1>Welcome, <%= user.username %>!</h1>
     <div class="profile-info">
-      <% if (user.discord_id && user.avatar_hash) { %>
-        <img src="https://cdn.discordapp.com/avatars/<%= user.discord_id %>/<%= user.avatar_hash %>.png" alt="Profile Picture">
+      <% if (profile.avatar) { %>
+        <img src="https://cdn.discordapp.com/avatars/<%= profile.id %>/<%= profile.avatar %>.png" alt="Profile Picture">
       <% } else { %>
         <img src="/default-avatar.png" alt="Default Profile Picture">
       <% } %>
