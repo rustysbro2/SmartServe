@@ -31,18 +31,18 @@ passport.use(new DiscordStrategy({
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
   // Verify and retrieve user data
-  const user = {
+  const userData = {
     id: profile.id,
     username: profile.username,
     discriminator: profile.discriminator,
     accessToken: accessToken
   };
 
-  return done(null, user);
+  return done(null, userData);
 }));
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
+passport.serializeUser((userData, done) => {
+  done(null, userData.id);
 });
 
 passport.deserializeUser(async (id, done) => {
@@ -63,12 +63,12 @@ passport.deserializeUser(async (id, done) => {
     }
 
     const userData = await response.json();
-    const user = {
+    const userObj = {
       id: userData.id,
       username: `${userData.username}#${userData.discriminator}`,
     };
 
-    done(null, user);
+    done(null, userObj);
   } catch (error) {
     console.error('Error during deserialization:', error);
     done(error, null);
