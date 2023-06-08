@@ -9,15 +9,6 @@ const ejs = require('ejs');
 
 const app = express();
 
-// Redirect HTTP to HTTPS
-app.use((req, res, next) => {
-  if (req.protocol === 'http' && req.get('X-Forwarded-Proto') !== 'https') {
-    const httpsUrl = `https://${req.headers.host}${req.url}`;
-    res.redirect(301, httpsUrl);
-  } else {
-    next();
-  }
-});
 
 // Generate a random session secret
 const sessionSecret = crypto.randomBytes(32).toString('hex');
