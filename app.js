@@ -45,10 +45,14 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
+    // Retrieve the user's access token from the user object
+    const user = getUserById(id);
+    const accessToken = user.accessToken;
+
     // Make a request to the Discord API to retrieve the user's data
     const response = await fetch(`https://discord.com/api/v10/users/${id}`, {
       headers: {
-        'Authorization': `Bearer ${process.env.MTEwNzAyNTU3ODA0NzA1ODAzMA.GDu8Jm.aw7fATbcdZJBUEIQgT4z5RuB0t82pUDOqa1IF0}`
+        'Authorization': `Bot ${MTEwNzAyNTU3ODA0NzA1ODAzMA.GDu8Jm.aw7fATbcdZJBUEIQgT4z5RuB0t82pUDOqa1IF0}`
       }
     });
 
