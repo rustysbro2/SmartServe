@@ -25,7 +25,7 @@ app.use(session({
 // Passport configuration
 passport.use(new DiscordStrategy({
   clientID: config.clientId,
-  clientSecret: config.token,
+  clientSecret: config.clientSecret,
   callbackURL: 'https://smartserve.cc/auth/discord/callback',
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
@@ -46,13 +46,14 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    // Retrieve the user's token from the config file
-    const token = config.token;
+    // Retrieve the user's access token from the user object
+    const user = getUserById(id);
+    const accessToken = user.accessToken;
 
     // Make a request to the Discord API to retrieve the user's data
     const response = await fetch(`https://discord.com/api/v10/users/${id}`, {
       headers: {
-        'Authorization': `Bot ${token}`
+        'Authorization': `Bot ${config.token}`
       }
     });
 
