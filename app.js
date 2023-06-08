@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const ejs = require('ejs');
 const path = require('path');
 const fetch = require('isomorphic-fetch');
+const config = require('./config');
 
 const app = express();
 
@@ -23,8 +24,8 @@ app.use(session({
 
 // Passport configuration
 passport.use(new DiscordStrategy({
-  clientID: '1107025578047058030',
-  clientSecret: 'tsNaVELoI3cyr6sKNXDvReiL0g2QlzGz',
+  clientID: config.clientId,
+  clientSecret: config.token,
   callbackURL: 'https://smartserve.cc/auth/discord/callback',
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
@@ -45,14 +46,13 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    // Retrieve the user's access token from the user object
-    const user = getUserById(id);
-    const accessToken = user.accessToken;
+    // Retrieve the user's token from the config file
+    const token = config.token;
 
     // Make a request to the Discord API to retrieve the user's data
     const response = await fetch(`https://discord.com/api/v10/users/${id}`, {
       headers: {
-        'Authorization': `Bot ${MTEwNzAyNTU3ODA0NzA1ODAzMA.GDu8Jm.aw7fATbcdZJBUEIQgT4z5RuB0t82pUDOqa1IF0}`
+        'Authorization': `Bot ${token}`
       }
     });
 
