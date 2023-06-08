@@ -8,7 +8,8 @@ const crypto = require('crypto');
 const ejs = require('ejs');
 const path = require('path');
 const fetch = require('isomorphic-fetch');
-const config = require('./config');
+
+const { token, clientId, clientSecret, guildId } = require('./config.js');
 
 const app = express();
 
@@ -24,20 +25,20 @@ app.use(session({
 
 // Passport configuration
 passport.use(new DiscordStrategy({
-  clientID: config.clientId,
-  clientSecret: config.clientSecret,
+  clientID: clientId,
+  clientSecret: clientSecret,
   callbackURL: 'https://smartserve.cc/auth/discord/callback',
   scope: ['identify']
 }, (accessToken, refreshToken, profile, done) => {
   // Verify and retrieve user data
-  const userObject = {
+  const user = {
     id: profile.id,
     username: profile.username,
     discriminator: profile.discriminator,
     accessToken: accessToken
   };
 
-  return done(null, userObject);
+  return done(null, user);
 }));
 
 passport.serializeUser((user, done) => {
@@ -46,12 +47,14 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = { id }; // Assuming you have access to the user data by ID
+    // Retrieve the user's access token from the user object
+    const user = getUserById(id);
+    const accessToken = user.accessToken;
 
     // Make a request to the Discord API to retrieve the user's data
     const response = await fetch(`https://discord.com/api/v10/users/${id}`, {
       headers: {
-        'Authorization': `Bot ${config.token}`
+        'Authorization': `Bot ${token}`
       }
     });
 
@@ -60,18 +63,17 @@ passport.deserializeUser(async (id, done) => {
     }
 
     const userData = await response.json();
-    const userObject = {
+    const user = {
       id: userData.id,
       username: `${userData.username}#${userData.discriminator}`,
     };
 
-    done(null, userObject);
+    done(null, user);
   } catch (error) {
     console.error('Error during deserialization:', error);
     done(error, null);
   }
 });
-
 
 // Initialize Passport and restore authentication state, if any
 app.use(passport.initialize());
@@ -105,8 +107,8 @@ app.get('/auth/discord/callback', passport.authenticate('discord', {
 app.get('/dashboard', (req, res) => {
   // Check if the user is authenticated and retrieve the user data
   if (req.isAuthenticated()) {
-    const userObject = req.user; // Assuming req.user contains the user data
-    res.render('dashboard', { user: userObject });
+    const user = req.user; // Assuming req.user contains the user data
+    res.render('dashboard', { user });
   } else {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
