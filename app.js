@@ -142,17 +142,25 @@ app.get(
   })
 );
 
+// ...
+
 // Define the route for the dashboard
 app.get('/dashboard', (req, res) => {
   // Check if the user is authenticated and retrieve the user data
   if (req.isAuthenticated()) {
     const user = req.user; // Assuming req.user contains the user data
     console.log('User authenticated. User data:', user);
-    res.render('dashboard', { user });
+    const profile = {
+      id: user.discord_id,
+      avatar: user.avatar,
+    };
+    res.render('dashboard', { user, profile });
   } else {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
 });
+
+
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'views')));
