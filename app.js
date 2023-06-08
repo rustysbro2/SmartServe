@@ -60,25 +60,18 @@ passport.use(
         }
 
         // Retrieve the user's avatar URL
-        try {
-          console.log('Retrieving avatar...');
-          const avatarResponse = await fetch(`https://discord.com/api/v10/users/${profile.id}`, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          });
+        const avatarResponse = await fetch(`https://discord.com/api/v10/users/${profile.id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
 
-          if (avatarResponse.ok) {
-            const avatarData = await avatarResponse.json();
-            user.avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${avatarData.avatar}.png`;
-          } else {
-            user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
-          }
-
-          console.log('Avatar retrieved:', user.avatar);
-        } catch (error) {
-          console.error('Error retrieving avatar:', error);
-          user.avatar = '/default-avatar.png'; // Use default avatar on error
+        if (avatarResponse.ok) {
+          const avatarData = await avatarResponse.json();
+          const avatarExtension = user.avatar.startsWith('a_') ? 'gif' : 'png';
+          user.avatar = `https://cdn.discordapp.com/avatars/${profile.id}/${avatarData.avatar}.${avatarExtension}`;
+        } else {
+          user.avatar = '/default-avatar.png'; // Use default avatar if unable to retrieve the user's avatar URL
         }
 
         return done(null, user);
@@ -88,7 +81,6 @@ passport.use(
     }
   )
 );
-
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -102,7 +94,6 @@ passport.deserializeUser(async (id, done) => {
     const user = rows[0];
     done(null, user);
   } catch (error) {
-    console.error('Error:', error); // Debug logging
     done(error);
   }
 });
