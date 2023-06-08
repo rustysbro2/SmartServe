@@ -90,8 +90,8 @@ app.set('view engine', 'ejs');
 
 // HTTPS and SSL configuration
 const options = {
-  key: fs.readFileSync('/path/to/private_key.pem'), // Replace with the path to your private key file
-  cert: fs.readFileSync('/path/to/ssl_certificate.pem') // Replace with the path to your SSL certificate file
+  key: fs.readFileSync('/root/Certs/privae-key.key), // Replace with the path to your private key file
+  cert: fs.readFileSync('/root/Certs/smartserve_cc.crt') // Replace with the path to your SSL certificate file
 };
 
 // Start the HTTPS server
