@@ -9,7 +9,6 @@ const ejs = require('ejs');
 
 const app = express();
 
-
 // Generate a random session secret
 const sessionSecret = crypto.randomBytes(32).toString('hex');
 
@@ -79,9 +78,12 @@ app.get('/dashboard', (req, res) => {
 // Set the view engine to EJS
 app.set('view engine', 'ejs');
 
+// Serve static files from the public directory
+app.use(express.static('public'));
+
 // HTTPS and SSL configuration
 const options = {
-  key: fs.readFileSync('/root/Certs/privae-key.key'), // Replace with the path to your private key fil
+  key: fs.readFileSync('/root/Certs/privae-key.key'), // Replace with the path to your private key file
   cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'), // Replace with the path to your SSL certificate file
   ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle') // Replace with the path to your CA bundle file
 };
