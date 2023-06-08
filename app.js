@@ -40,26 +40,23 @@ passport.use(new DiscordStrategy({
 }));
 
 passport.serializeUser((user, done) => {
-  done(null, user);
+  done(null, user.id);
 });
 
-passport.deserializeUser(async (user, done) => {
+passport.deserializeUser(async (id, done) => {
   try {
     // Make a request to the Discord API to retrieve the user's data
-    const response = await axios.get(`https://discord.com/api/v10/users/${user.id}`, {
-      headers: {
-        Authorization: `Bearer ${user.accessToken}`,
-      },
-    });
+    const response = await axios.get(`https://discord.com/api/v10/users/${id}`);
 
     const userData = response.data;
-    const updatedUser = {
+    const user = {
       id: userData.id,
       username: `${userData.username}#${userData.discriminator}`,
     };
 
-    done(null, updatedUser);
+    done(null, user);
   } catch (error) {
+    console.error('Error during deserialization:', error);
     done(error, null);
   }
 });
@@ -81,6 +78,7 @@ app.get('/', (req, res) => {
 
 app.get('/login', (req, res) => {
   const backgroundImageLoaded = true; // Set the value based on whether the background image is successfully loaded
+
   res.render('login', { backgroundImageLoaded });
 });
 
