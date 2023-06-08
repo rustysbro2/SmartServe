@@ -37,6 +37,11 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        console.debug('Passport authentication callback triggered');
+        console.debug('Access token:', accessToken);
+        console.debug('Refresh token:', refreshToken);
+        console.debug('Profile:', profile);
+
         // Check if the user already exists in the database
         const query = 'SELECT * FROM users WHERE discord_id = ?';
         const [rows] = await pool.query(query, [profile.id]);
@@ -83,6 +88,7 @@ passport.use(
 
         return done(null, user);
       } catch (error) {
+        console.error('Passport authentication error:', error);
         return done(error);
       }
     }
@@ -136,7 +142,6 @@ app.get(
   })
 );
 
-
 // Define the route for the dashboard
 app.get('/dashboard', async (req, res) => {
   // Check if the user is authenticated
@@ -175,8 +180,6 @@ app.get('/dashboard', async (req, res) => {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
 });
-
-
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'views')));
