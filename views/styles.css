@@ -3,6 +3,9 @@ body {
   margin: 0;
   padding: 0;
   color: #333;
+  background-image: url('https://example.com/background.jpg'); /* Replace with your desired background image URL */
+  background-size: cover;
+  background-position: center;
 }
 
 .container {
@@ -11,8 +14,6 @@ body {
   padding: 20px;
   text-align: center;
   background-color: rgba(255, 255, 255, 0.8);
-  background-image: url('https://i.imgur.com/r4WWYN2.jpg');
-  background-size: cover;
 }
 
 h1 {
@@ -24,14 +25,14 @@ h1 {
   display: block;
   cursor: pointer;
   padding: 10px;
-  background-color: #000; /* Change the background color to black or any other desired color */
+  background-color: #000; /* Change the background color to your desired color */
 }
 
 .menu-icon span {
   display: block;
   width: 30px;
   height: 3px;
-  background-color: #fff; /* Change the color of the hamburger lines to white or any other desired color */
+  background-color: #fff; /* Change the color of the hamburger lines to your desired color */
   margin-bottom: 5px;
 }
 
@@ -59,11 +60,11 @@ h1 {
   margin-top: 30px;
 }
 
-.debug-info {
-  font-weight: bold;
+.profile-info img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center;
   margin-bottom: 10px;
-}
-
-.debug-info span {
-  font-weight: normal;
 }
