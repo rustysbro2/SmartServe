@@ -1,7 +1,4 @@
 body {
-  background-image: url('background.jpg');
-  background-size: cover;
-  background-position: center;
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
@@ -9,7 +6,7 @@ body {
 }
 
 .container {
-  max-width: 600px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   text-align: center;
@@ -21,27 +18,50 @@ h1 {
   margin-bottom: 20px;
 }
 
-p {
-  margin-bottom: 30px;
-}
-
-form {
-  display: flex;
-  justify-content: center;
-}
-
-.login-button {
-  padding: 12px 30px;
-  background-color: #7289DA;
-  color: #fff;
-  text-decoration: none;
-  border: none;
-  border-radius: 5px;
+.menu-icon {
+  display: block;
   cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
+  padding: 10px;
+  background-color: #000; /* Change the background color to black or any other desired color */
 }
 
-.login-button:hover {
-  background-color: #5C6BC0;
+.menu-icon span {
+  display: block;
+  width: 30px;
+  height: 3px;
+  background-color: #fff; /* Change the color of the hamburger lines to white or any other desired color */
+  margin-bottom: 5px;
+}
+
+.dropdown {
+  display: inline-block;
+  position: relative;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+.profile-info {
+  margin-top: 30px;
+}
+
+.debug-info {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.debug-info span {
+  font-weight: normal;
 }
