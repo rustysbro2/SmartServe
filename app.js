@@ -137,6 +137,7 @@ app.get(
 );
 
 // Define the route for the dashboard
+// Define the route for the dashboard
 app.get('/dashboard', async (req, res) => {
   // Check if the user is authenticated
   if (req.isAuthenticated()) {
@@ -150,7 +151,7 @@ app.get('/dashboard', async (req, res) => {
 
       const profileResponse = await fetch(avatarUrl, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${user.accessToken}`, // Use the accessToken stored in the user object
         },
       });
 
@@ -170,6 +171,7 @@ app.get('/dashboard', async (req, res) => {
     res.redirect('/login'); // Redirect to the login page if not authenticated
   }
 });
+
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'views')));
