@@ -26,7 +26,6 @@ app.use(
   })
 );
 
-// Passport configuration
 passport.use(
   new DiscordStrategy(
     {
@@ -59,6 +58,9 @@ passport.use(
           };
         }
 
+        // Store the access token in the user object
+        user.accessToken = accessToken;
+
         // Retrieve the user's avatar URL
         console.debug('Retrieving avatar...');
         const avatarUrl = `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png?timestamp=${Date.now()}`;
@@ -85,6 +87,7 @@ passport.use(
     }
   )
 );
+
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
