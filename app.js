@@ -46,9 +46,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   try {
-    // Retrieve the user's access token from the user object
-    const user = getUserById(id);
-    const accessToken = user.accessToken;
+    const user = { id }; // Assuming you have access to the user data by ID
 
     // Make a request to the Discord API to retrieve the user's data
     const response = await fetch(`https://discord.com/api/v10/users/${id}`, {
@@ -73,6 +71,7 @@ passport.deserializeUser(async (id, done) => {
     done(error, null);
   }
 });
+
 
 // Initialize Passport and restore authentication state, if any
 app.use(passport.initialize());
