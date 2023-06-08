@@ -80,13 +80,17 @@ app.get('/auth/discord/callback', passport.authenticate('discord', {
   failureRedirect: '/login'
 }));
 
+// Define the route for the dashboard
 app.get('/dashboard', (req, res) => {
+  // Check if the user is authenticated and retrieve the user data
   if (req.isAuthenticated()) {
-    res.send(`Welcome, ${req.user.username}!`);
+    const user = req.user; // Assuming req.user contains the user data
+    res.render('dashboard', { user });
   } else {
-    res.redirect('/login');
+    res.redirect('/login'); // Redirect to the login page if not authenticated
   }
 });
+
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
