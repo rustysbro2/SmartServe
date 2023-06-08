@@ -7,6 +7,7 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const crypto = require('crypto');
 const ejs = require('ejs');
 const path = require('path');
+const axios = require('axios');
 
 const app = express();
 
@@ -42,14 +43,25 @@ passport.serializeUser((user, done) => {
   done(null, user.id);
 });
 
-passport.deserializeUser((id, done) => {
-  // Retrieve user data from database or cache
-  const user = {
-    id: id,
-    username: 'exampleUser'
-  };
+passport.deserializeUser(async (id, done) => {
+  try {
+    // Make a request to the Discord API to retrieve the user's data
+    const response = await axios.get(`https://discord.com/api/v10/users/${id}`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`, // Replace with the access token from the user's data
+      },
+    });
 
-  done(null, user);
+    const userData = response.data;
+    const user = {
+      id: userData.id,
+      username: `${userData.username}#${userData.discriminator}`,
+    };
+
+    done(null, user);
+  } catch (error) {
+    done(error, null);
+  }
 });
 
 // Initialize Passport and restore authentication state, if any
