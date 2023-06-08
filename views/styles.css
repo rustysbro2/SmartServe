@@ -3,9 +3,6 @@ body {
   margin: 0;
   padding: 0;
   color: #333;
-  background-image: url('https://example.com/background.jpg'); /* Replace with your desired background image URL */
-  background-size: cover;
-  background-position: center;
 }
 
 .container {
@@ -25,14 +22,14 @@ h1 {
   display: block;
   cursor: pointer;
   padding: 10px;
-  background-color: #000; /* Change the background color to your desired color */
+  background-color: #000;
 }
 
 .menu-icon span {
   display: block;
   width: 30px;
   height: 3px;
-  background-color: #fff; /* Change the color of the hamburger lines to your desired color */
+  background-color: #fff;
   margin-bottom: 5px;
 }
 
@@ -58,13 +55,4 @@ h1 {
 
 .profile-info {
   margin-top: 30px;
-}
-
-.profile-info img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: center;
-  margin-bottom: 10px;
 }
