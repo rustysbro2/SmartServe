@@ -34,7 +34,7 @@ module.exports = {
       const guild = interaction.guild;
       const botMember = await guild.members.fetch(interaction.client.user.id);
 
-      if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.Connect | PermissionsBitField.Flags.Speak  )) {
+      if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.Connect | PermissionsBitField.Flags.Speak)) {
         await interaction.reply("I need the 'Connect' and 'Speak' permissions in a voice channel to use this command.");
         return;
       }
