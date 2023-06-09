@@ -15,4 +15,7 @@ module.exports = {
       console.error('Error executing count command:', error);
     }
   }
+  Global: 'False',
+  category: 'Music',
+  categoryDescription: 'Commands related to music functionality',
 };
