@@ -18,6 +18,12 @@ module.exports = {
       return;
     }
 
+    const botMember = interaction.guild.me;
+    if (!botMember.permissions.has(PermissionsBitField.Flags.KickMember)) {
+      await interaction.reply("I must have the 'Kick Members' permission to perform this action.");
+      return;
+    }
+
     const channel = interaction.options.getChannel('channel');
     inviteTracker.setInviteChannel(interaction.guildId, channel.id);
 
