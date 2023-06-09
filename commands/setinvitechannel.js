@@ -13,7 +13,7 @@ module.exports = {
   async execute(interaction) {
     // Permission checks for the user
     const member = interaction.member;
-    if (!member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
+    if (!member.permissions.has(PermissionsBitField.Flags.GUILD_MANAGE)) {
       await interaction.reply("You must be an administrator to perform this action.");
       return;
     }
@@ -21,7 +21,7 @@ module.exports = {
     const guild = interaction.guild;
     const botMember = await guild.members.fetch(interaction.client.user.id);
 
-    if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.Administrator)) {
+    if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.GUILD_MANAGE)) {
       await interaction.reply("I don't have permissions to create channels.");
       return;
     }
