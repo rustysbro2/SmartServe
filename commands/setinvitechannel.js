@@ -14,7 +14,7 @@ module.exports = {
     // Permission checks for the user
     const member = interaction.member;
     if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply("You must be an administrator to perform this action.");
+      await interaction.reply("You must be have Manage Server to use this command");
       return;
     }
 
@@ -22,7 +22,7 @@ module.exports = {
     const botMember = await guild.members.fetch(interaction.client.user.id);
 
     if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply("I don't have permissions to create channels.");
+      await interaction.reply("I need ManageGuild to track Invites");
       return;
     }
 
