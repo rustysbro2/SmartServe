@@ -36,7 +36,14 @@ module.exports = {
       await interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (error) {
       console.error('Error handling setinvitechannel command:', error);
-      await interaction.reply('An error occurred while executing the command. Please try again later.');
+
+      // Determine the reason for the error and provide an appropriate error message
+      let errorMessage = 'An error occurred while executing the command. Please try again later.';
+      if (error.code === 'BitFieldInvalid') {
+        errorMessage = 'Invalid permissions. Make sure the bot has the required permissions.';
+      }
+
+      await interaction.reply(`Command failed: ${errorMessage}`);
     }
   },
 
