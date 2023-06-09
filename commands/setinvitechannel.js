@@ -13,7 +13,7 @@ module.exports = {
   async execute(interaction) {
     // Permission checks for the user
     const member = interaction.member;
-    if (!member.permissions.has(PermissionsBitField.Flags.GUILD_MANAGE)) {
+    if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
       await interaction.reply("You must be an administrator to perform this action.");
       return;
     }
