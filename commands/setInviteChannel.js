@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, Permissions } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder  } = require('discord.js');
 const inviteTracker = require('../features/inviteTracker.js');
 
 module.exports = {
