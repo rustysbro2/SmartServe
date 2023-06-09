@@ -18,7 +18,7 @@ module.exports = {
       }
 
       // Permission checks for the user
-      if (!interaction.member.permissions.has(Permissions.FLAGS.MANAGE_GUILD)) {
+      if (!interaction.member.permissions.has(Permissions.Flags.MANAGE_GUILD)) {
         await interaction.reply("You must be an administrator to perform this action.");
         return;
       }
