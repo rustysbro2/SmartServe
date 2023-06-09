@@ -5,7 +5,7 @@ module.exports = {
   data: new SlashCommandBuilder()
     .setName('setinvitechannel')
     .setDescription('Set the channel for invite tracking messages')
-    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers),
+    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers)
     .addChannelOption(option =>
       option.setName('channel')
         .setDescription('The channel to send messages in')
