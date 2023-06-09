@@ -23,19 +23,9 @@ module.exports = {
       console.log('Channel ID:', channelId);
       const textChannel = interaction.channel;
 
-      // Check if the user is in a voice channel
       if (!channelId) {
         console.log('User not in a voice channel.');
-        await interaction.reply('You must be in a voice channel to play music!');
-        return;
-      }
-
-      // Check if the bot has the necessary permissions in the voice channel
-      const permissions = interaction.member.voice.channel.permissionsFor(interaction.guild.me);
-      if (!permissions.has('CONNECT') || !permissions.has('SPEAK')) {
-        console.log('Bot missing permissions in the voice channel.');
-        await interaction.reply('I do not have permission to join or speak in your voice channel!');
-        return;
+        return await interaction.reply('You must be in a voice channel to play music!');
       }
 
       // Respond to the interaction right away to avoid a timeout
