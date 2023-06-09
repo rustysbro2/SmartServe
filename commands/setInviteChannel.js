@@ -1,25 +1,34 @@
 const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
-const inviteTracker = require('../features/inviteTracker.js');
 
-const data = new SlashCommandBuilder()
-  .setName('kick')
-  .setDescription('Select a member and kick them.')
-  .addUserOption(option =>
-    option
-      .setName('target')
-      .setDescription('The member to kick')
-      .setRequired(true))
-  .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers);
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('kick')
+    .setDescription('Select a member and kick them.')
+    .addUserOption(option =>
+      option
+        .setName('target')
+        .setDescription('The member to kick')
+        .setRequired(true))
+    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers),
 
   async execute(interaction) {
+    // Permission checks for the user
+    const member = interaction.member;
+    if (!member.permissions.has(PermissionFlagBits.KickMembers)) {
+      await interaction.reply("You must have the Kick Members permission to use this command.");
+      return;
+    }
 
-      // Permission checks for the user
-      const member = interaction.member;
-      if (!member.permissions.has(Flags.KickMembers)) {
-        await interaction.reply("You must be an administrator to perform this action.");
-        return;
-      }
-    },
-  category: 'Invite Tracker',
-  categoryDescription: 'Commands related to invite tracking functionality',
+    // Retrieve the target user from the command's options
+    const targetUser = interaction.options.getUser('target');
+
+    // Kick the target user
+    try {
+      await interaction.guild.members.kick(targetUser.id);
+      await interaction.reply(`Successfully kicked ${targetUser.tag}.`);
+    } catch (error) {
+      console.error(`Failed to kick ${targetUser.tag}:`, error);
+      await interaction.reply(`Failed to kick ${targetUser.tag}.`);
+    }
+  },
 };
