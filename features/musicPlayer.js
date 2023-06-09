@@ -35,6 +35,8 @@ class MusicPlayer {
 
     this.audioPlayer.on('error', (error) => {
       console.error(`Error: ${error.message}`);
+      console.error('Audio player aborted:', error.aborted);
+      console.error('Audio player state:', this.audioPlayer.state);
     });
   }
 
