@@ -8,13 +8,18 @@ module.exports = {
     .addChannelOption(option =>
       option.setName('channel')
         .setDescription('The channel to send messages in')
-        .setRequired(true))
-    .setPermissions(['MANAGE_GUILD', 'SEND_MESSAGES', 'EMBED_LINKS']), // Require "Manage Server", "Send Messages", and "Embed Links" permissions
-
+        .setRequired(true)),
   async execute(interaction) {
-    // Check if the user has the necessary permissions
-    if (!interaction.member.permissions.has('MANAGE_GUILD') || !interaction.member.permissions.has('SEND_MESSAGES') || !interaction.member.permissions.has('EMBED_LINKS')) {
-      await interaction.reply('You do not have the required permissions to use this command!');
+    // Permission checks for the user
+    if (!interaction.member.permissions.has('MANAGE_GUILD')) {
+      await interaction.reply('You do not have permission to use this command.');
+      return;
+    }
+
+    // Permission checks for the bot
+    const botMember = interaction.guild.members.cache.get(interaction.client.user.id);
+    if (!botMember.permissions.has('SEND_MESSAGES') || !botMember.permissions.has('EMBED_LINKS')) {
+      await interaction.reply('The bot does not have the required permissions to execute this command.');
       return;
     }
 
