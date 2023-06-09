@@ -1,10 +1,11 @@
-const { SlashCommandBuilder, PermissionBitField } = require('discord.js');
+const { SlashCommandBuilder, PermissionBitField, PermissionFlagBits } = require('discord.js');
 const inviteTracker = require('../features/inviteTracker.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setinvitechannel')
     .setDescription('Set the channel for invite tracking messages')
+    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers),
     .addChannelOption(option =>
       option.setName('channel')
         .setDescription('The channel to send messages in')
