@@ -18,7 +18,7 @@ module.exports = {
       }
 
       // Permission checks for the user
-      if (!interaction.member.permissions.has(PermissionsBitField.FLAGS.MANAGE_GUILD)) {
+      if (member.premissions.has(PermissionsBitField.FLAGS.MANAGE_GUILD)) {
         await interaction.reply('You do not have permission to use this command.');
         return;
       }
