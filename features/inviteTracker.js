@@ -1,11 +1,11 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, PermissionsBitField } = require('discord.js');
 const pool = require('../database.js');
 
 let invites = {};
 
 async function fetchInvites(guild) {
   const botMember = await guild.members.fetch(guild.client.user.id);
-  if (!botMember.permissions.has('MANAGE_GUILD')) {
+  if (!botMember.permissions.has([PermissionsBitField.Flags.MANAGE_GUILD])) {
     console.log('Bot does not have the MANAGE_GUILD permission. Skipping invite fetching.');
     return;
   }
