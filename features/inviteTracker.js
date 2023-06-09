@@ -9,22 +9,17 @@ async function fetchInvites(guild) {
     console.log('Bot Member:', botMember); // Check the botMember object
     console.log('Bot Member Permissions:', botMember.permissions); // Check the permissions object
 
-    if (!botMember.permissions || !botMember.permissions.has([PermissionsBitField.FLAGS.MANAGE_GUILD])) {
+    if (!botMember.permissions || !botMember.permissions.has(Permissions.FLAGS.MANAGE_GUILD)) {
       console.log('Bot does not have the MANAGE_GUILD permission. Skipping invite fetching.');
       return;
     }
 
-    const guildInvites = await guild.invites.fetch();
-    console.log('Guild Invites:', guildInvites); // Check the guildInvites object
-
-    invites[guild.id] = guildInvites;
-    guildInvites.forEach((invite) =>
-      updateInviteInDb(guild.id, invite.code, invite.uses, invite.inviter ? invite.inviter.id : null)
-    );
+    // Rest of the code to fetch invites and update the database
   } catch (error) {
     console.error(`Error fetching invites for guild ${guild.name}:`, error);
   }
 }
+
 
 function updateInviteInDb(guildId, code, uses, inviterId) {
   pool.query(
