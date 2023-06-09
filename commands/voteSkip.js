@@ -6,7 +6,7 @@ module.exports = {
     .setDescription('Vote to skip the current song'),
 
   async execute(interaction, client) {
-    const guild = interaction.guild;
+    const guildId = interaction.guild.id;
     const channelId = interaction.member.voice.channelId;
     const musicPlayer = client.musicPlayers.get(guildId);
 
