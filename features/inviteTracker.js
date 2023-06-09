@@ -5,7 +5,7 @@ let invites = {};
 
 async function fetchInvites(guild) {
   const botMember = await guild.members.fetch(guild.client.user.id);
-  if (!botMember.permissions.has([PermissionsBitField.FLAGS.MANAGE_GUILD])) {
+  if (!botMember.permissions.has(PermissionsBitField.Flags.MANAGE_GUILD)) {
     console.log('Bot does not have the MANAGE_GUILD permission. Skipping invite fetching.');
     return;
   }
@@ -20,6 +20,7 @@ async function fetchInvites(guild) {
     console.error(`Error fetching invites for guild ${guild.name}:`, error);
   }
 }
+
 
 
 function updateInviteInDb(guildId, code, uses, inviterId) {
