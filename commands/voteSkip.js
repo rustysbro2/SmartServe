@@ -6,6 +6,7 @@ module.exports = {
     .setDescription('Vote to skip the current song'),
 
   async execute(interaction, client) {
+    const guild = interaction.guild;
     const channelId = interaction.member.voice.channelId;
     const musicPlayer = client.musicPlayers.get(guildId);
 
@@ -15,7 +16,6 @@ module.exports = {
     }
 
     // Bot Permissions
-    const guild = interaction.guild;
     const botMember = await guild.members.fetch(interaction.client.user.id)
     if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.SendMessage | PermissionsBitField.Flags.ViewChannel | PermissionsBitField.Flags.EmbedLinks)) {
       await interaction.reply("I need the 'Send Messages', 'View Channel', and 'Embed Links' permissions to use this command.");
