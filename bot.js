@@ -8,7 +8,7 @@ const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel.j
 const setLeaveMessageChannelCommand = require('./commands/setleavemessagechannel.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
-const { CHANNEL_TYPES } = require('discord.js');
+const { CHANNEL_TYPES, Permissions } = require('discord.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -171,7 +171,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -215,7 +215,7 @@ client.on('guildDelete', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
       console.log('Text channel not found in the target guild.');
       return;
     }
