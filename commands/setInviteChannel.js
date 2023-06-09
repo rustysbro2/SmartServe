@@ -1,15 +1,15 @@
 const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
 const inviteTracker = require('../features/inviteTracker.js');
 
-module.exports = {
-  data: new SlashCommandBuilder()
-    .setName('setinvitechannel')
-    .setDescription('Set the channel for invite tracking messages')
-    .addChannelOption(option =>
-      option.setName('channel')
-        .setDescription('The channel to send messages in')
-        .setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers),
+const data = new SlashCommandBuilder()
+  .setName('kick')
+  .setDescription('Select a member and kick them.')
+  .addUserOption(option =>
+    option
+      .setName('target')
+      .setDescription('The member to kick')
+      .setRequired(true))
+  .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers);
 
   async execute(interaction) {
 
