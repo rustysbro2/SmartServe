@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagBits } = require('discord.js');
 const inviteTracker = require('../features/inviteTracker.js');
 
 module.exports = {
@@ -8,8 +8,17 @@ module.exports = {
     .addChannelOption(option =>
       option.setName('channel')
         .setDescription('The channel to send messages in')
-        .setRequired(true)),
+        .setRequired(true))
+    .setDefaultMemberPermissions(PermissionFlagBits.ADMINISTRATOR),
+
   async execute(interaction) {
+    // Permission checks for the user
+    const member = interaction.member;
+    if (!member.permissions.has(PermissionFlagBits.ADMINISTRATOR)) {
+      await interaction.reply("You must be an administrator to perform this action.");
+      return;
+    }
+
     const channel = interaction.options.getChannel('channel');
     inviteTracker.setInviteChannel(interaction.guildId, channel.id);
 
