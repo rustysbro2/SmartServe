@@ -1,0 +1,27 @@
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const inviteTracker = require('../features/inviteTracker.js');
+
+module.exports = {
+  data: new SlashCommandBuilder()
+    .setName('setinvitechannel')
+    .setDescription('Set the channel for invite tracking messages')
+    .addChannelOption(option =>
+      option.setName('channel')
+        .setDescription('The channel to send messages in')
+        .setRequired(true)),
+  async execute(interaction) {
+    const channel = interaction.options.getChannel('channel');
+    inviteTracker.setInviteChannel(interaction.guildId, channel.id);
+
+    const embed = new EmbedBuilder()
+      .setColor(0x00ff00)
+      .setTitle('Invite Channel Set')
+      .setDescription(`Invite tracking messages will be sent in ${channel}`)
+      .setThumbnail(interaction.client.user.displayAvatarURL());
+
+    await interaction.reply({ embeds: [embed], ephemeral: true });
+  },
+
+  category: 'Invite Tracker',
+  categoryDescription: 'Commands related to invite tracking functionality',
+};
