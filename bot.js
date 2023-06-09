@@ -98,31 +98,10 @@ client.once('ready', async () => {
       console.log(`Guild ID: ${category.guildId}`);
       console.log('Commands:', category.commands);
     });
-
-    // Function to update the bot's presence
-    const updatePresence = () => {
-      client.user.setPresence({
-        activities: [
-          {
-            name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-            type: ActivityType.Watching,
-          },
-        ],
-        status: "online",
-      });
-    };
-
-    // Initial presence update
-    updatePresence();
-
-    // Set interval to update presence every 1 minute (adjust the interval as desired)
-    setInterval(updatePresence, 60000);
-
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
 });
-
 
 client.on('interactionCreate', async (interaction) => {
   try {
@@ -171,7 +150,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
+    if (!channel || channel.type !== 0) {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -215,7 +194,7 @@ client.on('guildDelete', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== CHANNEL_TYPES.GUILD_TEXT) {
+    if (!channel || channel.type !== 0) {
       console.log('Text channel not found in the target guild.');
       return;
     }
