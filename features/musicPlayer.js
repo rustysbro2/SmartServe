@@ -151,8 +151,8 @@ class MusicPlayer {
       throw new Error('There is no song currently playing.');
     }
 
-    const voiceChannel = this.connection.joinConfig.channelId;
-    if (!voiceChannel) {
+    const voiceChannelId = this.connection.joinConfig.channelId;
+    if (!voiceChannelId) {
       throw new Error('The bot is not in a voice channel.');
     }
 
