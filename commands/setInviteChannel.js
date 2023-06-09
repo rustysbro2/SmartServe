@@ -12,12 +12,12 @@ module.exports = {
   async execute(interaction) {
 
       // Permission checks for the user
+      const member = interaction.member;
       if (!member.permissions.has(PermissionsBitField.Flags.KickMembers)) {
         await interaction.reply("You must be an administrator to perform this action.");
         return;
       }
-
-
+    },
   category: 'Invite Tracker',
   categoryDescription: 'Commands related to invite tracking functionality',
 };
