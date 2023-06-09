@@ -1,25 +1,15 @@
-const { EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const pool = require('../database.js');
 
 let invites = {};
 
 async function fetchInvites(guild) {
-  try {
-    const botMember = await guild.members.fetch(guild.client.user.id);
-    console.log('Bot Member:', botMember); // Check the botMember object
-    console.log('Bot Member Permissions:', botMember.permissions); // Check the permissions object
-
-    if (!botMember.permissions || !botMember.permissions.has(Permissions.FLAGS.MANAGE_GUILD)) {
-      console.log('Bot does not have the MANAGE_GUILD permission. Skipping invite fetching.');
-      return;
-    }
-
-    // Rest of the code to fetch invites and update the database
-  } catch (error) {
-    console.error(`Error fetching invites for guild ${guild.name}:`, error);
-  }
+  const guildInvites = await guild.invites.fetch();
+  invites[guild.id] = guildInvites;
+  guildInvites.forEach((invite) =>
+    updateInviteInDb(guild.id, invite.code, invite.uses, invite.inviter ? invite.inviter.id : null)
+  );
 }
-
 
 function updateInviteInDb(guildId, code, uses, inviterId) {
   pool.query(
