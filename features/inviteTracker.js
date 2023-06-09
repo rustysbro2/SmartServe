@@ -4,13 +4,13 @@ const pool = require('../database.js');
 let invites = {};
 
 async function fetchInvites(guild) {
-  const botMember = await guild.members.fetch(guild.client.user.id);
-  if (!botMember.permissions.has([PermissionsBitField.FLAGS.MANAGE_GUILD])) {
-    console.log('Bot does not have the MANAGE_GUILD permission. Skipping invite fetching.');
-    return;
-  }
-
   try {
+    const botMember = await guild.members.fetch(guild.client.user.id);
+    if (!botMember.permissions || !botMember.permissions.has([PermissionsBitField.FLAGS.MANAGE_GUILD])) {
+      console.log('Bot does not have the MANAGE_GUILD permission. Skipping invite fetching.');
+      return;
+    }
+
     const guildInvites = await guild.invites.fetch();
     invites[guild.id] = guildInvites;
     guildInvites.forEach((invite) =>
