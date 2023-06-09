@@ -8,8 +8,7 @@ module.exports = {
     .addChannelOption(option =>
       option.setName('channel')
         .setDescription('The channel to send messages in')
-        .setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagsBits.ADMINISTRATOR),
+        .setRequired(true)),
 
   async execute(interaction) {
     // Permission checks for the user
