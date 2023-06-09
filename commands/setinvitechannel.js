@@ -14,7 +14,7 @@ module.exports = {
     // Permission checks for the user
     const member = interaction.member;
     if (!member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply("You must be have Manage Server to use this command");
+      await interaction.reply("You must have the 'Manage Server' permission to use this command.");
       return;
     }
 
@@ -22,7 +22,7 @@ module.exports = {
     const botMember = await guild.members.fetch(interaction.client.user.id);
 
     if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      await interaction.reply("I need ManageGuild to track Invites");
+      await interaction.reply("I need the 'Manage Server' permission to track invites.");
       return;
     }
 
