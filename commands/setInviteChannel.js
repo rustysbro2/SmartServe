@@ -18,9 +18,9 @@ module.exports = {
       }
 
       // Permission checks for the user
-      if (!interaction.member.permissions.has(PermissionsBitField.FLAGS.MANAGE_GUILD)) {
-        await interaction.reply('You do not have permission to use this command.');
-        return;
+      if(!interaction.member.permissionsIn(interaction.channel).has(PermissionsBitField.Flags.MANAGE_GUILD)){
+          await interaction.reply("You must be an administrator to perform this action.");
+          return;
       }
 
       // Permission checks for the bot
