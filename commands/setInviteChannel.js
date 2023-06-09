@@ -9,7 +9,7 @@ module.exports = {
       option.setName('channel')
         .setDescription('The channel to send messages in')
         .setRequired(true))
-        .setDefaultMemberPermissions(PermissionFlagBits.KickMembers),
+    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers),
 
   async execute(interaction) {
 
