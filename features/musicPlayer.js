@@ -178,7 +178,7 @@ class MusicPlayer {
     this.voteSkips.add(member.id);
 
     const voteCount = this.voteSkips.size;
-    const otherMembers = members.filter(member => !member.user.bot && member.id !== member.id);
+    const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
     const totalCount = otherMembers.size;
 
     const votePercentage = (voteCount / totalCount) * 100;
