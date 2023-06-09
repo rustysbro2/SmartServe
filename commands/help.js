@@ -56,45 +56,39 @@ module.exports = {
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client, commandCategories) {
+    if (interaction.deferred || interaction.replied) {
+      console.log('Interaction already deferred or replied to.');
+      return;
+    }
+
+    const filteredCommandCategories = commandCategories
+      .filter((category) => 
+        category.commands.some((command) => command.global === true || (command.global === false && interaction.guildId === '1106643216125665350'))
+      )
+      .slice(0, 10);
+
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId('help_category')
+      .setPlaceholder('Select a category');
+
+    filteredCommandCategories.forEach((category) => {
+      if (category.commands.some((command) => command.global !== false || command.guildId === undefined)) {
+        const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
+        selectMenu.addOptions(
+          new StringSelectMenuOptionBuilder()
+            .setLabel(category.name)
+            .setValue(categoryName)
+            .setDescription(category.categoryDescription || 'No description available.')
+        );
+      }
+    });
+
+    const actionRow = new ActionRowBuilder().addComponents(selectMenu);
+
     try {
-      // Check if the bot has permission to send messages in the interaction channel
-      if (!interaction.channel.permissionsFor(interaction.client.user).has('SEND_MESSAGES')) {
-        return interaction.reply('I do not have permission to send messages in this channel.');
-      }
-
-      if (interaction.deferred || interaction.replied) {
-        console.log('Interaction already deferred or replied to.');
-        return;
-      }
-
-      const filteredCommandCategories = commandCategories
-        .filter((category) => 
-          category.commands.some((command) => command.global === true || (command.global === false && interaction.guildId === '1106643216125665350'))
-        )
-        .slice(0, 10);
-
-      const selectMenu = new StringSelectMenuBuilder()
-        .setCustomId('help_category')
-        .setPlaceholder('Select a category');
-
-      filteredCommandCategories.forEach((category) => {
-        if (category.commands.some((command) => command.global !== false || command.guildId === undefined)) {
-          const categoryName = category.name.toLowerCase().replace(/\s/g, '_');
-          selectMenu.addOptions(
-            new StringSelectMenuOptionBuilder()
-              .setLabel(category.name)
-              .setValue(categoryName)
-              .setDescription(category.categoryDescription || 'No description available.')
-          );
-        }
-      });
-
-      const actionRow = new ActionRowBuilder().addComponents(selectMenu);
-
       await interaction.reply({ content: 'Please select a category:', components: [actionRow] });
     } catch (error) {
       console.error('Error replying to interaction:', error);
-      await interaction.reply('An error occurred while executing the command. Please try again later.');
     }
   },
 
