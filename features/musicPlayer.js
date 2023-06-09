@@ -245,7 +245,6 @@ class MusicPlayer {
       console.log('Bot is alone in the voice channel. Leaving the channel.');
       this.leaveVoiceChannel(); // Leave the voice channel if the bot is alone
     } else {
-      console.log('Bot is not alone in the voice channel.'); // Debug statement when the bot is not alone
     }
   }
 
