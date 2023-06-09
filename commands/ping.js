@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, Permissions } = require('discord.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -6,6 +6,16 @@ module.exports = {
     .setDescription('Replies with the current ping of the bot'),
 
   async execute(interaction) {
+    // Bot Permissions
+    const guild = interaction.guild;
+    const botMember = await guild.members.fetch(interaction.client.user.id);
+    const requiredBotPermissions = PermissionsBitField.Flags.ViewChannel | PermissionsBitField.Flags.SendMessage; // Replace with the desired bot permissions
+
+    if (!botMember.permissions.has(requiredBotPermissions)) {
+      await interaction.reply("I need the 'ViewChannel' and 'SendMessage' permissions in a text channel to use this command.");
+      return;
+    }
+
     try {
       const sent = await interaction.reply('Pinging...');
       const latency = sent.createdTimestamp - interaction.createdTimestamp;
