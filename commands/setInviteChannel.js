@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder  } = require('discord.js');
+const { SlashCommandBuilder, PermissionsBitField } = require('discord.js');
 const inviteTracker = require('../features/inviteTracker.js');
 
 module.exports = {
@@ -12,17 +12,15 @@ module.exports = {
   async execute(interaction) {
     try {
       // Permission checks for the user
-      if (!interaction.member.permissions.has('MANAGE_GUILD')) {
+      if (!interaction.member.permissions.has(PermissionsBitField.FLAGS.MANAGE_GUILD)) {
         await interaction.reply('You do not have permission to use this command.');
         return;
       }
 
       // Permission checks for the bot
       const botMember = interaction.guild.members.cache.get(interaction.client.user.id);
-      const requiredPermissions = new Permissions(['SEND_MESSAGES', 'EMBED_LINKS']);
-      if (!botMember.permissions.has(requiredPermissions)) {
-        const missingPermissions = requiredPermissions.missing(botMember.permissions);
-        await interaction.reply(`The bot does not have the required permissions to execute this command. Missing permissions: ${missingPermissions.join(', ')}`);
+      if (!botMember.permissions.has(PermissionsBitField.FLAGS.SEND_MESSAGES) || !botMember.permissions.has(PermissionsBitField.FLAGS.EMBED_LINKS)) {
+        await interaction.reply('The bot does not have the required permissions to execute this command.');
         return;
       }
 
