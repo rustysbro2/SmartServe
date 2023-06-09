@@ -161,7 +161,12 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the guild.');
     }
 
-    const members = guild.members.cache;
+    const voiceChannel = guild.channels.cache.get(voiceChannelId);
+    if (!voiceChannel || voiceChannel.type !== 'GUILD_VOICE') {
+      throw new Error('The bot is not in a voice channel.');
+    }
+
+    const members = voiceChannel.members;
     if (!members || members.size === 1) {
       throw new Error('There are no other members in the voice channel.');
     }
@@ -173,7 +178,8 @@ class MusicPlayer {
     this.voteSkips.add(member.id);
 
     const voteCount = this.voteSkips.size;
-    const totalCount = members.size - 1; // Exclude the bot
+    const otherMembers = members.filter(member => !member.user.bot);
+    const totalCount = otherMembers.size;
 
     const votePercentage = (voteCount / totalCount) * 100;
     if (votePercentage >= this.voteSkipThreshold) {
@@ -188,9 +194,10 @@ class MusicPlayer {
 
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
-    const totalCount = this.textChannel.guild?.members.cache.size - 1; // Exclude the bot
+    const otherMembers = this.connection.joinConfig?.channel?.members.filter(member => !member.user.bot);
+    const totalCount = otherMembers?.size;
 
-    if (totalCount === undefined) {
+    if (!totalCount) {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
@@ -226,7 +233,7 @@ class MusicPlayer {
     const guild = this.textChannel.guild;
     const voiceChannel = guild?.channels.cache.get(voiceChannelId);
 
-    if (!voiceChannel) {
+    if (!voiceChannel || voiceChannel.type !== 'GUILD_VOICE') {
       console.log('Voice channel is undefined or bot is not in a voice channel.');
       this.leaveVoiceChannel(); // Leave the voice channel if the bot is not in a valid voice channel
       return;
