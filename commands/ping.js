@@ -9,9 +9,7 @@ module.exports = {
     // Bot Permissions
     const guild = interaction.guild;
     const botMember = await guild.members.fetch(interaction.client.user.id);
-    const requiredBotPermissions = PermissionsBitField.Flags.ViewChannel | PermissionsBitField.Flags.SendMessage; // Replace with the desired bot permissions
-
-    if (!botMember.permissions.has(requiredBotPermissions)) {
+    if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ViewChannel | PermissionsBitField.Flags.SendMessages)) { // Replace with the desired bot permissions
       await interaction.reply("I need the 'ViewChannel' and 'SendMessage' permissions in a text channel to use this command.");
       return;
     }
