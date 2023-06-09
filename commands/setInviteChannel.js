@@ -9,7 +9,7 @@ module.exports = {
         .setName('target')
         .setDescription('The member to kick')
         .setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers),
+    .setDefaultMemberPermissions(PermissionFlagBits.Kick_Members),
 
   async execute(interaction) {
     // Permission checks for the user
