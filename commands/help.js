@@ -56,6 +56,16 @@ module.exports = {
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client, commandCategories) {
+      // Bot Permissions
+      const guild = interaction.guild;
+      const botMember = await guild.members.fetch(interaction.client.user.id);
+
+      if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.EmbedLinks | PermissionsBitField.Flags.SendMessage | PermissionsBitField.Flags.ViewChannel  )) {
+        await interaction.reply("I need the 'Embed Links', 'Send Messages', and 'View Channel' permissions to use this command.");
+        return;
+      }
+
+
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;
