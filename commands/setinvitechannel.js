@@ -21,10 +21,11 @@ module.exports = {
     const guild = interaction.guild;
     const botMember = await guild.members.fetch(interaction.client.user.id);
 
-    if (!botMember.permissions.has(0x00000020)) {
-      await interaction.reply("I must have the 'Manage Guild' permission to perform this action.");
+    if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.Administrator)) {
+      await interaction.reply("I don't have permissions to create channels.");
       return;
     }
+
 
 
 
