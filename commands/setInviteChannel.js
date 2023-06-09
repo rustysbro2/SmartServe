@@ -27,7 +27,7 @@ module.exports = {
       const botMember = interaction.guild.members.cache.get(interaction.client.user.id);
       if (
         !interaction.channel.permissionsFor(botMember).has(Permissions.Flags.SEND_MESSAGES) ||
-        !interaction.channel.permissionsFor(botMember).has(Permissions.FLAGS.EMBED_LINKS)
+        !interaction.channel.permissionsFor(botMember).has(Permissions.Flags.EMBED_LINKS)
       ) {
         await interaction.reply('The bot does not have the required permissions to execute this command.');
         return;
