@@ -194,6 +194,7 @@ class MusicPlayer {
 
 
 
+
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
     const totalCount = this.textChannel.guild?.members.cache.size - 1; // Exclude the bot
