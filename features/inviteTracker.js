@@ -26,7 +26,6 @@ async function fetchInvites(guild) {
   }
 }
 
-
 function updateInviteInDb(guildId, code, uses, inviterId) {
   pool.query(
     `
