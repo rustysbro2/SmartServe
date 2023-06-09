@@ -16,8 +16,15 @@ module.exports = {
     }
 
     try {
-      await musicPlayer.voteSkip(interaction.member);
-      await interaction.reply('Your vote to skip the current song has been counted.');
+      const voteCount = await musicPlayer.voteSkip(interaction.member);
+      const requiredVotes = Math.ceil((musicPlayer.voiceChannelMemberCount - 1) / 2); // Exclude the bot
+
+      if (voteCount >= requiredVotes) {
+        await musicPlayer.skip();
+        await interaction.reply('The current song has been skipped.');
+      } else {
+        await interaction.reply('Your vote to skip the current song has been counted.');
+      }
     } catch (error) {
       console.error(error);
       await interaction.reply(`Failed to vote skip: ${error.message}`);
