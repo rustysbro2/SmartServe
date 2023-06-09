@@ -11,6 +11,12 @@ module.exports = {
         .setRequired(true)),
   async execute(interaction) {
     try {
+      // Check if the interaction has guild data
+      if (!interaction.guild) {
+        await interaction.reply('This command can only be used in a server (guild).');
+        return;
+      }
+
       // Permission checks for the user
       if (!interaction.member.permissions.has(PermissionsBitField.FLAGS.MANAGE_GUILD)) {
         await interaction.reply('You do not have permission to use this command.');
