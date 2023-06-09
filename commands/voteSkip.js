@@ -35,10 +35,10 @@ module.exports = {
     // Bot Permissions
     const guild = interaction.guild;
     const botMember = await guild.members.fetch(interaction.client.user.id);
-    const requiredBotPermissions = PermissionsBitField.Flags.EmbedLinks | PermissionsBitField.Flags.SendMessages; // Replace with the desired bot permissions
+    const requiredBotPermissions = PermissionsBitField.Flags.EmbedLinks | PermissionsBitField.Flags.SendMessages | PermissionsBitField.Flags.ViewChannel  // Replace with the desired bot permissions
 
     if (!botMember.permissions.has(requiredBotPermissions)) {
-      await interaction.reply("I need the 'Embed Links' and 'Send Messages' permissions to use this command.");
+      await interaction.reply("I need the 'Embed Links', 'Send Messages', and 'View Channel' permissions to use this command.");
       return;
     }
 
