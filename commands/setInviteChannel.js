@@ -6,10 +6,11 @@ module.exports = {
     .setName('setinvitechannel')
     .setDescription('Set the channel for invite tracking messages')
     .addChannelOption(option =>
-      option.setName('channel')
+      option.
+         setName('channel')
         .setDescription('The channel to send messages in')
         .setRequired(true))
-    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers),
+    .setDefaultMemberPermissions(PermissionFlagBits.KickMembers);
 
   async execute(interaction) {
 
