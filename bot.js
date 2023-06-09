@@ -8,7 +8,7 @@ const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel.j
 const setLeaveMessageChannelCommand = require('./commands/setleavemessagechannel.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
-const { CHANNEL_TYPES, Permissions } = require('discord.js');
+const { CHANNEL_TYPES } = require('discord.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
