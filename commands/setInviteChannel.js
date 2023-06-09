@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, GatewayIntentBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionBitField } = require('discord.js');
 const inviteTracker = require('../features/inviteTracker.js');
 
 module.exports = {
@@ -18,7 +18,7 @@ module.exports = {
       }
 
       // Permission checks for the user
-      if (!interaction.member.permissions.has(GatewayIntentBits.MANAGE_GUILD)) {
+      if (!interaction.member.permissions.has(PermissionBitField.MANAGE_GUILD)) {
         await interaction.reply("You must be an administrator to perform this action.");
         return;
       }
@@ -26,8 +26,8 @@ module.exports = {
       // Permission checks for the bot
       const botMember = interaction.guild.members.cache.get(interaction.client.user.id);
       if (
-        !interaction.channel.permissionsFor(botMember).has(GatewayIntentBits.SEND_MESSAGES) ||
-        !interaction.channel.permissionsFor(botMember).has(GatewayIntentBits.EMBED_LINKS)
+        !interaction.channel.permissionsFor(botMember).has(PermissionBitField.SEND_MESSAGES) ||
+        !interaction.channel.permissionsFor(botMember).has(PermissionBitField.EMBED_LINKS)
       ) {
         await interaction.reply('The bot does not have the required permissions to execute this command.');
         return;
