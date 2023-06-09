@@ -21,7 +21,7 @@ module.exports = {
     const guild = interaction.guild;
     const botMember = await guild.members.fetch(interaction.client.user.id);
 
-    if (!botMember.permissions.has('PermissionsBitField.Flags.MANAGE_GUILD')) {
+    if (!botMember.permissions.has('MANAGE_GUILD')) {
       await interaction.reply("I must have the 'Manage Guild' permission to perform this action.");
       return;
     }
