@@ -15,7 +15,7 @@ module.exports = {
 
       // Permission checks for the user
       const member = interaction.member;
-      if (!member.permissions.has(.Flags.KickMembers)) {
+      if (!member.permissions.has(Flags.KickMembers)) {
         await interaction.reply("You must be an administrator to perform this action.");
         return;
       }
