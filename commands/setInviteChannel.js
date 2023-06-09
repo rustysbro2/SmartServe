@@ -18,14 +18,17 @@ module.exports = {
       }
 
       // Permission checks for the user
-      if(!interaction.member.permissionsIn(interaction.channel).has(PermissionsBitField.Flags.GUILD_MANAGE)){
-          await interaction.reply("You must be an guild manager to perform this action.");
-          return;
+      if (!interaction.member.permissions.has(PermissionsBitField.FLAGS.MANAGE_GUILD)) {
+        await interaction.reply('You do not have permission to use this command.');
+        return;
       }
 
       // Permission checks for the bot
       const botMember = interaction.guild.members.cache.get(interaction.client.user.id);
-      if (!botMember.permissions.has(PermissionsBitField.FLAGS.SEND_MESSAGES) || !botMember.permissions.has(PermissionsBitField.FLAGS.EMBED_LINKS)) {
+      if (
+        !botMember.permissions.has(PermissionsBitField.FLAGS.SEND_MESSAGES) ||
+        !botMember.permissions.has(PermissionsBitField.FLAGS.EMBED_LINKS)
+      ) {
         await interaction.reply('The bot does not have the required permissions to execute this command.');
         return;
       }
