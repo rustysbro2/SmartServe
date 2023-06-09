@@ -15,6 +15,14 @@ module.exports = {
       return;
     }
 
+    // Check if the bot has the "Send Messages" permission in the current channel
+    const botMember = interaction.guild.me;
+    const botChannelPermissions = interaction.channel.permissionsFor(botMember);
+    if (!botChannelPermissions.has('SEND_MESSAGES')) {
+      await interaction.reply('The bot does not have permission to send messages in this channel.');
+      return;
+    }
+
     try {
       const voteCount = await musicPlayer.voteSkip(interaction.member);
       const requiredVotes = Math.ceil((musicPlayer.voiceChannelMemberCount - 1) / 2); // Exclude the bot
