@@ -18,10 +18,8 @@ module.exports = {
     // Bot Permissions
     const guild = interaction.guild;
     const botMember = await guild.members.fetch(interaction.client.user.id);
-    const requiredBotPermissions = PermissionsBitField.Flags.EmbedLinks | PermissionsBitField.Flags.SendMessages | PermissionsBitField.Flags.ViewChannel  // Replace with the desired bot permissions
-
-    if (!botMember.permissions.has(requiredBotPermissions)) {
-      await interaction.reply("I need the 'Embed Links', 'Send Messages', and 'View Channel' permissions to use this command.");
+    if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.SendMessage | PermissionsBitField.Flags.ViewChannel | PermissionsBitField.Flags.EmbedLinks)) {
+      await interaction.reply("I need the 'Send Messages', 'View Channel', and 'Embed Links' permissions to use this command.");
       return;
     }
 
@@ -44,5 +42,3 @@ module.exports = {
   category: 'Music',
   categoryDescription: 'Commands related to music functionality',
 };
-
-
