@@ -166,11 +166,16 @@ class MusicPlayer {
     const guild = voiceConnection.joinConfig?.guildId ? this.textChannel.client.guilds.cache.get(voiceConnection.joinConfig.guildId) : null;
     const voiceChannel = guild ? guild.channels.cache.get(voiceChannelId) : null;
 
+    console.log('voiceConnection:', voiceConnection);
+    console.log('voiceChannel:', voiceChannel);
+
     if (!voiceChannel) {
       throw new Error('Failed to retrieve the voice channel.');
     }
 
     const members = voiceChannel.members;
+    console.log('members:', members);
+
     if (!members) {
       throw new Error('Failed to retrieve the members in the voice channel.');
     }
@@ -193,6 +198,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
