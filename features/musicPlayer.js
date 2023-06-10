@@ -191,9 +191,10 @@ class MusicPlayer {
 
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
-    const totalCount = this.textChannel.guild?.members.cache.size - 1; // Exclude the bot
+    const voiceChannel = this.textChannel.guild?.channels.resolve(this.connection.joinConfig?.channelId);
+    const totalCount = voiceChannel?.members.filter(member => !member.user.bot).size;
 
-    if (totalCount === undefined) {
+    if (!totalCount) {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
@@ -212,6 +213,7 @@ class MusicPlayer {
         console.error(`Failed to send vote skip message: ${error.message}`);
       });
   }
+
 
   startVoiceChannelCheckInterval() {
     this.voiceChannelCheckInterval = setInterval(() => {
