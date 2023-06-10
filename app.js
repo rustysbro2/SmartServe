@@ -8,8 +8,6 @@ const dotenv = require('dotenv');
 const session = require('express-session');
 const crypto = require('crypto');
 const pool = require('./database');
-const CryptoJS = require('crypto-js');
-const forge = require('node-forge');
 
 dotenv.config();
 
