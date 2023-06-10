@@ -147,23 +147,8 @@ class MusicPlayer {
   }
 
   async voteSkip(member) {
-    if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    if (this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       throw new Error('There is no song currently playing.');
-    }
-
-    const guild = this.textChannel.guild;
-    if (!guild) {
-      throw new Error('Failed to retrieve the guild.');
-    }
-
-    const voiceChannel = guild.channels.cache.get(voiceChannelId);
-    if (!voiceChannel || voiceChannel.type !== 'GUILD_VOICE') {
-      throw new Error('The bot is not in a voice channel.');
-    }
-
-    const members = voiceChannel.members;
-    if (!members || members.size === 1) {
-      throw new Error('There are no other members in the voice channel.');
     }
 
     if (this.voteSkips.has(member.id)) {
@@ -171,6 +156,13 @@ class MusicPlayer {
     }
 
     this.voteSkips.add(member.id);
+
+    const voiceChannel = this.connection.joinConfig?.channel;
+    const members = voiceChannel?.members;
+
+    if (!members || members.size === 1) {
+      throw new Error('There are no other members in the voice channel.');
+    }
 
     const voteCount = this.voteSkips.size;
     const totalCount = members.size - 1; // Exclude the bot
