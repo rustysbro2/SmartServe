@@ -1,3 +1,4 @@
+// Import required modules
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
@@ -7,35 +8,54 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
 
-const options = {
-  key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
-  cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'), // Replace with the path to your SSL certificate file
-  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'), // Replace with the path to your CA bundle file
-};
-
 // Load environment variables from .env file
 dotenv.config();
-console.log(process.env.CLIENT_SECRET);
 
+// Read SSL certificate files
+const options = {
+  key: fs.readFileSync('/root/Certs/private-key.key'),
+  cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'),
+  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'),
+};
+
+// Create an Express application
 const app = express();
 const port = 443;
 
-// Set up session middleware if needed
+// Set up session middleware
 app.use(session({
-  secret: 'your_session_secret', // Replace with your desired session secret
+  secret: 'your_session_secret',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
 }));
 
 // Configure passport with the Discord strategy
 passport.use(new DiscordStrategy({
-  clientID: '1107025578047058030', // Replace with your client ID
-  clientSecret: process.env.CLIENT_SECRET, // Retrieve client secret from environment variable
-  callbackURL: 'https://smartserve.cc/callback', // Replace with your callback URL
-  scope: ['identify', 'email'] // Specify the required scopes
+  clientID: '1107025578047058030',
+  clientSecret: process.env.CLIENT_SECRET,
+  callbackURL: 'https://smartserve.cc/callback',
+  scope: ['identify', 'email'],
 }, (accessToken, refreshToken, profile, done) => {
   // Handle the user data or authentication logic here
-  // ...
+
+  // Extract user data from the profile object
+  const userId = profile.id;
+  const username = profile.username;
+  const email = profile.email;
+
+  // Perform actions with the user data
+  // Example: Save user data to a database
+  User.findOneAndUpdate({ userId }, { username, email }, { upsert: true })
+    .then(() => {
+      // User data handling completed
+      // Call the 'done' function to indicate success and pass the user object
+      done(null, profile);
+    })
+    .catch((err) => {
+      // Error occurred during user data handling
+      // Call the 'done' function with the error to indicate failure
+      done(err);
+    });
 }));
 
 // Initialize passport and set up authentication routes
@@ -63,33 +83,11 @@ app.get('/', (req, res) => {
 
 app.get('/login', passport.authenticate('discord'));
 
-app.get('/callback', (req, res, next) => {
-  passport.authenticate('discord', (err, user, info) => {
-    if (err) {
-      console.error('Error during authentication:', err);
-      return res.status(500).send('An error occurred during authentication.');
-    }
-
-    // Log the access token
-    const accessToken = req.query.access_token;
-    console.log('Access Token:', accessToken);
-
-    // Continue with the authentication process
-    if (!user) {
-      console.error('Authentication failed:', info.message);
-      return res.redirect('/login');
-    }
-
-    req.logIn(user, (loginErr) => {
-      if (loginErr) {
-        console.error('Error during login:', loginErr);
-        return res.status(500).send('An error occurred during login.');
-      }
-
-      // Redirect to the profile page
-      return res.redirect('/profile');
-    });
-  })(req, res, next);
+app.get('/callback', passport.authenticate('discord', {
+  failureRedirect: '/login',
+}), (req, res) => {
+  // Redirect or handle successful authentication
+  res.redirect('/profile');
 });
 
 app.get('/profile', (req, res) => {
@@ -97,6 +95,7 @@ app.get('/profile', (req, res) => {
   res.send(req.user);
 });
 
+// Start the server
 https.createServer(options, app).listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
