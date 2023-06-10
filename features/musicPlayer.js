@@ -157,12 +157,14 @@ class MusicPlayer {
 
     this.voteSkips.add(member.id);
 
-    const voiceChannelId = this.connection.joinConfig?.channelId;
-    const guild = this.textChannel.guild;
-    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
-
-    if (!voiceChannel) {
+    const voiceConnection = this.connection;
+    if (!voiceConnection) {
       throw new Error('The bot is not connected to a voice channel.');
+    }
+
+    const voiceChannel = voiceConnection.joinConfig?.channel;
+    if (!voiceChannel) {
+      throw new Error('Failed to retrieve the voice channel.');
     }
 
     const members = voiceChannel.members;
@@ -170,7 +172,7 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the members in the voice channel.');
     }
 
-    const totalCount = members.filter(member => !member.user.bot && member.voice.channel).size;
+    const totalCount = members.filter(member => !member.user.bot).size;
 
     if (!totalCount) {
       throw new Error('Failed to retrieve the total count of members in the voice channel.');
@@ -188,6 +190,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
