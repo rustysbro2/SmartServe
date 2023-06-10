@@ -158,10 +158,11 @@ class MusicPlayer {
     this.voteSkips.add(member.id);
 
     const voiceChannelId = this.connection.joinConfig?.channelId;
-    const voiceChannel = this.textChannel.guild?.channels.cache.get(voiceChannelId);
+    const guild = this.textChannel.guild;
+    const voiceChannel = guild?.channels.cache.get(voiceChannelId);
 
     if (!voiceChannel) {
-      throw new Error('Failed to retrieve the voice channel.');
+      throw new Error('The bot is not connected to a voice channel.');
     }
 
     const members = voiceChannel.members;
@@ -187,6 +188,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
