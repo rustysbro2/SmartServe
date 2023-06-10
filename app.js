@@ -8,6 +8,7 @@ const dotenv = require('dotenv');
 const session = require('express-session');
 const crypto = require('crypto');
 const pool = require('./database');
+const CryptoJS = require('crypto-js');
 
 dotenv.config();
 
@@ -29,6 +30,22 @@ app.use(session({
   saveUninitialized: false,
 }));
 
+// Encryption/decryption key
+const encryptionKey = crypto.randomBytes(32);
+
+// Encrypt email
+function encryptEmail(email) {
+  const ciphertext = CryptoJS.AES.encrypt(email, encryptionKey).toString();
+  return ciphertext;
+}
+
+// Decrypt email
+function decryptEmail(ciphertext) {
+  const bytes = CryptoJS.AES.decrypt(ciphertext, encryptionKey);
+  const email = bytes.toString(CryptoJS.enc.Utf8);
+  return email;
+}
+
 passport.use(new DiscordStrategy({
   clientID: '1107025578047058030',
   clientSecret: process.env.CLIENT_SECRET,
@@ -43,11 +60,13 @@ passport.use(new DiscordStrategy({
 
     if (user.length === 0) {
       // User does not exist, insert into the database
-      await pool.query('INSERT INTO users (discordId, username, email) VALUES (?, ?, ?)', [id, username, email]);
-      user = { discordId: id, username, email };
+      const encryptedEmail = encryptEmail(email);
+      await pool.query('INSERT INTO users (discordId, username, email) VALUES (?, ?, ?)', [id, username, encryptedEmail]);
+      user = { discordId: id, username, email: encryptedEmail };
     } else {
       // User exists, update their username and email
-      await pool.query('UPDATE users SET username = ?, email = ? WHERE discordId = ?', [username, email, id]);
+      const encryptedEmail = encryptEmail(email);
+      await pool.query('UPDATE users SET username = ?, email = ? WHERE discordId = ?', [username, encryptedEmail, id]);
       user = user[0];
     }
 
@@ -77,6 +96,8 @@ passport.deserializeUser(async (id, done) => {
       done(null, null);
     } else {
       // User found, pass the user object to 'deserializeUser'
+      const decryptedEmail = decryptEmail(user[0].email);
+      user[0].email = decryptedEmail;
       done(null, user[0]);
     }
   } catch (error) {
