@@ -160,16 +160,12 @@ class MusicPlayer {
     const voiceChannel = this.connection.joinConfig?.channel;
     const members = voiceChannel?.members;
 
-    if (!members) {
-      throw new Error('Failed to retrieve the members in the voice channel.');
-    }
-
     const voteCount = this.voteSkips.size;
-    const totalCount = members.filter(member => !member.user.bot).size;
+    const totalCount = members.size - 1; // Exclude the bot
 
     const votePercentage = (voteCount / totalCount) * 100;
-    if (votePercentage >= this.voteSkipThreshold || totalCount === 0) {
-      console.log('Vote skip threshold reached or no other members in the voice channel. Skipping the current song.');
+    if (votePercentage >= this.voteSkipThreshold) {
+      console.log('Vote skip threshold reached. Skipping the current song.');
       this.audioPlayer.stop();
       this.sendVoteSkipMessage();
     } else {
@@ -177,7 +173,6 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
-
 
 
 
