@@ -166,10 +166,6 @@ class MusicPlayer {
 
     const totalCount = voiceChannel.members.filter(member => !member.user.bot).size - 1;
 
-    if (totalCount <= 0) {
-      throw new Error('There are no members in the voice channel.');
-    }
-
     const voteCount = this.voteSkips.size;
     const votePercentage = (voteCount / totalCount) * 100;
 
