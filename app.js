@@ -6,6 +6,7 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
+console.log(process.env.CLIENT_SECRET)
 
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
@@ -15,6 +16,7 @@ const options = {
 
 // Load environment variables from .env file
 dotenv.config();
+console.log(process.env.CLIENT_SECRET)
 
 const app = express();
 const port = 443;
