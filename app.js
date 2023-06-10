@@ -61,23 +61,23 @@ const encryptionKey = secretKey.slice(0, 32);
 
 // Encrypt email
 function encryptEmail(email) {
-  const cipher = forge.cipher.createCipher('AES-CBC', encryptionKey);
-  cipher.start({ iv: forge.random.getBytesSync(16) });
-  cipher.update(forge.util.createBuffer(email, 'utf8'));
-  cipher.finish();
-  const encrypted = cipher.output;
-  return encrypted.toHex();
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
+  let encrypted = cipher.update(email, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return iv.toString('hex') + encrypted;
 }
 
 // Decrypt email
 function decryptEmail(encryptedEmail) {
-  const decipher = forge.cipher.createDecipher('AES-CBC', encryptionKey);
-  decipher.start({ iv: forge.random.getBytesSync(16) });
-  decipher.update(forge.util.createBuffer(forge.util.hexToBytes(encryptedEmail)));
-  decipher.finish();
-  const decrypted = decipher.output;
-  return decrypted.toString('utf8');
+  const iv = Buffer.from(encryptedEmail.slice(0, 32), 'hex');
+  const encryptedText = encryptedEmail.slice(32);
+  const decipher = crypto.createDecipheriv('aes-256-cbc', encryptionKey, iv);
+  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
 }
+
 
 
 
