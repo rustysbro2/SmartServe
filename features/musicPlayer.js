@@ -170,7 +170,7 @@ class MusicPlayer {
       throw new Error('Failed to retrieve the members in the voice channel.');
     }
 
-    const totalCount = members.filter(member => !member.user.bot).size;
+    const totalCount = members.filter(member => !member.user.bot && member.voice.channel).size;
 
     if (!totalCount) {
       throw new Error('Failed to retrieve the total count of members in the voice channel.');
@@ -188,6 +188,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
