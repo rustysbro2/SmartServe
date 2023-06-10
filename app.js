@@ -32,9 +32,9 @@ app.use(session({
 
 // Generate and store the secret key in a JSON file
 const generateSecretKey = () => {
-  const secretKey = crypto.randomBytes(32).toString('hex');
+  const secretKey = crypto.randomBytes(32);
   const secretKeyFile = path.join(__dirname, 'secret-key.json');
-  fs.writeFileSync(secretKeyFile, JSON.stringify({ secretKey }));
+  fs.writeFileSync(secretKeyFile, JSON.stringify({ secretKey: secretKey.toString('hex') }));
   return secretKey;
 };
 
@@ -45,7 +45,7 @@ try {
   const data = fs.readFileSync(secretKeyFile, 'utf8');
   const { secretKey: storedSecretKey } = JSON.parse(data);
   if (storedSecretKey) {
-    secretKey = storedSecretKey.padEnd(64, '0').substr(0, 64); // Ensure key length is 64 hex characters
+    secretKey = Buffer.from(storedSecretKey, 'hex');
   } else {
     secretKey = generateSecretKey();
   }
@@ -54,7 +54,7 @@ try {
 }
 
 // Encryption/decryption key
-const encryptionKey = crypto.createHash('sha256').update(secretKey).digest('hex').substr(0, 32);
+const encryptionKey = secretKey.toString('base64').substr(0, 32);
 
 
 // Encrypt email
