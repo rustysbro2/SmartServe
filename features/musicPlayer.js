@@ -164,7 +164,7 @@ class MusicPlayer {
 
     const voiceChannelId = voiceConnection.joinConfig?.channelId;
     const guild = voiceConnection.joinConfig?.guildId ? this.textChannel.client.guilds.cache.get(voiceConnection.joinConfig.guildId) : null;
-    const voiceChannel = guild ? guild.channels.cache.get(voiceChannelId) : null;
+    const voiceChannel = guild ? guild.channels.resolve(voiceChannelId) : null;
 
     console.log('voiceConnection:', voiceConnection);
     console.log('voiceChannel:', voiceChannel);
