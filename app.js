@@ -9,6 +9,7 @@ const session = require('express-session');
 const crypto = require('crypto');
 const pool = require('./database');
 const CryptoJS = require('crypto-js');
+const forge = require('node-forge');
 
 dotenv.config();
 
@@ -60,16 +61,24 @@ const encryptionKey = secretKey.slice(0, 32);
 
 // Encrypt email
 function encryptEmail(email) {
-  const ciphertext = CryptoJS.AES.encrypt(email, encryptionKey).toString();
-  return ciphertext;
+  const cipher = forge.cipher.createCipher('AES-CBC', encryptionKey);
+  cipher.start({ iv: forge.random.getBytesSync(16) });
+  cipher.update(forge.util.createBuffer(email, 'utf8'));
+  cipher.finish();
+  const encrypted = cipher.output;
+  return encrypted.toHex();
 }
 
 // Decrypt email
 function decryptEmail(encryptedEmail) {
-  const bytes = CryptoJS.AES.decrypt(encryptedEmail, encryptionKey);
-  const decryptedEmail = bytes.toString(CryptoJS.enc.Utf8);
-  return decryptedEmail;
+  const decipher = forge.cipher.createDecipher('AES-CBC', encryptionKey);
+  decipher.start({ iv: forge.random.getBytesSync(16) });
+  decipher.update(forge.util.createBuffer(forge.util.hexToBytes(encryptedEmail)));
+  decipher.finish();
+  const decrypted = decipher.output;
+  return decrypted.toString('utf8');
 }
+
 
 
 passport.use(new DiscordStrategy({
