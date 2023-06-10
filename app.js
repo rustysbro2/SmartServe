@@ -55,6 +55,7 @@ app.get('/callback', async (req, res) => {
     console.error('Error:', error);
     res.status(500).send('An error occurred.');
   }
+});
 
 https.createServer(options, app).listen(port, () => {
   console.log(`Server is running on port ${port}`);
