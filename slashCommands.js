@@ -102,6 +102,12 @@ async function updateCommandData(commands, rest, client) {
                 command.lastModified = newLastModified;
 
                 console.log(`Command data updated: ${JSON.stringify(command)}`);
+
+                // Delete the old command if the name has changed
+                if (existingGlobalCommand.name.toLowerCase() !== lowerCaseName) {
+                  await rest.delete(Routes.applicationCommand(clientId, existingGlobalCommand.id));
+                  console.log(`Old command deleted: ${existingGlobalCommand.name}`);
+                }
               } else {
                 console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
               }
@@ -159,6 +165,12 @@ async function updateCommandData(commands, rest, client) {
                 command.lastModified = newLastModified;
 
                 console.log(`Command data updated: ${JSON.stringify(command)}`);
+
+                // Delete the old command if the name has changed
+                if (existingGuildCommand.name.toLowerCase() !== lowerCaseName) {
+                  await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id));
+                  console.log(`Old command deleted: ${existingGuildCommand.name}`);
+                }
               } else {
                 console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
               }

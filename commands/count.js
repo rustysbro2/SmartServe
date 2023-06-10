@@ -14,6 +14,9 @@ module.exports = {
     } catch (error) {
       console.error('Error executing count command:', error);
     }
-  }
+  },
+
+  global: false,
+  category: 'Counting',
+  categoryDescription: 'Commands related to counting functionality',
 };
-//5

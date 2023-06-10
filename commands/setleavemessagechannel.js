@@ -33,7 +33,7 @@ async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('setleavemessagechannel')
+    .setName('setleave')
     .setDescription('Set the channel for the bot to send a leave message when removed from a guild')
     .addChannelOption(option =>
       option.setName('channel')

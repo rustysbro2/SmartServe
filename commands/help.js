@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const { guildId } = require('../config.js');
 
 async function handleSelectMenu(interaction, commandCategories) {
@@ -56,6 +56,16 @@ module.exports = {
     .setDescription('List all commands or info about a specific command'),
 
   async execute(interaction, client, commandCategories) {
+      // Bot Permissions
+      const guild = interaction.guild;
+      const botMember = await guild.members.fetch(interaction.client.user.id);
+
+      if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.EmbedLinks | PermissionsBitField.Flags.SendMessages | PermissionsBitField.Flags.ViewChannel  )) {
+        await interaction.reply("I need the 'Embed Links', 'Send Messages', and 'View Channel' permissions to use this command.");
+        return;
+      }
+
+
     if (interaction.deferred || interaction.replied) {
       console.log('Interaction already deferred or replied to.');
       return;

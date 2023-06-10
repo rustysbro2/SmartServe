@@ -35,6 +35,8 @@ class MusicPlayer {
 
     this.audioPlayer.on('error', (error) => {
       console.error(`Error: ${error.message}`);
+      console.error('Audio player aborted:', error.aborted);
+      console.error('Audio player state:', this.audioPlayer.state);
     });
   }
 
@@ -145,23 +147,8 @@ class MusicPlayer {
   }
 
   async voteSkip(member) {
-    if (!this.connection || this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
+    if (this.audioPlayer.state.status !== AudioPlayerStatus.Playing) {
       throw new Error('There is no song currently playing.');
-    }
-
-    const voiceChannel = this.connection.joinConfig.channelId;
-    if (!voiceChannel) {
-      throw new Error('The bot is not in a voice channel.');
-    }
-
-    const guild = this.textChannel.guild;
-    if (!guild) {
-      throw new Error('Failed to retrieve the guild.');
-    }
-
-    const members = guild.members.cache;
-    if (!members || members.size === 1) {
-      throw new Error('There are no other members in the voice channel.');
     }
 
     if (this.voteSkips.has(member.id)) {
@@ -170,10 +157,18 @@ class MusicPlayer {
 
     this.voteSkips.add(member.id);
 
-    const voteCount = this.voteSkips.size;
-    const totalCount = members.size - 1; // Exclude the bot
+    const voiceChannelId = this.connection?.joinConfig.channelId;
+    const voiceChannel = this.textChannel.guild?.channels.resolve(voiceChannelId);
 
+    if (!voiceChannel) {
+      throw new Error('Failed to retrieve the voice channel.');
+    }
+
+    const totalCount = voiceChannel.members.filter(member => !member.user.bot).size - 1;
+
+    const voteCount = this.voteSkips.size;
     const votePercentage = (voteCount / totalCount) * 100;
+
     if (votePercentage >= this.voteSkipThreshold) {
       console.log('Vote skip threshold reached. Skipping the current song.');
       this.audioPlayer.stop();
@@ -184,11 +179,18 @@ class MusicPlayer {
     }
   }
 
+
+
+
+
+
+
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
-    const totalCount = this.textChannel.guild?.members.cache.size - 1; // Exclude the bot
+    const voiceChannel = this.textChannel.guild?.channels.resolve(this.connection.joinConfig?.channelId);
+    const totalCount = voiceChannel?.members.filter(member => !member.user.bot).size;
 
-    if (totalCount === undefined) {
+    if (!totalCount) {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
@@ -207,6 +209,7 @@ class MusicPlayer {
         console.error(`Failed to send vote skip message: ${error.message}`);
       });
   }
+
 
   startVoiceChannelCheckInterval() {
     this.voiceChannelCheckInterval = setInterval(() => {

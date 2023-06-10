@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
 const MusicPlayer = require('../features/musicPlayer.js');
 const { AudioPlayerStatus, entersState } = require('@discordjs/voice');
 
@@ -26,6 +26,17 @@ module.exports = {
       if (!channelId) {
         console.log('User not in a voice channel.');
         return await interaction.reply('You must be in a voice channel to play music!');
+      }
+      
+
+      
+      // Bot Permissions
+      const guild = interaction.guild;
+      const botMember = await guild.members.fetch(interaction.client.user.id);
+
+      if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.Connect | PermissionsBitField.Flags.Speak)) {
+        await interaction.reply("I need the 'Connect' and 'Speak' permissions in a voice channel to use this command.");
+        return;
       }
 
       // Respond to the interaction right away to avoid a timeout

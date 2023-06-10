@@ -4,12 +4,17 @@ const pool = require('../database.js');
 let invites = {};
 
 async function fetchInvites(guild) {
-  const guildInvites = await guild.invites.fetch();
-  invites[guild.id] = guildInvites;
-  guildInvites.forEach((invite) =>
-    updateInviteInDb(guild.id, invite.code, invite.uses, invite.inviter ? invite.inviter.id : null)
-  );
+  try {
+    const guildInvites = await guild.invites.fetch();
+    invites[guild.id] = guildInvites;
+    guildInvites.forEach((invite) =>
+      updateInviteInDb(guild.id, invite.code, invite.uses, invite.inviter ? invite.inviter.id : null)
+    );
+  } catch (error) {
+    console.error(`Error fetching invites for guild ${guild.name}:`, error);
+  }
 }
+
 
 function updateInviteInDb(guildId, code, uses, inviterId) {
   pool.query(
