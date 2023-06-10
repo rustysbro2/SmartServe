@@ -45,7 +45,7 @@ async function saveJoinMessageChannelToDatabase(channelId, guildId) {
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('setjoinmessagechannel')
+    .setName('setjoin')
     .setDescription('Set the channel for the bot to send a join message when added to a new guild')
     .addChannelOption(option =>
       option.setName('channel')
