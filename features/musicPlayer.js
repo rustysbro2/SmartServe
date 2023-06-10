@@ -162,7 +162,7 @@ class MusicPlayer {
       throw new Error('The bot is not connected to a voice channel.');
     }
 
-    const voiceChannel = voiceConnection.joinConfig?.channel;
+    const voiceChannel = voiceConnection.channel;
     if (!voiceChannel) {
       throw new Error('Failed to retrieve the voice channel.');
     }
@@ -190,18 +190,6 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
-
-
-
-
-
-
-
-
-
-
-
-
 
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
