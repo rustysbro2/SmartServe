@@ -1,8 +1,16 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
-const pool = require('./database.js');
+const path = require('path');
+const pool = require('../database.js');
+const dotenv = require('dotenv');
+const envFilePath = '/root/SmartAlpha/src/.env';
+
+dotenv.config({ path: envFilePath });
+
+const clientId = process.env.CLIENT_ID;
+const guildId = process.env.guildId;
+const token = process.env.token;
 
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
@@ -31,31 +39,14 @@ async function updateCommandData(commands, rest, client) {
     // Get the existing guild-specific slash commands
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
 
-    // Read command files from the commands directory
-    const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
-
-    // Map command names to lowercase file names
-    const commandNameToFileMap = commandFiles.reduce((map, file) => {
-      const command = require(`./commands/${file}`);
-      const lowerCaseName = command.data.name.toLowerCase();
-      map[lowerCaseName] = file;
-      return map;
-    }, {});
-
     for (const command of commands) {
       const { name, description, options, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
-      const fileName = commandNameToFileMap[lowerCaseName];
-
-      if (!fileName) {
-        console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
-        continue; // Skip to the next iteration
-      }
 
       const commandData = {
-        name: name, // Use the original command name
+        name: name,
         description: description,
-        options: options, // Add the options to the command data
+        options: options,
       };
 
       try {
@@ -76,15 +67,12 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
-            // Check if the command file exists
-            const commandFilePath = `./commands/${fileName}`;
+            const commandFilePath = path.join(__dirname, '..', 'commands', command.fileName);
             const commandFileExists = fs.existsSync(commandFilePath);
 
             if (commandFileExists) {
-              // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
               if (command.commandId === null || (newLastModified && newLastModified.toISOString().slice(0, 16) !== lastModified.toISOString().slice(0, 16))) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
@@ -103,7 +91,6 @@ async function updateCommandData(commands, rest, client) {
 
                 console.log(`Command data updated: ${JSON.stringify(command)}`);
 
-                // Delete the old command if the name has changed
                 if (existingGlobalCommand.name.toLowerCase() !== lowerCaseName) {
                   await rest.delete(Routes.applicationCommand(clientId, existingGlobalCommand.id));
                   console.log(`Old command deleted: ${existingGlobalCommand.name}`);
@@ -116,7 +103,6 @@ async function updateCommandData(commands, rest, client) {
             }
           }
 
-          // Delete the command if it exists as a guild-specific command
           const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
           if (existingGuildCommand) {
             await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id));
@@ -139,15 +125,12 @@ async function updateCommandData(commands, rest, client) {
 
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
-            // Check if the command file exists
-            const commandFilePath = `./commands/${fileName}`;
+            const commandFilePath = path.join(__dirname, '..', 'commands', command.fileName);
             const commandFileExists = fs.existsSync(commandFilePath);
 
             if (commandFileExists) {
-              // Check if the last modified date has changed
               const newLastModified = fs.statSync(commandFilePath).mtime;
 
-              // Update the command and obtain the command ID only if the commandId is null or lastModified has changed
               if (command.commandId === null) {
                 console.log(`Updating command '${name}':`);
                 console.log(`- Command ID: ${command.commandId}`);
@@ -166,7 +149,6 @@ async function updateCommandData(commands, rest, client) {
 
                 console.log(`Command data updated: ${JSON.stringify(command)}`);
 
-                // Delete the old command if the name has changed
                 if (existingGuildCommand.name.toLowerCase() !== lowerCaseName) {
                   await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id));
                   console.log(`Old command deleted: ${existingGuildCommand.name}`);
@@ -179,7 +161,6 @@ async function updateCommandData(commands, rest, client) {
             }
           }
 
-          // Delete the command if it exists as a global command
           const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
           if (existingGlobalCommand) {
             await rest.delete(Routes.applicationCommand(clientId, existingGlobalCommand.id));
@@ -191,7 +172,6 @@ async function updateCommandData(commands, rest, client) {
       }
     }
 
-    // Update the command data in the database
     for (const command of commands) {
       const { name, commandId, lastModified } = command;
       const lowerCaseName = name.toLowerCase();
@@ -211,53 +191,44 @@ async function updateCommandData(commands, rest, client) {
   }
 }
 
+async function readCommandsFromDirectory(directory) {
+  const commandsPath = path.join(__dirname, directory);
+  const commandFiles = fs.readdirSync(commandsPath, { withFileTypes: true });
+  const commands = [];
+
+  for (const file of commandFiles) {
+    const filePath = path.join(commandsPath, file.name);
+
+    if (file.isDirectory()) {
+      const subCommands = await readCommandsFromDirectory(path.join(directory, file.name));
+      commands.push(...subCommands);
+    } else if (file.isFile() && file.name.endsWith('.js')) {
+      const command = require(filePath);
+      const setName = command.data.name.toLowerCase();
+
+      commands.push({
+        name: setName,
+        fileName: file.name,
+        description: command.data.description,
+        options: command.data.options || [],
+        commandId: null,
+        lastModified: fs.statSync(filePath).mtime.toISOString().slice(0, 16),
+        global: command.global === undefined ? true : command.global,
+      });
+    }
+  }
+
+  return commands;
+}
+
+
 module.exports = async function (client) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
 
-  const commands = [];
-
-  // Read command files from the commands directory
-  const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
-
-  // Loop through command files and register slash commands
-  for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    const setName = command.data.name.toLowerCase();
-    const commandData = {
-      name: setName,
-      description: command.data.description,
-      options: command.data.options || [], // Add the options to the command data
-      commandId: null, // Set commandId to null initially
-      lastModified: fs.statSync(`./commands/${file}`).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
-      global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
-    };
-
-    // Add the command data to the commands array
-    commands.push(commandData);
-  }
-
-  // Retrieve the commandIds from the database and update the commandData object
-  const selectCommandIdsQuery = `
-    SELECT commandName, commandId, lastModified FROM commandIds
-  `;
-
-  const [rows] = await pool.promise().query(selectCommandIdsQuery);
-  const commandIdMap = rows.reduce((map, row) => {
-    map[row.commandName] = { commandId: row.commandId, lastModified: row.lastModified };
-    return map;
-  }, {});
-
-  for (const command of commands) {
-    const { name } = command;
-    const lowerCaseName = name.toLowerCase();
-
-    if (commandIdMap[lowerCaseName]) {
-      const { commandId, lastModified } = commandIdMap[lowerCaseName];
-      command.commandId = commandId;
-      command.lastModified = lastModified;
-    }
-  }
+  // Read commands from the commands directory
+  const commandsDirectory = path.join(__dirname, '..', 'commands');
+  const commands = await readCommandsFromDirectory(commandsDirectory);
 
   const rest = new REST({ version: '10' }).setToken(token);
 
@@ -271,7 +242,6 @@ module.exports = async function (client) {
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
 
-    // Log the command names that caused the error
     const commandNames = commands.map((command) => command.name);
     const errorCommands = commandNames.map((commandName, index) => ({
       name: commandName,

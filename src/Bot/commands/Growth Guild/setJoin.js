@@ -1,17 +1,7 @@
-async function saveJoinMessageChannelToDatabase(channelId, guildId) {
-  try {
-    const [rows] = await pool.promise().query('SELECT * FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
-    if (rows.length > 0) {
-      await pool.promise().query('UPDATE guilds SET join_message_channel = ? WHERE target_guild_id = ?', [channelId, guildId]);
-    } else {
-      await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?)', [channelId, guildId]);
-    }
-  } catch (error) {
-    console.error('Error saving join message channel to the database:', error);
-    throw error;
-  }
-}const { SlashCommandBuilder } = require('discord.js');
-const pool = require('../database.js');
+const { SlashCommandBuilder } = require('discord.js');
+const path = require('path');
+
+const pool = require('../../../database.js'); // Adjust the import path based on the location of the 'database.js' file
 
 async function createGuildsTable() {
   try {

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const pool = require('../database.js');
+const pool = require('../../../database.js'); // Adjust the import path based on the location of the 'database.js' file
 
 async function createGuildsTable() {
   try {

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const countingGame = require('../features/countingGame');
+const countingGame = require('../../features/countingGame');
 
 module.exports = {
   data: new SlashCommandBuilder()

@@ -1,18 +1,19 @@
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
-const { token } = require('./config.js');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
-const helpCommand = require('./commands/help');
-const countingCommand = require('./commands/count');
-const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel.js');
-const setLeaveMessageChannelCommand = require('./commands/setleavemessagechannel.js');
+const helpCommand = require('./commands/General/help');
+const countingCommand = require('./commands/Counting Game/count');
+const setJoinMessageChannelCommand = require('./commands/Growth Guild/setJoin.js');
+const setLeaveMessageChannelCommand = require('./commands/Growth Guild/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const pool = require('./database.js');
+const pool = require('../database.js'); // Adjust the path to the database.js file
 const { CHANNEL_TYPES } = require('discord.js');
 const dotenv = require('dotenv');
+const path = require('path');
 
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-dotenv.config();
+const token = process.env.token;
 
 
 const intents = [
@@ -236,7 +237,7 @@ client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
-const token = process.env.TOKEN;
+
 client.login(token);
 
 async function getJoinMessageChannelFromDatabase() {
