@@ -171,6 +171,8 @@ class MusicPlayer {
       throw new Error('There are no other members in the voice channel.');
     }
 
+    const botId = config.clientId; // Use the client ID from config.js
+
     if (this.voteSkips.has(member.id)) {
       throw new Error('You have already voted to skip the current song.');
     }
@@ -191,6 +193,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
