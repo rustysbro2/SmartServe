@@ -8,13 +8,13 @@ const dotenv = require('dotenv');
 const session = require('express-session');
 const pool = require('./database');
 
-const options = {
-  key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
-  cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'), // Replace with the path to your SSL certificate file
-  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'), // Replace with the path to your CA bundle file
-};
-
 dotenv.config();
+
+const options = {
+  key: fs.readFileSync('/root/Certs/private-key.key'),
+  cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'),
+  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'),
+};
 
 const app = express();
 const port = 443;
@@ -31,26 +31,28 @@ passport.use(new DiscordStrategy({
   callbackURL: 'https://smartserve.cc/callback',
   scope: ['identify', 'email'],
 }, async (accessToken, refreshToken, profile, done) => {
+  const { id, username, email } = profile;
+
   try {
-    const [user] = await pool.query('SELECT * FROM users WHERE discordId = ?', [profile.id]);
+    // Check if the user already exists in the database
+    let user = await pool.query('SELECT * FROM users WHERE discordId = ?', [id]);
 
-    if (user) {
-      // User already exists, update user data if needed
-      // ...
+    if (user.length === 0) {
+      // User does not exist, insert into the database
+      await pool.query('INSERT INTO users (discordId, username, email) VALUES (?, ?, ?)', [id, username, email]);
+      user = { discordId: id, username, email };
     } else {
-      // User doesn't exist, create a new user in the database
-      const newUser = {
-        discordId: profile.id,
-        username: profile.username,
-        email: profile.email,
-      };
-
-      await pool.query('INSERT INTO users SET ?', newUser);
+      // User exists, update their username and email
+      await pool.query('UPDATE users SET username = ?, email = ? WHERE discordId = ?', [username, email, id]);
+      user = user[0];
     }
 
-    done(null, profile);
-  } catch (err) {
-    done(err);
+    // Call the 'done' function to indicate success and pass the user object
+    done(null, user);
+  } catch (error) {
+    // Error occurred during user data handling
+    // Call the 'done' function with the error to indicate failure
+    done(error);
   }
 }));
 
@@ -58,11 +60,24 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.serializeUser((user, done) => {
-  done(null, user);
+  done(null, user.discordId);
 });
 
-passport.deserializeUser((obj, done) => {
-  done(null, obj);
+passport.deserializeUser(async (id, done) => {
+  try {
+    // Retrieve the user from the database based on the discordId
+    const user = await pool.query('SELECT * FROM users WHERE discordId = ?', [id]);
+
+    if (user.length === 0) {
+      // User not found
+      done(null, null);
+    } else {
+      // User found, pass the user object to 'deserializeUser'
+      done(null, user[0]);
+    }
+  } catch (error) {
+    done(error);
+  }
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
