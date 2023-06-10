@@ -156,6 +156,10 @@ app.get('/profile', (req, res) => {
   res.send(req.user);
 });
 
+app.get('/about', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'about.html'));
+});
+
 https.createServer(options, app).listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
