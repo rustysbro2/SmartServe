@@ -43,6 +43,7 @@ app.get('/callback', async (req, res) => {
   try {
     const tokenData = await oauth.tokenRequest({
       code,
+      grantType: 'authorization_code', // Set the correct grant_type
       scope: ['identify', 'email'], // Specify the required scopes
     });
 
