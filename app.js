@@ -156,7 +156,16 @@ app.get('/callback', passport.authenticate('discord', {
 
 // Define profile route
 app.get('/profile', (req, res) => {
-  res.send(req.user);
+  res.redirect('/dashboard');
+});
+
+// Define dashboard route
+app.get('/dashboard', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // Start the server
