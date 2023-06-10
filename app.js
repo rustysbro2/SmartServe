@@ -6,7 +6,6 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
-const crypto = require('crypto');
 
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
@@ -16,16 +15,14 @@ const options = {
 
 // Load environment variables from .env file
 dotenv.config();
-
-// Generate a session secret
-const sessionSecret = crypto.randomBytes(64).toString('hex');
+console.log(process.env.CLIENT_SECRET);
 
 const app = express();
 const port = 443;
 
 // Set up session middleware if needed
 app.use(session({
-  secret: sessionSecret,
+  secret: 'your_session_secret', // Replace with your desired session secret
   resave: false,
   saveUninitialized: false
 }));
@@ -66,11 +63,33 @@ app.get('/', (req, res) => {
 
 app.get('/login', passport.authenticate('discord'));
 
-app.get('/callback', passport.authenticate('discord', {
-  failureRedirect: '/login'
-}), (req, res) => {
-  // Redirect or handle successful authentication
-  res.redirect('/profile');
+app.get('/callback', (req, res, next) => {
+  passport.authenticate('discord', (err, user, info) => {
+    if (err) {
+      console.error('Error during authentication:', err);
+      return res.status(500).send('An error occurred during authentication.');
+    }
+
+    // Log the access token
+    const accessToken = req.query.access_token;
+    console.log('Access Token:', accessToken);
+
+    // Continue with the authentication process
+    if (!user) {
+      console.error('Authentication failed:', info.message);
+      return res.redirect('/login');
+    }
+
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        console.error('Error during login:', loginErr);
+        return res.status(500).send('An error occurred during login.');
+      }
+
+      // Redirect to the profile page
+      return res.redirect('/profile');
+    });
+  })(req, res, next);
 });
 
 app.get('/profile', (req, res) => {
