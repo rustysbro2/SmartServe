@@ -2,7 +2,9 @@ const express = require('express');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
-const DiscordOAuth2 = require('discord-oauth2');
+const passport = require('passport');
+const DiscordStrategy = require('passport-discord').Strategy;
+const dotenv = require('dotenv');
 
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
@@ -10,52 +12,43 @@ const options = {
   ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'), // Replace with the path to your CA bundle file
 };
 
+// Load environment variables from .env file
+dotenv.config();
+
 const app = express();
 const port = 443;
-const oauth = new DiscordOAuth2();
 
-// Serve static files from the "public" directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Set up session middleware if needed
+app.use(session({ secret: 'your_session_secret', resave: false, saveUninitialized: false }));
 
-// Set the views directory
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'html');
+// Configure passport with the Discord strategy
+passport.use(new DiscordStrategy({
+  clientID: '1107025578047058030',
+  clientSecret: process.env.CLIENT_SECRET, // Retrieve client secret from environment variable
+  callbackURL: 'https://smartserve.cc/callback', // Replace with your callback URL
+  scope: ['identify', 'email'], // Specify the required scopes
+}, (accessToken, refreshToken, profile, done) => {
+  // Handle the user data or authentication logic here
+  // ...
+}));
+
+// Initialize passport and set up authentication routes
+app.use(passport.initialize());
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+  res.send('Welcome to the Discord website!');
 });
 
-app.get('/login', (req, res) => {
-  const redirectUri = 'https://smartserve.cc/callback'; // Replace with your redirect URI
-  const clientId = '1107025578047058030'; // Replace with your client ID
+app.get('/login', passport.authenticate('discord'));
 
-  const authorizationUrl = oauth.generateAuthUrl({
-    scope: ['identify', 'email'], // Specify the required scopes
-    redirectUri,
-    clientId,
-  });
-  res.redirect(authorizationUrl);
+app.get('/callback', passport.authenticate('discord', { failureRedirect: '/login' }), (req, res) => {
+  // Redirect or handle successful authentication
+  res.redirect('/profile');
 });
 
-app.get('/callback', async (req, res) => {
-  const { code } = req.query;
-
-  try {
-    const tokenData = await oauth.tokenRequest({
-      code,
-      grantType: 'authorization_code', // Set the correct grant_type
-      scope: ['identify', 'email'], // Specify the required scopes
-    });
-
-    const user = await oauth.getUser(tokenData.access_token);
-
-    // Store the user's data or perform additional logic as needed
-    // For demonstration purposes, we'll simply display the user's information
-    res.send(user);
-  } catch (error) {
-    console.error('Error:', error);
-    res.status(500).send('An error occurred.');
-  }
+app.get('/profile', (req, res) => {
+  // Display the user's profile or perform additional logic
+  res.send(req.user);
 });
 
 https.createServer(options, app).listen(port, () => {
