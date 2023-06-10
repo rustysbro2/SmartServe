@@ -157,11 +157,12 @@ class MusicPlayer {
 
     this.voteSkips.add(member.id);
 
-    const voiceChannel = this.connection.joinConfig?.channel;
-    const members = voiceChannel?.members;
-
     const voteCount = this.voteSkips.size;
-    const totalCount = members.size - 1; // Exclude the bot
+    const totalCount = this.connection.joinConfig?.channel?.members.filter(member => !member.user.bot).size;
+
+    if (!totalCount) {
+      throw new Error('Failed to retrieve the total count of members.');
+    }
 
     const votePercentage = (voteCount / totalCount) * 100;
     if (votePercentage >= this.voteSkipThreshold) {
@@ -173,6 +174,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
