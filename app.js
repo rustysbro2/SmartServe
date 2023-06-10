@@ -6,6 +6,7 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
+const crypto = require('crypto');
 
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
@@ -15,14 +16,16 @@ const options = {
 
 // Load environment variables from .env file
 dotenv.config();
-console.log(process.env.CLIENT_SECRET)
+
+// Generate a session secret
+const sessionSecret = crypto.randomBytes(64).toString('hex');
 
 const app = express();
 const port = 443;
 
 // Set up session middleware if needed
 app.use(session({
-  secret: 'your_session_secret', // Replace with your desired session secret
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false
 }));
