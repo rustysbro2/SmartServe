@@ -157,14 +157,20 @@ class MusicPlayer {
 
     this.voteSkips.add(member.id);
 
-    const voteCount = this.voteSkips.size;
-    const totalCount = this.connection.joinConfig?.channel?.members.filter(member => !member.user.bot).size;
+    const guild = this.textChannel.guild;
+    if (!guild) {
+      throw new Error('Failed to retrieve the guild.');
+    }
+
+    const totalCount = guild.members.cache.filter(member => !member.user.bot).size;
 
     if (!totalCount) {
       throw new Error('Failed to retrieve the total count of members.');
     }
 
+    const voteCount = this.voteSkips.size;
     const votePercentage = (voteCount / totalCount) * 100;
+
     if (votePercentage >= this.voteSkipThreshold) {
       console.log('Vote skip threshold reached. Skipping the current song.');
       this.audioPlayer.stop();
@@ -174,6 +180,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
