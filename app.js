@@ -15,7 +15,17 @@ app.get('/', (req, res) => {
   res.send('Welcome to the Discord website!');
 });
 
-// Add more routes and functionality to your website as needed
+app.get('/home', (req, res) => {
+  res.send('This is the home page.');
+});
+
+app.get('/about', (req, res) => {
+  res.send('This is the about page.');
+});
+
+app.get('/contact', (req, res) => {
+  res.send('This is the contact page.');
+});
 
 https.createServer(options, app).listen(port, () => {
   console.log(`Server is running on port ${port}`);
