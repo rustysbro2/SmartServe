@@ -34,7 +34,7 @@ app.use(session({
 const generateSecretKey = () => {
   const secretKey = crypto.randomBytes(32);
   const secretKeyFile = path.join(__dirname, 'secret-key.json');
-  fs.writeFileSync(secretKeyFile, JSON.stringify({ secretKey: secretKey.toString('hex') }));
+  fs.writeFileSync(secretKeyFile, JSON.stringify({ secretKey: secretKey.toString('base64') }));
   return secretKey;
 };
 
@@ -45,7 +45,7 @@ try {
   const data = fs.readFileSync(secretKeyFile, 'utf8');
   const { secretKey: storedSecretKey } = JSON.parse(data);
   if (storedSecretKey) {
-    secretKey = Buffer.from(storedSecretKey, 'hex');
+    secretKey = Buffer.from(storedSecretKey, 'base64');
   } else {
     secretKey = generateSecretKey();
   }
@@ -54,27 +54,23 @@ try {
 }
 
 // Encryption/decryption key
-const encryptionKey = secretKey.toString('base64').substr(0, 32);
+const encryptionKey = secretKey.slice(0, 32);
+
 
 
 // Encrypt email
 function encryptEmail(email) {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(encryptionKey, 'base64'), iv);
-  let encrypted = cipher.update(email, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + encrypted;
+  const ciphertext = CryptoJS.AES.encrypt(email, encryptionKey).toString();
+  return ciphertext;
 }
 
 // Decrypt email
 function decryptEmail(encryptedEmail) {
-  const iv = Buffer.from(encryptedEmail.slice(0, 32), 'hex');
-  const encryptedText = encryptedEmail.slice(32);
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(encryptionKey, 'base64'), iv);
-  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return decrypted;
+  const bytes = CryptoJS.AES.decrypt(encryptedEmail, encryptionKey);
+  const decryptedEmail = bytes.toString(CryptoJS.enc.Utf8);
+  return decryptedEmail;
 }
+
 
 passport.use(new DiscordStrategy({
   clientID: '1107025578047058030',
