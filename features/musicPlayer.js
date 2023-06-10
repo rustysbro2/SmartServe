@@ -178,8 +178,7 @@ class MusicPlayer {
     this.voteSkips.add(member.id);
 
     const voteCount = this.voteSkips.size;
-    const otherMembers = members.filter(member => !member.user.bot && member.id !== member.id);
-    const totalCount = otherMembers.size;
+    const totalCount = members.size - 1; // Exclude the bot
 
     const votePercentage = (voteCount / totalCount) * 100;
     if (votePercentage >= this.voteSkipThreshold) {
@@ -191,6 +190,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
