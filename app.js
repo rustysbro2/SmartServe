@@ -29,21 +29,60 @@ app.use(session({
   saveUninitialized: false,
 }));
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+// Generate and store the secret key in a JSON file
+const generateSecretKey = () => {
+  const secretKey = crypto.randomBytes(32);
+  const secretKeyFile = path.join(__dirname, 'secret-key.json');
+  fs.writeFileSync(secretKeyFile, JSON.stringify({ secretKey: secretKey.toString('base64') }));
+  return secretKey;
+};
 
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// Read the secret key from the JSON file or generate a new one
+const secretKeyFile = path.join(__dirname, 'secret-key.json');
+let secretKey;
+try {
+  const data = fs.readFileSync(secretKeyFile, 'utf8');
+  const { secretKey: storedSecretKey } = JSON.parse(data);
+  if (storedSecretKey) {
+    secretKey = Buffer.from(storedSecretKey, 'base64');
+  } else {
+    secretKey = generateSecretKey();
+  }
+} catch (err) {
+  secretKey = generateSecretKey();
+}
 
-// Initialize passport
-app.use(passport.initialize());
-app.use(passport.session());
+// Encryption/decryption key
+const encryptionKey = secretKey.slice(0, 32);
 
-// Configure Discord authentication strategy
+
+
+// Encrypt email
+function encryptEmail(email) {
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
+  let encrypted = cipher.update(email, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return iv.toString('hex') + encrypted;
+}
+
+// Decrypt email
+function decryptEmail(encryptedEmail) {
+  const iv = Buffer.from(encryptedEmail.slice(0, 32), 'hex');
+  const encryptedText = encryptedEmail.slice(32);
+  const decipher = crypto.createDecipheriv('aes-256-cbc', encryptionKey, iv);
+  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+  decrypted += decipher.final('utf8');
+  return decrypted;
+}
+
+
+
+
 passport.use(new DiscordStrategy({
-  clientID: process.env.CLIENT_ID,
+  clientID: '1107025578047058030',
   clientSecret: process.env.CLIENT_SECRET,
-  callbackURL: process.env.CALLBACK_URL,
+  callbackURL: 'https://smartserve.cc/callback',
   scope: ['identify', 'email'],
 }, async (accessToken, refreshToken, profile, done) => {
   const { id, username, email } = profile;
@@ -54,11 +93,13 @@ passport.use(new DiscordStrategy({
 
     if (user.length === 0) {
       // User does not exist, insert into the database
-      await pool.query('INSERT INTO users (discordId, username, email) VALUES (?, ?, ?)', [id, username, email]);
-      user = { discordId: id, username, email };
+      const encryptedEmail = encryptEmail(email);
+      await pool.query('INSERT INTO users (discordId, username, email) VALUES (?, ?, ?)', [id, username, encryptedEmail]);
+      user = { discordId: id, username, email: encryptedEmail };
     } else {
       // User exists, update their username and email
-      await pool.query('UPDATE users SET username = ?, email = ? WHERE discordId = ?', [username, email, id]);
+      const encryptedEmail = encryptEmail(email);
+      await pool.query('UPDATE users SET username = ?, email = ? WHERE discordId = ?', [username, encryptedEmail, id]);
       user = user[0];
     }
 
@@ -71,7 +112,9 @@ passport.use(new DiscordStrategy({
   }
 }));
 
-// Serialize and deserialize user
+app.use(passport.initialize());
+app.use(passport.session());
+
 passport.serializeUser((user, done) => {
   done(null, user.discordId);
 });
@@ -86,6 +129,8 @@ passport.deserializeUser(async (id, done) => {
       done(null, null);
     } else {
       // User found, pass the user object to 'deserializeUser'
+      const decryptedEmail = decryptEmail(user[0].email);
+      user[0].email = decryptedEmail;
       done(null, user[0]);
     }
   } catch (error) {
@@ -93,31 +138,22 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Define login route
-app.get('/login', (req, res) => {
-  res.render('login');
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
-// Handle login form submission
-app.post('/login', passport.authenticate('discord', {
+app.get('/login', passport.authenticate('discord'));
+
+app.get('/callback', passport.authenticate('discord', {
   failureRedirect: '/login',
 }), (req, res) => {
-  res.redirect('/dashboard');
+  res.redirect('/profile');
 });
 
-// Define dashboard route
-app.get('/dashboard', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.render('dashboard', { user: req.user });
-  } else {
-    res.redirect('/login');
-  }
-});
-
-// Define logout route
-app.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
+app.get('/profile', (req, res) => {
+  res.send(req.user);
 });
 
 https.createServer(options, app).listen(port, () => {
