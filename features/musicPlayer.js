@@ -163,7 +163,8 @@ class MusicPlayer {
     }
 
     const voiceChannelId = voiceConnection.joinConfig?.channelId;
-    const voiceChannel = voiceConnection.joinConfig?.guildId ? voiceConnection.joinConfig?.guild.channels.cache.get(voiceChannelId) : null;
+    const guild = voiceConnection.joinConfig?.guildId ? this.textChannel.client.guilds.cache.get(voiceConnection.joinConfig.guildId) : null;
+    const voiceChannel = guild ? guild.channels.cache.get(voiceChannelId) : null;
 
     if (!voiceChannel) {
       throw new Error('Failed to retrieve the voice channel.');
@@ -192,6 +193,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
