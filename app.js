@@ -52,8 +52,12 @@ passport.deserializeUser((obj, done) => {
   done(null, obj);
 });
 
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Define routes
 app.get('/', (req, res) => {
-  res.send('Welcome to the Discord website!');
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 app.get('/login', passport.authenticate('discord'));
