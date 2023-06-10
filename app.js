@@ -7,6 +7,7 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
+const User = require('./models/user'); // Adjust the path based on your file structure
 
 // Load environment variables from .env file
 dotenv.config();
