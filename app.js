@@ -6,15 +6,15 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
-const User = require('./models/user'); // Adjust the path based on your file structure
-
-dotenv.config();
+const pool = require('./database');
 
 const options = {
-  key: fs.readFileSync('/root/Certs/private-key.key'),
-  cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'),
-  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'),
+  key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
+  cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'), // Replace with the path to your SSL certificate file
+  ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'), // Replace with the path to your CA bundle file
 };
+
+dotenv.config();
 
 const app = express();
 const port = 443;
@@ -30,18 +30,28 @@ passport.use(new DiscordStrategy({
   clientSecret: process.env.CLIENT_SECRET,
   callbackURL: 'https://smartserve.cc/callback',
   scope: ['identify', 'email'],
-}, (accessToken, refreshToken, profile, done) => {
-  const userId = profile.id;
-  const username = profile.username;
-  const email = profile.email;
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    const [user] = await pool.query('SELECT * FROM users WHERE discordId = ?', [profile.id]);
 
-  User.findOneAndUpdate({ userId }, { username, email }, { upsert: true })
-    .then(() => {
-      done(null, profile);
-    })
-    .catch((err) => {
-      done(err);
-    });
+    if (user) {
+      // User already exists, update user data if needed
+      // ...
+    } else {
+      // User doesn't exist, create a new user in the database
+      const newUser = {
+        discordId: profile.id,
+        username: profile.username,
+        email: profile.email,
+      };
+
+      await pool.query('INSERT INTO users SET ?', newUser);
+    }
+
+    done(null, profile);
+  } catch (err) {
+    done(err);
+  }
 }));
 
 app.use(passport.initialize());
