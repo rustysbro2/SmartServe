@@ -9,6 +9,11 @@ const setLeaveMessageChannelCommand = require('./commands/setleavemessagechannel
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
 const { CHANNEL_TYPES } = require('discord.js');
+const dotenv = require('dotenv');
+
+
+dotenv.config();
+
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -231,6 +236,7 @@ client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
+const token = process.env.TOKEN;
 client.login(token);
 
 async function getJoinMessageChannelFromDatabase() {
