@@ -157,15 +157,22 @@ class MusicPlayer {
 
     this.voteSkips.add(member.id);
 
-    const guild = this.textChannel.guild;
-    if (!guild) {
-      throw new Error('Failed to retrieve the guild.');
+    const voiceChannelId = this.connection.joinConfig?.channelId;
+    const voiceChannel = this.textChannel.guild?.channels.cache.get(voiceChannelId);
+
+    if (!voiceChannel) {
+      throw new Error('Failed to retrieve the voice channel.');
     }
 
-    const totalCount = guild.members.cache.filter(member => !member.user.bot).size;
+    const members = voiceChannel.members;
+    if (!members) {
+      throw new Error('Failed to retrieve the members in the voice channel.');
+    }
+
+    const totalCount = members.filter(member => !member.user.bot).size;
 
     if (!totalCount) {
-      throw new Error('Failed to retrieve the total count of members.');
+      throw new Error('Failed to retrieve the total count of members in the voice channel.');
     }
 
     const voteCount = this.voteSkips.size;
@@ -180,6 +187,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
