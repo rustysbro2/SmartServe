@@ -45,7 +45,7 @@ try {
   const data = fs.readFileSync(secretKeyFile, 'utf8');
   const { secretKey: storedSecretKey } = JSON.parse(data);
   if (storedSecretKey) {
-    secretKey = storedSecretKey;
+    secretKey = storedSecretKey.padEnd(64, '0').substr(0, 64); // Ensure key length is 64 hex characters
   } else {
     secretKey = generateSecretKey();
   }
@@ -54,7 +54,8 @@ try {
 }
 
 // Encryption/decryption key
-const encryptionKey = crypto.createHash('sha256').update(secretKey).digest('base64').substr(0, 32);
+const encryptionKey = crypto.createHash('sha256').update(secretKey).digest('hex').substr(0, 32);
+
 
 // Encrypt email
 function encryptEmail(email) {
