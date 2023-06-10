@@ -6,6 +6,7 @@ const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
+const crypto = require('crypto');
 const pool = require('./database');
 
 dotenv.config();
@@ -19,8 +20,11 @@ const options = {
 const app = express();
 const port = 443;
 
+// Generate a random session secret
+const sessionSecret = crypto.randomBytes(32).toString('hex');
+
 app.use(session({
-  secret: 'your_session_secret',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
 }));
