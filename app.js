@@ -34,7 +34,7 @@ app.use(session({
 const generateSecretKey = () => {
   const secretKey = crypto.randomBytes(32);
   const secretKeyFile = path.join(__dirname, 'secret-key.json');
-  fs.writeFileSync(secretKeyFile, JSON.stringify({ secretKey: secretKey.toString('hex') }));
+  fs.writeFileSync(secretKeyFile, JSON.stringify({ secretKey: secretKey.toString('base64') }));
   return secretKey;
 };
 
@@ -45,7 +45,7 @@ try {
   const data = fs.readFileSync(secretKeyFile, 'utf8');
   const { secretKey: storedSecretKey } = JSON.parse(data);
   if (storedSecretKey) {
-    secretKey = Buffer.from(storedSecretKey, 'hex');
+    secretKey = Buffer.from(storedSecretKey, 'base64');
   } else {
     secretKey = generateSecretKey();
   }
@@ -54,7 +54,8 @@ try {
 }
 
 // Encryption/decryption key
-const encryptionKey = secretKey.toString('base64').substr(0, 32);
+const encryptionKey = secretKey.slice(0, 32);
+
 
 
 // Encrypt email
