@@ -235,7 +235,7 @@ client.login(token);
 
 async function getJoinMessageChannelFromDatabase() {
   try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds LIMIT 1');
+    const [rows] = await pool.query('SELECT join_message_channel, target_guild_id FROM guilds LIMIT 1');
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
@@ -250,7 +250,7 @@ async function getJoinMessageChannelFromDatabase() {
 
 async function getLeaveMessageChannelFromDatabase() {
   try {
-    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds LIMIT 1');
+    const [rows] = await pool.query('SELECT leave_message_channel, target_guild_id FROM guilds LIMIT 1');
     if (rows.length > 0) {
       const leaveMessageChannel = rows[0];
       console.log('Retrieved leave message channel:', leaveMessageChannel);
@@ -263,10 +263,9 @@ async function getLeaveMessageChannelFromDatabase() {
   }
 }
 
-
 async function createGuildsTable() {
   try {
-    await pool.promise().query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS guilds (
         join_message_channel VARCHAR(255) NOT NULL DEFAULT '',
         leave_message_channel VARCHAR(255) NOT NULL DEFAULT '',
