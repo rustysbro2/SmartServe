@@ -55,8 +55,6 @@ try {
 // Encryption/decryption key
 const encryptionKey = secretKey.slice(0, 32);
 
-
-
 // Encrypt email
 function encryptEmail(email) {
   const iv = crypto.randomBytes(16);
@@ -76,13 +74,11 @@ function decryptEmail(encryptedEmail) {
   return decrypted;
 }
 
-
-
-
+// Configure Discord authentication strategy
 passport.use(new DiscordStrategy({
-  clientID: '1107025578047058030',
+  clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
-  callbackURL: 'https://smartserve.cc/callback',
+  callbackURL: process.env.CALLBACK_URL,
   scope: ['identify', 'email'],
 }, async (accessToken, refreshToken, profile, done) => {
   const { id, username, email } = profile;
@@ -112,9 +108,11 @@ passport.use(new DiscordStrategy({
   }
 }));
 
+// Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Serialize and deserialize user
 passport.serializeUser((user, done) => {
   done(null, user.discordId);
 });
@@ -138,24 +136,35 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
-});
-
+// Define login route
 app.get('/login', passport.authenticate('discord'));
 
+// Define callback route
 app.get('/callback', passport.authenticate('discord', {
   failureRedirect: '/login',
 }), (req, res) => {
-  res.redirect('/profile');
+  res.redirect('/dashboard');
 });
 
-app.get('/profile', (req, res) => {
-  res.send(req.user);
+// Define dashboard route
+app.get('/dashboard', (req, res) => {
+  if (req.isAuthenticated()) {
+    res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+  } else {
+    res.redirect('/login');
+  }
 });
 
+// Define logout route
+app.get('/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
+
+// Start the server
 https.createServer(options, app).listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
