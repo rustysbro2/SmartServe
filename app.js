@@ -60,22 +60,17 @@ const encryptionKey = secretKey.slice(0, 32);
 
 // Encrypt email
 function encryptEmail(email) {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(encryptionKey, 'base64'), iv);
-  let encrypted = cipher.update(email, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return iv.toString('hex') + encrypted;
+  const ciphertext = CryptoJS.AES.encrypt(email, encryptionKey).toString();
+  return ciphertext;
 }
 
 // Decrypt email
 function decryptEmail(encryptedEmail) {
-  const iv = Buffer.from(encryptedEmail.slice(0, 32), 'hex');
-  const encryptedText = encryptedEmail.slice(32);
-  const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(encryptionKey, 'base64'), iv);
-  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return decrypted;
+  const bytes = CryptoJS.AES.decrypt(encryptedEmail, encryptionKey);
+  const decryptedEmail = bytes.toString(CryptoJS.enc.Utf8);
+  return decryptedEmail;
 }
+
 
 passport.use(new DiscordStrategy({
   clientID: '1107025578047058030',
