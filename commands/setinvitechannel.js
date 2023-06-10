@@ -3,7 +3,7 @@ const inviteTracker = require('../features/inviteTracker.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('setinvitechannel')
+    .setName('setinvite')
     .setDescription('Set the channel for invite tracking messages')
     .addChannelOption(option =>
       option.setName('channel')
