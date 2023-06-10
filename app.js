@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  const redirectUri = 'https://your-domain.com/callback'; // Replace with your redirect URI
+  const redirectUri = 'https://smartserve.cc/callback'; // Replace with your redirect URI
 
   const authorizationUrl = oauth.generateAuthUrl({
     scope: ['identify', 'email'], // Specify the required scopes
