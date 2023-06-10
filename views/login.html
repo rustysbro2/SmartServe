@@ -1,28 +1,37 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Login</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <header>
     <nav>
       <ul>
-        <li><a href="/">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/services">Services</a></li>
-        <li><a href="/contact">Contact</a></li>
-        <li><a href="/login">Login</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/logout">Logout</a></li>
       </ul>
     </nav>
   </header>
   <main>
-    <h1>Login</h1>
-    <form action="/login" method="POST">
-      <input type="text" name="username" placeholder="Username" required>
-      <input type="password" name="password" placeholder="Password" required>
-      <button type="submit">Login</button>
-    </form>
+    <h1>Welcome to the Dashboard</h1>
+    <div class="user-info">
+      <h2>User Information</h2>
+      <p>Username: John Doe</p>
+      <p>Email: john@example.com</p>
+    </div>
+    <div class="dashboard-widgets">
+      <h2>Widgets</h2>
+      <div class="widget">
+        <h3>Widget 1</h3>
+        <p>This is the content of Widget 1.</p>
+      </div>
+      <div class="widget">
+        <h3>Widget 2</h3>
+        <p>This is the content of Widget 2.</p>
+      </div>
+    </div>
   </main>
   <footer>
     <p>&copy; 2023 Discord Website. All rights reserved.</p>
