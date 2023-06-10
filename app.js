@@ -139,6 +139,11 @@ passport.deserializeUser(async (id, done) => {
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Define root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
+});
+
 // Define login route
 app.get('/login', passport.authenticate('discord'));
 
@@ -146,22 +151,12 @@ app.get('/login', passport.authenticate('discord'));
 app.get('/callback', passport.authenticate('discord', {
   failureRedirect: '/login',
 }), (req, res) => {
-  res.redirect('/dashboard');
+  res.redirect('/profile');
 });
 
-// Define dashboard route
-app.get('/dashboard', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
-  } else {
-    res.redirect('/login');
-  }
-});
-
-// Define logout route
-app.get('/logout', (req, res) => {
-  req.logout();
-  res.redirect('/');
+// Define profile route
+app.get('/profile', (req, res) => {
+  res.send(req.user);
 });
 
 // Start the server
