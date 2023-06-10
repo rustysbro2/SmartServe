@@ -162,15 +162,14 @@ class MusicPlayer {
       throw new Error('The bot is not connected to a voice channel.');
     }
 
-    console.log('voiceConnection:', voiceConnection);
-    const voiceChannel = voiceConnection.state.channel;
-    console.log('voiceChannel:', voiceChannel);
+    const voiceChannelId = voiceConnection.joinConfig?.channelId;
+    const voiceChannel = voiceConnection.joinConfig?.guildId ? voiceConnection.joinConfig?.guild.channels.cache.get(voiceChannelId) : null;
+
     if (!voiceChannel) {
       throw new Error('Failed to retrieve the voice channel.');
     }
 
     const members = voiceChannel.members;
-    console.log('members:', members);
     if (!members) {
       throw new Error('Failed to retrieve the members in the voice channel.');
     }
@@ -193,6 +192,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
