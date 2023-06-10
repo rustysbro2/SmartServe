@@ -157,33 +157,17 @@ class MusicPlayer {
 
     this.voteSkips.add(member.id);
 
-    const voiceConnection = this.connection;
-    if (!voiceConnection) {
-      throw new Error('The bot is not connected to a voice channel.');
-    }
-
-    const voiceChannelId = voiceConnection.joinConfig?.channelId;
-    const guild = voiceConnection.joinConfig?.guildId ? this.textChannel.client.guilds.cache.get(voiceConnection.joinConfig.guildId) : null;
-    const voiceChannel = guild ? guild.channels.resolve(voiceChannelId) : null;
-
-    console.log('voiceConnection:', voiceConnection);
-    console.log('voiceChannel:', voiceChannel);
+    const voiceChannelId = this.connection?.joinConfig.channelId;
+    const voiceChannel = this.textChannel.guild?.channels.resolve(voiceChannelId);
 
     if (!voiceChannel) {
       throw new Error('Failed to retrieve the voice channel.');
     }
 
-    const members = voiceChannel.members;
-    console.log('members:', members);
+    const totalCount = voiceChannel.members.filter(member => !member.user.bot).size - 1;
 
-    if (!members) {
-      throw new Error('Failed to retrieve the members in the voice channel.');
-    }
-
-    const totalCount = members.filter(member => !member.user.bot).size;
-
-    if (!totalCount) {
-      throw new Error('Failed to retrieve the total count of members in the voice channel.');
+    if (totalCount <= 0) {
+      throw new Error('There are no members in the voice channel.');
     }
 
     const voteCount = this.voteSkips.size;
@@ -198,6 +182,7 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
+
 
 
 
