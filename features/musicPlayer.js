@@ -157,23 +157,19 @@ class MusicPlayer {
 
     this.voteSkips.add(member.id);
 
-    const voiceConnection = this.connection;
-    if (!voiceConnection) {
-      throw new Error('The bot is not connected to a voice channel.');
-    }
+    const voiceChannelId = this.connection?.joinConfig.channelId;
+    const voiceChannel = this.textChannel.guild?.channels.resolve(voiceChannelId);
 
-    const voiceChannel = voiceConnection.joinConfig?.channel;
     if (!voiceChannel) {
       throw new Error('Failed to retrieve the voice channel.');
     }
 
-    const members = voiceChannel.members;
-    if (!members) {
-      throw new Error('Failed to retrieve the members in the voice channel.');
+    const totalCount = voiceChannel.members.filter(member => !member.user.bot).size - 1;
+
+    if (totalCount <= 0) {
+      throw new Error('There are no members in the voice channel.');
     }
 
-    const otherMembers = members.filter(member => !member.user.bot);
-    const totalCount = otherMembers.size;
     const voteCount = this.voteSkips.size;
     const votePercentage = (voteCount / totalCount) * 100;
 
@@ -186,8 +182,6 @@ class MusicPlayer {
       this.sendVoteSkipMessage();
     }
   }
-
-
 
 
 
