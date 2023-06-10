@@ -27,10 +27,12 @@ app.get('/', (req, res) => {
 
 app.get('/login', (req, res) => {
   const redirectUri = 'https://smartserve.cc/callback'; // Replace with your redirect URI
+  const clientId = '1107025578047058030'; // Replace with your client ID
 
   const authorizationUrl = oauth.generateAuthUrl({
     scope: ['identify', 'email'], // Specify the required scopes
     redirectUri,
+    clientId,
   });
   res.redirect(authorizationUrl);
 });
