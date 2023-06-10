@@ -1,6 +1,7 @@
 const express = require('express');
 const https = require('https');
 const fs = require('fs');
+const path = require('path');
 
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'), // Replace with the path to your private key file
@@ -11,20 +12,11 @@ const options = {
 const app = express();
 const port = 443;
 
+// Serve static files from the "public" directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 app.get('/', (req, res) => {
-  res.send('Welcome to the Discord website!');
-});
-
-app.get('/home', (req, res) => {
-  res.send('This is the home page.');
-});
-
-app.get('/about', (req, res) => {
-  res.send('This is the about page.');
-});
-
-app.get('/contact', (req, res) => {
-  res.send('This is the contact page.');
+  res.sendFile(path.join(__dirname, 'views', 'index.html'));
 });
 
 https.createServer(options, app).listen(port, () => {
