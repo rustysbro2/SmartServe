@@ -107,7 +107,6 @@ client.once('ready', async () => {
 
     // Top.gg API integration
     const topGGToken = process.env.TOP_GG_TOKEN; // Get Top.gg token from .env file
-    const dbl = new DBL(topGGToken, client);
     
     dbl.on('vote', async (vote) => {
       console.log(`User with ID ${vote.user} just voted!`);
