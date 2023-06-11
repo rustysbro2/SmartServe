@@ -9,7 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { AutoPoster, DBL } = require('@top-gg/sdk'); // Import Top.gg SDK
+const { AutoPoster } = require('@top-gg/sdk');
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -105,51 +105,11 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 
-    // Top.gg API integration
-    const topGGToken = process.env.TOP_GG_TOKEN; // Get Top.gg token from .env file
-    const dbl = new DBL(topGGToken, client);
-    
-    dbl.on('vote', async (vote) => {
-      console.log(`User with ID ${vote.user} just voted!`);
+    const poster = AutoPoster(process.env.TOP_GG_TOKEN, client);
 
-      // Check if they've opted in
-      const [rows] = await pool.query('SELECT * FROM optins WHERE user_id = ?', [vote.user]);
-      if (rows.length > 0) {
-        // They've opted in, so send the reminder
-        setTimeout(async () => {
-          let user = client.users.cache.get(vote.user);
-          if (user) {
-            user.send('You can vote for our bot again now! Here is the link: https://top.gg/bot/your-bot-id/vote');
-          }
-        }, 12 * 60 * 60 * 1000); // 12 hours in milliseconds
-      }
-
-      // Store when they voted
-      await pool.query('REPLACE INTO votes VALUES (?, ?)', [vote.user, Date.now()]);
-
-      // Delete their vote from the database
-      await pool.query('DELETE FROM votes WHERE user_id = ?', [vote.user]);
+    poster.on('posted', (stats) => {
+      console.log(`Posted stats to Top.gg | ${stats.serverCount} servers`);
     });
-
-    // Function to update the bot's presence
-    const updatePresence = () => {
-      client.user.setPresence({
-        activities: [
-          {
-            name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-            type: ActivityType.Watching,
-          },
-        ],
-        status: "online",
-      });
-    };
-
-    // Initial presence update
-    updatePresence();
-
-    // Set interval to update presence every 1 minute (adjust the interval as desired)
-    setInterval(updatePresence, 60000);
-
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
