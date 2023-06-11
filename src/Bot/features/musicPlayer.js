@@ -8,7 +8,15 @@ const {
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
 const { EmbedBuilder } = require('discord.js');
-const config = require('../config.js');
+const dotenv = require('dotenv');
+
+const path = require('path');
+
+dotenv.config();
+
+const clientId = process.env.CLIENT_ID;
+const guildId = process.env.GUILD_ID;
+const token = process.env.token;
 
 class MusicPlayer {
   constructor(guildId, channelId, textChannel) {
@@ -128,7 +136,7 @@ class MusicPlayer {
       return false;
     }
 
-    const botId = config.clientId; // Use the client ID from config.js
+    const botId = clientId; // Use the client ID from environment variable
     const botMember = members.get(botId);
     const otherMembers = members.filter(member => !member.user.bot && member.id !== botId);
     return otherMembers.size === 0;
@@ -179,12 +187,6 @@ class MusicPlayer {
     }
   }
 
-
-
-
-
-
-
   sendVoteSkipMessage() {
     const voteCount = this.voteSkips.size;
     const voiceChannel = this.textChannel.guild?.channels.resolve(this.connection.joinConfig?.channelId);
@@ -209,7 +211,6 @@ class MusicPlayer {
         console.error(`Failed to send vote skip message: ${error.message}`);
       });
   }
-
 
   startVoiceChannelCheckInterval() {
     this.voiceChannelCheckInterval = setInterval(() => {
