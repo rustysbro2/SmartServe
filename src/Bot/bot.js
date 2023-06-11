@@ -1,20 +1,18 @@
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
+const dotenv = require('dotenv');
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/General/help');
-const countingCommand = require('./commands/Counting/count');
-const setJoinMessageChannelCommand = require('./commands/Growth Guild/setJoin.js');
-const setLeaveMessageChannelCommand = require('./commands/Growth Guild/setLeave.js');
-const slashCommands = require('./slashCommands.js');
-const pool = require('../database.js'); // Adjust the path to the database.js file
-const { CHANNEL_TYPES } = require('discord.js');
-const dotenv = require('dotenv');
 const path = require('path');
+const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
+const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
+const slashCommands = require('./slashCommands.js');
+const pool = require('../database.js');
+const { CHANNEL_TYPES } = require('discord.js');
+const DBL = require('dblapi.js');
+const topGGToken = process.env.TOP_GG_TOKEN; // Get top.gg token from .env file
 
-dotenv.config({ path: path.join(__dirname, '..', '.env') });
-
-const token = process.env.token;
-
+dotenv.config(); // Load environment variables from .env file
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -29,49 +27,52 @@ const client = new Client({ shards: "auto", intents });
 client.commands = new Collection();
 client.musicPlayers = new Map();
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 const commandCategories = [];
+const loadCommands = (dir, category = null) => {
+  const files = fs.readdirSync(dir);
+  for (const file of files) {
+    const filePath = path.join(dir, file);
+    const stat = fs.lstatSync(filePath);
+    if (stat.isDirectory()) {
+      loadCommands(filePath, file); // Recursively load commands from subdirectories
+    } else if (file.endsWith('.js')) {
+      const command = require(filePath);
+      client.commands.set(command.data.name, command);
 
-for (const file of commandFiles) {
-  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
-  client.commands.set(command.data.name, command);
+      // Handle category and command data
+      const commandCategory = category ? category : 'Uncategorized';
+      const commandData = {
+        name: command.data.name,
+        description: command.data.description,
+        global: command.global !== false,
+        categoryDescription: command.categoryDescription
+      };
 
-  if (command.category) {
-    let category = commandCategories.find(category => category.name === command.category);
-    if (!category) {
-      category = {
-        name: command.category,
-        description: '',
-        commands: [],
-        guildId: command.guildId,
-        categoryDescription: command.categoryDescription // Assign category description here
-      };
-      commandCategories.push(category);
+      // Find the category object or create a new one
+      let categoryObj = commandCategories.find((c) => c.name === commandCategory);
+      if (!categoryObj) {
+        categoryObj = {
+          name: commandCategory,
+          description: '',
+          commands: [],
+          guildId: command.guildId,
+          categoryDescription: command.categoryDescription
+        };
+        commandCategories.push(categoryObj);
+      }
+
+      // Add the command to the category
+      categoryObj.commands.push(commandData);
     }
-    category.commands.push({
-      name: command.data.name,
-      description: command.data.description,
-      global: command.global !== false,
-      categoryDescription: command.categoryDescription // Include the categoryDescription property
-    });
-  } else {
-    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
-    if (!defaultCategory) {
-      defaultCategory = {
-        name: 'Uncategorized',
-        description: 'Commands that do not belong to any specific category',
-        commands: [],
-        guildId: undefined
-      };
-      commandCategories.push(defaultCategory);
-    }
-    defaultCategory.commands.push({
-      name: command.data.name,
-      description: command.data.description,
-      global: command.global !== false
-    });
   }
-}
+};
+
+const initializeCommands = () => {
+  const commandsDir = path.join(__dirname, 'commands');
+  loadCommands(commandsDir);
+};
+
+initializeCommands();
 
 // Remove empty categories
 commandCategories.forEach((category) => {
@@ -105,30 +106,35 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 
-    // Function to update the bot's presence
-    const updatePresence = () => {
-      client.user.setPresence({
-        activities: [
-          {
-            name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-            type: ActivityType.Watching,
-          },
-        ],
-        status: "online",
-      });
-    };
+    const dbl = new DBL(topGGToken, client);
+    dbl.on('vote', async (vote) => {
+      console.log(`User with ID ${vote.user} just voted!`);
 
-    // Initial presence update
-    updatePresence();
+      // Check if they've opted in
+      const [rows] = await pool.query('SELECT * FROM optins WHERE user_id = ?', [vote.user]);
+      if (rows.length > 0) {
+        // They've opted in, so send the reminder
+        setTimeout(async () => {
+          let user = client.users.cache.get(vote.user);
+          if (user) {
+            user.send(`You can vote for our bot again now! Here is the link: https://top.gg/bot/your-bot-id/vote`);
+          }
+        }, 12 * 60 * 60 * 1000); // 12 hours in milliseconds
+      }
 
-    // Set interval to update presence every 1 minute (adjust the interval as desired)
-    setInterval(updatePresence, 60000);
+      // Store when they voted
+      await pool.query('REPLACE INTO votes VALUES (?, ?)', [vote.user, Date.now()]);
+
+      // Delete their vote from the database
+      await pool.query('DELETE FROM votes WHERE user_id = ?', [vote.user]);
+    });
+
+    // Rest of the code...
 
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
 });
-
 
 client.on('interactionCreate', async (interaction) => {
   try {
@@ -237,8 +243,7 @@ client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
-
-client.login(token);
+client.login(process.env.TOKEN);
 
 async function getJoinMessageChannelFromDatabase() {
   try {
@@ -269,7 +274,6 @@ async function getLeaveMessageChannelFromDatabase() {
     throw error;
   }
 }
-
 
 async function createGuildsTable() {
   try {

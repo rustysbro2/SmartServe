@@ -1,15 +1,13 @@
+require('dotenv').config(); // Load environment variables from .env file
+
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
-const pool = require('../database.js');
 const path = require('path');
-const dotenv = require('dotenv');
+const pool = require('../database.js');
 
-dotenv.config();
-
-const clientId = process.env.CLIENT_ID;
-const guildId = process.env.guildId;
-const token = process.env.TOKEN;
+const clientId = process.env.CLIENT_ID; // Fetch the clientId from the environment variables
+const guildId = process.env.GUILD_ID; // Fetch the guildId from the environment variables
 
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist
@@ -38,7 +36,7 @@ async function updateCommandData(commands, rest, client) {
     // Get the existing guild-specific slash commands
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
 
-    // Read command files from the commands directory and its subfolders
+    // Read command files from the commands directory and its subdirectories
     const commandFiles = getCommandFiles('./commands');
 
     // Map command names to lowercase file names
@@ -56,7 +54,7 @@ async function updateCommandData(commands, rest, client) {
 
       if (!fileName) {
         console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
-        continue; // Skip to the next iteration
+        continue; // Skip to the next iterationw
       }
 
       const commandData = {
@@ -84,7 +82,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the command file exists
-            const commandFilePath = fileName;
+            const commandFilePath = `./commands/${fileName}`;
             const commandFileExists = fs.existsSync(commandFilePath);
 
             if (commandFileExists) {
@@ -147,7 +145,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the command file exists
-            const commandFilePath = fileName;
+            const commandFilePath = `./commands/${fileName}`;
             const commandFileExists = fs.existsSync(commandFilePath);
 
             if (commandFileExists) {
@@ -218,25 +216,30 @@ async function updateCommandData(commands, rest, client) {
   }
 }
 
-function getCommandFiles(dir) {
-  const commandFiles = [];
-  const files = fs.readdirSync(dir);
+function getCommandFiles(directory) {
+    const commandFiles = [];
+    const dirPath = path.join(__dirname, directory);
 
-  for (const file of files) {
-    const filePath = path.join(dir, file);
-    const stat = fs.lstatSync(filePath);
+    function scanDirectory(dir) {
+        const files = fs.readdirSync(dir);
 
-    if (stat.isDirectory()) {
-      const nestedCommandFiles = getCommandFiles(filePath);
-      commandFiles.push(...nestedCommandFiles);
-    } else if (file.toLowerCase().endsWith('.js')) {
-      const absolutePath = path.resolve(__dirname, filePath); // Use absolute path
-      commandFiles.push(absolutePath);
+        for (const file of files) {
+            const filePath = path.join(dir, file);
+            const stat = fs.statSync(filePath);
+
+            if (stat.isDirectory()) {
+                scanDirectory(filePath); // Recursively scan subdirectories
+            } else if (file.toLowerCase().endsWith('.js')) {
+                commandFiles.push(filePath);
+            }
+        }
     }
-  }
 
-  return commandFiles;
+    scanDirectory(dirPath);
+    return commandFiles;
 }
+
+
 
 
 module.exports = async function (client) {
@@ -245,7 +248,7 @@ module.exports = async function (client) {
 
   const commands = [];
 
-  // Read command files from the commands directory and its subfolders
+  // Read command files from the commands directory and its subdirectories
   const commandFiles = getCommandFiles('./commands');
 
   // Loop through command files and register slash commands
@@ -287,7 +290,7 @@ module.exports = async function (client) {
     }
   }
 
-  const rest = new REST({ version: '10' }).setToken(token);
+  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
   try {
     console.log('Started refreshing application (/) commands.');

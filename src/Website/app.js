@@ -7,9 +7,11 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
 const crypto = require('crypto');
-const pool = require('./database');
+const pool = require('../../database');
 
-dotenv.config();
+const envPath = path.join(__dirname, '../../.env');
+
+dotenv.config({ path: envPath });
 
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'),
