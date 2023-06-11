@@ -9,10 +9,9 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { AutoPoster } = require('@top-gg/sdk');
-const cron = require('node-cron');
+const topgg = require('@top-gg/sdk');
 
-dotenv.config(); // Load environment variables from .env file
+dotenv.config();
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -34,12 +33,11 @@ const loadCommands = (dir, category = null) => {
     const filePath = path.join(dir, file);
     const stat = fs.lstatSync(filePath);
     if (stat.isDirectory()) {
-      loadCommands(filePath, file); // Recursively load commands from subdirectories
+      loadCommands(filePath, file);
     } else if (file.endsWith('.js')) {
       const command = require(filePath);
       client.commands.set(command.data.name, command);
 
-      // Handle category and command data
       const commandCategory = category ? category : 'Uncategorized';
       const commandData = {
         name: command.data.name,
@@ -48,7 +46,6 @@ const loadCommands = (dir, category = null) => {
         categoryDescription: command.categoryDescription
       };
 
-      // Find the category object or create a new one
       let categoryObj = commandCategories.find((c) => c.name === commandCategory);
       if (!categoryObj) {
         categoryObj = {
@@ -61,7 +58,6 @@ const loadCommands = (dir, category = null) => {
         commandCategories.push(categoryObj);
       }
 
-      // Add the command to the category
       categoryObj.commands.push(commandData);
     }
   }
@@ -74,7 +70,6 @@ const initializeCommands = () => {
 
 initializeCommands();
 
-// Remove empty categories
 commandCategories.forEach((category) => {
   if (category.commands.length === 0) {
     const index = commandCategories.indexOf(category);
@@ -99,18 +94,25 @@ client.once('ready', async () => {
 
     await slashCommands(client);
 
-    console.log('Command Categories:');
-    commandCategories.forEach((category) => {
-      console.log(`Category: ${category.name}`);
-      console.log(`Guild ID: ${category.guildId}`);
-      console.log('Commands:', category.commands);
+    const dbl = new topgg.Api(process.env.TOP_GG_TOKEN);
+
+    dbl.on('vote', async (vote) => {
+      console.log(`User with ID ${vote.user} just voted!`);
+
+      const [rows] = await pool.query('SELECT * FROM optins WHERE user_id = ?', [vote.user]);
+      if (rows.length > 0) {
+        setTimeout(async () => {
+          let user = client.users.cache.get(vote.user);
+          if (user) {
+            user.send('You can vote for our bot again now! Here is the link: https://top.gg/bot/your-bot-id/vote');
+          }
+        }, 12 * 60 * 60 * 1000);
+      }
+
+      await pool.query('REPLACE INTO votes VALUES (?, ?)', [vote.user, Date.now()]);
+      await pool.query('DELETE FROM votes WHERE user_id = ?', [vote.user]);
     });
 
-    const poster = AutoPoster(process.env.TOP_GG_TOKEN, client);
-
-    poster.on('posted', (stats) => {
-      console.log(`Posted stats to Top.gg | ${stats.serverCount} servers`);
-    });
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
@@ -134,6 +136,9 @@ client.on('interactionCreate', async (interaction) => {
 client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
+
+    // Logic for handling guild join
+    // ...
 
     const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
 
@@ -163,7 +168,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== 'text') {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -178,6 +183,9 @@ client.on('guildCreate', async (guild) => {
 client.on('guildDelete', async (guild) => {
   try {
     console.log(`Bot left a guild: ${guild.name} (${guild.id})`);
+
+    // Logic for handling guild leave
+    // ...
 
     const leaveMessageChannel = await getLeaveMessageChannelFromDatabase();
 
@@ -207,7 +215,7 @@ client.on('guildDelete', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== 'text') {
       console.log('Text channel not found in the target guild.');
       return;
     }
