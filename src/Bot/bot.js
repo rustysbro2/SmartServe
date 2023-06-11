@@ -9,7 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { AutoPoster } = require('@top-gg/sdk'); // Import Top.gg SDK
+const { AutoPoster, DBL } = require('@top-gg/sdk'); // Import Top.gg SDK
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -107,6 +107,7 @@ client.once('ready', async () => {
 
     // Top.gg API integration
     const topGGToken = process.env.TOP_GG_TOKEN; // Get Top.gg token from .env file
+    const dbl = new DBL(topGGToken, client);
     
     dbl.on('vote', async (vote) => {
       console.log(`User with ID ${vote.user} just voted!`);
