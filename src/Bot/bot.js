@@ -9,7 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { AutoPoster, DBL } = require('@top-gg/sdk'); // Import Top.gg SDK
+const { AutoPoster } = require('@top-gg/sdk'); // Import Top.gg SDK
 
 dotenv.config(); // Load environment variables from .env file
 
