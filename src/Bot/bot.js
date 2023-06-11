@@ -10,6 +10,7 @@ const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
 const { AutoPoster } = require('@top-gg/sdk');
+const cron = require('node-cron');
 
 dotenv.config(); // Load environment variables from .env file
 
