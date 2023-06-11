@@ -9,8 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const DBL = require('dblapi.js');
-const topGGToken = process.env.TOP_GG_TOKEN; // Get top.gg token from .env file
+const { AutoPoster, DBL } = require('@top-gg/sdk'); // Import Top.gg SDK
 
 dotenv.config(); // Load environment variables from .env file
 
@@ -106,7 +105,10 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 
+    // Top.gg API integration
+    const topGGToken = process.env.TOP_GG_TOKEN; // Get Top.gg token from .env file
     const dbl = new DBL(topGGToken, client);
+    
     dbl.on('vote', async (vote) => {
       console.log(`User with ID ${vote.user} just voted!`);
 
@@ -117,7 +119,7 @@ client.once('ready', async () => {
         setTimeout(async () => {
           let user = client.users.cache.get(vote.user);
           if (user) {
-            user.send(`You can vote for our bot again now! Here is the link: https://top.gg/bot/your-bot-id/vote`);
+            user.send('You can vote for our bot again now! Here is the link: https://top.gg/bot/your-bot-id/vote');
           }
         }, 12 * 60 * 60 * 1000); // 12 hours in milliseconds
       }
@@ -129,7 +131,24 @@ client.once('ready', async () => {
       await pool.query('DELETE FROM votes WHERE user_id = ?', [vote.user]);
     });
 
-    // Rest of the code...
+    // Function to update the bot's presence
+    const updatePresence = () => {
+      client.user.setPresence({
+        activities: [
+          {
+            name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+            type: ActivityType.Watching,
+          },
+        ],
+        status: "online",
+      });
+    };
+
+    // Initial presence update
+    updatePresence();
+
+    // Set interval to update presence every 1 minute (adjust the interval as desired)
+    setInterval(updatePresence, 60000);
 
   } catch (error) {
     console.error('Error during bot initialization:', error);
