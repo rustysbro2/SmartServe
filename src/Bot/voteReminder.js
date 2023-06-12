@@ -70,23 +70,31 @@ async function startVoteReminderLoop(client) {
     }, REMINDER_INTERVAL);
 }
 
-// Function to simulate a vote for testing
+
 // Function to simulate a vote for testing
 async function simulateVote(client, discordId) {
   try {
     const currentTime = new Date(Date.now() - (13 * 60 * 60 * 1000));
 
     // Fetch the optIn status from the database
-    const [row] = await pool.query('SELECT optIn FROM topgg_opt WHERE discordId = ?', [discordId]);
+    const [row] = await pool.query('SELECT optIn, lastVoteTime FROM topgg_opt WHERE discordId = ?', [discordId]);
 
     if (row && row.optIn) {
-      // Send the vote reminder only if the user has opted in
-      const user = await client.users.fetch(discordId);
-      if (!user) {
+      const lastVoteTime = row.lastVoteTime;
+      const timeSinceLastVote = currentTime - lastVoteTime;
+      const twelveHoursInMs = 12 * 60 * 60 * 1000;
+
+      if (timeSinceLastVote >= twelveHoursInMs) {
+        // It has been 12 hours or more since the last vote, send a reminder
+        const user = await client.users.fetch(discordId);
+        if (!user) {
           console.log(`User with ID ${discordId} not found.`);
           return;
+        }
+        user.send(`Don't forget to vote for the bot! You can vote [here](https://top.gg/bot/${client.user.id}/vote).`);
+      } else {
+        console.log(`User with ID ${discordId} has not reached the voting cooldown yet.`);
       }
-      user.send(`This is a test reminder to vote!`);
     } else {
       console.log(`User with ID ${discordId} has opted out of vote reminders.`);
     }
@@ -94,6 +102,7 @@ async function simulateVote(client, discordId) {
     console.error('Error simulating vote:', error);
   }
 }
+
 
 
 
