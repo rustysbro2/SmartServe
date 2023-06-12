@@ -72,8 +72,7 @@ async function startVoteReminderLoop(client) {
 
 
 // Function to simulate a vote for testing
-// Function to simulate a vote for testing
-async function simulateVote(client, discordId) {
+async function simulateVote(client, userId, botId) {
   try {
     const currentTime = new Date();
 
@@ -81,31 +80,27 @@ async function simulateVote(client, discordId) {
     const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
 
     // Update the lastVoteTime in the database
-    await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [lastVoteTime, discordId]);
+    await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE botId = ? AND discordId = ?', [lastVoteTime, botId, userId]);
 
     // Fetch the optIn status from the database
-    const [row] = await pool.query('SELECT optIn FROM topgg_opt WHERE discordId = ?', [discordId]);
+    const [row] = await pool.query('SELECT optIn FROM topgg_opt WHERE botId = ? AND discordId = ?', [botId, userId]);
 
     if (row && row.optIn) {
       // Send the reminder message
-      const user = await client.users.fetch(discordId);
+      const voteUrl = `https://top.gg/bot/${botId}/vote`;
+      const user = await client.users.fetch(userId);
       if (!user) {
-        console.log(`User with ID ${discordId} not found.`);
+        console.log(`User with ID ${userId} not found.`);
         return;
       }
-      user.send(`Don't forget to vote for the bot! You can vote [here](https://top.gg/bot/${client.user.id}/vote).`);
+      user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
     } else {
-      console.log(`User with ID ${discordId} has opted out of vote reminders.`);
+      console.log(`User with ID ${userId} has opted out of vote reminders for bot with ID ${botId}.`);
     }
   } catch (error) {
     console.error('Error simulating vote:', error);
   }
 }
-
-
-
-
-
 
 
 module.exports = {
