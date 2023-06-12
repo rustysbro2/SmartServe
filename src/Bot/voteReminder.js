@@ -40,8 +40,9 @@ async function startVoteReminderLoop(client) {
   // Call sendVoteReminder immediately without updating lastVoteTime
   const [result] = await pool.query('SELECT discordId FROM topgg_opt');
   const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
-
+  
   for (const row of rows) {
+    console.log('Checking user:', row.discordId);
     // Send a reminder to each user
     await sendVoteReminder(client, row.discordId);
   }
