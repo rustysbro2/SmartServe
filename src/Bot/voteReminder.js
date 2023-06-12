@@ -8,9 +8,15 @@ const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 const REMINDER_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
 // Function to send a reminder message to a channel
-async function sendVoteReminder(client, channelId) {
+async function sendVoteReminder(client, guildId, channelId) {
     try {
-        const channel = await client.channels.fetch(channelId);
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) {
+            console.log(`Invalid guild with ID ${guildId}`);
+            return;
+        }
+        
+        const channel = guild.channels.cache.get(channelId);
         if (channel && channel.type === 'text') {
             const response = await fetch(`https://top.gg/api/bots/${client.user.id}`, {
                 headers: { 'Authorization': TOPGG_TOKEN }
@@ -27,6 +33,7 @@ async function sendVoteReminder(client, channelId) {
         console.error('Error fetching bot data:', error);
     }
 }
+
 
 
 
