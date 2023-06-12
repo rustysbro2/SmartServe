@@ -118,19 +118,21 @@ async function addPreviouslyVotedUsers(client) {
         const userId = vote.user; // User ID who voted
         const botId = vote.bot; // Bot ID (if needed)
 
-        // Check if the user already exists in the database
-        const [row] = await pool.query('SELECT * FROM topgg_opt WHERE discordId = ?', [userId]);
+        if (userId) {
+          // Check if the user already exists in the database
+          const [row] = await pool.query('SELECT * FROM topgg_opt WHERE discordId = ?', [userId]);
 
-        if (row) {
-          // User exists in the database, update the lastVoteTime
-          const currentTime = new Date();
-          const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
-          await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [lastVoteTime, userId]);
-          console.log('Updated lastVoteTime for user:', userId);
-        } else {
-          // User does not exist in the database, insert a new row
-          await pool.query('INSERT INTO topgg_opt (discordId, optIn) VALUES (?, ?)', [userId, true]);
-          console.log('Inserted new user into the database:', userId);
+          if (row) {
+            // User exists in the database, update the lastVoteTime
+            const currentTime = new Date();
+            const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
+            await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [lastVoteTime, userId]);
+            console.log('Updated lastVoteTime for user:', userId);
+          } else {
+            // User does not exist in the database, insert a new row
+            await pool.query('INSERT INTO topgg_opt (discordId, optIn) VALUES (?, ?)', [userId, true]);
+            console.log('Inserted new user into the database:', userId);
+          }
         }
       }
     } else {
@@ -140,6 +142,10 @@ async function addPreviouslyVotedUsers(client) {
     console.error('Error adding previously voted users to the database:', error);
   }
 }
+
+// Call this function when your bot starts up
+addPreviouslyVotedUsers(client);
+
 
 module.exports = {
     startVoteReminderLoop,
