@@ -8,7 +8,7 @@ const botId = '1105598736551387247';
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 
 // Set the reminder interval (in milliseconds)
-const REMINDER_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+const REMINDER_INTERVAL = 1000; // 24 hours
 
 // Function to send a reminder message to a channel
 async function sendVoteReminder(client, guildId, channelId) {
