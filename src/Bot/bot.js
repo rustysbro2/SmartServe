@@ -133,11 +133,11 @@ client.once('ready', async () => {
     });
 
     // Schedule the vote reminders on startup
-    scheduleVoteReminders();
+    await processUsers();
 
     // Schedule the vote reminders to run every 10 minutes
     cron.schedule('*/10 * * * *', async () => {
-      await scheduleVoteReminders();
+      await processUsers();
     });
   } catch (error) {
     console.error('Error in client once event:', error);
