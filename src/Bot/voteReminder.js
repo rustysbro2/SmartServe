@@ -74,7 +74,6 @@ async function startVoteReminderLoop(client) {
 
 
 // Function to simulate a vote for testing
-// Function to simulate a vote for testing
 async function simulateVote(client, userId, botId) {
   try {
     const currentTime = new Date();
@@ -104,6 +103,16 @@ async function simulateVote(client, userId, botId) {
     console.error('Error simulating vote:', error);
   }
 }
+
+// Example usage of the simulateVote function
+simulateVote(client, userId, botId)
+  .then(() => {
+    console.log('Simulated vote reminder sent successfully!');
+  })
+  .catch((error) => {
+    console.error('Error simulating vote:', error);
+  });
+
 
 
 
