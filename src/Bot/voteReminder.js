@@ -38,35 +38,16 @@ async function sendVoteReminder(client, userId) {
 }
 
 async function startVoteReminderLoop(client) {
-  try {
-    // Check if the lastVoteTime is null or undefined for any user
-    const [result] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime IS NULL');
-    const rows = Array.isArray(result) ? result : [result];
+  // Call sendVoteReminder immediately without updating lastVoteTime
+  const [result] = await pool.query('SELECT discordId FROM topgg_opt');
+  const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
-    if (rows.length > 0) {
-      const currentTime = new Date();
-
-      // Update the lastVoteTime only for users with null or undefined lastVoteTime
-      await pool.query('UPDATE topgg_opt SET lastVoteTime = ?', [currentTime]);
-
-      console.log('Initialized lastVoteTime for eligible users to the current time.');
-    } else {
-      console.log('No eligible users found for initializing lastVoteTime.');
-    }
-
-    // Call sendVoteReminder immediately after initializing the lastVoteTime
-    const [voteReminderResult] = await pool.query('SELECT discordId FROM topgg_opt');
-    const voteReminderRows = Array.isArray(voteReminderResult) ? voteReminderResult : [voteReminderResult];
-
-    for (const row of voteReminderRows) {
-      // Send a reminder to each user
-      await sendVoteReminder(client, row.discordId);
-    }
-  } catch (error) {
-    console.error('Error updating the database or sending vote reminders:', error);
+  for (const row of rows) {
+    // Send a reminder to each user
+    await sendVoteReminder(client, row.discordId);
   }
 
-  // Start the interval after initializing lastVoteTime and sending reminders
+  // Start the interval after sending reminders
   setInterval(async () => {
     // Get the current time 12 hours ago
     const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
@@ -83,10 +64,11 @@ async function startVoteReminderLoop(client) {
         await sendVoteReminder(client, row.discordId);
       }
     } catch (error) {
-      console.error('Error querying the database or sending vote reminders:', error);
+      console.error('Error querying the database:', error);
     }
   }, REMINDER_INTERVAL);
 }
+
 
 async function simulateVote(client, userId, botId) {
   try {
