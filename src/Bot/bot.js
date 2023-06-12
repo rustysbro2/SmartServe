@@ -12,14 +12,14 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const optOutCommand = require('./commands/TopG/opt.js'); // Import the optOutCommand module
 const pool = require('../database.js');
-const sendVoteReminder = require('./gg.js')
+const { scheduleVoteReminders } = require('./voteReminders.js'); // Import the scheduleVoteReminders function
 
 const intents = [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildVoiceStates,
-  GatewayIntentBits.GuildPresences
+  GatewayIntentBits.GuildPresences,
 ];
 
 const client = new Client({ shards: 'auto', intents });
@@ -45,7 +45,7 @@ const loadCommands = (dir, category = null) => {
         name: command.data.name,
         description: command.data.description,
         global: command.global !== false,
-        categoryDescription: command.categoryDescription
+        categoryDescription: command.categoryDescription,
       };
 
       // Find the category object or create a new one
@@ -56,7 +56,7 @@ const loadCommands = (dir, category = null) => {
           description: '',
           commands: [],
           guildId: command.guildId,
-          categoryDescription: command.categoryDescription
+          categoryDescription: command.categoryDescription,
         };
         commandCategories.push(categoryObj);
       }
@@ -136,6 +136,14 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 
+    // Schedule the vote reminders
+    cron.schedule('0 9 * * *', async () => {
+      await scheduleVoteReminders();
+    });
+  } catch (error) {
+    console.error('Error in client once event:', error);
+  }
+});
 
 client.on('interactionCreate', async (interaction) => {
   try {
@@ -244,14 +252,15 @@ client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
-
 client.login(process.env.TOKEN).catch((error) => {
   console.error('Error logging in:', error);
 });
 
 async function createGuildsTable() {
   try {
-    await pool.promise().query(`
+    await pool
+      .promise()
+      .query(`
       CREATE TABLE IF NOT EXISTS guilds (
         join_message_channel VARCHAR(255) NOT NULL DEFAULT '',
         leave_message_channel VARCHAR(255) NOT NULL DEFAULT '',
