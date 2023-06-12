@@ -3,13 +3,12 @@ const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
 
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
-const botId = process.env.BOT_ID;
-
+const botId = '1105598736551387247';
 
 // Set the reminder interval (in milliseconds)
 const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
-async function sendVoteReminder(client, userId, botId) {
+async function sendVoteReminder(client, userId) {
   try {
     const user = await client.users.fetch(userId);
     if (!user) {
@@ -34,14 +33,14 @@ async function sendVoteReminder(client, userId, botId) {
   }
 }
 
-async function startVoteReminderLoop(client, botId) {
+async function startVoteReminderLoop(client) {
   // Call sendVoteReminder immediately without updating lastVoteTime
   const [result] = await pool.query('SELECT discordId FROM topgg_opt');
   const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
   for (const row of rows) {
     // Send a reminder to each user
-    await sendVoteReminder(client, row.discordId, botId);
+    await sendVoteReminder(client, row.discordId);
   }
 
   // Start the interval after sending reminders
@@ -58,7 +57,7 @@ async function startVoteReminderLoop(client, botId) {
 
       for (const row of rows) {
         // Send a reminder to each user
-        await sendVoteReminder(client, row.discordId, botId);
+        await sendVoteReminder(client, row.discordId);
       }
     } catch (error) {
       console.error('Error querying the database:', error);
@@ -66,10 +65,10 @@ async function startVoteReminderLoop(client, botId) {
   }, REMINDER_INTERVAL);
 }
 
-async function addPreviouslyVotedUsers(client, botId) {
+async function addPreviouslyVotedUsers(client) {
   try {
     // Fetch the list of users who voted from top.gg API
-    const url = `https://top.gg/api/bots/{botId}/votes`;
+    const url = `https://top.gg/api/bots/${botId}/votes`;
     console.log('API Request URL:', url);
 
     const response = await fetch(url, {
@@ -82,11 +81,6 @@ async function addPreviouslyVotedUsers(client, botId) {
       remaining: response.headers.get('X-RateLimit-Remaining'),
       reset: response.headers.get('X-RateLimit-Reset')
     });
-
-    if (response.status === 401) {
-      console.error('Unauthorized: Invalid top.gg API token or insufficient permissions.');
-      return;
-    }
 
     const votes = await response.json();
 
