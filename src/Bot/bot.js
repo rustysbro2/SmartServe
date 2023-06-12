@@ -10,10 +10,9 @@ const helpCommand = require('./commands/General/help');
 const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const { remindUsersToVote } = require('./remindUsers.js'); // Import the remindUsersToVote function
+const { remindUsersToVote } = require('./gg.js'); // Import the remindUsersToVote function
 const optOutCommand = require('./optOutCommand.js'); // Import the optOutCommand module
 const pool = require('../database.js');
-const webhookServer = require('./Test');
 
 const intents = [
   GatewayIntentBits.Guilds,
