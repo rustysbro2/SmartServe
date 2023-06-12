@@ -112,10 +112,6 @@ client.once('ready', async () => {
   try {
     // Start the vote reminder loop
     await startVoteReminderLoop(client);
-
-    // Simulate a vote
-    const userId = '385324994533654530';
-    const botId = '1105598736551387247';
    
     // Add previously voted users to the database
     await addPreviouslyVotedUsers(client);
