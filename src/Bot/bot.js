@@ -11,7 +11,6 @@ const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
 const cron = require('node-cron');
 dotenv.config(); // Load environment variables from .env file
-const { startVoteReminderLoop, addPreviouslyVotedUsers } = require('./voteReminder');
 const webhookServer = require('./Test');
 
 const intents = [
@@ -110,17 +109,6 @@ client.once('ready', async () => {
     console.error('Error during bot initialization:', error);
   }
 
-  try {
-    // Start the vote reminder loop
-    await startVoteReminderLoop(client);
-
-    // Add previously voted users to the database
-    await addPreviouslyVotedUsers(client);
-    console.log('Previously voted users added to the database.');
-  } catch (error) {
-    console.error('Error during bot initialization:', error);
-  }
-});
 
 client.on('interactionCreate', async (interaction) => {
   try {
