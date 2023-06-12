@@ -23,13 +23,14 @@ async function sendVoteReminder(client, userId) {
     });
     const botData = await response.json();
 
-    const voteUrl = botData.url || 'https://top.gg/'; // Use a default URL if botData.url is undefined
+    const voteUrl = botData?.url || 'https://top.gg/'; // Use optional chaining operator to handle undefined botData.url
 
     user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
   } catch (error) {
     console.error('Error in sendVoteReminder function:', error);
   }
 }
+
 
 // Function to start the reminder loop
 async function startVoteReminderLoop(client) {
