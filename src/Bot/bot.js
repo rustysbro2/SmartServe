@@ -11,7 +11,8 @@ const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
 const cron = require('node-cron');
 dotenv.config(); // Load environment variables from .env file
-
+const userId = '385324994533654530';
+const botId = '1107025578047058030';
 const { startVoteReminderLoop, simulateVote } = require('./voteReminder');
 
 const intents = [
@@ -107,12 +108,18 @@ client.once('ready', async () => {
     });
 	
     startVoteReminderLoop(client);
-    simulateVote(client, '385324994533654530', '1107025578047058030');
+		simulateVote(client, userId, botId)
+			.then(() => {
+				console.log('Vote simulated successfully!');
+			})
+			.catch((error) => {
+				console.error('Error simulating vote:', error);
+			});
 
-  } catch (error) {
-    console.error('Error during bot initialization:', error);
-  }
-});
+			} catch (error) {
+				console.error('Error during bot initialization:', error);
+			}
+		});
 
 client.on('interactionCreate', async (interaction) => {
   try {
