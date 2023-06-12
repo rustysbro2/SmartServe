@@ -121,6 +121,7 @@ client.once('ready', async () => {
       status: 'online',
     });
 
+    await client.guilds.fetch(); // Fetch guilds before processing users
     inviteTracker.execute(client);
     processUsers(client);
 
@@ -145,113 +146,7 @@ client.once('ready', async () => {
   }
 });
 
-client.on('interactionCreate', async (interaction) => {
-  try {
-    if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
-      helpCommand.handleSelectMenu(interaction, commandCategories);
-    } else if (interaction.isCommand()) {
-      const command = client.commands.get(interaction.commandName);
-      if (command) {
-        await command.execute(interaction, client, commandCategories);
-      }
-    }
-  } catch (error) {
-    console.error('Error handling interaction:', error);
-  }
-});
-
-client.on('guildCreate', async (guild) => {
-    processUsers(client);
-  try {
-    console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
-
-    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
-
-    if (!joinMessageChannel) {
-      console.log('Join message channel not set in the database.');
-      return;
-    }
-
-    console.log('Retrieved join message channel:', joinMessageChannel);
-
-    const joinMessage = `The bot has been added to a new guild!\nGuild Name: ${guild.name}\nGuild ID: ${guild.id}`;
-
-    const targetGuild = client.guilds.cache.get(joinMessageChannel.target_guild_id);
-    if (!targetGuild) {
-      console.log('Target guild not found.');
-      return;
-    }
-
-    console.log('Target Guild:', targetGuild);
-
-    console.log('Target Guild Channels:');
-    targetGuild.channels.cache.forEach((channel) => {
-      console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
-    });
-
-    const channel = targetGuild.channels.cache.get(joinMessageChannel.join_message_channel);
-    console.log('Target Channel:', channel);
-    console.log('Channel Type:', channel?.type);
-
-    if (!channel || channel.type !== 'GUILD_TEXT') {
-      console.log('Text channel not found in the target guild.');
-      return;
-    }
-
-    await channel.send(joinMessage);
-    console.log('Join message sent successfully.');
-  } catch (error) {
-    console.error('Error handling guildCreate event:', error);
-  }
-});
-
-client.on('guildDelete', async (guild) => {
-  try {
-    console.log(`Bot left a guild: ${guild.name} (${guild.id})`);
-
-    const leaveMessageChannel = await getLeaveMessageChannelFromDatabase();
-
-    if (!leaveMessageChannel) {
-      console.log('Leave message channel not set in the database.');
-      return;
-    }
-
-    console.log('Retrieved leave message channel:', leaveMessageChannel);
-
-    const leaveMessage = `The bot has been removed from a guild!\nGuild Name: ${guild.name}\nGuild ID: ${guild.id}`;
-
-    const targetGuild = client.guilds.cache.get(leaveMessageChannel.target_guild_id);
-    if (!targetGuild) {
-      console.log('Target guild not found.');
-      return;
-    }
-
-    console.log('Target Guild:', targetGuild);
-
-    console.log('Target Guild Channels:');
-    targetGuild.channels.cache.forEach((channel) => {
-      console.log(`Channel ID: ${channel.id}, Name: ${channel.name}, Type: ${channel.type}`);
-    });
-
-    const channel = targetGuild.channels.cache.get(leaveMessageChannel.leave_message_channel);
-    console.log('Target Channel:', channel);
-    console.log('Channel Type:', channel?.type);
-
-    if (!channel || channel.type !== 'GUILD_TEXT') {
-      console.log('Text channel not found in the target guild.');
-      return;
-    }
-
-    await channel.send(leaveMessage);
-    console.log('Leave message sent successfully.');
-  } catch (error) {
-    console.error('Error handling guildDelete event:', error);
-  }
-});
-
-client.on('error', (error) => {
-  console.error('Discord client error:', error);
-});
+// Rest of your code...
 
 client.login(process.env.TOKEN).catch((error) => {
   console.error('Error logging in:', error);
