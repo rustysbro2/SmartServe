@@ -22,7 +22,7 @@ async function sendVoteReminder(client, guildId, channelId) {
             return;
         }
         
-        if (channel.type !== 'text') {
+        if (channel.type !== '0') {
             console.log(`Invalid or non-text channel with ID ${channelId}`);
             return;
         }
