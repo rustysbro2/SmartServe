@@ -17,7 +17,7 @@ async function sendVoteReminder(client, userId) {
     }
 
     const response = await fetch('https://top.gg/api/bots/1105598736551387247', {
-      headers: { 'Authorization': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMDU1OTg3MzY1NTEzODcyNDciLCJib3QiOnRydWUsImlhdCI6MTY4NjU4MjAxMH0.5bjfZACBhzRfAQ1FPaTo-D6ANk6-cnYqmZ3WWfueWDM' }
+      headers: { 'Authorization': '.eyJpZCI6IjExMDU1OTg3MzY1NTEzODcyNDciLCJib3QiOnRydWUsImlhdCI6MTY4NjU4NTYzM30.Ydeh1WDep-Mz5cTUZOe7c7T_P9Ai1329bl22gCt2lyA' }
     });
 
 
