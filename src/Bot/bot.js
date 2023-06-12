@@ -107,7 +107,10 @@ client.once('ready', async () => {
       console.log(`Guild ID: ${category.guildId}`);
       console.log('Commands:', category.commands);
     });
-	
+  } catch (error) {
+    console.error('Error during bot initialization:', error);
+  }
+
   try {
     // Start the vote reminder loop
     await startVoteReminderLoop(client);
@@ -125,6 +128,7 @@ client.once('ready', async () => {
     console.error('Error during bot initialization:', error);
   }
 });
+
 
 client.on('interactionCreate', async (interaction) => {
   try {
