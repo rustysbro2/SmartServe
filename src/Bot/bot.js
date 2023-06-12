@@ -113,10 +113,6 @@ client.once('ready', async () => {
     // Start the vote reminder loop
     await startVoteReminderLoop(client);
 
-    // Simulate a vote
-    const userId = '385324994533654530';
-    const botId = '1105598736551387247';
-   
     // Add previously voted users to the database
     await addPreviouslyVotedUsers(client);
     console.log('Previously voted users added to the database.');
@@ -124,7 +120,6 @@ client.once('ready', async () => {
     console.error('Error during bot initialization:', error);
   }
 });
-
 
 client.on('interactionCreate', async (interaction) => {
   try {
