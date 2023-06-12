@@ -61,8 +61,11 @@ async function startVoteReminderLoop(client) {
 
     try {
       // Query the database for users who last voted more than 12 hours ago
-      const [rows] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
-      console.log('Query result:', rows); // Add this debug log
+      const [result] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
+      const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
+
+      console.log('Query result:', rows);
+
       for (const row of rows) {
         // Send a reminder to each user
         await sendVoteReminder(client, row.discordId);
@@ -71,7 +74,7 @@ async function startVoteReminderLoop(client) {
       console.error('Error querying the database:', error);
     }
   }, REMINDER_INTERVAL);
-}
+
 
 // Function to simulate a vote for testing
 async function simulateVote(client, userId, botId) {
