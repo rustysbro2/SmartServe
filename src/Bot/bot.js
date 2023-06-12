@@ -10,9 +10,9 @@ const helpCommand = require('./commands/General/help');
 const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const optOutCommand = require('./commands/TopG/opt.js'); // Import the optOutCommand module
+const optOutCommand = require('./commands/TopG/opt.js');
 const pool = require('../database.js');
-const { scheduleVoteReminders } = require('./gg.js'); // Import the scheduleVoteReminders function
+const { scheduleVoteReminders } = require('./gg.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -34,12 +34,11 @@ const loadCommands = (dir, category = null) => {
     const filePath = path.join(dir, file);
     const stat = fs.lstatSync(filePath);
     if (stat.isDirectory()) {
-      loadCommands(filePath, file); // Recursively load commands from subdirectories
+      loadCommands(filePath, file);
     } else if (file.endsWith('.js')) {
       const command = require(filePath);
       client.commands.set(command.data.name, command);
 
-      // Handle category and command data
       const commandCategory = category || 'Uncategorized';
       const commandData = {
         name: command.data.name,
@@ -48,7 +47,6 @@ const loadCommands = (dir, category = null) => {
         categoryDescription: command.categoryDescription,
       };
 
-      // Find the category object or create a new one
       let categoryObj = commandCategories.find((c) => c.name === commandCategory);
       if (!categoryObj) {
         categoryObj = {
@@ -61,7 +59,6 @@ const loadCommands = (dir, category = null) => {
         commandCategories.push(categoryObj);
       }
 
-      // Add the command to the category
       categoryObj.commands.push(commandData);
     }
   }
@@ -74,7 +71,6 @@ const initializeCommands = () => {
 
 initializeCommands();
 
-// Remove empty categories
 commandCategories.forEach((category) => {
   if (category.commands.length === 0) {
     const index = commandCategories.indexOf(category);
@@ -136,8 +132,11 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 
-    // Schedule the vote reminders
-    cron.schedule('0 9 * * *', async () => {
+    // Schedule the vote reminders on startup
+    scheduleVoteReminders();
+
+    // Schedule the vote reminders to run every 10 minutes
+    cron.schedule('*/10 * * * *', async () => {
       await scheduleVoteReminders();
     });
   } catch (error) {
@@ -199,9 +198,6 @@ client.on('guildCreate', async (guild) => {
 
     await channel.send(joinMessage);
     console.log('Join message sent successfully.');
-
-    // Save join message channel to the database
-    await saveJoinMessageChannelToDatabase(joinMessageChannel.join_message_channel, joinMessageChannel.target_guild_id);
   } catch (error) {
     console.error('Error handling guildCreate event:', error);
   }
@@ -246,9 +242,6 @@ client.on('guildDelete', async (guild) => {
 
     await channel.send(leaveMessage);
     console.log('Leave message sent successfully.');
-
-    // Save leave message channel to the database
-    await saveLeaveMessageChannelToDatabase(leaveMessageChannel.leave_message_channel, leaveMessageChannel.target_guild_id);
   } catch (error) {
     console.error('Error handling guildDelete event:', error);
   }
@@ -303,5 +296,5 @@ createGuildsTable();
 module.exports = {
   client,
   saveJoinMessageChannelToDatabase,
-  saveLeaveMessageChannelToDatabase
+  saveLeaveMessageChannelToDatabase,
 };
