@@ -199,6 +199,9 @@ client.on('guildCreate', async (guild) => {
 
     await channel.send(joinMessage);
     console.log('Join message sent successfully.');
+
+    // Save join message channel to the database
+    await saveJoinMessageChannelToDatabase(joinMessageChannel.join_message_channel, joinMessageChannel.target_guild_id);
   } catch (error) {
     console.error('Error handling guildCreate event:', error);
   }
@@ -243,6 +246,9 @@ client.on('guildDelete', async (guild) => {
 
     await channel.send(leaveMessage);
     console.log('Leave message sent successfully.');
+
+    // Save leave message channel to the database
+    await saveLeaveMessageChannelToDatabase(leaveMessageChannel.leave_message_channel, leaveMessageChannel.target_guild_id);
   } catch (error) {
     console.error('Error handling guildDelete event:', error);
   }
