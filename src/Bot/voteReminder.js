@@ -2,13 +2,9 @@ require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
 
-
-
-
-const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
-
 // Set the reminder interval (in milliseconds)
-const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minuteprocess.env.TOPGG_TOKEN
+const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minutes
+
 async function sendVoteReminder(client, userId) {
   try {
     const user = await client.users.fetch(userId);
@@ -73,7 +69,7 @@ async function addPreviouslyVotedUsers(client) {
     console.log('API Request URL:', url);
 
     const response = await fetch(url, {
-      headers: { 'Authorization': TOPGG_TOKEN }
+      headers: { 'Authorization': process.env.TOPGG_TOKEN }
     });
 
     // Log rate limit headers
@@ -125,4 +121,3 @@ module.exports = {
   startVoteReminderLoop,
   addPreviouslyVotedUsers
 };
-
