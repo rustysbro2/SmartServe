@@ -121,6 +121,7 @@ async function addPreviouslyVotedUsers(client, botId) {
   }
 }
 
+
 module.exports = {
   startVoteReminderLoop,
   addPreviouslyVotedUsers
