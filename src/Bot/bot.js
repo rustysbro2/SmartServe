@@ -12,6 +12,7 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const optOutCommand = require('./commands/TopG/opt.js'); // Import the optOutCommand module
 const pool = require('../database.js');
+const sendVoteReminder = require('./gg.js')
 
 const intents = [
   GatewayIntentBits.Guilds,
