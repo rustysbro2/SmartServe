@@ -22,6 +22,9 @@ async function sendVoteReminder(user) {
 
 async function processUsers() {
   try {
+    // Wait for the client to be ready and guilds cache to be populated
+    await client.guilds.fetch();
+    
     // Iterate over every guild the bot is a member of
     for (const guild of client.guilds.cache.values()) {
       // Fetch all members from the guild
@@ -55,6 +58,7 @@ async function processUsers() {
     console.error('Error processing users:', error);
   }
 }
+
 
 module.exports = {
   processUsers,
