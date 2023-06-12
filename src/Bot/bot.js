@@ -83,7 +83,7 @@ commandCategories.forEach((category) => {
 
 client.once('ready', async () => {
   try {
-    console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
+    console.log(`Shard ${client.shard ? client.shard.ids : '0'} logged in as ${client.user.tag}!`);
     client.user.setPresence({
       activities: [
         {
