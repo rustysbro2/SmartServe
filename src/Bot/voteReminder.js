@@ -1,6 +1,8 @@
 require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
+const userId = '385324994533654530';
+const botId = '1107025578047058030';
 
 // Get your top.gg token from the .env file
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
