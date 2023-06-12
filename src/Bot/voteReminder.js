@@ -3,6 +3,8 @@ const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
 
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
+const botId = process.env.BOT_ID;
+
 
 // Set the reminder interval (in milliseconds)
 const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minutes
