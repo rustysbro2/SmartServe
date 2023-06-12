@@ -105,11 +105,10 @@ async function simulateVote(client, userId, botId) {
 }
 
 // Function to add previously voted users to the database
-// Function to add previously voted users to the database
 async function addPreviouslyVotedUsers(client) {
   try {
     // Fetch the list of users who voted from top.gg API
-    const response = await fetch(`https://top.gg/api/bots/${client.user.id}/votes`, {
+    const response = await fetch(`https://top.gg/api/bots/${botId}/votes`, {
       headers: { 'Authorization': TOPGG_TOKEN }
     });
     const votes = await response.json();
@@ -141,6 +140,9 @@ async function addPreviouslyVotedUsers(client) {
     console.error('Error adding previously voted users to the database:', error);
   }
 }
+
+// Call this function when your bot starts up
+
 
 
 
