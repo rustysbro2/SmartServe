@@ -1,4 +1,5 @@
-const { client } = require('./bot');
+const pool = require('../database.js');
+const { Client } = require('discord.js');
 
 async function addUserToDatabase(user) {
   try {
@@ -20,13 +21,12 @@ async function sendVoteReminder(user) {
   }
 }
 
-async function processUsers() {
+async function processUsers(client) {
   try {
-    // Wait for the client to be ready and guilds cache to be populated
-    await client.guilds.fetch();
-    
+    const guilds = await client.guilds.fetch();
+
     // Iterate over every guild the bot is a member of
-    for (const guild of client.guilds.cache.values()) {
+    for (const guild of guilds.values()) {
       // Fetch all members from the guild
       await guild.members.fetch();
 
@@ -58,7 +58,6 @@ async function processUsers() {
     console.error('Error processing users:', error);
   }
 }
-
 
 module.exports = {
   processUsers,
