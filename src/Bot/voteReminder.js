@@ -68,6 +68,7 @@ async function startVoteReminderLoop(client, botId) {
   }, REMINDER_INTERVAL);
 }
 
+
 async function addPreviouslyVotedUsers(client, botId) {
   try {
     // Fetch the list of users who voted from top.gg API
