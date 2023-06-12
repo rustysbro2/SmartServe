@@ -15,30 +15,25 @@ async function sendVoteReminder(client, guildId, channelId) {
             console.log(`Invalid guild with ID ${guildId}`);
             return;
         }
+        
+        const channel = await client.channels.resolve(channelId);
+        if (channel && channel.type === 'text') {
+            const response = await fetch(`https://top.gg/api/bots/${client.user.id}`, {
+                headers: { 'Authorization': TOPGG_TOKEN }
+            });
+            const botData = await response.json();
 
-        const channel = guild.channels.cache.get(channelId);
-        if (!channel) {
-            console.log(`Channel not found with ID ${channelId}`);
-            return;
+            const voteUrl = botData.url;
+
+            channel.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
+        } else {
+            console.log(`Invalid or non-text channel with ID ${channelId}`);
         }
-
-        if (channel.type !== 'text') {
-            console.log(`Channel with ID ${channelId} is not a text channel`);
-            return;
-        }
-
-        const response = await fetch(`https://top.gg/api/bots/${client.user.id}`, {
-            headers: { 'Authorization': TOPGG_TOKEN }
-        });
-        const botData = await response.json();
-
-        const voteUrl = botData.url;
-
-        channel.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
     } catch (error) {
         console.error('Error fetching bot data:', error);
     }
 }
+
 
 
 
