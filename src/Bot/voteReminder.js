@@ -72,29 +72,28 @@ async function startVoteReminderLoop(client) {
 
 
 // Function to simulate a vote for testing
+// Function to simulate a vote for testing
 async function simulateVote(client, discordId) {
   try {
-    const currentTime = new Date(Date.now() - (13 * 60 * 60 * 1000));
+    const currentTime = new Date();
+
+    // Calculate the time 13 hours ago
+    const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
+
+    // Update the lastVoteTime in the database
+    await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [lastVoteTime, discordId]);
 
     // Fetch the optIn status from the database
-    const [row] = await pool.query('SELECT optIn, lastVoteTime FROM topgg_opt WHERE discordId = ?', [discordId]);
+    const [row] = await pool.query('SELECT optIn FROM topgg_opt WHERE discordId = ?', [discordId]);
 
     if (row && row.optIn) {
-      const lastVoteTime = row.lastVoteTime;
-      const timeSinceLastVote = currentTime - lastVoteTime;
-      const twelveHoursInMs = 12 * 60 * 60 * 1000;
-
-      if (timeSinceLastVote >= twelveHoursInMs) {
-        // It has been 12 hours or more since the last vote, send a reminder
-        const user = await client.users.fetch(discordId);
-        if (!user) {
-          console.log(`User with ID ${discordId} not found.`);
-          return;
-        }
-        user.send(`Don't forget to vote for the bot! You can vote [here](https://top.gg/bot/${client.user.id}/vote).`);
-      } else {
-        console.log(`User with ID ${discordId} has not reached the voting cooldown yet.`);
+      // Send the reminder message
+      const user = await client.users.fetch(discordId);
+      if (!user) {
+        console.log(`User with ID ${discordId} not found.`);
+        return;
       }
+      user.send(`Don't forget to vote for the bot! You can vote [here](https://top.gg/bot/${client.user.id}/vote).`);
     } else {
       console.log(`User with ID ${discordId} has opted out of vote reminders.`);
     }
@@ -102,6 +101,7 @@ async function simulateVote(client, discordId) {
     console.error('Error simulating vote:', error);
   }
 }
+
 
 
 
