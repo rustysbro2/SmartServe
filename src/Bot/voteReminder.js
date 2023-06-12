@@ -60,12 +60,9 @@ async function startVoteReminderLoop(client) {
 
   // Start the interval after sending reminders
   setInterval(async () => {
-    // Get the current time 12 hours ago
-    const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
-
+    // Fetch all users from the topgg_opt table again
     try {
-      // Query the database for users who last voted more than 12 hours ago
-      const [result] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
+      const [result] = await pool.query('SELECT discordId FROM topgg_opt');
       const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
       console.log('Checking users for vote reminders:', rows);
@@ -75,10 +72,11 @@ async function startVoteReminderLoop(client) {
         await sendVoteReminder(client, row.discordId);
       }
     } catch (error) {
-      console.error('Error querying the database:', error);
+      console.error('Error retrieving users from the database:', error);
     }
   }, REMINDER_INTERVAL);
 }
+
 
 
 
