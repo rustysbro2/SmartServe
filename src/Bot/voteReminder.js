@@ -43,15 +43,19 @@ async function sendVoteReminder(client, userId) {
 
 
 async function startVoteReminderLoop(client) {
-  // Call sendVoteReminder immediately without updating lastVoteTime
-  const [result] = await pool.query('SELECT discordId FROM topgg_opt');
-  const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
+  try {
+    // Fetch all users from the topgg_opt table
+    const [result] = await pool.query('SELECT discordId FROM topgg_opt');
+    const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
-  console.log('Checking users for vote reminders:', rows);
+    console.log('Checking users for vote reminders:', rows);
 
-  for (const row of rows) {
-    // Send a reminder to each user
-    await sendVoteReminder(client, row.discordId);
+    for (const row of rows) {
+      // Send a reminder to each user
+      await sendVoteReminder(client, row.discordId);
+    }
+  } catch (error) {
+    console.error('Error retrieving users from the database:', error);
   }
 
   // Start the interval after sending reminders
@@ -75,6 +79,7 @@ async function startVoteReminderLoop(client) {
     }
   }, REMINDER_INTERVAL);
 }
+
 
 
 async function simulateVote(client, userId, botId) {
