@@ -10,18 +10,15 @@ const REMINDER_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 // Function to send a reminder message to a channel
 async function sendVoteReminder(client, channelId) {
     try {
-        const channel = client.channels.cache.get(channelId);
-        if (channel && channel.type === 'text') {
-            // Fetch the bot information from top.gg API
+        const channel = await client.channels.fetch(channelId);
+        if (channel && channel.isText()) {
             const response = await fetch(`https://top.gg/api/bots/${client.user.id}`, {
                 headers: { 'Authorization': TOPGG_TOKEN }
             });
             const botData = await response.json();
 
-            // Get the vote URL from the bot data
             const voteUrl = botData.url;
 
-            // Send the reminder message
             channel.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
         } else {
             console.log(`Invalid or non-text channel with ID ${channelId}`);
@@ -30,6 +27,7 @@ async function sendVoteReminder(client, channelId) {
         console.error('Error fetching bot data:', error);
     }
 }
+
 
 // Function to start the reminder loop
 function startVoteReminderLoop(client) {
