@@ -6,25 +6,14 @@ const pool = require('../database.js');
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 
 // Set the reminder interval (in milliseconds)
-const REMINDER_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+const REMINDER_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours
 
-// Function to send a reminder message to a channel
-async function sendVoteReminder(client, guildId, channelId) {
+// Function to send a reminder message to a user
+async function sendVoteReminder(client, discordId) {
     try {
-        const guild = client.guilds.cache.get(guildId);
-        if (!guild) {
-            console.log(`Invalid guild with ID ${guildId}`);
-            return;
-        }
-        
-        const channel = await client.channels.fetch(channelId).catch(err => console.error(`Error fetching channel with ID ${channelId}:`, err));
-        if (!channel) {
-            console.log(`Channel with ID ${channelId} not found.`);
-            return;
-        }
-        
-        if (channel.type !== 0) {
-            console.log(`Invalid or non-text channel with ID ${channelId}`);
+        const user = await client.users.fetch(discordId);
+        if (!user) {
+            console.log(`User with ID ${discordId} not found.`);
             return;
         }
         
@@ -35,12 +24,11 @@ async function sendVoteReminder(client, guildId, channelId) {
 
         const voteUrl = botData.url;
 
-        channel.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
+        user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
     } catch (error) {
         console.error('Error in sendVoteReminder function:', error);
     }
 }
-
 
 // Function to start the reminder loop
 function startVoteReminderLoop(client) {
@@ -60,7 +48,6 @@ function startVoteReminderLoop(client) {
         }
     }, REMINDER_INTERVAL);
 }
-
 
 module.exports = {
     startVoteReminderLoop
