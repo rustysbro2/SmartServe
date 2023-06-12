@@ -75,6 +75,14 @@ async function addPreviouslyVotedUsers(client, botId) {
     const response = await fetch(url, {
       headers: { 'Authorization': TOPGG_TOKEN }
     });
+
+    // Log rate limit headers
+    console.log('Rate Limit Headers:', {
+      limit: response.headers.get('X-RateLimit-Limit'),
+      remaining: response.headers.get('X-RateLimit-Remaining'),
+      reset: response.headers.get('X-RateLimit-Reset')
+    });
+
     const votes = await response.json();
 
     console.log('Votes from top.gg API:', votes);
