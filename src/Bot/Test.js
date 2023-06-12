@@ -13,10 +13,10 @@ app.use(bodyParser.json());
 
 app.post('/webhook', async (req, res) => {
   // Handle POST requests to the /webhook route
-  const { user, isWeekend } = req.body;
+  const { user } = req.body;
 
   // Process the vote notification as needed
-  console.log(`Received vote notification for user ${user} (Weekend: ${isWeekend})`);
+  console.log(`Received vote notification for user ${user}`);
 
   // Retrieve the bot's information from top.gg API
   try {
