@@ -87,7 +87,7 @@ client.once('ready', async () => {
     client.user.setPresence({
       activities: [
         {
-          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+          name: `${client.guilds.cache.size} servers | Shard ${client.shard ? client.shard.ids[0] : '0'}`,
           type: ActivityType.Watching,
         },
       ],
