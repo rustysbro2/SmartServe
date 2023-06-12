@@ -71,19 +71,16 @@ async function startVoteReminderLoop(client) {
 }
 
 // Function to simulate a vote for testing
-// Function to simulate a vote for testing
 async function simulateVote(client, discordId) {
   try {
     const currentTime = new Date(Date.now() - (13 * 60 * 60 * 1000));
 
-    // Log the query and its parameters
     console.log('Query:', 'UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?');
     console.log('Parameters:', [currentTime, discordId]);
 
-    // Insert a mock vote into the database
-    await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [currentTime, discordId]);
+    const result = await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [currentTime, discordId]);
+    console.log('Affected Rows:', result.affectedRows);
 
-    // Call the reminder function to test if it picks up the vote
     const user = await client.users.fetch(discordId);
     if (!user) {
         console.log(`User with ID ${discordId} not found.`);
@@ -94,6 +91,7 @@ async function simulateVote(client, discordId) {
     console.error('Error simulating vote:', error);
   }
 }
+
 
 
 
