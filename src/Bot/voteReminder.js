@@ -1,5 +1,6 @@
 require('dotenv').config();
 const fetch = require('isomorphic-fetch');
+const pool = require('../database.js');
 
 // Get your top.gg token from the .env file
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
@@ -40,20 +41,27 @@ async function sendVoteReminder(client, guildId, channelId) {
     }
 }
 
+const pool = require('./database.js');
+
 // Function to start the reminder loop
 function startVoteReminderLoop(client) {
-    // Find the guild ID and channel ID where you want to send the reminder
-    const guildId = '1106643216125665350';
-    const channelId = '1115393015079514254';
+    setInterval(async () => {
+        // Get the current time 12 hours ago
+        const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
 
-    // Send the initial reminder
-    sendVoteReminder(client, guildId, channelId);
-
-    // Set up the interval for subsequent reminders
-    setInterval(() => {
-        sendVoteReminder(client, guildId, channelId);
+        try {
+            // Query the database for users who last voted more than 12 hours ago
+            const [rows] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
+            for (const row of rows) {
+                // Send a reminder to each user
+                await sendVoteReminder(client, row.discordId);
+            }
+        } catch (error) {
+            console.error('Error querying the database:', error);
+        }
     }, REMINDER_INTERVAL);
 }
+
 
 module.exports = {
     startVoteReminderLoop
