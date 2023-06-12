@@ -96,8 +96,6 @@ async function addUserToReminder(userId) {
     }
 }
 
-// ... (Other code)
-
 module.exports = {
     sendVoteReminder
 };
