@@ -95,7 +95,7 @@ async function simulateVote(client, userId, botId) {
         console.log(`User with ID ${userId} not found.`);
         return;
       }
-      user.send(`Don't forget to vote for the bot! You can vote [\`here\`](${voteUrl}).`);
+      user.send(`Don't forget to vote for the bot! You can vote at ${voteUrl}.`);
     } else {
       console.log(`User with ID ${userId} has opted out of vote reminders.`);
     }
@@ -103,6 +103,7 @@ async function simulateVote(client, userId, botId) {
     console.error('Error simulating vote:', error);
   }
 }
+
 
 
 
