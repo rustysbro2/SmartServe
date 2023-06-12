@@ -10,7 +10,6 @@ const helpCommand = require('./commands/General/help');
 const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const { remindUsersToVote } = require('./gg.js'); // Import the remindUsersToVote function
 const optOutCommand = require('./commands/TopG/opt.js'); // Import the optOutCommand module
 const pool = require('../database.js');
 
