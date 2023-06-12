@@ -2,7 +2,7 @@ require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
 
-const TOPGG_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMDU1OTg3MzY1NTEzODcyNDciLCJib3QiOnRydWUsImlhdCI6MTY4NjU4NTYzM30.Ydeh1WDep-Mz5cTUZOe7c7T_P9Ai1329bl22gCt2lyA';
+const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 const botId = '1105598736551387247';
 
 // Set the reminder interval (in milliseconds)
@@ -16,12 +16,14 @@ async function sendVoteReminder(client, userId) {
       return;
     }
 
-    const response = await fetch('https://top.gg/api/bots/1105598736551387247', {
-      headers: { 'Authorization': 'eyJpZCI6IjExMDU1OTg3MzY1NTEzODcyNDciLCJib3QiOnRydWUsImlhdCI6MTY4NjU4NTYzM30.Ydeh1WDep-Mz5cTUZOe7c7T_P9Ai1329bl22gCt2lyA' }
+    const response = await fetch(`https://top.gg/api/bots/${botId}`, {
+      headers: { 'Authorization': TOPGG_TOKEN },
     });
 
-
     const botData = await response.json();
+
+    console.log('API Request URL:', `https://top.gg/api/bots/${botId}`);
+    console.log('Token used:', TOPGG_TOKEN);
 
     if (botData.id === botId) {
       // Construct the vote URL
@@ -74,14 +76,14 @@ async function addPreviouslyVotedUsers(client) {
     console.log('API Request URL:', url);
 
     const response = await fetch(url, {
-      headers: { 'Authorization': 'eyJpZCI6IjExMDU1OTg3MzY1NTEzODcyNDciLCJib3QiOnRydWUsImlhdCI6MTY4NjU4NTYzM30.Ydeh1WDep-Mz5cTUZOe7c7T_P9Ai1329bl22gCt2lyA' }
+      headers: { 'Authorization': TOPGG_TOKEN },
     });
 
     // Log rate limit headers
     console.log('Rate Limit Headers:', {
       limit: response.headers.get('X-RateLimit-Limit'),
       remaining: response.headers.get('X-RateLimit-Remaining'),
-      reset: response.headers.get('X-RateLimit-Reset')
+      reset: response.headers.get('X-RateLimit-Reset'),
     });
 
     const votes = await response.json();
@@ -109,7 +111,12 @@ async function addPreviouslyVotedUsers(client) {
             }
           } else {
             // User does not exist in the database, insert a new row
-            await pool.query('INSERT INTO topgg_opt (discordId, optIn, lastVoteTime, lastVotedBot) VALUES (?, ?, ?, ?)', [userId, true, null, botId]);
+            await pool.query('INSERT INTO topgg_opt (discordId, optIn, lastVoteTime, lastVotedBot) VALUES (?, ?, ?, ?)', [
+              userId,
+              true,
+              null,
+              botId,
+            ]);
             console.log('Inserted new user into the database:', userId);
           }
         }
@@ -124,5 +131,5 @@ async function addPreviouslyVotedUsers(client) {
 
 module.exports = {
   startVoteReminderLoop,
-  addPreviouslyVotedUsers
+  addPreviouslyVotedUsers,
 };
