@@ -23,12 +23,16 @@ async function sendVoteReminder(client, userId) {
     });
     const botData = await response.json();
 
-    if (botData.url) {
+    if (botData.error) {
+      console.log(`Error retrieving bot data: ${botData.error}`);
+      return;
+    }
+
+    if (botData.invite) {
       // Send the vote reminder message with the actual vote URL
-      const voteUrl = botData.url;
+      const voteUrl = `https://top.gg/bot/${botId}/vote`;
       user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
     } else {
-      // Handle the case where botData.url is undefined (no URL available)
       console.log(`No vote URL available for bot ID ${botId}`);
       // You can choose to send an alternative message or take other actions
     }
@@ -68,7 +72,6 @@ async function startVoteReminderLoop(client) {
     }
   }, REMINDER_INTERVAL);
 }
-
 
 async function simulateVote(client, userId, botId) {
   try {
@@ -144,7 +147,6 @@ async function addPreviouslyVotedUsers(client) {
     console.error('Error adding previously voted users to the database:', error);
   }
 }
-
 
 module.exports = {
   startVoteReminderLoop,
