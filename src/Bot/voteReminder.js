@@ -113,10 +113,14 @@ async function addPreviouslyVotedUsers(client) {
     });
     const votes = await response.json();
 
+    console.log('Votes from top.gg API:', votes); // Add this debug log
+
     if (Array.isArray(votes)) {
       for (const vote of votes) {
         const userId = vote.user; // User ID who voted
         const botId = vote.bot; // Bot ID (if needed)
+
+        console.log('Retrieved user ID:', userId); // Add this debug log
 
         if (userId) {
           // Check if the user already exists in the database
@@ -142,6 +146,7 @@ async function addPreviouslyVotedUsers(client) {
     console.error('Error adding previously voted users to the database:', error);
   }
 }
+
 
 
 
