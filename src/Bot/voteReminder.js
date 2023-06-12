@@ -74,6 +74,7 @@ async function startVoteReminderLoop(client) {
 
 
 // Function to simulate a vote for testing
+// Function to simulate a vote for testing
 async function simulateVote(client, userId, botId) {
   try {
     const currentTime = new Date();
