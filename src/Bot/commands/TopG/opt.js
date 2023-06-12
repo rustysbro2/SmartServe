@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const pool = require('../../../database.js');
+const { pool } = require('../../../database.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -10,7 +10,7 @@ module.exports = {
     const discordId = interaction.user.id;
 
     try {
-      // Update the opt_out_status for the user
+      // Update the vote_reminder_status for the user
       await pool.query('UPDATE users SET opt_out_status = 1 WHERE discord_id = ?', [discordId]);
 
       await interaction.reply('You have successfully opted out of the vote reminder.');
