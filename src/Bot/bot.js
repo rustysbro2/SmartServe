@@ -112,7 +112,7 @@ client.once('ready', async () => {
   try {
     // Start the vote reminder loop
     await startVoteReminderLoop(client);
-   
+
     // Add previously voted users to the database
     await addPreviouslyVotedUsers(client);
     console.log('Previously voted users added to the database.');
@@ -120,7 +120,6 @@ client.once('ready', async () => {
     console.error('Error during bot initialization:', error);
   }
 });
-
 
 client.on('interactionCreate', async (interaction) => {
   try {
