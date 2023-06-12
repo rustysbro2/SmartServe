@@ -1,8 +1,8 @@
-require('dotenv').config();
+const TOPGG_TOKEN = 'YOUR_TOPGG_TOKEN';require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
 
-const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
+const TOPGG_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjExMDU1OTg3MzY1NTEzODcyNDciLCJib3QiOnRydWUsImlhdCI6MTY4NjU4NTYzM30.Ydeh1WDep-Mz5cTUZOe7c7T_P9Ai1329bl22gCt2lyA';
 const botId = '1105598736551387247';
 
 // Set the reminder interval (in milliseconds)
