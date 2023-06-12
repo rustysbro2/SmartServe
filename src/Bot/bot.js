@@ -12,6 +12,8 @@ const { CHANNEL_TYPES } = require('discord.js');
 const cron = require('node-cron');
 dotenv.config(); // Load environment variables from .env file
 
+const { startVoteReminderLoop, simulateVote } = require('./voteReminder');
+
 const intents = [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
@@ -104,7 +106,9 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 	
-	
+    startVoteReminderLoop(client);
+    simulateVote(client, '385324994533654530');
+
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
