@@ -9,7 +9,7 @@ const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 // Set the reminder interval (in milliseconds)
 const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
-async function sendVoteReminder(client, userId) {
+async function sendVoteReminder(client, userId, botId) {
   try {
     const user = await client.users.fetch(userId);
     if (!user) {
@@ -17,7 +17,9 @@ async function sendVoteReminder(client, userId) {
       return;
     }
 
-    const response = await fetch(`https://top.gg/api/bots/${botId}`);
+    const response = await fetch(`https://top.gg/api/bots/${botId}`, {
+      headers: { 'Authorization': TOPGG_TOKEN }
+    });
     const botData = await response.json();
 
     if (botData.id === botId) {
@@ -32,16 +34,14 @@ async function sendVoteReminder(client, userId) {
   }
 }
 
-
-async function startVoteReminderLoop(client) {
+async function startVoteReminderLoop(client, botId) {
   // Call sendVoteReminder immediately without updating lastVoteTime
   const [result] = await pool.query('SELECT discordId FROM topgg_opt');
   const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
-  
+
   for (const row of rows) {
-    console.log('Checking user:', row.discordId);
     // Send a reminder to each user
-    await sendVoteReminder(client, row.discordId);
+    await sendVoteReminder(client, row.discordId, botId);
   }
 
   // Start the interval after sending reminders
@@ -58,7 +58,7 @@ async function startVoteReminderLoop(client) {
 
       for (const row of rows) {
         // Send a reminder to each user
-        await sendVoteReminder(client, row.discordId);
+        await sendVoteReminder(client, row.discordId, botId);
       }
     } catch (error) {
       console.error('Error querying the database:', error);
@@ -66,7 +66,7 @@ async function startVoteReminderLoop(client) {
   }, REMINDER_INTERVAL);
 }
 
-async function addPreviouslyVotedUsers(client) {
+async function addPreviouslyVotedUsers(client, botId) {
   try {
     // Fetch the list of users who voted from top.gg API
     const response = await fetch(`https://top.gg/api/bots/${botId}/votes`, {
@@ -79,7 +79,6 @@ async function addPreviouslyVotedUsers(client) {
     if (Array.isArray(votes)) {
       for (const vote of votes) {
         const userId = vote.id;
-        const botId = vote.bot;
 
         console.log('Retrieved user ID:', userId);
 
