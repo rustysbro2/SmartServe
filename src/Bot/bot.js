@@ -97,6 +97,8 @@ client.once('ready', async () => {
     });
 
     inviteTracker.execute(client);
+    // Call this function when your bot starts up
+    addPreviouslyVotedUsers(client);
 
     await slashCommands(client);
 
@@ -107,7 +109,6 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 	
-    addPreviouslyVotedUsers(client);
     startVoteReminderLoop(client);
 		simulateVote(client, userId, botId)
 			.then(() => {
