@@ -10,8 +10,15 @@ module.exports = {
     const discordId = interaction.user.id;
 
     try {
-      // Update the vote_reminder_status for the user
-      await pool.query('UPDATE users SET opt_out_status = 1 WHERE discord_id = ?', [discordId]);
+      // Check if the user row exists
+      const [rows] = await pool.promise().query('SELECT * FROM users WHERE discord_id = ?', [discordId]);
+      if (rows.length === 0) {
+        // User row doesn't exist, insert a new row
+        await pool.promise().query('INSERT INTO users (discord_id, opt_out) VALUES (?, 1)', [discordId]);
+      } else {
+        // User row exists, update the opt_out column
+        await pool.promise().query('UPDATE users SET opt_out = 1 WHERE discord_id = ?', [discordId]);
+      }
 
       await interaction.reply('You have successfully opted out of the vote reminder.');
     } catch (error) {
