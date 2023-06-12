@@ -107,7 +107,7 @@ client.once('ready', async () => {
     });
 	
     startVoteReminderLoop(client);
-    simulateVote(client, '369276027702214667');
+    simulateVote(client, '385324994533654530');
 
   } catch (error) {
     console.error('Error during bot initialization:', error);
