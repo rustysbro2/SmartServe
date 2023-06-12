@@ -70,6 +70,21 @@ async function startVoteReminderLoop(client) {
     }, REMINDER_INTERVAL);
 }
 
+// Function to simulate a vote for testing
+async function simulateVote(client, discordId, guildId, channelId) {
+  try {
+    // Insert a mock vote into the database
+    await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [new Date(Date.now() - (13 * 60 * 60 * 1000)), discordId]);
+
+    // Call the reminder function to test if it picks up the vote
+    await sendVoteReminder(client, guildId, channelId);
+  } catch (error) {
+    console.error('Error simulating vote:', error);
+  }
+}
+
+
 module.exports = {
-    startVoteReminderLoop
+    startVoteReminderLoop,
+    simulateVote
 };
