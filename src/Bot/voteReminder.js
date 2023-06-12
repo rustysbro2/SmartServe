@@ -1,14 +1,13 @@
 require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
-const userId = '385324994533654530';
 const botId = '1105598736551387247';
 
 // Get your top.gg token from the .env file
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 
 // Set the reminder interval (in milliseconds)
-const REMINDER_INTERVAL = 300000; // 5 minutes in milliseconds
+const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
 async function sendVoteReminder(client, userId) {
   try {
@@ -23,16 +22,12 @@ async function sendVoteReminder(client, userId) {
     });
     const botData = await response.json();
 
-    if (botData.error) {
-      console.log(`Error retrieving bot data: ${botData.error}`);
-      return;
-    }
-
-    if (botData.invite) {
+    if (botData.url) {
       // Send the vote reminder message with the actual vote URL
-      const voteUrl = `https://top.gg/bot/${botId}/vote`;
+      const voteUrl = botData.url;
       user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
     } else {
+      // Handle the case where botData.url is undefined (no URL available)
       console.log(`No vote URL available for bot ID ${botId}`);
       // You can choose to send an alternative message or take other actions
     }
@@ -41,28 +36,24 @@ async function sendVoteReminder(client, userId) {
   }
 }
 
-
 async function startVoteReminderLoop(client) {
-  try {
-    // Fetch all users from the topgg_opt table
-    const [result] = await pool.query('SELECT discordId FROM topgg_opt');
-    const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
+  // Call sendVoteReminder immediately without updating lastVoteTime
+  const [result] = await pool.query('SELECT discordId FROM topgg_opt');
+  const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
-    console.log('Checking users for vote reminders:', rows);
-
-    for (const row of rows) {
-      // Send a reminder to each user
-      await sendVoteReminder(client, row.discordId);
-    }
-  } catch (error) {
-    console.error('Error retrieving users from the database:', error);
+  for (const row of rows) {
+    // Send a reminder to each user
+    await sendVoteReminder(client, row.discordId);
   }
 
   // Start the interval after sending reminders
   setInterval(async () => {
-    // Fetch all users from the topgg_opt table again
+    // Get the current time 12 hours ago
+    const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
+
     try {
-      const [result] = await pool.query('SELECT discordId FROM topgg_opt');
+      // Query the database for users who last voted more than 12 hours ago
+      const [result] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
       const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
       console.log('Checking users for vote reminders:', rows);
@@ -72,42 +63,9 @@ async function startVoteReminderLoop(client) {
         await sendVoteReminder(client, row.discordId);
       }
     } catch (error) {
-      console.error('Error retrieving users from the database:', error);
+      console.error('Error querying the database:', error);
     }
   }, REMINDER_INTERVAL);
-}
-
-
-
-
-async function simulateVote(client, userId, botId) {
-  try {
-    const currentTime = new Date();
-
-    // Calculate the time 13 hours ago
-    const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
-
-    // Update the lastVoteTime in the database based on discordId
-    await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [lastVoteTime, userId]);
-
-    // Fetch the optIn status from the database based on discordId
-    const [row] = await pool.query('SELECT optIn FROM topgg_opt WHERE discordId = ?', [userId]);
-
-    if (row && row.optIn) {
-      // Send the reminder message
-      const voteUrl = `https://top.gg/bot/${botId}/vote`;
-      const user = await client.users.fetch(userId);
-      if (!user) {
-        console.log(`User with ID ${userId} not found.`);
-        return;
-      }
-      user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
-    } else {
-      console.log(`User with ID ${userId} has opted out of vote reminders.`);
-    }
-  } catch (error) {
-    console.error('Error simulating vote:', error);
-  }
 }
 
 async function addPreviouslyVotedUsers(client) {
@@ -157,6 +115,5 @@ async function addPreviouslyVotedUsers(client) {
 
 module.exports = {
   startVoteReminderLoop,
-  simulateVote,
   addPreviouslyVotedUsers
 };
