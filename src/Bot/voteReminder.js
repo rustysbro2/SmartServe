@@ -6,14 +6,25 @@ const pool = require('../database.js');
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 
 // Set the reminder interval (in milliseconds)
-const REMINDER_INTERVAL = 12 * 60 * 60 * 1000; // 12 hours
+const REMINDER_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 
-// Function to send a reminder message to a user
-async function sendVoteReminder(client, discordId) {
+// Function to send a reminder message to a channel
+async function sendVoteReminder(client, guildId, channelId) {
     try {
-        const user = await client.users.fetch(discordId);
-        if (!user) {
-            console.log(`User with ID ${discordId} not found.`);
+        const guild = client.guilds.cache.get(guildId);
+        if (!guild) {
+            console.log(`Invalid guild with ID ${guildId}`);
+            return;
+        }
+        
+        const channel = await client.channels.fetch(channelId).catch(err => console.error(`Error fetching channel with ID ${channelId}:`, err));
+        if (!channel) {
+            console.log(`Channel with ID ${channelId} not found.`);
+            return;
+        }
+        
+        if (channel.type !== "GUILD_TEXT") {
+            console.log(`Invalid or non-text channel with ID ${channelId}`);
             return;
         }
         
@@ -24,14 +35,24 @@ async function sendVoteReminder(client, discordId) {
 
         const voteUrl = botData.url;
 
-        user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
+        channel.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
     } catch (error) {
         console.error('Error in sendVoteReminder function:', error);
     }
 }
 
 // Function to start the reminder loop
-function startVoteReminderLoop(client) {
+async function startVoteReminderLoop(client) {
+    // Initialize lastVoteTime for all users to the current time
+    const currentTime = new Date();
+
+    try {
+        await pool.query('UPDATE topgg_opt SET lastVoteTime = ?', [currentTime]);
+        console.log('Initialized lastVoteTime for all users to the current time.');
+    } catch (error) {
+        console.error('Error updating the database:', error);
+    }
+
     setInterval(async () => {
         // Get the current time 12 hours ago
         const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
