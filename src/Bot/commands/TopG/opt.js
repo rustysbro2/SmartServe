@@ -1,6 +1,18 @@
 const { SlashCommandBuilder } = require('discord.js');
 const pool = require('../../../database.js');
 
+async function checkUserOptOut(userId) {
+  try {
+    // Query the database to check the opt_out_status for the user
+    const result = await pool.query('SELECT opt_out_status FROM users WHERE discord_id = ?', [userId]);
+    const user = result[0];
+    return user && user.opt_out_status === 1;
+  } catch (error) {
+    console.error(`Error checking opt-out status for user with Discord ID ${userId}:`, error);
+    return false;
+  }
+}
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('opt')
@@ -26,4 +38,4 @@ module.exports = {
       await interaction.reply('An error occurred while updating opt-out status. Please try again later.');
     }
   }
-
+};
