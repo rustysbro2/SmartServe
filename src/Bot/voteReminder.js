@@ -16,9 +16,10 @@ async function sendVoteReminder(client, userId) {
       return;
     }
 
-    const response = await fetch(`https://top.gg/api/bots/${botId}`, {
+    const response = await fetch('https://top.gg/api/bots/1105598736551387247', {
       headers: { 'Authorization': TOPGG_TOKEN }
     });
+
     const botData = await response.json();
 
     if (botData.id === botId) {
