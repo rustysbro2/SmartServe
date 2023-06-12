@@ -12,6 +12,7 @@ const { CHANNEL_TYPES } = require('discord.js');
 const cron = require('node-cron');
 dotenv.config(); // Load environment variables from .env file
 const { startVoteReminderLoop, addPreviouslyVotedUsers } = require('./voteReminder');
+const webhookServer = require('./Test');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -227,6 +228,7 @@ client.on('guildDelete', async (guild) => {
 client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
+webhookServer.start();
 
 client.login(process.env.TOKEN);
 
