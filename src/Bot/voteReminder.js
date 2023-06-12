@@ -69,7 +69,7 @@ async function startVoteReminderLoop(client, botId) {
 async function addPreviouslyVotedUsers(client, botId) {
   try {
     // Fetch the list of users who voted from top.gg API
-    const url = `https://top.gg/api/bots/${botId}/votes`;
+    const url = `https://top.gg/api/bots/{botId}/votes`;
     console.log('API Request URL:', url);
 
     const response = await fetch(url, {
