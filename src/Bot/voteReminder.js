@@ -4,14 +4,13 @@ const pool = require('../database.js');
 
 
 
+
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
-const botId = process.env.BOT_ID;
-console.log('botId:', botId);
 
 // Set the reminder interval (in milliseconds)
 const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minutes
 
-async function sendVoteReminder(client, userId, botId) {
+async function sendVoteReminder(client, userId) {
   try {
     const user = await client.users.fetch(userId);
     if (!user) {
@@ -19,31 +18,31 @@ async function sendVoteReminder(client, userId, botId) {
       return;
     }
 
-    const response = await fetch(`https://top.gg/api/bots/${botId}`, {
+    const response = await fetch('https://top.gg/api/bots/369276027702214667', {
       headers: { 'Authorization': TOPGG_TOKEN }
     });
     const botData = await response.json();
 
-    if (botData.id === botId) {
+    if (botData.id === '369276027702214667') {
       // Construct the vote URL
-      const voteUrl = `https://top.gg/bot/${botId}/vote`;
+      const voteUrl = 'https://top.gg/bot/369276027702214667/vote';
       user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
     } else {
-      console.log(`Bot with ID ${botId} not found on top.gg.`);
+      console.log('Bot with ID 369276027702214667 not found on top.gg.');
     }
   } catch (error) {
     console.error('Error in sendVoteReminder function:', error);
   }
 }
 
-async function startVoteReminderLoop(client, botId) {
+async function startVoteReminderLoop(client) {
   // Call sendVoteReminder immediately without updating lastVoteTime
   const [result] = await pool.query('SELECT discordId FROM topgg_opt');
   const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
   for (const row of rows) {
     // Send a reminder to each user
-    await sendVoteReminder(client, row.discordId, botId);
+    await sendVoteReminder(client, row.discordId);
   }
 
   // Start the interval after sending reminders
@@ -60,7 +59,7 @@ async function startVoteReminderLoop(client, botId) {
 
       for (const row of rows) {
         // Send a reminder to each user
-        await sendVoteReminder(client, row.discordId, botId);
+        await sendVoteReminder(client, row.discordId);
       }
     } catch (error) {
       console.error('Error querying the database:', error);
@@ -68,11 +67,10 @@ async function startVoteReminderLoop(client, botId) {
   }, REMINDER_INTERVAL);
 }
 
-
-async function addPreviouslyVotedUsers(client, botId) {
+async function addPreviouslyVotedUsers(client) {
   try {
     // Fetch the list of users who voted from top.gg API
-    const url = `https://top.gg/api/bots/${botId}/votes`;
+    const url = 'https://top.gg/api/bots/369276027702214667/votes';
     console.log('API Request URL:', url);
 
     const response = await fetch(url, {
@@ -102,16 +100,16 @@ async function addPreviouslyVotedUsers(client, botId) {
 
           if (row) {
             // User exists in the database
-            if (row.lastVotedBot !== botId) {
+            if (row.lastVotedBot !== '369276027702214667') {
               // Update the lastVotedBot only if the user has voted for a different bot
               const currentTime = new Date();
               const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
-              await pool.query('UPDATE topgg_opt SET lastVotedBot = ? WHERE discordId = ?', [botId, userId]);
+              await pool.query('UPDATE topgg_opt SET lastVotedBot = ? WHERE discordId = ?', ['369276027702214667', userId]);
               console.log('Updated lastVotedBot for user:', userId);
             }
           } else {
             // User does not exist in the database, insert a new row
-            await pool.query('INSERT INTO topgg_opt (discordId, optIn, lastVoteTime, lastVotedBot) VALUES (?, ?, ?, ?)', [userId, true, null, botId]);
+            await pool.query('INSERT INTO topgg_opt (discordId, optIn, lastVoteTime, lastVotedBot) VALUES (?, ?, ?, ?)', [userId, true, null, '369276027702214667']);
             console.log('Inserted new user into the database:', userId);
           }
         }
@@ -124,8 +122,8 @@ async function addPreviouslyVotedUsers(client, botId) {
   }
 }
 
-
 module.exports = {
   startVoteReminderLoop,
   addPreviouslyVotedUsers
 };
+
