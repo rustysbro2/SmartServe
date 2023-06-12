@@ -98,7 +98,6 @@ client.once('ready', async () => {
 
     inviteTracker.execute(client);
     // Call this function when your bot starts up
-    addPreviouslyVotedUsers(client);
 
     await slashCommands(client);
 
@@ -109,19 +108,23 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 	
-    startVoteReminderLoop(client);
-		simulateVote(client, userId, botId)
-			.then(() => {
-				console.log('Vote simulated successfully!');
-			})
-			.catch((error) => {
-				console.error('Error simulating vote:', error);
-			});
+  try {
+    // Start the vote reminder loop
+    await startVoteReminderLoop(client);
 
-			} catch (error) {
-				console.error('Error during bot initialization:', error);
-			}
-		});
+    // Simulate a vote
+    const userId = '385324994533654530';
+    const botId = '1105598736551387247';
+    await simulateVote(client, userId, botId);
+    console.log('Vote simulated successfully!');
+
+    // Add previously voted users to the database
+    await addPreviouslyVotedUsers(client);
+    console.log('Previously voted users added to the database.');
+  } catch (error) {
+    console.error('Error during bot initialization:', error);
+  }
+});
 
 client.on('interactionCreate', async (interaction) => {
   try {
