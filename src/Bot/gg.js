@@ -21,11 +21,12 @@ async function scheduleVoteReminders() {
 
     console.log('Query Result:', rows);
 
-    if (!rows) {
+    if (!rows || rows.length === 0) {
       console.log('No rows found in the query result');
 
       // Add a row to the users table
       const insertQuery = 'INSERT INTO users (discord_id, reminder_sent) VALUES (?, ?)';
+      const userId = 'DEFAULT_USER_ID'; // Replace 'DEFAULT_USER_ID' with the default user ID you want to use
       await pool.query(insertQuery, [userId, 0]);
 
       console.log('Inserted a new row into the users table');
@@ -56,6 +57,7 @@ async function scheduleVoteReminders() {
     console.error('Error scheduling vote reminders:', error);
   }
 }
+
 
 module.exports = {
   scheduleVoteReminders,
