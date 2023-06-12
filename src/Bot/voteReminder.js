@@ -1,5 +1,6 @@
-const fetch = require('node-fetch');
 require('dotenv').config();
+const fetch = require('isomorphic-fetch');
+
 
 // Get your top.gg token from the .env file
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
