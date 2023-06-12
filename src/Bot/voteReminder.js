@@ -18,24 +18,14 @@ async function sendVoteReminder(client, userId) {
       return;
     }
 
-    const response = await fetch(`https://top.gg/api/bots/${botId}`, {
-      headers: { 'Authorization': TOPGG_TOKEN }
-    });
-    const botData = await response.json();
+    const voteUrl = `https://top.gg/bot/${botId}/vote`;
 
-    if (botData.url) {
-      // Send the vote reminder message with the actual vote URL
-      const voteUrl = botData.url;
-      user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
-    } else {
-      // Handle the case where botData.url is undefined (no URL available)
-      console.log(`No vote URL available for bot ID ${botId}`);
-      // You can choose to send an alternative message or take other actions
-    }
+    user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
   } catch (error) {
     console.error('Error in sendVoteReminder function:', error);
   }
 }
+
 
 async function startVoteReminderLoop(client) {
   // Initialize lastVoteTime for all users to the current time
