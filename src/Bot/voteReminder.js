@@ -141,19 +141,6 @@ async function addPreviouslyVotedUsers(client) {
   }
 }
 
-
-// Call this function when your bot starts up
-
-
-
-
-
-
-
-
-
-
-
 module.exports = {
     startVoteReminderLoop,
     simulateVote,
