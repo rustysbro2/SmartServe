@@ -8,8 +8,7 @@ const pool = require('../database.js');
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 
 // Set the reminder interval (in milliseconds)
-const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minutes
-
+const REMINDER_INTERVAL = 1000 * 60 * 5; // 5 minuteprocess.env.TOPGG_TOKEN
 async function sendVoteReminder(client, userId) {
   try {
     const user = await client.users.fetch(userId);
@@ -19,7 +18,7 @@ async function sendVoteReminder(client, userId) {
     }
 
     const response = await fetch('https://top.gg/api/bots/369276027702214667', {
-      headers: { 'Authorization': TOPGG_TOKEN }
+      headers: { 'Authorization': process.env.TOPGG_TOKEN }
     });
     const botData = await response.json();
 
