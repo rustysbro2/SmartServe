@@ -220,7 +220,6 @@ client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
-webhookServer.start();
 
 client.login(process.env.TOKEN).catch((error) => {
   console.error('Error logging in:', error);
