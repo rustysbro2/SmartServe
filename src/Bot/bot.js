@@ -82,6 +82,36 @@ commandCategories.forEach((category) => {
   }
 });
 
+async function getJoinMessageChannelFromDatabase(guildId) {
+  try {
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
+    if (rows.length > 0) {
+      const joinMessageChannel = rows[0];
+      console.log('Retrieved join message channel:', joinMessageChannel);
+      return joinMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving join message channel from the database:', error);
+    throw error;
+  }
+}
+
+async function getLeaveMessageChannelFromDatabase() {
+  try {
+    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds LIMIT 1');
+    if (rows.length > 0) {
+      const leaveMessageChannel = rows[0];
+      console.log('Retrieved leave message channel:', leaveMessageChannel);
+      return leaveMessageChannel;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error retrieving leave message channel from the database:', error);
+    throw error;
+  }
+}
+
 client.once('ready', async () => {
   try {
     console.log(`Shard ${client.shard ? client.shard.ids : '0'} logged in as ${client.user.tag}!`);
@@ -224,36 +254,6 @@ client.on('error', (error) => {
 client.login(process.env.TOKEN).catch((error) => {
   console.error('Error logging in:', error);
 });
-
-async function getJoinMessageChannelFromDatabase(guildId) {
-  try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ? LIMIT 1', [guildId]);
-    if (rows.length > 0) {
-      const joinMessageChannel = rows[0];
-      console.log('Retrieved join message channel:', joinMessageChannel);
-      return joinMessageChannel;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error retrieving join message channel from the database:', error);
-    throw error;
-  }
-}
-
-async function getLeaveMessageChannelFromDatabase() {
-  try {
-    const [rows] = await pool.promise().query('SELECT leave_message_channel, target_guild_id FROM guilds LIMIT 1');
-    if (rows.length > 0) {
-      const leaveMessageChannel = rows[0];
-      console.log('Retrieved leave message channel:', leaveMessageChannel);
-      return leaveMessageChannel;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error retrieving leave message channel from the database:', error);
-    throw error;
-  }
-}
 
 async function createGuildsTable() {
   try {
