@@ -141,12 +141,12 @@ async function addPreviouslyVotedUsers(client) {
 
           if (row) {
             // User exists in the database
-            if (row.lastVoteTime === null || botId !== row.lastVotedBot) {
-              // Update the lastVoteTime and lastVotedBot only if the field is empty or if the user has voted for a different bot
+            if (row.lastVotedBot !== botId) {
+              // Update the lastVotedBot only if the user has voted for a different bot
               const currentTime = new Date();
               const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
-              await pool.query('UPDATE topgg_opt SET lastVoteTime = ?, lastVotedBot = ? WHERE discordId = ?', [lastVoteTime, botId, userId]);
-              console.log('Updated lastVoteTime for user:', userId);
+              await pool.query('UPDATE topgg_opt SET lastVotedBot = ? WHERE discordId = ?', [botId, userId]);
+              console.log('Updated lastVotedBot for user:', userId);
             }
           } else {
             // User does not exist in the database, insert a new row
@@ -162,6 +162,7 @@ async function addPreviouslyVotedUsers(client) {
     console.error('Error adding previously voted users to the database:', error);
   }
 }
+
 
 module.exports = {
   startVoteReminderLoop,
