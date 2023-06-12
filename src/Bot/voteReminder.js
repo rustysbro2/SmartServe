@@ -35,47 +35,44 @@ async function sendVoteReminder(client, userId, botId) {
 }
 
 async function startVoteReminderLoop(client, botId) {
-  try {
-    // Call sendVoteReminder immediately without updating lastVoteTime
-    const [result] = await pool.query('SELECT discordId FROM topgg_opt');
-    const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
+  // Call sendVoteReminder immediately without updating lastVoteTime
+  const [result] = await pool.query('SELECT discordId FROM topgg_opt');
+  const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
-    console.log('Checking users for vote reminders:', rows);
-
-    for (const row of rows) {
-      // Send a reminder to each user
-      await sendVoteReminder(client, row.discordId, botId);
-    }
-
-    // Start the interval after sending reminders
-    setInterval(async () => {
-      // Get the current time 12 hours ago
-      const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
-
-      try {
-        // Query the database for users who last voted more than 12 hours ago
-        const [result] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
-        const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
-
-        console.log('Checking users for vote reminders:', rows);
-
-        for (const row of rows) {
-          // Send a reminder to each user
-          await sendVoteReminder(client, row.discordId, botId);
-        }
-      } catch (error) {
-        console.error('Error querying the database:', error);
-      }
-    }, REMINDER_INTERVAL);
-  } catch (error) {
-    console.error('Error starting vote reminder loop:', error);
+  for (const row of rows) {
+    // Send a reminder to each user
+    await sendVoteReminder(client, row.discordId, botId);
   }
+
+  // Start the interval after sending reminders
+  setInterval(async () => {
+    // Get the current time 12 hours ago
+    const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
+
+    try {
+      // Query the database for users who last voted more than 12 hours ago
+      const [result] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
+      const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
+
+      console.log('Checking users for vote reminders:', rows);
+
+      for (const row of rows) {
+        // Send a reminder to each user
+        await sendVoteReminder(client, row.discordId, botId);
+      }
+    } catch (error) {
+      console.error('Error querying the database:', error);
+    }
+  }, REMINDER_INTERVAL);
 }
 
 async function addPreviouslyVotedUsers(client, botId) {
   try {
     // Fetch the list of users who voted from top.gg API
-    const response = await fetch(`https://top.gg/api/bots/${botId}/votes`, {
+    const url = `https://top.gg/api/bots/${botId}/votes`;
+    console.log('API Request URL:', url);
+
+    const response = await fetch(url, {
       headers: { 'Authorization': TOPGG_TOKEN }
     });
     const votes = await response.json();
