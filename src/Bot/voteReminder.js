@@ -8,7 +8,7 @@ const botId = '1105598736551387247';
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 
 // Set the reminder interval (in milliseconds)
-const REMINDER_INTERVAL = 1000; // 1 second
+const REMINDER_INTERVAL = 300000; // 5 minutes in milliseconds
 
 async function sendVoteReminder(client, userId) {
   try {
@@ -41,10 +41,13 @@ async function sendVoteReminder(client, userId) {
   }
 }
 
+
 async function startVoteReminderLoop(client) {
   // Call sendVoteReminder immediately without updating lastVoteTime
   const [result] = await pool.query('SELECT discordId FROM topgg_opt');
   const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
+
+  console.log('Checking users for vote reminders:', rows);
 
   for (const row of rows) {
     // Send a reminder to each user
@@ -61,7 +64,7 @@ async function startVoteReminderLoop(client) {
       const [result] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
       const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
 
-      console.log('Query result:', rows);
+      console.log('Checking users for vote reminders:', rows);
 
       for (const row of rows) {
         // Send a reminder to each user
@@ -72,6 +75,7 @@ async function startVoteReminderLoop(client) {
     }
   }, REMINDER_INTERVAL);
 }
+
 
 async function simulateVote(client, userId, botId) {
   try {
