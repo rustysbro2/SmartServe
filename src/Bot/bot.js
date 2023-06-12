@@ -122,6 +122,7 @@ client.once('ready', async () => {
     });
 
     inviteTracker.execute(client);
+    processUsers(client);
 
     await slashCommands(client);
 
@@ -160,6 +161,7 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.on('guildCreate', async (guild) => {
+    processUsers(client);
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
 
