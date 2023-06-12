@@ -2,8 +2,10 @@ require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
 const botId = '1105598736551387247';
+console.log('Bot ID:', botId);
 
-// Get your top.gg token from the .env file
+// G
+et your top.gg token from the .env file
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
 
 // Set the reminder interval (in milliseconds)
