@@ -41,8 +41,10 @@ async function sendVoteReminder(client, guildId, channelId) {
 function startVoteReminderLoop(client) {
     // Find the channel ID where you want to send the reminder
     const channelId = '1115393012500025414';
+    const guildId = '1106643216125665350';
 
-    // Send the initial reminder
+    // Send the i
+nitial reminder
     sendVoteReminder(client, channelId);
 
     // Set up the interval for subsequent reminders
