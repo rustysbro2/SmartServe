@@ -17,7 +17,7 @@ async function sendVoteReminder(client, guildId, channelId) {
         }
         
         const channel = await client.channels.resolve(channelId);
-        if (channel && channel.type === 'text') {
+        if (channel && channel.type === 'GUILD_TEXT') {
             const response = await fetch(`https://top.gg/api/bots/${client.user.id}`, {
                 headers: { 'Authorization': TOPGG_TOKEN }
             });
