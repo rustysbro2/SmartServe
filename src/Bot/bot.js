@@ -11,8 +11,6 @@ const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
 const cron = require('node-cron');
 dotenv.config(); // Load environment variables from .env file
-const userId = '385324994533654530';
-const botId = '1105598736551387247';
 const { startVoteReminderLoop, addPreviouslyVotedUsers } = require('./voteReminder');
 
 const intents = [
