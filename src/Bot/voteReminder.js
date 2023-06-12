@@ -31,8 +31,6 @@ async function sendVoteReminder(client, userId) {
   }
 }
 
-
-
 // Function to start the reminder loop
 async function startVoteReminderLoop(client) {
   // Initialize lastVoteTime for all users to the current time
