@@ -1,7 +1,25 @@
-// Import the client object from bot.js
 const { client } = require('./bot');
 
-// Move the processUsers function outside the 'ready' event block
+async function addUserToDatabase(user) {
+  try {
+    const insertQuery = 'INSERT INTO users (discord_id, vote_timestamp, reminder_sent, opt_out_status) VALUES (?, NULL, 0, 0)';
+    await pool.query(insertQuery, [user.id]);
+
+    console.log(`Added user with Discord ID ${user.id} to the database.`);
+  } catch (error) {
+    console.error(`Error adding user with Discord ID ${user.id} to the database:`, error);
+  }
+}
+
+async function sendVoteReminder(user) {
+  try {
+    await user.send('Reminder: Don\'t forget to vote!');
+    console.log(`Vote reminder sent to user with Discord ID ${user.id}`);
+  } catch (error) {
+    console.error(`Error sending vote reminder to user with Discord ID ${user.id}:`, error);
+  }
+}
+
 async function processUsers() {
   try {
     // Iterate over every guild the bot is a member of
@@ -38,10 +56,6 @@ async function processUsers() {
   }
 }
 
-// Call the processUsers function immediately
-processUsers();
-
-// Export the processUsers function
 module.exports = {
   processUsers,
   addUserToDatabase,
