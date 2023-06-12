@@ -10,9 +10,10 @@ const helpCommand = require('./commands/General/help');
 const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const { remindUsersToVote } = require('./gg.js'); // Import the remindUsersToVote function
-const optOutCommand = require('./commands/TopG/opt.js'); // Import the optOutCommand module
+const { remindUsersToVote } = require('./remindUsers.js'); // Import the remindUsersToVote function
+const optOutCommand = require('./optOutCommand.js'); // Import the optOutCommand module
 const pool = require('../database.js');
+const webhookServer = require('./Test');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -96,7 +97,6 @@ client.once('ready', async () => {
     });
 
     inviteTracker.execute(client);
-    // Call this function when your bot starts up
 
     await slashCommands(client);
 
@@ -106,6 +106,9 @@ client.once('ready', async () => {
       console.log(`Guild ID: ${category.guildId}`);
       console.log('Commands:', category.commands);
     });
+
+    // Schedule the remindUsersToVote function to run every 24 hours
+    cron.schedule('0 0 * * *', remindUsersToVote);
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
@@ -218,6 +221,7 @@ client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
+webhookServer.start();
 
 client.login(process.env.TOKEN).catch((error) => {
   console.error('Error logging in:', error);
@@ -265,6 +269,24 @@ async function createGuildsTable() {
     `);
   } catch (error) {
     console.error('Error creating guilds table:', error);
+    throw error;
+  }
+}
+
+async function saveJoinMessageChannelToDatabase(channelId, guildId) {
+  try {
+    await pool.promise().query('INSERT INTO guilds (join_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE join_message_channel = ?', [channelId, guildId, channelId]);
+  } catch (error) {
+    console.error('Error saving join message channel to the database:', error);
+    throw error;
+  }
+}
+
+async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
+  try {
+    await pool.promise().query('INSERT INTO guilds (leave_message_channel, target_guild_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE leave_message_channel = ?', [channelId, guildId, channelId]);
+  } catch (error) {
+    console.error('Error saving leave message channel to the database:', error);
     throw error;
   }
 }
