@@ -1,16 +1,16 @@
+require('dotenv').config(); // Load environment variables from .env file
+
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
-const dotenv = require('dotenv');
-const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
-const helpCommand = require('./commands/General/help');
 const path = require('path');
+const cron = require('node-cron');
+
+const inviteTracker = require('./features/inviteTracker.js');
+const helpCommand = require('./commands/General/help');
 const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
-const { CHANNEL_TYPES } = require('discord.js');
-const cron = require('node-cron');
-dotenv.config(); // Load environment variables from .env file
 const webhookServer = require('./Test');
 
 const intents = [
@@ -21,7 +21,7 @@ const intents = [
   GatewayIntentBits.GuildPresences
 ];
 
-const client = new Client({ shards: "auto", intents });
+const client = new Client({ shards: 'auto', intents });
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
@@ -39,7 +39,7 @@ const loadCommands = (dir, category = null) => {
       client.commands.set(command.data.name, command);
 
       // Handle category and command data
-      const commandCategory = category ? category : 'Uncategorized';
+      const commandCategory = category || 'Uncategorized';
       const commandData = {
         name: command.data.name,
         description: command.data.description,
@@ -91,7 +91,7 @@ client.once('ready', async () => {
           type: ActivityType.Watching,
         },
       ],
-      status: "online",
+      status: 'online',
     });
 
     inviteTracker.execute(client);
@@ -108,7 +108,7 @@ client.once('ready', async () => {
   } catch (error) {
     console.error('Error during bot initialization:', error);
   }
-
+});
 
 client.on('interactionCreate', async (interaction) => {
   try {
@@ -157,7 +157,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== 'GUILD_TEXT') {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -201,7 +201,7 @@ client.on('guildDelete', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== 'GUILD_TEXT') {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -216,9 +216,12 @@ client.on('guildDelete', async (guild) => {
 client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
+
 webhookServer.start();
 
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN).catch((error) => {
+  console.error('Error logging in:', error);
+});
 
 async function getJoinMessageChannelFromDatabase(guildId) {
   try {
