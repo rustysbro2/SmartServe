@@ -117,7 +117,7 @@ async function addPreviouslyVotedUsers(client) {
 
     if (Array.isArray(votes)) {
       for (const vote of votes) {
-        const userId = vote.user; // User ID who voted
+        const userId = vote.id; // Update property name here
         const botId = vote.bot; // Bot ID (if needed)
 
         console.log('Retrieved user ID:', userId); // Add this debug log
@@ -146,6 +146,9 @@ async function addPreviouslyVotedUsers(client) {
     console.error('Error adding previously voted users to the database:', error);
   }
 }
+
+// Call this function when your bot starts up
+
 
 
 
