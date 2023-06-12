@@ -74,7 +74,7 @@ async function startVoteReminderLoop(client) {
       console.error('Error querying the database:', error);
     }
   }, REMINDER_INTERVAL);
-
+}
 
 // Function to simulate a vote for testing
 async function simulateVote(client, userId, botId) {
