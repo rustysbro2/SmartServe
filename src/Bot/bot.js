@@ -118,9 +118,7 @@ client.once('ready', async () => {
     // Simulate a vote
     const userId = '385324994533654530';
     const botId = '1105598736551387247';
-    await simulateVote(client, userId, botId);
-    console.log('Vote simulated successfully!');
-
+   
     // Add previously voted users to the database
     await addPreviouslyVotedUsers(client);
     console.log('Previously voted users added to the database.');
