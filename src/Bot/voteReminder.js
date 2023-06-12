@@ -72,6 +72,7 @@ async function startVoteReminderLoop(client) {
 
 
 // Function to simulate a vote for testing
+// Function to simulate a vote for testing
 async function simulateVote(client, userId, botId) {
   try {
     const currentTime = new Date();
@@ -79,11 +80,11 @@ async function simulateVote(client, userId, botId) {
     // Calculate the time 13 hours ago
     const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
 
-    // Update the lastVoteTime in the database based on discordId and botId
-    await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ? AND botId = ?', [lastVoteTime, userId, botId]);
+    // Update the lastVoteTime in the database based on discordId
+    await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [lastVoteTime, userId]);
 
-    // Fetch the optIn status from the database based on discordId and botId
-    const [row] = await pool.query('SELECT optIn FROM topgg_opt WHERE discordId = ? AND botId = ?', [userId, botId]);
+    // Fetch the optIn status from the database based on discordId
+    const [row] = await pool.query('SELECT optIn FROM topgg_opt WHERE discordId = ?', [userId]);
 
     if (row && row.optIn) {
       // Send the reminder message
@@ -95,7 +96,7 @@ async function simulateVote(client, userId, botId) {
       }
       user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
     } else {
-      console.log(`User with ID ${userId} has opted out of vote reminders for bot with ID ${botId}.`);
+      console.log(`User with ID ${userId} has opted out of vote reminders.`);
     }
   } catch (error) {
     console.error('Error simulating vote:', error);
