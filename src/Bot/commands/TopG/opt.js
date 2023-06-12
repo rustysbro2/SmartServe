@@ -1,30 +1,29 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
+const { SlashCommandBuilder } = require('discord.js');
+const pool = require('../../../database.js');
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName('vote')
-    .setDescription('Get the vote link and manage vote reminders')
-    .addStringOption(option =>
-      option.setName('reminder')
-        .setDescription('Choose to opt in or out of vote reminders')
-        .addChoices(
-          { name: 'Opt In', value: 'optin' },
-          { name: 'Opt Out', value: 'optout' },
-        )),
+    .setName('opt')
+    .setDescription('Toggle vote reminders'),
   async execute(interaction) {
-    const option = interaction.options.getString('reminder');
+    try {
+      const discordId = interaction.user.id;
 
-    if (option === 'optin') {
-      // TODO: Implement the logic to opt in to vote reminders
-      await interaction.reply('You have opted in to vote reminders.');
-    } else if (option === 'optout') {
-      // TODO: Implement the logic to opt out of vote reminders
-      await interaction.reply('You have opted out of vote reminders.');
-    } else {
-      const voteLink = `https://top.gg/bot/${process.env.BOT_ID}/vote`;
-      await interaction.reply(`Vote for the bot here: ${voteLink}`);
+      // Fetch the current opt-in status from the database
+      const [row] = await pool.query('SELECT optIn FROM topgg_opt WHERE discordId = ?', [discordId]);
+
+      let optIn = false;
+      if (row) {
+        optIn = !row.optIn;
+        // Update the optIn value in the database
+        await pool.query('UPDATE topgg_opt SET optIn = ? WHERE discordId = ?', [optIn, discordId]);
+      }
+
+      await interaction.reply(`Vote reminders have been ${optIn ? 'enabled' : 'disabled'}.`);
+
+    } catch (error) {
+      console.error('Error executing opt command:', error);
+      await interaction.reply('An error occurred while processing your request.');
     }
   },
 };
