@@ -95,3 +95,10 @@ client.on('guildMemberAdd', (member) => {
     }
   });
 });
+
+// Export the functions
+module.exports = {
+  processUsers,
+  addUserToDatabase,
+  sendVoteReminder
+};
