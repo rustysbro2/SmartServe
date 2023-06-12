@@ -135,12 +135,6 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 
-    // Schedule the remindUsersToVote function to run every 24 hours
-    cron.schedule('0 0 * * *', remindUsersToVote);
-  } catch (error) {
-    console.error('Error during bot initialization:', error);
-  }
-});
 
 client.on('interactionCreate', async (interaction) => {
   try {
