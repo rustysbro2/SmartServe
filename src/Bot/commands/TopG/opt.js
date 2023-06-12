@@ -10,8 +10,8 @@ module.exports = {
     const discordId = interaction.user.id;
 
     try {
-      // Update the vote_reminder_status for the user
-      await pool.query('UPDATE users SET vote_reminder_status = false WHERE discord_id = ?', [discordId]);
+      // Update the opt_out_status for the user
+      await pool.query('UPDATE users SET opt_out_status = 1 WHERE discord_id = ?', [discordId]);
 
       await interaction.reply('You have successfully opted out of the vote reminder.');
     } catch (error) {
