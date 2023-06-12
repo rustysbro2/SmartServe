@@ -1,4 +1,4 @@
-const TOPGG_TOKEN = 'YOUR_TOPGG_TOKEN';require('dotenv').config();
+require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
 
