@@ -75,22 +75,30 @@ async function simulateVote(client, discordId) {
   try {
     const currentTime = new Date(Date.now() - (13 * 60 * 60 * 1000));
 
-    console.log('Query:', 'UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?');
-    console.log('Parameters:', [currentTime, discordId]);
+    // Check if a row exists for the discordId
+    const [existingRow] = await pool.query('SELECT * FROM topgg_opt WHERE discordId = ?', [discordId]);
 
+    if (!existingRow) {
+      // Insert a new row if it doesn't exist
+      await pool.query('INSERT INTO topgg_opt (discordId, lastVoteTime) VALUES (?, ?)', [discordId, currentTime]);
+      console.log(`New row inserted for discordId ${discordId}`);
+    }
+
+    // Update the lastVoteTime for the discordId
     const result = await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [currentTime, discordId]);
     console.log('Affected Rows:', result.affectedRows);
 
     const user = await client.users.fetch(discordId);
     if (!user) {
-        console.log(`User with ID ${discordId} not found.`);
-        return;
+      console.log(`User with ID ${discordId} not found.`);
+      return;
     }
     user.send(`This is a test reminder to vote!`);
   } catch (error) {
     console.error('Error simulating vote:', error);
   }
 }
+
 
 
 
