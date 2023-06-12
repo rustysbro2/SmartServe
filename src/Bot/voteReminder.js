@@ -60,17 +60,17 @@ async function startVoteReminderLoop(client) {
         const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
 
         try {
-            // Query the database for users who last voted more than 12 hours ago
-            const [rows] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
-            for (const row of rows) {
-                // Send a reminder to each user
-                await sendVoteReminder(client, row.discordId);
-            }
+          // Query the database for users who last voted more than 12 hours ago
+          const [rows] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
+          console.log('Query result:', rows); // Add this debug log
+          for (const row of rows) {
+            // Send a reminder to each user
+            await sendVoteReminder(client, row.discordId);
+          }
         } catch (error) {
-            console.error('Error querying the database:', error);
+          console.error('Error querying the database:', error);
         }
-    }, REMINDER_INTERVAL);
-}
+
 
 
 // Function to simulate a vote for testing
