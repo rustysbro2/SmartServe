@@ -71,17 +71,24 @@ async function startVoteReminderLoop(client) {
 }
 
 // Function to simulate a vote for testing
-async function simulateVote(client, discordId, guildId, channelId) {
+async function simulateVote(client, discordId) {
   try {
     // Insert a mock vote into the database
     await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [new Date(Date.now() - (13 * 60 * 60 * 1000)), discordId]);
 
     // Call the reminder function to test if it picks up the vote
-    await sendVoteReminder(client, guildId, channelId);
+    const user = await client.users.fetch(discordId);
+    if (!user) {
+        console.log(`User with ID ${discordId} not found.`);
+        return;
+    }
+    user.send(`This is a test reminder to vote!`);
+
   } catch (error) {
     console.error('Error simulating vote:', error);
   }
 }
+
 
 
 module.exports = {
