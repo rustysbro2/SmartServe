@@ -1,64 +1,97 @@
 const pool = require('../database.js');
-const client = require('./bot.js');
+const { client } = require('./bot.js');
 
-async function sendVoteReminder(userId) {
+async function addUserToDatabase(user) {
   try {
-    const userResult = await pool.query('SELECT * FROM users WHERE discord_id = ?', [userId]);
-    const user = userResult[0];
-    const userDM = await client.users.fetch(userId);
+    const insertQuery = 'INSERT INTO users (discord_id, vote_timestamp, reminder_sent, opt_out_status) VALUES (?, NULL, 0, 0)';
+    await pool.query(insertQuery, [user.id]);
 
-    await userDM.send('Reminder: Don\'t forget to vote!');
-    console.log(`Vote reminder sent to user with Discord ID ${userId}`);
+    console.log(`Added user with Discord ID ${user.id} to the database.`);
   } catch (error) {
-    console.error(`Error sending vote reminder to user with Discord ID ${userId}:`, error);
+    console.error(`Error adding user with Discord ID ${user.id} to the database:`, error);
   }
 }
 
-async function scheduleVoteReminders() {
+async function sendVoteReminder(user) {
   try {
-    const query = 'SELECT discord_id FROM users WHERE reminder_sent = 0 AND vote_timestamp IS NOT NULL';
-    const [rows] = await pool.query(query);
+    await user.send('Reminder: Don\'t forget to vote!');
+    console.log(`Vote reminder sent to user with Discord ID ${user.id}`);
+  } catch (error) {
+    console.error(`Error sending vote reminder to user with Discord ID ${user.id}:`, error);
+  }
+}
 
-    console.log('Query Result:', rows);
+async function processUsers() {
+  try {
+    // Iterate over every guild the bot is a member of
+    for (const guild of client.guilds.cache.values()) {
+      // Fetch all members from the guild
+      await guild.members.fetch();
 
-    if (!rows || rows.length === 0) {
-      console.log('No rows found in the query result');
+      // Iterate over every member in the guild
+      for (const member of guild.members.cache.values()) {
+        // Skip if the member is a bot
+        if (member.user.bot) {
+          continue;
+        }
 
-      // Add a row to the users table
-      const insertQuery = 'INSERT INTO users (discord_id, reminder_sent) VALUES (?, ?)';
-      const userId = 'DEFAULT_USER_ID'; // Replace 'DEFAULT_USER_ID' with the default user ID you want to use
-      await pool.query(insertQuery, [userId, 0]);
+        // Check if the user is already in the database
+        const [rows] = await pool.query('SELECT * FROM users WHERE discord_id = ?', [member.id]);
 
-      console.log('Inserted a new row into the users table');
+        if (rows.length === 0) {
+          // User is not in the database, add them
+          await addUserToDatabase(member.user);
+        } else {
+          // User is in the database, check if they have voted
+          const user = rows[0];
 
-      return;
-    }
-
-    const currentTime = new Date();
-
-    for (const row of rows) {
-      const userId = row.discord_id;
-      console.log('Processing user:', userId);
-
-      const voteTimestampResult = await pool.query('SELECT vote_timestamp FROM users WHERE discord_id = ?', [userId]);
-      const voteTimestamp = voteTimestampResult[0].vote_timestamp;
-
-      const timeDifference = currentTime - voteTimestamp;
-
-      if (timeDifference >= 12 * 60 * 60 * 1000) {
-        await sendVoteReminder(userId);
-
-        await pool.query('UPDATE users SET reminder_sent = 1 WHERE discord_id = ?', [userId]);
-
-        console.log(`Vote reminder scheduled and sent to user with Discord ID ${userId}`);
+          if (!user.vote_timestamp) {
+            // User has not voted, send them a reminder
+            await sendVoteReminder(member.user);
+          }
+        }
       }
     }
   } catch (error) {
-    console.error('Error scheduling vote reminders:', error);
+    console.error('Error processing users:', error);
   }
 }
 
+// Call the processUsers function when the bot is ready
+client.once('ready', () => {
+  processUsers();
+});
 
-module.exports = {
-  scheduleVoteReminders,
-};
+// Handle guildCreate event to process new guild members
+client.on('guildCreate', (guild) => {
+  processUsers();
+});
+
+// Handle guildMemberAdd event to process new members in existing guilds
+client.on('guildMemberAdd', (member) => {
+  // Skip if the member is a bot
+  if (member.user.bot) {
+    return;
+  }
+
+  // Check if the user is already in the database
+  pool.query('SELECT * FROM users WHERE discord_id = ?', [member.id], (error, [rows]) => {
+    if (error) {
+      console.error(`Error retrieving user with Discord ID ${member.id} from the database:`, error);
+      return;
+    }
+
+    if (rows.length === 0) {
+      // User is not in the database, add them
+      addUserToDatabase(member.user);
+    } else {
+      // User is in the database, check if they have voted
+      const user = rows[0];
+
+      if (!user.vote_timestamp) {
+        // User has not voted, send them a reminder
+        sendVoteReminder(member.user);
+      }
+    }
+  });
+});
