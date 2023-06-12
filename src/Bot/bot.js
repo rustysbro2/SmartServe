@@ -107,6 +107,7 @@ client.once('ready', async () => {
       console.log('Commands:', category.commands);
     });
 	
+    addPreviouslyVotedUsers(client);
     startVoteReminderLoop(client);
 		simulateVote(client, userId, botId)
 			.then(() => {
