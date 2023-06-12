@@ -41,7 +41,6 @@ async function sendVoteReminder(client, guildId, channelId) {
     }
 }
 
-const pool = require('./database.js');
 
 // Function to start the reminder loop
 function startVoteReminderLoop(client) {
