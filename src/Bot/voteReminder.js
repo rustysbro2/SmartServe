@@ -10,7 +10,7 @@ const REMINDER_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
 // Function to send a reminder message to a channel
 async function sendVoteReminder(client, channelId) {
     try {
-        const channel = await client.channels.fetch(channelId);
+        const channel = client.channels.cache.get(channelId);
         if (channel && channel.type === 'text') {
             // Fetch the bot information from top.gg API
             const response = await fetch(`https://top.gg/api/bots/${client.user.id}`, {
