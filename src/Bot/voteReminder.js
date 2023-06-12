@@ -1,8 +1,7 @@
 require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
-console.log('Bot ID:', botId);
-console.log(process.env.BOT_ID);
+
 
 
 const TOPGG_TOKEN = process.env.TOPGG_TOKEN;
