@@ -74,7 +74,7 @@ async function addPreviouslyVotedUsers(client) {
     console.log('API Request URL:', url);
 
     const response = await fetch(url, {
-      headers: { 'Authorization': TOPGG_TOKEN }
+      headers: { 'Authorization': '.eyJpZCI6IjExMDU1OTg3MzY1NTEzODcyNDciLCJib3QiOnRydWUsImlhdCI6MTY4NjU4NTYzM30.Ydeh1WDep-Mz5cTUZOe7c7T_P9Ai1329bl22gCt2lyA' }
     });
 
     // Log rate limit headers
