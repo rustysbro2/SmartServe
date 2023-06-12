@@ -1,26 +1,7 @@
-const pool = require('../database.js');
+// Import the client object from bot.js
 const { client } = require('./bot');
 
-async function addUserToDatabase(user) {
-  try {
-    const insertQuery = 'INSERT INTO users (discord_id, vote_timestamp, reminder_sent, opt_out_status) VALUES (?, NULL, 0, 0)';
-    await pool.query(insertQuery, [user.id]);
-
-    console.log(`Added user with Discord ID ${user.id} to the database.`);
-  } catch (error) {
-    console.error(`Error adding user with Discord ID ${user.id} to the database:`, error);
-  }
-}
-
-async function sendVoteReminder(user) {
-  try {
-    await user.send('Reminder: Don\'t forget to vote!');
-    console.log(`Vote reminder sent to user with Discord ID ${user.id}`);
-  } catch (error) {
-    console.error(`Error sending vote reminder to user with Discord ID ${user.id}:`, error);
-  }
-}
-
+// Move the processUsers function outside the 'ready' event block
 async function processUsers() {
   try {
     // Iterate over every guild the bot is a member of
@@ -57,46 +38,10 @@ async function processUsers() {
   }
 }
 
-// Call the processUsers function when the bot is ready
-client.once('ready', () => {
-  processUsers();
-});
+// Call the processUsers function immediately
+processUsers();
 
-// Handle guildCreate event to process new guild members
-client.on('guildCreate', (guild) => {
-  processUsers();
-});
-
-// Handle guildMemberAdd event to process new members in existing guilds
-client.on('guildMemberAdd', (member) => {
-  // Skip if the member is a bot
-  if (member.user.bot) {
-    return;
-  }
-
-  // Check if the user is already in the database
-  pool.query('SELECT * FROM users WHERE discord_id = ?', [member.id], (error, [rows]) => {
-    if (error) {
-      console.error(`Error retrieving user with Discord ID ${member.id} from the database:`, error);
-      return;
-    }
-
-    if (rows.length === 0) {
-      // User is not in the database, add them
-      addUserToDatabase(member.user);
-    } else {
-      // User is in the database, check if they have voted
-      const user = rows[0];
-
-      if (!user.vote_timestamp) {
-        // User has not voted, send them a reminder
-        sendVoteReminder(member.user);
-      }
-    }
-  });
-});
-
-// Export the functions
+// Export the processUsers function
 module.exports = {
   processUsers,
   addUserToDatabase,
