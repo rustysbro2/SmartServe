@@ -1,4 +1,3 @@
-Webhook server
 const express = require("express");
 const Topgg = require("@top-gg/sdk");
 
