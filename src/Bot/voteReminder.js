@@ -105,28 +105,31 @@ async function addPreviouslyVotedUsers(client) {
     });
     const votes = await response.json();
 
-    console.log('Votes from top.gg API:', votes); // Add this debug log
+    console.log('Votes from top.gg API:', votes);
 
     if (Array.isArray(votes)) {
       for (const vote of votes) {
-        const userId = vote.id; // Update property name here
-        const botId = vote.bot; // Bot ID (if needed)
+        const userId = vote.id;
+        const botId = vote.bot;
 
-        console.log('Retrieved user ID:', userId); // Add this debug log
+        console.log('Retrieved user ID:', userId);
 
         if (userId) {
           // Check if the user already exists in the database
           const [row] = await pool.query('SELECT * FROM topgg_opt WHERE discordId = ?', [userId]);
 
           if (row) {
-            // User exists in the database, update the lastVoteTime
-            const currentTime = new Date();
-            const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
-            await pool.query('UPDATE topgg_opt SET lastVoteTime = ? WHERE discordId = ?', [lastVoteTime, userId]);
-            console.log('Updated lastVoteTime for user:', userId);
+            // User exists in the database
+            if (row.lastVoteTime === null || botId !== row.lastVotedBot) {
+              // Update the lastVoteTime and lastVotedBot only if the field is empty or if the user has voted for a different bot
+              const currentTime = new Date();
+              const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
+              await pool.query('UPDATE topgg_opt SET lastVoteTime = ?, lastVotedBot = ? WHERE discordId = ?', [lastVoteTime, botId, userId]);
+              console.log('Updated lastVoteTime for user:', userId);
+            }
           } else {
             // User does not exist in the database, insert a new row
-            await pool.query('INSERT INTO topgg_opt (discordId, optIn) VALUES (?, ?)', [userId, true]);
+            await pool.query('INSERT INTO topgg_opt (discordId, optIn, lastVoteTime, lastVotedBot) VALUES (?, ?, ?, ?)', [userId, true, null, botId]);
             console.log('Inserted new user into the database:', userId);
           }
         }
@@ -138,6 +141,7 @@ async function addPreviouslyVotedUsers(client) {
     console.error('Error adding previously voted users to the database:', error);
   }
 }
+
 
 module.exports = {
   startVoteReminderLoop,
