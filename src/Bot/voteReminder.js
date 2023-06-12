@@ -104,14 +104,6 @@ async function simulateVote(client, userId, botId) {
   }
 }
 
-// Example usage of the simulateVote function
-simulateVote(client, userId, botId)
-  .then(() => {
-    console.log('Simulated vote reminder sent successfully!');
-  })
-  .catch((error) => {
-    console.error('Error simulating vote:', error);
-  });
 
 
 
