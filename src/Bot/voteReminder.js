@@ -1,7 +1,6 @@
 require('dotenv').config();
 const fetch = require('isomorphic-fetch');
 const pool = require('../database.js');
-const botId = '1105598736551387247';
 console.log('Bot ID:', botId);
 console.log(process.env.BOT_ID);
 
