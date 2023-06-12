@@ -32,7 +32,6 @@ async function sendVoteReminder(client, userId) {
 }
 
 
-// Function to start the reminder loop
 async function startVoteReminderLoop(client) {
   // Initialize lastVoteTime for all users to the current time
   const currentTime = new Date();
@@ -40,10 +39,20 @@ async function startVoteReminderLoop(client) {
   try {
     await pool.query('UPDATE topgg_opt SET lastVoteTime = ?', [currentTime]);
     console.log('Initialized lastVoteTime for all users to the current time.');
+
+    // Call sendVoteReminder immediately after initializing the lastVoteTime
+    const [result] = await pool.query('SELECT discordId FROM topgg_opt');
+    const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
+
+    for (const row of rows) {
+      // Send a reminder to each user
+      await sendVoteReminder(client, row.discordId);
+    }
   } catch (error) {
     console.error('Error updating the database:', error);
   }
 
+  // Start the interval after initializing lastVoteTime and sending reminders
   setInterval(async () => {
     // Get the current time 12 hours ago
     const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
@@ -96,48 +105,51 @@ async function simulateVote(client, userId, botId) {
   }
 }
 
-async function startVoteReminderLoop(client) {
-  // Initialize lastVoteTime for all users to the current time
-  const currentTime = new Date();
-
+// Function to add previously voted users to the database
+async function addPreviouslyVotedUsers(client) {
   try {
-    await pool.query('UPDATE topgg_opt SET lastVoteTime = ?', [currentTime]);
-    console.log('Initialized lastVoteTime for all users to the current time.');
+    // Fetch the list of users who voted from top.gg API
+    const response = await fetch(`https://top.gg/api/bots/${botId}/votes`, {
+      headers: { 'Authorization': TOPGG_TOKEN }
+    });
+    const votes = await response.json();
 
-    // Call sendVoteReminder immediately after initializing the lastVoteTime
-    const [result] = await pool.query('SELECT discordId FROM topgg_opt');
-    const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
+    console.log('Votes from top.gg API:', votes);
 
-    for (const row of rows) {
-      // Send a reminder to each user
-      await sendVoteReminder(client, row.discordId);
+    if (Array.isArray(votes)) {
+      for (const vote of votes) {
+        const userId = vote.id;
+        const botId = vote.bot;
+
+        console.log('Retrieved user ID:', userId);
+
+        if (userId) {
+          // Check if the user already exists in the database
+          const [row] = await pool.query('SELECT * FROM topgg_opt WHERE discordId = ?', [userId]);
+
+          if (row) {
+            // User exists in the database
+            if (row.lastVoteTime === null || botId !== row.lastVotedBot) {
+              // Update the lastVoteTime and lastVotedBot only if the field is empty or if the user has voted for a different bot
+              const currentTime = new Date();
+              const lastVoteTime = new Date(currentTime.getTime() - 13 * 60 * 60 * 1000);
+              await pool.query('UPDATE topgg_opt SET lastVoteTime = ?, lastVotedBot = ? WHERE discordId = ?', [lastVoteTime, botId, userId]);
+              console.log('Updated lastVoteTime for user:', userId);
+            }
+          } else {
+            // User does not exist in the database, insert a new row
+            await pool.query('INSERT INTO topgg_opt (discordId, optIn, lastVoteTime, lastVotedBot) VALUES (?, ?, ?, ?)', [userId, true, null, botId]);
+            console.log('Inserted new user into the database:', userId);
+          }
+        }
+      }
+    } else {
+      console.error('Error retrieving votes from top.gg API:', votes);
     }
   } catch (error) {
-    console.error('Error updating the database:', error);
+    console.error('Error adding previously voted users to the database:', error);
   }
-
-  // Start the interval after initializing lastVoteTime and sending reminders
-  setInterval(async () => {
-    // Get the current time 12 hours ago
-    const twelveHoursAgo = new Date(Date.now() - REMINDER_INTERVAL);
-
-    try {
-      // Query the database for users who last voted more than 12 hours ago
-      const [result] = await pool.query('SELECT discordId FROM topgg_opt WHERE lastVoteTime < ?', [twelveHoursAgo]);
-      const rows = Array.isArray(result) ? result : [result]; // Convert single row to an array if needed
-
-      console.log('Query result:', rows);
-
-      for (const row of rows) {
-        // Send a reminder to each user
-        await sendVoteReminder(client, row.discordId);
-      }
-    } catch (error) {
-      console.error('Error querying the database:', error);
-    }
-  }, REMINDER_INTERVAL);
 }
-
 
 
 module.exports = {
