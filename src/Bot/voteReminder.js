@@ -18,18 +18,19 @@ async function sendVoteReminder(client, userId) {
       return;
     }
 
-    const response = await fetch(`https://top.gg/api/bots/${client.user.id}`, {
+    const response = await fetch(`https://top.gg/api/bots/${botId}`, {
       headers: { 'Authorization': TOPGG_TOKEN }
     });
     const botData = await response.json();
 
-    const voteUrl = botData.url;
+    const voteUrl = botData.url || 'https://top.gg/'; // Use a default URL if botData.url is undefined
 
     user.send(`Don't forget to vote for the bot! You can vote [here](${voteUrl}).`);
   } catch (error) {
     console.error('Error in sendVoteReminder function:', error);
   }
 }
+
 
 
 // Function to start the reminder loop
