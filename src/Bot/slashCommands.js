@@ -217,25 +217,26 @@ async function updateCommandData(commands, rest, client) {
 }
 
 function getCommandFiles(directory) {
-  const commandFiles = [];
+    const commandFiles = [];
+    const dirPath = path.join(__dirname, directory);
 
-  function scanDirectory(dir) {
-    const files = fs.readdirSync(dir);
+    function scanDirectory(dir) {
+        const files = fs.readdirSync(dir);
 
-    for (const file of files) {
-      const filePath = path.join(dir, file);
-      const stat = fs.statSync(filePath);
+        for (const file of files) {
+            const filePath = path.join(dir, file);
+            const stat = fs.statSync(filePath);
 
-      if (stat.isDirectory()) {
-        scanDirectory(filePath); // Recursively scan subdirectories
-      } else if (file.toLowerCase().endsWith('.js')) {
-        commandFiles.push(filePath);
-      }
+            if (stat.isDirectory()) {
+                scanDirectory(filePath); // Recursively scan subdirectories
+            } else if (file.toLowerCase().endsWith('.js')) {
+                commandFiles.push(filePath);
+            }
+        }
     }
-  }
 
-  scanDirectory(directory);
-  return commandFiles;
+    scanDirectory(dirPath);
+    return commandFiles;
 }
 
 
