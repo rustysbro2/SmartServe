@@ -12,7 +12,7 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const optOutCommand = require('./commands/TopG/opt.js');
 const pool = require('../database.js');
-const { processUsers, addUserToDatabase, sendVoteReminder } = require('./gg.js');
+const { client, processUsers, addUserToDatabase, sendVoteReminder } = require('./gg.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -123,7 +123,7 @@ client.once('ready', async () => {
 
     await client.guilds.fetch(); // Fetch guilds before processing users
     inviteTracker.execute(client);
-    processUsers(client);
+    processUsers.execute(client);
 
     await slashCommands(client);
 
