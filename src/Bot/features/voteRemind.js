@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require('axios');
 const pool = require('../../database.js');
 const { client } = require('../bot.js'); // Assuming your bot instance is exported as 'client'
