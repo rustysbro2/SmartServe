@@ -1,5 +1,5 @@
 const pool = require('../database.js');
-const { Client } = require('./bot');
+const { Client } = require('./bot.js');
 
 async function addUserToDatabase(user) {
   try {
