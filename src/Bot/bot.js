@@ -9,7 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { remindUsersToVote } = require('./features/voteRemind');
+const { remindUsersToVote, updateVoteStatusInDatabase } = require('./features/voteRemind');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -315,5 +315,7 @@ client.login(token);
 module.exports = {
   client,
   saveJoinMessageChannelToDatabase,
-  saveLeaveMessageChannelToDatabase
+  saveLeaveMessageChannelToDatabase,
+  remindUsersToVote,
+  updateVoteStatusInDatabase
 };
