@@ -146,6 +146,32 @@ client.once('ready', async () => {
   }
 });
 
+client.on('messageCreate', (message) => {
+  // Ignore messages from bots and messages without the command prefix
+  if (message.author.bot || !message.content.startsWith(prefix)) {
+    return;
+  }
+
+  // Extract the command and arguments from the message content
+  const [commandName, ...args] = message.content.slice(prefix.length).trim().split(/ +/);
+
+  // Get the command from the commands collection
+  const command = client.commands.get(commandName.toLowerCase());
+
+  // If the command doesn't exist, return
+  if (!command) {
+    return;
+  }
+
+  try {
+    // Execute the command
+    command.execute(message, args);
+  } catch (error) {
+    console.error('Error executing command:', error);
+    message.reply('An error occurred while executing the command.');
+  }
+});
+
 // Rest of your code...
 
 client.login(process.env.TOKEN).catch((error) => {
