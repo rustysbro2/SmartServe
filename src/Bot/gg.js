@@ -60,7 +60,7 @@ async function execute(client) {
 }
 
 module.exports = {
-  execute,
+  processUsers,
   addUserToDatabase,
   sendVoteReminder,
 };

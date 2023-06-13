@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load environment variables from .env file
+processUsersrequire('dotenv').config(); // Load environment variables from .env file
 
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
 const fs = require('fs');
@@ -12,7 +12,7 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const optOutCommand = require('./commands/TopG/opt.js');
 const pool = require('../database.js');
-const { execute, addUserToDatabase, sendVoteReminder } = require('./gg.js');
+const { processUsers, addUserToDatabase, sendVoteReminder } = require('./gg.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
