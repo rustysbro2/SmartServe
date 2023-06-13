@@ -6,10 +6,10 @@ const path = require('path');
 const cron = require('node-cron');
 
 const inviteTracker = require('./features/inviteTracker.js');
-const helpCommand = require('./commands/help');
+const helpCommand = require('./commands/General/help');
 const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
-const slashCommands = require('./slashCommands');
+const slashCommands = require('./slashCommands.js');
 const optOutCommand = require('./commands/TopG/opt.js');
 const pool = require('../database.js');
 const { processUsers, addUserToDatabase, sendVoteReminder } = require('./gg.js');
