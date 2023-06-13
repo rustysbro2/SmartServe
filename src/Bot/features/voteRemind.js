@@ -1,6 +1,6 @@
 const axios = require('axios');
 const pool = require('../../database.js');
-const { client } = require('./bot.js'); // Assuming your bot instance is exported as 'client'
+const { client } = require('../bot.js'); // Assuming your bot instance is exported as 'client'
 
 const clientId = process.env.CLIENT_ID;
 const topGGToken = process.env.TOP_GG_TOKEN;
