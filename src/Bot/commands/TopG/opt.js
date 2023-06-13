@@ -37,5 +37,7 @@ module.exports = {
       console.error(`Error updating opt-out status for user with Discord ID ${discordId}:`, error);
       await interaction.reply('An error occurred while updating opt-out status. Please try again later.');
     }
-  }
+  },
+  category: 'Music',
+  categoryDescription: 'Commands related to music functionality',
 };
