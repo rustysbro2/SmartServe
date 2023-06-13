@@ -7,7 +7,7 @@ const helpCommand = require('./commands/help');
 const setJoinMessageChannelCommand = require('./commands/growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const pool = require('./database.js');
+const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
 
 
