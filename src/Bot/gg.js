@@ -47,7 +47,7 @@ async function processUsers(client) {
           // User is in the database, check if they have voted
           const user = rows[0];
 
-          if (user.vote_timestamp === null) {
+          if (user && user.vote_timestamp === null) {
             // User has not voted, send them a reminder
             await sendVoteReminder(member.user);
           }
@@ -58,6 +58,7 @@ async function processUsers(client) {
     console.error('Error processing users:', error);
   }
 }
+
 
 module.exports = {
   processUsers,
