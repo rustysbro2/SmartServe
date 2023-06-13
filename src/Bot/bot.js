@@ -123,7 +123,7 @@ client.once('ready', async () => {
 
     await client.guilds.fetch(); // Fetch guilds before processing users
     inviteTracker.execute(client);
-    processUsers(client);
+    processUsers.execute(client);
 
     await slashCommands(client);
 
@@ -135,11 +135,11 @@ client.once('ready', async () => {
     });
 
     // Schedule the vote reminders on startup
-    await processUsers(client);
+    await processUsers.execute(client);
 
     // Schedule the vote reminders to run every 10 minutes
     cron.schedule('*/10 * * * *', async () => {
-      await processUsers(client);
+      await processUsers.execute(client);
     });
   } catch (error) {
     console.error('Error in client once event:', error);
