@@ -20,7 +20,7 @@ async function sendVoteReminder(user) {
   }
 }
 
-async function execute(client) {
+async function processUsers(client) {
   try {
     await client.guilds.fetch();
     const guilds = client.guilds.cache;
