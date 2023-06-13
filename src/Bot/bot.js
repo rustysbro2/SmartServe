@@ -6,11 +6,7 @@ const path = require('path');
 const cron = require('node-cron');
 
 const inviteTracker = require('./features/inviteTracker.js');
-const helpCommand = require('./commands/help.js');
-const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
-const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const optOutCommand = require('./commands/TopG/opt.js');
 const pool = require('../database.js');
 const { processUsers, addUserToDatabase, sendVoteReminder } = require('./gg.js');
 
@@ -143,32 +139,6 @@ client.once('ready', async () => {
     });
   } catch (error) {
     console.error('Error in client once event:', error);
-  }
-});
-
-client.on('messageCreate', (message) => {
-  // Ignore messages from bots and messages without the command prefix
-  if (message.author.bot || !message.content.startsWith(prefix)) {
-    return;
-  }
-
-  // Extract the command and arguments from the message content
-  const [commandName, ...args] = message.content.slice(prefix.length).trim().split(/ +/);
-
-  // Get the command from the commands collection
-  const command = client.commands.get(commandName.toLowerCase());
-
-  // If the command doesn't exist, return
-  if (!command) {
-    return;
-  }
-
-  try {
-    // Execute the command
-    command.execute(message, args);
-  } catch (error) {
-    console.error('Error executing command:', error);
-    message.reply('An error occurred while executing the command.');
   }
 });
 
