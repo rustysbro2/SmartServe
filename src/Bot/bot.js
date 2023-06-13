@@ -11,7 +11,6 @@ const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
 const { remindUsersToVote } = require('./features/voteRemind');
 
-
 const intents = [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
@@ -20,19 +19,15 @@ const intents = [
   GatewayIntentBits.GuildPresences
 ];
 
-const client = new Client({ shards: "auto", intents });
-
-client.once('ready', () => {
-  console.log('Bot is ready!');
-  remindUsersToVote(); // Initial check for vote reminders
+const client = new Client({
+  shardReadyTimeout: Number.MAX_SAFE_INTEGER,
+  shards: "auto",
+  intents
 });
 
-// Listen for the 'voteReminder' event emitted by the 'voteReminder' module
-client.on('voteReminder', (member, message) => {
-  console.log(`Sending vote reminder to user ${member.id}`);
-  member.send(message).catch(console.error);
+client.on('debug', (info) => {
+  console.log(info);
 });
-
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
@@ -89,54 +84,59 @@ commandCategories.forEach((category) => {
   }
 });
 
-client.once('ready', async () => {
-  try {
-    console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-    client.user.setPresence({
-      activities: [
-        {
-          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-          type: ActivityType.Watching,
-        },
-      ],
-      status: "online",
-    });
+client.once('ready', () => {
+  console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
 
-    inviteTracker.execute(client);
+  client.user.setPresence({
+    activities: [
+      {
+        name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+        type: ActivityType.Watching,
+      },
+    ],
+    status: "online",
+  });
 
-    await slashCommands(client);
+  inviteTracker.execute(client);
 
-    console.log('Command Categories:');
-    commandCategories.forEach((category) => {
-      console.log(`Category: ${category.name}`);
-      console.log(`Guild ID: ${category.guildId}`);
-      console.log('Commands:', category.commands);
-    });
+  // Wrap the code within an async function
+  (async () => {
+    try {
+      await slashCommands(client);
 
-    // Function to update the bot's presence
-    const updatePresence = () => {
-      client.user.setPresence({
-        activities: [
-          {
-            name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-            type: ActivityType.Watching,
-          },
-        ],
-        status: "online",
+      console.log('Command Categories:');
+      commandCategories.forEach((category) => {
+        console.log(`Category: ${category.name}`);
+        console.log(`Guild ID: ${category.guildId}`);
+        console.log('Commands:', category.commands);
       });
-    };
 
-    // Initial presence update
-    updatePresence();
+      // Function to update the bot's presence
+      const updatePresence = () => {
+        client.user.setPresence({
+          activities: [
+            {
+              name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+              type: ActivityType.Watching,
+            },
+          ],
+          status: "online",
+        });
+      };
 
-    // Set interval to update presence every 1 minute (adjust the interval as desired)
-    setInterval(updatePresence, 60000);
+      // Initial presence update
+      updatePresence();
 
-  } catch (error) {
-    console.error('Error during bot initialization:', error);
-  }
+      // Set interval to update presence every 1 minute (adjust the interval as desired)
+      setInterval(updatePresence, 60000);
+
+      // Call the remindUsersToVote function
+      remindUsersToVote(client);
+    } catch (error) {
+      console.error('Error during bot initialization:', error);
+    }
+  })();
 });
-
 
 client.on('interactionCreate', async (interaction) => {
   try {
@@ -185,7 +185,7 @@ client.on('guildCreate', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== 'GUILD_TEXT') {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -229,7 +229,7 @@ client.on('guildDelete', async (guild) => {
     console.log('Target Channel:', channel);
     console.log('Channel Type:', channel?.type);
 
-    if (!channel || channel.type !== 0) {
+    if (!channel || channel.type !== 'GUILD_TEXT') {
       console.log('Text channel not found in the target guild.');
       return;
     }
@@ -245,11 +245,9 @@ client.on('error', (error) => {
   console.error('Discord client error:', error);
 });
 
-client.login(token);
-
-async function getJoinMessageChannelFromDatabase() {
+async function getJoinMessageChannelFromDatabase(guildId) {
   try {
-    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds LIMIT 1');
+    const [rows] = await pool.promise().query('SELECT join_message_channel, target_guild_id FROM guilds WHERE target_guild_id = ?', [guildId]);
     if (rows.length > 0) {
       const joinMessageChannel = rows[0];
       console.log('Retrieved join message channel:', joinMessageChannel);
@@ -276,7 +274,6 @@ async function getLeaveMessageChannelFromDatabase() {
     throw error;
   }
 }
-
 
 async function createGuildsTable() {
   try {
@@ -313,6 +310,7 @@ async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
 }
 
 createGuildsTable();
+client.login(token);
 
 module.exports = {
   client,
