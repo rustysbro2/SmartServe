@@ -12,7 +12,7 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const optOutCommand = require('./commands/TopG/opt.js');
 const pool = require('../database.js');
-const { processUsers, addUserToDatabase, sendVoteReminder } = require('./gg.js');
+const { execute, addUserToDatabase, sendVoteReminder } = require('./gg.js');
 
 const intents = [
   GatewayIntentBits.Guilds,
