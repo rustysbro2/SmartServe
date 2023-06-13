@@ -6,7 +6,7 @@ const path = require('path');
 const cron = require('node-cron');
 
 const inviteTracker = require('./features/inviteTracker.js');
-const helpCommand = require('./commands/General/help');
+const helpCommand = require('./commands/help');
 const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands');
