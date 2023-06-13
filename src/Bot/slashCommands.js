@@ -53,7 +53,10 @@ async function updateCommandData(commands, rest, client) {
       const fileName = commandNameToFileMap[lowerCaseName];
 
       if (!fileName) {
-        console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
+          console.log(`Skipping command update due to missing command file: ${JSON.stringify(command)}`);
+          console.log(` - Command Name: ${name}`);
+          console.log(` - Lowercase Name: ${lowerCaseName}`);
+          console.log(` - Expected File Path: ${path.join(__dirname, 'commands', lowerCaseName + '.js')}`);
         continue; // Skip to the next iterationw
       }
 
