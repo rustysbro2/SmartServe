@@ -136,15 +136,16 @@ client.once('ready', async () => {
 
     // Schedule the vote reminders on startup
     await processUsers();
-
+    
     // Schedule the vote reminders to run every 10 minutes
     cron.schedule('*/10 * * * *', async () => {
-      await processUsers();
+      await processUsers.execute(client);
     });
   } catch (error) {
     console.error('Error in client once event:', error);
   }
 });
+
 
 // Rest of your code...
 
