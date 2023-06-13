@@ -9,6 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
+const { remindUsersToVote } = require('./voteReminder');
 
 
 const intents = [
@@ -20,6 +21,18 @@ const intents = [
 ];
 
 const client = new Client({ shards: "auto", intents });
+
+client.once('ready', () => {
+  console.log('Bot is ready!');
+  remindUsersToVote(); // Initial check for vote reminders
+});
+
+// Listen for the 'voteReminder' event emitted by the 'voteReminder' module
+client.on('voteReminder', (member, message) => {
+  console.log(`Sending vote reminder to user ${member.id}`);
+  member.send(message).catch(console.error);
+});
+
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
