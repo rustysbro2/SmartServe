@@ -20,47 +20,45 @@ async function sendVoteReminder(user) {
   }
 }
 
-async function processUsers(client) {
-  try {
-    await client.guilds.fetch();
-    const guilds = client.guilds.cache;
+module.exports = {
+  async processUsers(client) {
+    try {
+      await client.guilds.fetch();
+      const guilds = client.guilds.cache;
 
-    // Iterate over every guild the bot is a member of
-    for (const guild of guilds.values()) {
-      // Fetch all members from the guild
-      await guild.members.fetch();
+      // Iterate over every guild the bot is a member of
+      for (const guild of guilds.values()) {
+        // Fetch all members from the guild
+        await guild.members.fetch();
 
-      // Iterate over every member in the guild
-      for (const member of guild.members.cache.values()) {
-        // Skip if the member is a bot
-        if (member.user.bot) {
-          continue;
-        }
+        // Iterate over every member in the guild
+        for (const member of guild.members.cache.values()) {
+          // Skip if the member is a bot
+          if (member.user.bot) {
+            continue;
+          }
 
-        // Check if the user is already in the database
-        const [rows] = await pool.query('SELECT * FROM users WHERE discord_id = ?', [member.id]);
+          // Check if the user is already in the database
+          const [rows] = await pool.query('SELECT * FROM users WHERE discord_id = ?', [member.id]);
 
-        if (rows.length === 0) {
-          // User is not in the database, add them
-          await addUserToDatabase(member.user);
-        } else {
-          // User is in the database, check if they have voted
-          const user = rows[0];
+          if (rows.length === 0) {
+            // User is not in the database, add them
+            await addUserToDatabase(member.user);
+          } else {
+            // User is in the database, check if they have voted
+            const user = rows[0];
 
-          if (!user.vote_timestamp) {
-            // User has not voted, send them a reminder
-            await sendVoteReminder(member.user);
+            if (!user.vote_timestamp) {
+              // User has not voted, send them a reminder
+              await sendVoteReminder(member.user);
+            }
           }
         }
       }
+    } catch (error) {
+      console.error('Error processing users:', error);
     }
-  } catch (error) {
-    console.error('Error processing users:', error);
-  }
-}
-
-module.exports = {
-  processUsers,
+  },
   addUserToDatabase,
   sendVoteReminder
 };
