@@ -4,10 +4,10 @@ const token = process.env.TOKEN;
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/help');
-const setJoinMessageChannelCommand = require('./commands/setjoinmessagechannel.js');
-const setLeaveMessageChannelCommand = require('./commands/setleavemessagechannel.js');
+const setJoinMessageChannelCommand = require('./commands/growth/setJoin.js');
+const setLeaveMessageChannelCommand = require('./commands/growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const pool = require('./database.js');
+const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
 
 
