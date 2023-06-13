@@ -1,5 +1,6 @@
+require('dotenv').config();
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
-const { token } = require('./config.js');
+const token = process.env.TOKEN;
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
 const helpCommand = require('./commands/help');
@@ -9,6 +10,7 @@ const setLeaveMessageChannelCommand = require('./commands/setleavemessagechannel
 const slashCommands = require('./slashCommands.js');
 const pool = require('./database.js');
 const { CHANNEL_TYPES } = require('discord.js');
+
 
 const intents = [
   GatewayIntentBits.Guilds,
