@@ -9,7 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { remindUsersToVote } = require('./features/voteReminder');
+const { remindUsersToVote } = require('./features/voteRemind');
 
 
 const intents = [
