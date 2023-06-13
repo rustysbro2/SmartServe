@@ -23,6 +23,9 @@ async function sendVoteReminder(user) {
 
 async function processUsers(client) {
   try {
+    console.log('Client object:', client);
+    console.log('Client guilds:', client.guilds);
+
     const guilds = client.guilds.cache;
 
     for (const guild of guilds.values()) {
