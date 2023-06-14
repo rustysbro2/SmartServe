@@ -22,31 +22,21 @@ async function remindUsersToVote(client) {
           console.log(`User ${memberId} has voted: ${hasVoted}`);
 
           const optOut = await getVoteReminderOptOut(guildId, memberId);
-          const lastRemindTime = await getLastRemindTime(guildId, memberId);
+          let initialReminderSent = await getInitialReminderSent(guildId, memberId);
 
-          if (optOut) {
-            console.log(`User ${memberId} has opted out of vote reminders.`);
-            continue; // Skip this user if they have opted out
-          }
+          console.log(`Opt-out status for user ${memberId}: ${optOut}`);
+          console.log(`Initial reminder sent flag for user ${memberId}: ${initialReminderSent}`);
 
-          const currentTime = new Date();
-          const twelveHoursAgo = new Date(currentTime - 12 * 60 * 60 * 1000); // Subtract 12 hours from the current time
-
-          if (!lastRemindTime || lastRemindTime < twelveHoursAgo) {
+          if (initialReminderSent === false) {
             // Send initial vote reminder
             const voteReminderMessage = `Reminder: Don't forget to vote for the bot! You can vote [here](https://top.gg/bot/${botId}/vote).`;
             console.log(`Sending initial vote reminder to user ${memberId}`);
             member.send(voteReminderMessage).catch(console.error);
 
             console.log(`Initial vote reminder sent to user ${memberId}`);
-
-            // Update the last remind time in the database or create a new row
-            if (lastRemindTime) {
-              await updateLastRemindTime(guildId, memberId, currentTime);
-            } else {
-              await createNewRow(guildId, memberId, currentTime);
-            }
-          } else if (hasVoted) {
+            // Update the initial reminder sent flag in the database
+            await updateInitialReminderSent(guildId, memberId, true);
+          } else if (!optOut && hasVoted && initialReminderSent === true) {
             // Send recurring vote reminder
             const recurringReminderMessage = `Reminder: You can vote for the bot [here](https://top.gg/bot/${botId}/vote) to support us.`;
             console.log(`Sending recurring vote reminder to user ${memberId}`);
@@ -61,6 +51,29 @@ async function remindUsersToVote(client) {
     console.log('Vote reminders sent successfully.');
   } catch (error) {
     console.error('Error sending vote reminders:', error);
+  }
+}
+
+async function getInitialReminderSent(guildId, userId) {
+  try {
+    const [rows] = await pool.query('SELECT initial_reminder_sent FROM voted_users WHERE guild_id = ? AND discord_id = ?', [guildId, userId]);
+    if (rows.length > 0) {
+      return rows[0].initial_reminder_sent === 1;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error retrieving initial reminder sent flag from the database:', error);
+    throw error;
+  }
+}
+
+async function updateInitialReminderSent(guildId, userId, initialReminderSent) {
+  try {
+    await pool.query('UPDATE voted_users SET initial_reminder_sent = ? WHERE guild_id = ? AND discord_id = ?', [initialReminderSent, guildId, userId]);
+    console.log(`Initial reminder sent flag updated for user ${userId} in guild ${guildId}`);
+  } catch (error) {
+    console.error('Error updating initial reminder sent flag in the database:', error);
+    throw error;
   }
 }
 
@@ -89,14 +102,13 @@ async function updateLastRemindTime(guildId, userId, lastRemindTime) {
 
 async function createNewRow(guildId, userId, lastRemindTime) {
   try {
-    await pool.query('INSERT IGNORE INTO voted_users (guild_id, discord_id, last_remind_time) VALUES (?, ?, ?)', [guildId, userId, lastRemindTime]);
-    console.log(`New row created for user ${userId} in guild ${guildId}`);
+    await pool.query('INSERT INTO voted_users (guild_id, discord_id, last_remind_time) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE last_remind_time = VALUES(last_remind_time)', [guildId, userId, lastRemindTime]);
+    console.log(`New row created or updated for user ${userId} in guild ${guildId}`);
   } catch (error) {
     console.error('Error creating new row in the database:', error);
     throw error;
   }
 }
-
 
 async function checkUserVote(guildId, userId) {
   try {
@@ -116,11 +128,20 @@ async function checkUserVote(guildId, userId) {
 async function getVoteReminderOptOut(guildId, userId) {
   try {
     const [rows] = await pool.query('SELECT opt_out FROM voted_users WHERE guild_id = ? AND discord_id = ?', [guildId, userId]);
-    if (rows.length > 0) {
+
+    // Check if rows are returned and if they are not undefined
+    if (rows && rows.length > 0) {
       return rows[0].opt_out === 1;
+    } else {
+      // If there is no record for the user, create a new row with default opt-out status (false)
+      const defaultOptOutStatus = 0; // assuming opt-out is false by default
+      const defaultLastRemindTime = new Date();
+      await createNewRow(guildId, userId, defaultLastRemindTime);
+      await updateVoteReminderOptOut(guildId, userId, defaultOptOutStatus);
+
+      // Return default opt-out status
+      return defaultOptOutStatus === 1;
     }
-    // Default value: true if no opt-out status is found
-    return true;
   } catch (error) {
     console.error('Error retrieving vote reminder opt-out status from the database:', error);
     throw error;
@@ -144,5 +165,7 @@ module.exports = {
   createNewRow,
   checkUserVote,
   getVoteReminderOptOut,
-  updateVoteReminderOptOut
+  updateVoteReminderOptOut,
+  getInitialReminderSent,
+  updateInitialReminderSent
 };
