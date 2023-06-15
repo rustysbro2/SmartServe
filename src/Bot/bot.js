@@ -10,7 +10,6 @@ const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
 const cron = require('node-cron');
-
 const { checkUserVote, sendReminder } = require('./features/voteRemind');
 
 
@@ -129,6 +128,7 @@ client.once('ready', () => {
       updatePresence();
 
 			
+
 			// Schedule the recurring reminder task
 			cron.schedule('0 12 * * *', async () => {
 			  const remindersToSend = await checkUserVote(client);
@@ -139,7 +139,6 @@ client.once('ready', () => {
 			  }
 			});
 
-		
       // Set interval to update presence every 1 minute (adjust the interval as desired)
       setInterval(updatePresence, 60000);
 
