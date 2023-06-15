@@ -1,5 +1,7 @@
 const axios = require('axios');
 const mysql = require('mysql2/promise');
+const cron = require('node-cron');
+require('dotenv').config(); // Import dotenv and load environment variables
 
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
@@ -12,204 +14,94 @@ const connection = mysql.createPool({
   database: 'SmartBeta',
 });
 
-async function checkUserVote(guildId, userId) {
-  try {
-    const response = await axios.get(`https://top.gg/api/bots/${botId}/check`, {
-      params: {
-        userId: userId
-      },
-      headers: {
-        Authorization: topGGToken
-      }
-    });
+async function sendReminder(member) {
+  console.log(`Sending reminder to user: ${member.user.tag}`);
+  member.send("Don't forget to vote for the bot! Your support is appreciated!");
 
-    const voted = response.data.voted === 1;
-
-    // Update the 'voted' field in the database
-    await updateVoteStatus(guildId, userId, voted);
-
-    console.log(`API response for user ${userId} in guild ${guildId}:`, response.data); // Debug output
-
-    return voted;
-  } catch (error) {
-    console.error(`Error checking vote status for user ${userId} in guild ${guildId}:`, error);
-    return false;
-  }
+  // Set reminder_sent to 1 in the database to mark that a reminder has been sent
+  await connection.query('UPDATE vote_reminders SET reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
 }
 
-async function sendVoteReminder(guildId, userId, client) {
+async function checkUserVote(client) {
   try {
-    // Replace with your custom logic to send a vote reminder message to the user in the specified guild
-    console.log(`Sending vote reminder to user ${userId} in guild ${guildId}`);
+    console.log('Starting user vote check...');
 
-    // Check if the user has already been reminded
-    const query = 'SELECT reminded, voted FROM user_reminders WHERE guild_id = ? AND user_id = ?';
-    const [rows] = await connection.query(query, [guildId, userId]);
-    const { reminded, voted } = rows[0];
+    const remindersToSend = [];
 
-    if (reminded || !voted) {
-      console.log(`User ${userId} has already been reminded or hasn't voted. Skipping reminder.`);
-      return;
-    }
+    client.guilds.cache.forEach(async (guild) => {
+      console.log(`Checking guild: ${guild.name}`);
 
-    // Example: Send a DM to the user
-    const user = await client.users.fetch(userId);
-    if (user) {
-      const voteLink = `https://top.gg/bot/${botId}/vote`;
-      const reminderMessage = `Hey, don't forget to vote for our bot!\nVote here: ${voteLink}\nFrom: @cmdr_ricky`;
-
-      // Update the 'reminded' field in the database before sending the reminder
-      const updateQuery = 'UPDATE user_reminders SET reminded = 1 WHERE guild_id = ? AND user_id = ?';
-      await connection.query(updateQuery, [guildId, userId]);
-
-      user.send(reminderMessage);
-    }
-  } catch (error) {
-    console.error(`Error sending vote reminder to user ${userId} in guild ${guildId}:`, error);
-  }
-}
-
-
-
-
-
-
-async function updateVoteReminderOptOut(userId, optOutValue) {
-  try {
-    // Update the user's opt-out status in the database
-    const query = 'UPDATE user_reminders SET opt_out = ? WHERE user_id = ?';
-    await connection.query(query, [optOutValue, userId]);
-  } catch (error) {
-    console.error(`Error updating vote reminder opt-out status for user ${userId}:`, error);
-  }
-}
-
-async function scheduleVoteReminders(client) {
-  try {
-    client.guilds.cache.each(async (guild) => {
-      const guildId = guild.id;
-
-      console.log(`Processing users in guild ${guildId}`);
-
-      // Replace 'users' with your own logic to retrieve the list of users in the guild
-      const users = await getUsers(client, guildId);
-
-      for (const user of users) {
-        const userId = user.id;
-
-        console.log(`Processing user ${userId}`);
-
-        // Check if the user already exists in the 'user_reminders' table
-        const existingUser = await getUserReminder(guildId, userId);
-
-        if (!existingUser) {
-          console.log(`User ${userId} not found in database. Inserting user reminder.`);
-          // Insert a new row for the user in the 'user_reminders' table
-          await insertUserReminder(guildId, userId);
-        } else if (existingUser.reminded) {
-          console.log(`User ${userId} has already been reminded. Skipping reminder.`);
-          continue; // Skip to the next user
+      guild.members.cache.forEach(async (member) => {
+        // Skip if the member is a bot
+        if (member.user.bot) {
+          return;
         }
 
-        // Only proceed if the user is not a bot
-        if (!user.bot) {
-          // Check if the user has voted
-          console.log(`Checking vote status for user ${userId}`);
-          const voted = await checkUserVote(guildId, userId);
+        console.log(`Checking member: ${member.user.tag}`);
 
-          console.log(`User ${userId} vote status: ${voted}`);
+        // Check if the user has already received the initial reminder
+        const [rows] = await connection.query('SELECT * FROM vote_reminders WHERE user_id = ?', [member.user.id]);
 
-          // Send the vote reminder if the user has not been reminded and has voted
-          if (!existingUser.reminded && voted) {
-            console.log(`Sending vote reminder to user ${userId}`);
-            sendVoteReminder(guildId, userId, client);
-            await updateReminderStatus(guildId, userId, true);
+        if (rows.length === 0) {
+          // User has not received the initial reminder, send it
+          console.log(`Sending initial reminder to user: ${member.user.tag}`);
+          member.send("Thanks for using our bot! Don't forget to vote for us on top.gg!");
+
+          // Store the user in the database and set reminder_sent to 1 to track the initial reminder
+          await connection.query('INSERT INTO vote_reminders (user_id, reminder_sent) VALUES (?, 1)', [member.user.id]);
+
+          // Skip checking vote status for this user since it's the initial reminder
+          return;
+        }
+
+        const { reminder_sent, voted } = rows[0];
+
+        if (reminder_sent === 0) {
+          // User has not received a reminder yet
+          if (voted === 0) {
+            // User has not voted, add the member to the reminders to send
+            remindersToSend.push(member);
+          } else {
+            // User has voted, set reminder_sent to 1 in the database to mark that a reminder has been sent
+            await connection.query('UPDATE vote_reminders SET reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
           }
         }
-      }
+
+        // Skip checking vote status for this user since it's a reminder
+        if (reminder_sent === 1) {
+          return;
+        }
+
+        // Check if the user has voted
+        const response = await axios.get(`https://top.gg/api/bots/${botId}/check`, {
+          params: {
+            userId: member.user.id
+          },
+          headers: {
+            Authorization: topGGToken
+          }
+        });
+
+        if (response.data.voted === 1) {
+          console.log(`User ${member.user.tag} has voted.`);
+          // Update voted field in the database
+          await connection.query('UPDATE vote_reminders SET voted = 1 WHERE user_id = ?', [member.user.id]);
+        } else {
+          console.log(`User ${member.user.tag} has not voted.`);
+        }
+      });
     });
-  } catch (error) {
-    console.error('Error scheduling vote reminders:', error);
-  }
-}
 
-async function getUsers(client, guildId) {
-  try {
-    const guild = client.guilds.cache.get(guildId);
-    if (guild) {
-      // Fetch all members in the guild
-      const members = guild.members.cache;
-      return members
-        .filter((member) => !member.user.bot) // Exclude bot users
-        .map((member) => ({
-          id: member.user.id,
-          username: member.user.username,
-          bot: member.user.bot,
-        }));
-    }
+    console.log('User vote check completed.');
+
+    return remindersToSend;
+  } catch (error) {
+    console.error('Error checking user votes:', error);
     return [];
-  } catch (error) {
-    console.error(`Error retrieving users in guild ${guildId}:`, error);
-    return [];
-  }
-}
-
-async function getUsersRequiringVoteReminder(guildId) {
-  try {
-    const query = 'SELECT * FROM user_reminders WHERE guild_id = ?';
-    const [rows] = await connection.query(query, [guildId]);
-    return rows;
-  } catch (error) {
-    console.error(`Error retrieving users requiring vote reminders in guild ${guildId}:`, error);
-    return [];
-  }
-}
-
-async function getUserReminder(guildId, userId) {
-  try {
-    const query = 'SELECT * FROM user_reminders WHERE guild_id = ? AND user_id = ?';
-    const [rows] = await connection.query(query, [guildId, userId]);
-    return rows[0] || undefined; // Return the first row if found, or undefined if not found
-  } catch (error) {
-    console.error(`Error retrieving user reminder for user ${userId} in guild ${guildId}:`, error);
-    return undefined;
-  }
-}
-
-async function insertUserReminder(guildId, userId) {
-  try {
-    const query = 'INSERT INTO user_reminders (guild_id, user_id, reminded, opt_out, voted) VALUES (?, ?, ?, ?, ?)';
-    await connection.query(query, [guildId, userId, false, false, false]);
-    console.log(`Inserted user reminder for user ${userId} in guild ${guildId}`);
-  } catch (error) {
-    console.error(`Error inserting user reminder for user ${userId} in guild ${guildId}:`, error);
-  }
-}
-
-
-async function updateReminderStatus(guildId, userId, reminded) {
-  try {
-    const query = 'UPDATE user_reminders SET reminded = ? WHERE guild_id = ? AND user_id = ?';
-    await connection.query(query, [reminded, guildId, userId]);
-  } catch (error) {
-    console.error(`Error updating reminder status for user ${userId} in guild ${guildId}:`, error);
-  }
-}
-
-async function updateVoteStatus(guildId, userId, voted) {
-  try {
-    // Update the 'voted' field in the database
-    const query = 'UPDATE user_reminders SET voted = ? WHERE guild_id = ? AND user_id = ?';
-    await connection.query(query, [voted, guildId, userId]);
-  } catch (error) {
-    console.error(`Error updating vote status for user ${userId} in guild ${guildId}:`, error);
   }
 }
 
 module.exports = {
-  scheduleVoteReminders,
-  updateVoteReminderOptOut,
   checkUserVote,
-  sendVoteReminder,
-  getUsersRequiringVoteReminder
+  sendReminder
 };

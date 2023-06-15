@@ -9,7 +9,8 @@ const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { scheduleVoteReminders, updateVoteReminderOptOut, checkUserVote, sendVoteReminder, getUsersRequiringVoteReminder } = require('./features/voteRemind');
+const { checkUserVote, sendReminder } = require('./features/voteReminder');
+
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -25,9 +26,7 @@ const client = new Client({
   intents
 });
 
-client.on('debug', (info) => {  scheduleVoteReminders(client);
-  console.log(info);
-});
+
 
 client.commands = new Collection();
 client.musicPlayers = new Map();
@@ -127,8 +126,7 @@ client.once('ready', () => {
       // Initial presence update
       updatePresence();
 
-      scheduleVoteReminders(client);
-
+      
 		
       // Set interval to update presence every 1 minute (adjust the interval as desired)
       setInterval(updatePresence, 60000);
