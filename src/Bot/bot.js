@@ -128,16 +128,15 @@ client.once('ready', () => {
       updatePresence();
 
 			
-
-			// Schedule the recurring reminder task
-			cron.schedule('0 12 * * *', async () => {
-			  const remindersToSend = await checkUserVote(client);
-			
-			  // Send reminders after the checkUserVote function has finished executing
-			  for (const member of remindersToSend) {
-			    await sendReminder(member);
-			  }
-			});
+      // Schedule the recurring reminder task
+      cron.schedule('0 12 * * *', async () => {
+        const remindersToSend = await checkUserVote(client);
+      
+        // Send reminders after the checkUserVote function has finished executing
+        for (const member of remindersToSend) {
+          await sendReminder(member);
+        }
+      });
 
       // Set interval to update presence every 1 minute (adjust the interval as desired)
       setInterval(updatePresence, 60000);
