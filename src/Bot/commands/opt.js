@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { updateVoteReminderOptOut } = require('../features/voteRemind');
 
-module.exports = {
+const optOutCommand = {
   data: new SlashCommandBuilder()
     .setName('optout')
     .setDescription('Opt-out or opt-in to receiving vote reminders')
@@ -9,22 +9,19 @@ module.exports = {
       .setName('opt')
       .setDescription('Choose whether to opt-out or opt-in')
       .setRequired(true)),
-
   async execute(interaction) {
-    try {
-      const guildId = interaction.guild.id;
-      const memberId = interaction.user.id;
-      const optOut = interaction.options.getBoolean('opt');
+    // Extract the option value
+    const optOutValue = interaction.options.getBoolean('opt');
 
-      // Update the opt-out status in the database
-      await updateVoteReminderOptOut(guildId, memberId, optOut);
+    // Call the function to update the vote reminder opt-out status
+    await updateVoteReminderOptOut(interaction.user.id, optOutValue);
 
-      const response = optOut ? 'You have opted out of receiving vote reminders.' : 'You have opted back in to receiving vote reminders.';
-      await interaction.reply(response);
-
-    } catch (error) {
-      console.error('Error executing opt-out command:', error);
-      await interaction.reply('An error occurred while processing your request.');
-    }
+    // Respond to the user with a message
+    await interaction.reply({
+      content: `Vote reminder opt-out status has been updated to ${optOutValue}`,
+      ephemeral: true
+    });
   }
 };
+
+module.exports = optOutCommand;
