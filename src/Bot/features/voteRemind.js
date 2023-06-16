@@ -13,6 +13,14 @@ const connection = mysql.createPool({
   database: 'SmartBeta',
 });
 
+async function sendDM(user, message) {
+  try {
+    await user.send(message);
+  } catch (error) {
+    console.error(`Failed to send DM to ${user.tag}`);
+  }
+}
+
 async function checkAndRecordUserVote(member) {
   console.log(`Checking vote status for user: ${member.user.tag}`);
 
@@ -29,29 +37,30 @@ async function checkAndRecordUserVote(member) {
 
     const voteStatus = response.data.voted;
 
-    // Get user from the database
-    const [rows] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
-    const user = rows[0];
-
-    // If the user doesn't exist in the database, it's a new user
-    if (!user) {
-      // Send initial reminder
-      member.send('This is your initial reminder! Please remember to vote for our bot. Thank you!')
-        .catch(error => {
-          console.error(`Could not send DM to ${member.user.tag}.`);
-        });
-    }
-
     // Update the vote status in the database
-    await connection.query('INSERT INTO users (user_id, voted) VALUES (?, ?) ON DUPLICATE KEY UPDATE voted = ?', [member.user.id, voteStatus, voteStatus]);
+    const [results] = await connection.query('INSERT INTO users (user_id, voted, initial_reminder_sent) VALUES (?, ?, 0) ON DUPLICATE KEY UPDATE voted = ?', [member.user.id, voteStatus, voteStatus]);
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
+    if (results.affectedRows > 0 && voteStatus === 0) {
+      // Send an initial reminder DM if the user is newly inserted to the database and has not voted yet
+      sendDM(member.user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+      // Update the initial_reminder_sent flag in the database
+      await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
+    }
   } catch (error) {
     console.error('Error checking vote status:', error);
   }
 }
 
+async function sendRecurringReminders() {
+  const [rows] = await connection.query('SELECT user_id FROM users WHERE voted = 1 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12');
+  
+  for (const row of rows) {
+    const user = await client.users.fetch(row.user_id);
+    sendDM(user, "Hello! It's time to vote for our bot again. Thank you for your support!");
+  }
+}
 
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
@@ -69,6 +78,9 @@ async function checkAllGuildMembers(client) {
       });
     });
   });
+
+  // Start sending recurring reminders
+  setInterval(sendRecurringReminders, 1000 * 60 * 60); // Run every hour
 }
 
 module.exports = {
