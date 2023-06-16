@@ -1,3 +1,4 @@
+//voteRemind.js
 const mysql = require('mysql2/promise');
 const axios = require('axios');
 require('dotenv').config();
@@ -31,9 +32,9 @@ async function sendRecurringReminders(client) {
   const currentTime = Date.now();
 
   const recurringReminderPromises = votedUsers.map(async (row) => {
-    const recurringReminderTime = row.recurring_remind_time ? new Date(row.recurring_remind_time).getTime() : null;
+    const recurringReminderTime = row.recurring_remind_time ? new Date(row.recurring_remind_time).getTime() : new Date(0).getTime();
 
-    if (currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000) {
+    if (recurringReminderTime === null || currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000) {
       console.log(`Fetching user with ID: ${row.user_id}`);
       if (row.user_id) {
         const user = await client.users.fetch(row.user_id);
