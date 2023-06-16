@@ -80,14 +80,14 @@ async function checkAndRecordUserVote(member) {
     const voteStatus = response.data.voted;
 
     const [results] = await connection.query(
-      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent) VALUES (?, ?, ?, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), last_vote_time = IF(VALUES(voted) = 1, VALUES(last_vote_time), last_vote_time), initial_reminder_sent = initial_reminder_sent, opt_out = IF(VALUES(voted) = 1, opt_out, 1)',
+      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out) VALUES (?, ?, ?, 0, 1) ON DUPLICATE KEY UPDATE voted = VALUES(voted), last_vote_time = IF(VALUES(voted) = 1, VALUES(last_vote_time), last_vote_time), initial_reminder_sent = initial_reminder_sent',
       [member.user.id, voteStatus, new Date()]
     );
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
-    if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
+    if (user.voted === 0 && user.initial_reminder_sent === 0) {
       let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders. The owner of the bot is <@${ownerUserId}>.`;
 
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
@@ -100,6 +100,7 @@ async function checkAndRecordUserVote(member) {
     console.error('Error checking vote status:', error);
   }
 }
+
 
 async function checkAllGuildMembers(client) {
   console.log('Checking vote status for all guild members at startup...');
