@@ -62,37 +62,41 @@ async function sendRecurringReminders(client) {
   );
 
   const neverVotedPromises = neverVotedRows.map(async row => {
+    // Log each row
+    console.log(row);
+  
     // Check if 12 hours have passed since the initial reminder
-    if (Date.now() - row.initial_reminder_time.getTime() >= 12 * 60 * 60 * 1000) {
-      console.log(`Fetching never voted user with ID: ${row.user_id}`);  // <-- Add logging
-      if (row.user_id && !isNaN(row.user_id)) {
+    if (Date.now() - new Date(row.initial_reminder_time).getTime() >= 12 * 60 * 60 * 1000) {
+      console.log(`Fetching user with ID: ${row.user_id}`);
+      if (row.user_id) {
         const user = await client.users.fetch(row.user_id);
         sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
       } else {
-        console.log('Never voted user ID is null or not a number');  // <-- Add logging
+        console.log('User ID is null');
       }
     }
   });
 
-  // Await all promises to finish
   await Promise.all(neverVotedPromises);
 
   // Select users who have voted and 12 hours have passed since the last vote
   const [votedRows] = await connection.query(
-    'SELECT user_id FROM users WHERE voted = 1 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12'
+    'SELECT user_id, last_vote_time FROM users WHERE voted = 1 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12'
   );
 
   const votedPromises = votedRows.map(async row => {
-    console.log(`Fetching voted user with ID: ${row.user_id}`);  // <-- Add logging
-    if (row.user_id && !isNaN(row.user_id)) {
+    // Log each row
+    console.log(row);
+    
+    console.log(`Fetching user with ID: ${row.user_id}`);
+    if (row.user_id) {
       const user = await client.users.fetch(row.user_id);
       sendDM(user, "Hello! It's time to vote for our bot again. Thank you for your support!");
     } else {
-      console.log('Voted user ID is null or not a number');  // <-- Add logging
+      console.log('User ID is null');
     }
   });
 
-  // Await all promises to finish
   await Promise.all(votedPromises);
 }
 
