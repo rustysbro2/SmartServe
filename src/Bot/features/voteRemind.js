@@ -4,9 +4,10 @@ require('dotenv').config();
 
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
-const supportServerLink = 'https://discord.gg/wtzp28pHRK';
-const topGGVoteLink = `https://top.gg/bot/${botId}/vote`;
+const supportServerLink = 'https://discord.gg/wtzp28pHRK'; // Replace with your support server link
+const topGGVoteLink = `https://top.gg/bot/${botId}/vote`; // Top.gg vote link
 
+// MySQL connection settings
 const connection = mysql.createPool({
   host: 'localhost',
   user: 'rustysbro',
@@ -26,6 +27,7 @@ async function checkAndRecordUserVote(member) {
   console.log(`Checking vote status for user: ${member.user.tag}`);
 
   try {
+    // Check if the user has voted
     const response = await axios.get(`https://top.gg/api/bots/${botId}/check`, {
       params: {
         userId: member.user.id,
@@ -37,6 +39,7 @@ async function checkAndRecordUserVote(member) {
 
     const voteStatus = response.data.voted;
 
+    // Update the vote status in the database
     const [results] = await connection.query(
       'INSERT INTO users (user_id, voted, initial_reminder_sent, opt_out) VALUES (?, ?, 0, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), initial_reminder_sent = initial_reminder_sent',
       [member.user.id, voteStatus]
@@ -44,14 +47,21 @@ async function checkAndRecordUserVote(member) {
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
+    // If the user hasn't voted and the initial reminder hasn't been sent yet, send it.
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
+      // Send an initial reminder DM
       let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders.`;
+
+      // Mention the owner (e.g., @cmdr_ricky#0)
       message += ` The owner of the bot is <@385324994533654530>.`;
+
+      // Add the support server link
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
       sendDM(member.user, message);
-
+      
+      // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
     } else if (user.opt_out === 1) {
       sendDM(
@@ -65,22 +75,26 @@ async function checkAndRecordUserVote(member) {
 }
 
 async function sendRecurringReminders(client) {
-  const [users] = await connection.query('SELECT * FROM users WHERE voted = 0 AND opt_out = 0');
+  const currentTime = Date.now();
 
-  users.forEach(async user => {
-    const currentTime = Date.now();
-    const recurringReminderTime = new Date(user.recurring_remind_time).getTime();
+  const [users] = await connection.query(
+    'SELECT user_id, initial_reminder_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
+  );
 
-    const nextReminderTime = Math.ceil(recurringReminderTime / (12 * 60 * 60 * 1000)) * (12 * 60 * 60 * 1000);
-    const delay = nextReminderTime - currentTime;
-
-    if (currentTime >= nextReminderTime) {
+  users.forEach(async (user) => {
+    const initialReminderTime = new Date(user.initial_reminder_time).getTime();
+    const elapsedSinceInitialReminder = currentTime - initialReminderTime;
+    
+    if (elapsedSinceInitialReminder >= 12 * 60 * 60 * 1000) {
       const discordUser = await client.users.fetch(user.user_id);
       const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
       sendDM(discordUser, message);
 
       await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), user.user_id]);
     } else {
+      const nextReminderTime = initialReminderTime + (12 * 60 * 60 * 1000);
+      const delay = nextReminderTime - currentTime;
+      
       setTimeout(() => {
         sendRecurringReminders(client);
       }, delay);
@@ -104,10 +118,6 @@ async function checkAllGuildMembers(client) {
   });
 
   await sendRecurringReminders(client);
-
-  setInterval(() => {
-    sendRecurringReminders(client);
-  }, 12 * 60 * 60 * 1000);
 }
 
 module.exports = {
