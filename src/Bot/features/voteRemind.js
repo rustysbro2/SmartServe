@@ -29,6 +29,19 @@ async function checkAndRecordUserVote(member) {
 
     const voteStatus = response.data.voted;
 
+    // Get user from the database
+    const [rows] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
+    const user = rows[0];
+
+    // If the user doesn't exist in the database, it's a new user
+    if (!user) {
+      // Send initial reminder
+      member.send('This is your initial reminder! Please remember to vote for our bot. Thank you!')
+        .catch(error => {
+          console.error(`Could not send DM to ${member.user.tag}.`);
+        });
+    }
+
     // Update the vote status in the database
     await connection.query('INSERT INTO users (user_id, voted) VALUES (?, ?) ON DUPLICATE KEY UPDATE voted = ?', [member.user.id, voteStatus, voteStatus]);
 
@@ -38,6 +51,7 @@ async function checkAndRecordUserVote(member) {
     console.error('Error checking vote status:', error);
   }
 }
+
 
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
