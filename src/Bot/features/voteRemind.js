@@ -5,6 +5,7 @@ require('dotenv').config(); // Import dotenv and load environment variables
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK'; // Replace with your support server link
+const topGGVoteLink = `https://top.gg/bot/${botId}/vote`; // Top.gg vote link
 
 // MySQL connection settings
 const connection = mysql.createPool({
@@ -101,8 +102,7 @@ async function sendRecurringReminders(client) {
             recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
 
           if (!userHasReceivedReminder) {
-            const voteLink = `https://top.gg/bot/${botId}/vote`;
-            const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+            const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
             sendDM(user, message);
             // Update the recurring_remind_time in the database to the current time
             await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
