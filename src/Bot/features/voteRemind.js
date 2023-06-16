@@ -125,6 +125,7 @@ async function sendRecurringReminders(client) {
 }
 
 
+
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
     console.log(`Checking guild: ${guild.name}`);
