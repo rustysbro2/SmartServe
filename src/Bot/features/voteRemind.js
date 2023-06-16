@@ -97,19 +97,14 @@ async function sendRecurringReminders(client) {
 
         // Check if the user has opted out
         const [[userData]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
-        if (userData.opt_out !== 1) {
-          const userHasReceivedReminder =
-            recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
-
-          if (!userHasReceivedReminder) {
-            const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
-            sendDM(user, message);
-            // Update the recurring_remind_time in the database to the current time
-            await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
-              new Date(),
-              row.user_id
-            ]);
-          }
+        if (userData.opt_out !== 1 && (!recurringReminderTime || currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000)) {
+          const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+          sendDM(user, message);
+          // Update the recurring_remind_time in the database to the current time
+          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
+            new Date(),
+            row.user_id
+          ]);
         }
       } else {
         console.log('User ID is null');
@@ -128,6 +123,7 @@ async function sendRecurringReminders(client) {
     setInterval(() => sendRecurringReminders(client), 12 * 60 * 60 * 1000);
   }, delay);
 }
+
 
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
