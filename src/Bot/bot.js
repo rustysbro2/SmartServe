@@ -165,6 +165,15 @@ client.on('interactionCreate', async (interaction) => {
 client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
+    guild.members.fetch().then(async (members) => {
+      members.forEach(async (member) => {
+        if (member.user.bot) {
+          return;
+        }
+
+        await checkAndRecordUserVote(member);
+      });
+    });
 
     const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
 
