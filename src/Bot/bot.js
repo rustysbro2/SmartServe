@@ -136,6 +136,17 @@ client.once('ready', () => {
   })();
 });
 
+client.on('guildMemberAdd', async (member) => {
+  // Skip if the member is a bot
+  if (member.user.bot) {
+    return;
+  }
+
+  // Check and record vote status for the new member
+  await checkAndRecordUserVote(member);
+});
+
+
 client.on('interactionCreate', async (interaction) => {
   try {
     if (interaction.isStringSelectMenu() && interaction.customId === 'help_category') {
