@@ -62,13 +62,6 @@ async function checkAndRecordUserVote(member) {
       
       // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
-    } else if (user.opt_out === 1 && user.initial_reminder_sent === 0) {
-      sendDM(
-        member.user,
-        `Hello, ${member.user}! You have opted out of reminders. You won't receive any reminders unless you opt in again.`
-      );
-      // Update the initial_reminder_sent flag in the database to prevent recurring reminders
-      await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
@@ -99,12 +92,16 @@ async function sendRecurringReminders(client) {
           recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
 
         if (!userHasReceivedReminder) {
-          sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
-          // Update the recurring_remind_time in the database to the current time
-          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
-            new Date(),
-            row.user_id
-          ]);
+          // Check if the user has opted out
+          const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
+          if (user.opt_out !== 1) {
+            sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+            // Update the recurring_remind_time in the database to the current time
+            await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
+              new Date(),
+              row.user_id
+            ]);
+          }
         }
       } else {
         console.log('User ID is null');
