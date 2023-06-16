@@ -1,27 +1,34 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { updateVoteReminderOptOut } = require('../features/voteRemind');
+const mysql = require('mysql2/promise');
+require('dotenv').config();
 
-const optOutCommand = {
+// MySQL connection settings
+const connection = mysql.createPool({
+  host: 'localhost',
+  user: 'rustysbro',
+  password: 'Dincas50@/',
+  database: 'SmartBeta',
+});
+
+module.exports = {
   data: new SlashCommandBuilder()
-    .setName('optout')
-    .setDescription('Opt-out or opt-in to receiving vote reminders')
-    .addBooleanOption(option => option
-      .setName('opt')
-      .setDescription('Choose whether to opt-out or opt-in')
-      .setRequired(true)),
+    .setName('opt')
+    .setDescription('Opt out or opt back in to receive recurring reminders')
+    .addBooleanOption(option => option.setName('opt_out').setDescription('Opt out or opt back in').setRequired(true)),
+
   async execute(interaction) {
-    // Extract the option value
-    const optOutValue = interaction.options.getBoolean('opt');
+    const optOut = interaction.options.getBoolean('opt_out');
+    const userId = interaction.user.id;
 
-    // Call the function to update the vote reminder opt-out status
-    await updateVoteReminderOptOut(interaction.user.id, optOutValue);
+    try {
+      // Update the opt_out column in the database
+      await connection.query('UPDATE users SET opt_out = ? WHERE user_id = ?', [optOut ? 1 : 0, userId]);
 
-    // Respond to the user with a message
-    await interaction.reply({
-      content: `Vote reminder opt-out status has been updated to ${optOutValue}`,
-      ephemeral: true
-    });
-  }
+      const response = optOut ? 'You have successfully opted out of recurring reminders.' : 'You have successfully opted back in to receive recurring reminders.';
+      await interaction.reply(response);
+    } catch (error) {
+      console.error('Error updating opt_out status:', error);
+      await interaction.reply('An error occurred while updating your opt-out status. Please try again later.');
+    }
+  },
 };
-
-module.exports = optOutCommand;
