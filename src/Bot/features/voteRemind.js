@@ -96,7 +96,9 @@ async function sendRecurringReminders(client) {
             recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
 
           if (!userHasReceivedReminder) {
-            sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+            const voteLink = `https://top.gg/bot/${botId}/vote`;
+            const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}`;
+            sendDM(user, message);
             // Update the recurring_remind_time in the database to the current time
             await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
               new Date(),
