@@ -79,10 +79,10 @@ async function sendRecurringReminders(client) {
 
   users.forEach(async user => {
     const currentTime = Date.now();
-    const lastReminderTime = new Date(user.last_reminder_time).getTime();
+    const recurringReminderTime = new Date(user.recurring_remind_time).getTime();
 
-    // Calculate the remaining time until the next 12-hour mark based on the last reminder time
-    const nextReminderTime = Math.ceil(lastReminderTime / (12 * 60 * 60 * 1000)) * (12 * 60 * 60 * 1000);
+    // Calculate the remaining time until the next 12-hour mark based on the recurring reminder time
+    const nextReminderTime = Math.ceil(recurringReminderTime / (12 * 60 * 60 * 1000)) * (12 * 60 * 60 * 1000);
     const delay = nextReminderTime - currentTime;
 
     // Check if the user has reached the next 12-hour mark
@@ -91,8 +91,8 @@ async function sendRecurringReminders(client) {
       const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
       sendDM(discordUser, message);
 
-      // Update the last_reminder_time in the database to the current time
-      await connection.query('UPDATE users SET last_reminder_time = ? WHERE user_id = ?', [new Date(), user.user_id]);
+      // Update the recurring_remind_time in the database to the current time
+      await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), user.user_id]);
     } else {
       // Schedule the next recurring reminder based on the remaining time
       setTimeout(() => {
@@ -100,27 +100,6 @@ async function sendRecurringReminders(client) {
       }, delay);
     }
   });
-}
-
-async function checkAllGuildMembers(client) {
-  client.guilds.cache.forEach(async guild => {
-    console.log(`Checking guild: ${guild.name}`);
-
-    guild.members.fetch().then(async members => {
-      members.forEach(async member => {
-        // Skip if the member is a bot
-        if (member.user.bot) {
-          return;
-        }
-
-        // Check and record vote status
-        await checkAndRecordUserVote(member);
-      });
-    });
-  });
-
-  // Immediately send recurring reminders
-  await sendRecurringReminders(client);
 }
 
 module.exports = {
