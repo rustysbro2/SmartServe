@@ -49,22 +49,26 @@ async function checkAndRecordUserVote(member) {
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
       // Send an initial reminder DM
-      sendDM(
-        member.user,
-        `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: http://smartserve.cc/index.php?route=/vote&user=${member.user.id}\n\nYou won't receive further reminders unless you opt in to reminders. The owner of the bot is ${member.guild.owner.toString()}.`
-      );
+      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: http://smartserve.cc/index.php?route=/vote&user=${member.user.id}\n\nYou won't receive further reminders unless you opt in to reminders.`;
+
+      // Mention the owner (e.g., @cmdr_ricky#0)
+      message += ` The owner of the bot is <@385324994533654530>.`;
+
+      sendDM(member.user, message);
+      
       // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
     } else if (user.opt_out === 1) {
       sendDM(
         member.user,
-        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin. The owner of the bot is ${member.guild.owner.toString()}.`
+        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin.`
       );
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
   }
 }
+
 
 async function sendRecurringReminders(client) {
   // Select users who have never voted and 12 hours have passed since the initial reminder
