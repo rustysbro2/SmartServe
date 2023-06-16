@@ -5,6 +5,7 @@ require('dotenv').config(); // Import dotenv and load environment variables
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK'; // Replace with your support server link
+const topGGVoteLink = 'https://top.gg/bot/${botId}/vote'; // Top.gg vote link
 
 // MySQL connection settings
 const connection = mysql.createPool({
