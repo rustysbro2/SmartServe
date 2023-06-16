@@ -7,7 +7,7 @@ const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK'; 
 const topGGVoteLink = `https://top.gg/bot/${botId}/vote`; 
-const ownerUserId = 'OWNER_USER_ID'; 
+const ownerUserId = '385324994533654530'; 
 
 const connection = mysql.createPool({
   host: 'localhost',
