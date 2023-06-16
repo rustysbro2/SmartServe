@@ -9,8 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const cron = require('node-cron');
-const { checkUserVote, sendReminder } = require('./features/voteRemind');
+const { checkAllGuildMembers } = require('./features/voteRemind'); // Assuming voteCheckModule is the name of the file containing checkAllGuildMembers
 
 
 const intents = [
@@ -98,11 +97,13 @@ client.once('ready', () => {
   });
 
   inviteTracker.execute(client);
+  await checkAllGuildMembers(client);
 
   // Wrap the code within an async function
   (async () => {
     try {
       await slashCommands(client);
+      
 
       console.log('Command Categories:');
       commandCategories.forEach((category) => {
@@ -126,17 +127,6 @@ client.once('ready', () => {
 
       // Initial presence update
       updatePresence();
-
-			
-      // Schedule the recurring reminder task
-      cron.schedule('0 12 * * *', async () => {
-        const remindersToSend = await checkUserVote(client);
-      
-        // Send reminders after the checkUserVote function has finished executing
-        for (const member of remindersToSend) {
-          await sendReminder(member);
-        }
-      });
 
       // Set interval to update presence every 1 minute (adjust the interval as desired)
       setInterval(updatePresence, 60000);
