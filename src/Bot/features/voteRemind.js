@@ -88,7 +88,7 @@ async function checkAndRecordUserVote(member) {
 
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0) {
-      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders. The owner of the bot is <@${ownerUserId}>.`;
+      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders.\n\nTo opt in or out, use the slash command: /opt\n\nThe owner of the bot is <@${ownerUserId}>.`;
 
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
