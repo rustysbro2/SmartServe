@@ -51,14 +51,14 @@ async function checkAndRecordUserVote(member) {
       // Send an initial reminder DM
       sendDM(
         member.user,
-        `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: http://smartserve.cc/index.php?route=/vote&user=${member.user.id}\n\nYou won't receive further reminders unless you opt in to reminders. The owner of the bot is @cmdr_ricky.`
+        `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: http://smartserve.cc/index.php?route=/vote&user=${member.user.id}\n\nYou won't receive further reminders unless you opt in to reminders. The owner of the bot is ${member.guild.owner.toString()}.`
       );
       // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
     } else if (user.opt_out === 1) {
       sendDM(
         member.user,
-        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin. The owner of the bot is @cmdr_ricky.`
+        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin. The owner of the bot is ${member.guild.owner.toString()}.`
       );
     }
   } catch (error) {
