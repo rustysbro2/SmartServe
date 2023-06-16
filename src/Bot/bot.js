@@ -101,7 +101,7 @@ client.once('ready', () => {
   // Wrap the code within an async function
   (async () => {
     try {
-      await checkAllGuildMembers(client);
+      checkAllGuildMembers(client);
       await slashCommands(client);
 
       console.log('Command Categories:');
