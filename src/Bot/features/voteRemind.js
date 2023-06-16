@@ -4,9 +4,9 @@ require('dotenv').config();
 
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
-const supportServerLink = 'https://discord.gg/wtzp28pHRK'; // Replace with your support server link
-const topGGVoteLink = `https://top.gg/bot/${botId}/vote`; // Top.gg vote link
-const ownerUserId = 'OWNER_USER_ID'; // Replace with the actual owner's user ID
+const supportServerLink = 'https://discord.gg/wtzp28pHRK'; 
+const topGGVoteLink = `https://top.gg/bot/${botId}/vote`; 
+const ownerUserId = 'OWNER_USER_ID'; 
 
 const connection = mysql.createPool({
   host: 'localhost',
@@ -24,7 +24,6 @@ async function sendDM(user, message) {
 }
 
 async function sendRecurringReminders(client) {
-  // Select users who have voted and need a recurring reminder
   const [votedUsers] = await connection.query(
     'SELECT user_id, recurring_remind_time FROM users WHERE voted = 1 AND initial_reminder_sent = 1'
   );
@@ -34,7 +33,6 @@ async function sendRecurringReminders(client) {
   const recurringReminderPromises = votedUsers.map(async (row) => {
     const recurringReminderTime = row.recurring_remind_time ? new Date(row.recurring_remind_time).getTime() : null;
 
-    // Check if 12 hours have passed since the last recurring reminder
     if (currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000) {
       console.log(`Fetching user with ID: ${row.user_id}`);
       if (row.user_id) {
@@ -101,11 +99,9 @@ async function checkAndRecordUserVote(member) {
 }
 
 async function checkAllGuildMembers(client) {
-  console.log('Checking vote status for all guild members...');
-
+  console.log('Checking vote status for all guild members at startup...');
+  
   client.guilds.cache.forEach(async (guild) => {
-    console.log(`Checking guild: ${guild.name}`);
-
     guild.members.fetch().then(async (members) => {
       members.forEach(async (member) => {
         if (member.user.bot) {
@@ -116,6 +112,9 @@ async function checkAllGuildMembers(client) {
       });
     });
   });
+
+  console.log('Sending recurring reminders at startup...');
+  sendRecurringReminders(client);
 
   setInterval(() => {
     console.log('Checking vote status for all guild members (every 30 minutes)...');
