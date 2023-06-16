@@ -66,7 +66,6 @@ async function checkAndRecordUserVote(member) {
   }
 }
 
-
 async function sendRecurringReminders(client) {
   // Select users who have never voted and 12 hours have passed since the initial reminder
   const [neverVotedRows] = await connection.query(
