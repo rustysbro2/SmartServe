@@ -48,20 +48,24 @@ async function checkAndRecordUserVote(member) {
     // If the user hasn't voted and the initial reminder hasn't been sent yet, send it.
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
-      // Construct the vote link using the top.gg bot ID
-      const voteLink = `https://top.gg/bot/${botId}/vote`;
-
       // Send an initial reminder DM
-      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nYou won't receive further reminders unless you opt in to reminders.`;
+      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders.`;
 
-      // Mention the owner
-      const ownerTag = "<@385324994533654530>"; // Replace with the correct owner tag
-      message += ` The owner of the bot is ${ownerTag}.`;
+      // Mention the owner (e.g., @cmdr_ricky#0)
+      message += ` The owner of the bot is <@385324994533654530>.`;
+
+      // Add the support server link
+      message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
       sendDM(member.user, message);
       
       // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
+    } else if (user.opt_out === 1) {
+      sendDM(
+        member.user,
+        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin.\n\nJoin our support server for any assistance or questions: ${supportServerLink}`
+      );
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
@@ -97,7 +101,7 @@ async function sendRecurringReminders(client) {
 
           if (!userHasReceivedReminder) {
             const voteLink = `https://top.gg/bot/${botId}/vote`;
-            const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}`;
+            const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
             sendDM(user, message);
             // Update the recurring_remind_time in the database to the current time
             await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
