@@ -57,6 +57,8 @@ async function checkAndRecordUserVote(member) {
 
 
 
+
+
 async function sendRecurringReminders(client) {
   // Select users who have never voted and 12 hours have passed since the initial reminder
   const [neverVotedRows] = await connection.query(
@@ -82,7 +84,6 @@ async function sendRecurringReminders(client) {
   }
 }
 
-
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
     console.log(`Checking guild: ${guild.name}`);
@@ -101,11 +102,14 @@ async function checkAllGuildMembers(client) {
   });
 
   // Immediately send recurring reminders
-  await sendRecurringReminders();
+  await sendRecurringReminders(client);
 
   // Then continue sending them every hour
-  setInterval(sendRecurringReminders, 1000 * 60 * 60);
+  setInterval(() => sendRecurringReminders(client), 1000 * 60 * 60);
 }
+
+
+
 
 
 module.exports = {
