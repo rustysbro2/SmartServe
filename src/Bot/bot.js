@@ -102,7 +102,6 @@ client.once('ready', () => {
   (async () => {
     try {
       checkAllGuildMembers(client);
-      sendRecurringReminders(client);
       await slashCommands(client);
 
       console.log('Command Categories:');
