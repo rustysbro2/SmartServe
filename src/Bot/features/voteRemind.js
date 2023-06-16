@@ -63,6 +63,7 @@ async function sendRecurringReminders(client) {
   await Promise.all(recurringReminderPromises);
 }
 
+
 async function checkAndRecordUserVote(member) {
   console.log(`Checking vote status for user: ${member.user.tag}`);
 
