@@ -128,10 +128,8 @@ async function checkAllGuildMembers(client) {
 
   await sendRecurringReminders(client);
 
-  setInterval(() => {
-    checkAllGuildMembers(client);
-  }, 1000 * 60 * 5); // Check every 5 minutes
-}
+setInterval(() => sendRecurringReminders(client), 1000 * 30);
+
 
 module.exports = {
   checkAndRecordUserVote,
