@@ -38,13 +38,13 @@ async function checkAndRecordUserVote(member) {
     const voteStatus = response.data.voted;
 
     // Update the vote status in the database
-    const [results] = await connection.query('INSERT INTO users (user_id, voted, initial_reminder_sent) VALUES (?, ?, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), initial_reminder_sent = initial_reminder_sent', [member.user.id, voteStatus]);
+    const [results] = await connection.query('INSERT INTO users (user_id, voted, initial_reminder_sent, opt_out) VALUES (?, ?, 0, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), initial_reminder_sent = initial_reminder_sent', [member.user.id, voteStatus]);
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
     // If the user hasn't voted and the initial reminder hasn't been sent yet, send it.
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
-    if (user.voted === 0 && user.initial_reminder_sent === 0) {
+    if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
       // Send an initial reminder DM
       sendDM(member.user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
       // Update the initial_reminder_sent flag in the database
@@ -65,22 +65,26 @@ async function sendRecurringReminders(client) {
 
   const neverVotedPromises = neverVotedRows.map(async row => {
     const initialReminderTime = new Date(row.initial_reminder_time).getTime();
-    const recurringReminderTime = new Date(row.recurring_remind_time).getTime();
+    const recurringReminderTime = row.recurring_remind_time ? new Date(row.recurring_remind_time).getTime() : null;
 
     // Check if 12 hours have passed since the initial reminder or the recurring reminder time
     if (
       currentTime - initialReminderTime >= 12 * 60 * 60 * 1000 ||
-      (row.recurring_remind_time !== null && currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000)
+      (recurringReminderTime !== null && currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000)
     ) {
       console.log(`Fetching user with ID: ${row.user_id}`);
       if (row.user_id) {
         const user = await client.users.fetch(row.user_id);
-        const userHasReceivedReminder = recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
+        const userHasReceivedReminder =
+          recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
 
         if (!userHasReceivedReminder) {
           sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
           // Update the recurring_remind_time in the database to the current time
-          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), row.user_id]);
+          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
+            new Date(),
+            row.user_id
+          ]);
         }
       } else {
         console.log('User ID is null');
@@ -104,7 +108,10 @@ async function sendRecurringReminders(client) {
       if (!userHasReceivedReminder) {
         sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
         // Update the recurring_remind_time in the database to the current time
-        await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), row.user_id]);
+        await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
+          new Date(),
+          row.user_id
+        ]);
       }
     } else {
       console.log('User ID is null');
@@ -115,11 +122,11 @@ async function sendRecurringReminders(client) {
 }
 
 async function checkAllGuildMembers(client) {
-  client.guilds.cache.forEach(async (guild) => {
+  client.guilds.cache.forEach(async guild => {
     console.log(`Checking guild: ${guild.name}`);
 
-    guild.members.fetch().then(async (members) => {
-      members.forEach(async (member) => {
+    guild.members.fetch().then(async members => {
+      members.forEach(async member => {
         // Skip if the member is a bot
         if (member.user.bot) {
           return;
