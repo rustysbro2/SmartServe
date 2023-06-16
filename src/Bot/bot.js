@@ -9,7 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { checkAllGuildMembers, checkAndRecordUserVote } = require('./features/voteRemind'); // Assuming voteCheckModule is the name of the file containing checkAllGuildMembers
+const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders } = require('./features/voteRemind'); // Assuming voteCheckModule is the name of the file containing checkAllGuildMembers
 
 
 const intents = [
