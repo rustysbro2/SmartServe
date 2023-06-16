@@ -100,9 +100,13 @@ async function checkAllGuildMembers(client) {
     });
   });
 
-  // Start sending recurring reminders
-  setInterval(sendRecurringReminders, 1000 * 60 * 60); // Run every hour
+  // Immediately send recurring reminders
+  await sendRecurringReminders();
+
+  // Then continue sending them every hour
+  setInterval(sendRecurringReminders, 1000 * 60 * 60);
 }
+
 
 module.exports = {
   checkAndRecordUserVote,
