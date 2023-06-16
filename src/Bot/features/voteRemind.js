@@ -6,7 +6,7 @@ const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK'; // Replace with your support server link
 const topGGVoteLink = `https://top.gg/bot/${botId}/vote`; // Top.gg vote link
-const ownerUserId = '385324994533654530'; // Replace with the actual owner's user ID
+const ownerUserId = 'OWNER_USER_ID'; // Replace with the actual owner's user ID
 
 const connection = mysql.createPool({
   host: 'localhost',
@@ -24,42 +24,35 @@ async function sendDM(user, message) {
 }
 
 async function sendRecurringReminders(client) {
-  const [neverVotedRows] = await connection.query(
-    'SELECT user_id, initial_reminder_time, recurring_remind_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
+  // Select users who have voted and need a recurring reminder
+  const [votedUsers] = await connection.query(
+    'SELECT user_id, recurring_remind_time FROM users WHERE voted = 1 AND initial_reminder_sent = 1'
   );
 
   const currentTime = Date.now();
 
-  const neverVotedPromises = neverVotedRows.map(async (row) => {
-    const initialReminderTime = new Date(row.initial_reminder_time).getTime();
+  const recurringReminderPromises = votedUsers.map(async (row) => {
     const recurringReminderTime = row.recurring_remind_time ? new Date(row.recurring_remind_time).getTime() : null;
 
-    if (
-      currentTime - initialReminderTime >= 12 * 60 * 60 * 1000 ||
-      (recurringReminderTime !== null && currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000)
-    ) {
+    // Check if 12 hours have passed since the last recurring reminder
+    if (currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000) {
       console.log(`Fetching user with ID: ${row.user_id}`);
       if (row.user_id) {
         const user = await client.users.fetch(row.user_id);
 
         const [[userData]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
         if (userData.opt_out !== 1) {
-          const userHasReceivedReminder =
-            recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
+          const voteLink = `https://top.gg/bot/${botId}/vote`;
+          let message = `Hello! It's been 12 hours since your last reminder. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
-          if (!userHasReceivedReminder) {
-            const voteLink = `https://top.gg/bot/${botId}/vote`;
-            let message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+          const owner = await client.users.fetch(ownerUserId);
+          message += ` The owner of the bot is ${owner}.`;
 
-            const owner = await client.users.fetch(ownerUserId);
-            message += ` The owner of the bot is ${owner}.`;
-
-            sendDM(user, message);
-            await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
-              new Date(),
-              row.user_id
-            ]);
-          }
+          sendDM(user, message);
+          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
+            new Date(),
+            row.user_id
+          ]);
         }
       } else {
         console.log('User ID is null');
@@ -67,7 +60,7 @@ async function sendRecurringReminders(client) {
     }
   });
 
-  await Promise.all(neverVotedPromises);
+  await Promise.all(recurringReminderPromises);
 }
 
 async function checkAndRecordUserVote(member) {
@@ -137,6 +130,9 @@ async function checkAllGuildMembers(client) {
         });
       });
     });
+
+    console.log('Sending recurring reminders...');
+    sendRecurringReminders(client);
   }, 30 * 60 * 1000);
 }
 
