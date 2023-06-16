@@ -1,27 +1,22 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { updateVoteReminderOptOut } = require('../features/voteRemind');
 
-const optOutCommand = {
+module.exports = {
   data: new SlashCommandBuilder()
     .setName('optout')
-    .setDescription('Opt-out or opt-in to receiving vote reminders')
-    .addBooleanOption(option => option
-      .setName('opt')
-      .setDescription('Choose whether to opt-out or opt-in')
-      .setRequired(true)),
+    .setDescription('Opt out of recurring reminders'),
+
   async execute(interaction) {
-    // Extract the option value
-    const optOutValue = interaction.options.getBoolean('opt');
+    const guild = interaction.guild;
+    const member = guild.members.cache.get(interaction.user.id);
 
-    // Call the function to update the vote reminder opt-out status
-    await updateVoteReminderOptOut(interaction.user.id, optOutValue);
+    try {
+      // Update the database to mark the user as opted out
+      await connection.query('UPDATE users SET opt_out = 1 WHERE user_id = ?', [member.id]);
 
-    // Respond to the user with a message
-    await interaction.reply({
-      content: `Vote reminder opt-out status has been updated to ${optOutValue}`,
-      ephemeral: true
-    });
-  }
+      await interaction.reply("You have opted out of recurring reminders. You will no longer receive them.");
+    } catch (error) {
+      console.error('Error updating opt-out status:', error);
+      await interaction.reply("An error occurred while updating your opt-out status. Please try again later.");
+    }
+  },
 };
-
-module.exports = optOutCommand;
