@@ -6,7 +6,7 @@ const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK'; // Replace with your support server link
 const topGGVoteLink = `https://top.gg/bot/${botId}/vote`; // Top.gg vote link
-const ownerUserId = '385324994533654530'; // Replace with the actual owner's user ID
+const ownerUserId = 'OWNER_USER_ID'; // Replace with the actual owner's user ID
 
 // MySQL connection settings
 const connection = mysql.createPool({
@@ -52,11 +52,14 @@ async function checkAndRecordUserVote(client, member) {
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
       // Send an initial reminder DM
-      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: <${topGGVoteLink}>\n\nYou won't receive further reminders unless you opt in to reminders.`;
 
       // Mention the owner (e.g., @cmdr_ricky#0)
       const owner = await client.users.fetch(ownerUserId);
       message += ` The owner of the bot is ${owner}.`;
+
+      // Add the support server link
+      message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
       sendDM(member.user, message);
       
@@ -100,7 +103,7 @@ async function sendRecurringReminders(client) {
 
           if (!userHasReceivedReminder) {
             const voteLink = `https://top.gg/bot/${botId}/vote`;
-            let message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+            let message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: <${voteLink}>\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
             // Mention the owner (e.g., @cmdr_ricky#0)
             const owner = await client.users.fetch(ownerUserId);
