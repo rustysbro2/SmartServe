@@ -9,7 +9,7 @@ const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { CHANNEL_TYPES } = require('discord.js');
-const { checkAllGuildMembers, checkAndRecordUserVote } = require('./features/voteRemind'); // Assuming voteCheckModule is the name of the file containing checkAllGuildMembers
+const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders } = require('./features/voteRemind'); // Assuming voteCheckModule is the name of the file containing checkAllGuildMembers
 
 
 const intents = [
@@ -102,13 +102,7 @@ client.once('ready', () => {
   (async () => {
     try {
       checkAllGuildMembers(client);
-
-
-   // Start sending recurring reminders every 30 minutes
-    setInterval(() => {
       sendRecurringReminders(client);
-    }, 30 * 60 * 1000);
-
       await slashCommands(client);
 
       console.log('Command Categories:');
