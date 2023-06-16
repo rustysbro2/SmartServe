@@ -59,7 +59,7 @@ async function checkAndRecordUserVote(member) {
 
 
 
-async function sendRecurringReminders(client) {
+asasync function sendRecurringReminders(client) {
   // Select users who have never voted and 12 hours have passed since the initial reminder
   const [neverVotedRows] = await connection.query(
     'SELECT user_id, initial_reminder_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
@@ -68,8 +68,13 @@ async function sendRecurringReminders(client) {
   const neverVotedPromises = neverVotedRows.map(async row => {
     // Check if 12 hours have passed since the initial reminder
     if (Date.now() - row.initial_reminder_time.getTime() >= 12 * 60 * 60 * 1000) {
-      const user = await client.users.fetch(row.user_id);
-      sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+      console.log(`Fetching user with ID: ${row.user_id}`);  // <-- Add logging
+      if (row.user_id) {
+        const user = await client.users.fetch(row.user_id);
+        sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+      } else {
+        console.log('User ID is null');  // <-- Add logging
+      }
     }
   });
 
@@ -82,13 +87,19 @@ async function sendRecurringReminders(client) {
   );
 
   const votedPromises = votedRows.map(async row => {
-    const user = await client.users.fetch(row.user_id);
-    sendDM(user, "Hello! It's time to vote for our bot again. Thank you for your support!");
+    console.log(`Fetching user with ID: ${row.user_id}`);  // <-- Add logging
+    if (row.user_id) {
+      const user = await client.users.fetch(row.user_id);
+      sendDM(user, "Hello! It's time to vote for our bot again. Thank you for your support!");
+    } else {
+      console.log('User ID is null');  // <-- Add logging
+    }
   });
 
   // Await all promises to finish
   await Promise.all(votedPromises);
 }
+
 
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
