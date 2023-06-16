@@ -38,7 +38,7 @@ async function checkAndRecordUserVote(member) {
     const voteStatus = response.data.voted;
 
     // Update the vote status in the database
-    const [results] = await connection.query('INSERT INTO users (user_id, voted, initial_reminder_sent) VALUES (?, ?, 0) ON DUPLICATE KEY UPDATE voted = ?', [member.user.id, voteStatus, voteStatus]);
+    const [results] = await connection.query('INSERT INTO users (user_id, voted, initial_reminder_sent) VALUES (?, ?, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), initial_reminder_sent = initial_reminder_sent', [member.user.id, voteStatus]);
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
