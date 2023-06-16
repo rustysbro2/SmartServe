@@ -88,13 +88,14 @@ async function sendRecurringReminders(client) {
       console.log(`Fetching user with ID: ${row.user_id}`);
       if (row.user_id) {
         const user = await client.users.fetch(row.user_id);
-        const userHasReceivedReminder =
-          recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
 
-        if (!userHasReceivedReminder) {
-          // Check if the user has opted out
-          const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
-          if (user.opt_out !== 1) {
+        // Check if the user has opted out
+        const [[userData]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
+        if (userData.opt_out !== 1) {
+          const userHasReceivedReminder =
+            recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
+
+          if (!userHasReceivedReminder) {
             sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
             // Update the recurring_remind_time in the database to the current time
             await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
