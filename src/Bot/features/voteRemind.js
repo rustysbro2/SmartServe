@@ -61,13 +61,17 @@ async function sendRecurringReminders(client) {
     'SELECT user_id, initial_reminder_time, recurring_remind_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
   );
 
+  const currentTime = Date.now();
+
   const neverVotedPromises = neverVotedRows.map(async row => {
-    const currentTime = Date.now();
     const initialReminderTime = new Date(row.initial_reminder_time).getTime();
     const recurringReminderTime = new Date(row.recurring_remind_time).getTime();
 
     // Check if 12 hours have passed since the initial reminder or the recurring reminder time
-    if (currentTime - initialReminderTime >= 12 * 60 * 60 * 1000 || currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000) {
+    if (
+      currentTime - initialReminderTime >= 12 * 60 * 60 * 1000 ||
+      (row.recurring_remind_time !== null && currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000)
+    ) {
       console.log(`Fetching user with ID: ${row.user_id}`);
       if (row.user_id) {
         const user = await client.users.fetch(row.user_id);
