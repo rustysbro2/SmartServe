@@ -122,11 +122,11 @@ async function checkAndRecordUserVote(member) {
 async function checkAllGuildMembers(client) {
   console.log('Checking vote status for all guild members...');
 
-  client.guilds.cache.forEach(async guild => {
+  client.guilds.cache.forEach(async (guild) => {
     console.log(`Checking guild: ${guild.name}`);
 
-    guild.members.fetch().then(async members => {
-      members.forEach(async member => {
+    guild.members.fetch().then(async (members) => {
+      members.forEach(async (member) => {
         // Skip if the member is a bot
         if (member.user.bot) {
           return;
@@ -137,6 +137,23 @@ async function checkAllGuildMembers(client) {
       });
     });
   });
+
+  // Check vote status for users who have already voted every minute
+  setInterval(() => {
+    client.guilds.cache.forEach(async (guild) => {
+      guild.members.fetch().then(async (members) => {
+        members.forEach(async (member) => {
+          // Skip if the member is a bot
+          if (member.user.bot) {
+            return;
+          }
+
+          // Check and record vote status
+          await checkAndRecordUserVote(member);
+        });
+      });
+    });
+  }, 60 * 1000);
 }
 
 module.exports = {
