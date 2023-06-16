@@ -42,7 +42,7 @@ async function checkAndRecordUserVote(member) {
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
-    if (results.affectedRows > 0 && voteStatus === 0) {
+    if (results.insertId > 0 && voteStatus === 0) {
       // Send an initial reminder DM if the user is newly inserted to the database and has not voted yet
       sendDM(member.user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
       // Update the initial_reminder_sent flag in the database
@@ -52,6 +52,7 @@ async function checkAndRecordUserVote(member) {
     console.error('Error checking vote status:', error);
   }
 }
+
 
 async function sendRecurringReminders() {
   const [rows] = await connection.query('SELECT user_id FROM users WHERE voted = 1 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12');
