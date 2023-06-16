@@ -62,11 +62,6 @@ async function checkAndRecordUserVote(member) {
       
       // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
-    } else if (user.opt_out === 1) {
-      sendDM(
-        member.user,
-        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin.`
-      );
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
@@ -97,12 +92,16 @@ async function sendRecurringReminders(client) {
           recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
 
         if (!userHasReceivedReminder) {
-          sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
-          // Update the recurring_remind_time in the database to the current time
-          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
-            new Date(),
-            row.user_id
-          ]);
+          // Check if the user has opted out
+          const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
+          if (user.opt_out !== 1) {
+            sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+            // Update the recurring_remind_time in the database to the current time
+            await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
+              new Date(),
+              row.user_id
+            ]);
+          }
         }
       } else {
         console.log('User ID is null');
@@ -111,32 +110,6 @@ async function sendRecurringReminders(client) {
   });
 
   await Promise.all(neverVotedPromises);
-
-  // Select users whose vote status has changed from voted to not voted
-  const [changedVoteStatusRows] = await connection.query(
-    'SELECT user_id, voted, recurring_remind_time FROM users WHERE voted = 0 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12 AND recurring_remind_time IS NOT NULL'
-  );
-
-  const changedVoteStatusPromises = changedVoteStatusRows.map(async row => {
-    console.log(`Fetching user with ID: ${row.user_id}`);
-    if (row.user_id) {
-      const user = await client.users.fetch(row.user_id);
-      const userHasReceivedReminder = currentTime - row.recurring_remind_time < 12 * 60 * 60 * 1000;
-
-      if (!userHasReceivedReminder) {
-        sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
-        // Update the recurring_remind_time in the database to the current time
-        await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
-          new Date(),
-          row.user_id
-        ]);
-      }
-    } else {
-      console.log('User ID is null');
-    }
-  });
-
-  await Promise.all(changedVoteStatusPromises);
 }
 
 async function checkAllGuildMembers(client) {
