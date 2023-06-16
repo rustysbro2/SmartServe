@@ -28,17 +28,20 @@ async function checkAndRecordUserVote(member) {
     // Check if the user has voted
     const response = await axios.get(`https://top.gg/api/bots/${botId}/check`, {
       params: {
-        userId: member.user.id
+        userId: member.user.id,
       },
       headers: {
-        Authorization: topGGToken
-      }
+        Authorization: topGGToken,
+      },
     });
 
     const voteStatus = response.data.voted;
 
     // Update the vote status in the database
-    const [results] = await connection.query('INSERT INTO users (user_id, voted, initial_reminder_sent, opt_out) VALUES (?, ?, 0, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), initial_reminder_sent = initial_reminder_sent', [member.user.id, voteStatus]);
+    const [results] = await connection.query(
+      'INSERT INTO users (user_id, voted, initial_reminder_sent, opt_out) VALUES (?, ?, 0, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), initial_reminder_sent = initial_reminder_sent',
+      [member.user.id, voteStatus]
+    );
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
@@ -46,9 +49,17 @@ async function checkAndRecordUserVote(member) {
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
       // Send an initial reminder DM
-      sendDM(member.user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+      sendDM(
+        member.user,
+        `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: http://smartserve.cc/index.php?route=/vote&user=${member.user.id}\n\nYou won't receive further reminders unless you opt in to reminders.`
+      );
       // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
+    } else if (user.opt_out === 1) {
+      sendDM(
+        member.user,
+        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin.`
+      );
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
