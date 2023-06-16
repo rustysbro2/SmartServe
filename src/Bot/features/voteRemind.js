@@ -80,7 +80,7 @@ async function checkAndRecordUserVote(member) {
     const voteStatus = response.data.voted;
 
     const [results] = await connection.query(
-      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out) VALUES (?, ?, ?, 0, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), last_vote_time = IF(VALUES(voted) = 1, VALUES(last_vote_time), last_vote_time), initial_reminder_sent = initial_reminder_sent',
+      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent) VALUES (?, ?, ?, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), last_vote_time = IF(VALUES(voted) = 1, VALUES(last_vote_time), last_vote_time), initial_reminder_sent = initial_reminder_sent, opt_out = IF(VALUES(voted) = 1, opt_out, 1)',
       [member.user.id, voteStatus, new Date()]
     );
 
