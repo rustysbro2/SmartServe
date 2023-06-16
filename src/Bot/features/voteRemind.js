@@ -78,7 +78,7 @@ async function sendRecurringReminders(client) {
   const currentTime = Date.now();
 
   const [users] = await connection.query(
-    'SELECT user_id, initial_reminder_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
+    'SELECT user_id, initial_reminder_time, recurring_remind_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
   );
 
   users.forEach(async (user) => {
@@ -91,13 +91,6 @@ async function sendRecurringReminders(client) {
       sendDM(discordUser, message);
 
       await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), user.user_id]);
-    } else {
-      const nextReminderTime = initialReminderTime + (12 * 60 * 60 * 1000);
-      const delay = nextReminderTime - currentTime;
-      
-      setTimeout(() => {
-        sendRecurringReminders(client);
-      }, delay);
     }
   });
 }
@@ -118,6 +111,10 @@ async function checkAllGuildMembers(client) {
   });
 
   await sendRecurringReminders(client);
+
+  setInterval(async () => {
+    await sendRecurringReminders(client);
+  }, 12 * 60 * 60 * 1000);
 }
 
 module.exports = {
