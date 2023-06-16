@@ -140,6 +140,7 @@ async function checkAllGuildMembers(client) {
 
   // Check vote status for users who have already voted every minute
   setInterval(() => {
+    console.log('Checking vote status for all guild members (every minute)...');
     client.guilds.cache.forEach(async (guild) => {
       guild.members.fetch().then(async (members) => {
         members.forEach(async (member) => {
