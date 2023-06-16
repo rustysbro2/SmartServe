@@ -6,7 +6,7 @@ const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK'; // Replace with your support server link
 const topGGVoteLink = `https://top.gg/bot/${botId}/vote`; // Top.gg vote link
-const ownerUserId = '385324994533654530'; // Replace with the actual owner's user ID
+const ownerUserId = 'OWNER_USER_ID'; // Replace with the actual owner's user ID
 
 // MySQL connection settings
 const connection = mysql.createPool({
@@ -24,7 +24,7 @@ async function sendDM(user, message) {
   }
 }
 
-async function checkAndRecordUserVote(client, member) {
+async function checkAndRecordUserVote(member) {
   console.log(`Checking vote status for user: ${member.user.tag}`);
 
   try {
@@ -52,22 +52,21 @@ async function checkAndRecordUserVote(client, member) {
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
       // Send an initial reminder DM
-      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: <${topGGVoteLink}>\n\nYou won't receive further reminders unless you opt in to reminders.`;
-
-      // Mention the owner (e.g., @cmdr_ricky#0)
-      const owner = await client.users.fetch(ownerUserId);
-      message += ` The owner of the bot is ${owner}.`;
+      const voteLink = `https://top.gg/bot/${botId}/vote`;
+      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nYou won't receive further reminders unless you opt in to reminders. The owner of the bot is <@${ownerUserId}>.`;
 
       // Add the support server link
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
       sendDM(member.user, message);
-      
+
       // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
     } else if (user.opt_out === 1) {
-      // Skip sending reminders to users who have opted out
-      console.log(`User ${member.user.tag} has opted out of recurring reminders.`);
+      sendDM(
+        member.user,
+        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin.\n\nJoin our support server for any assistance or questions: ${supportServerLink}`
+      );
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
@@ -103,7 +102,7 @@ async function sendRecurringReminders(client) {
 
           if (!userHasReceivedReminder) {
             const voteLink = `https://top.gg/bot/${botId}/vote`;
-            let message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: <${voteLink}>\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+            let message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
             // Mention the owner (e.g., @cmdr_ricky#0)
             const owner = await client.users.fetch(ownerUserId);
@@ -138,17 +137,15 @@ async function checkAllGuildMembers(client) {
         }
 
         // Check and record vote status
-        await checkAndRecordUserVote(client, member);
+        await checkAndRecordUserVote(member);
       });
     });
   });
-
-  // Immediately send recurring reminders
-  await sendRecurringReminders(client);
-
-  // Then continue sending them every hour
-  setInterval(() => sendRecurringReminders(client), 1000 * 60 * 60);
 }
+
+// Periodically check all guild members and send recurring reminders every 5 minutes
+setInterval(() => checkAllGuildMembers(client), 5 * 60 * 1000);
+setInterval(() => sendRecurringReminders(client), 12 * 60 * 60 * 1000);
 
 module.exports = {
   checkAndRecordUserVote,
