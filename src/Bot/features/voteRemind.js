@@ -58,13 +58,30 @@ async function checkAndRecordUserVote(member) {
 
 
 async function sendRecurringReminders() {
-  const [rows] = await connection.query('SELECT user_id FROM users WHERE voted = 1 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12');
+  // Select users who have never voted and 12 hours have passed since the initial reminder
+  const [neverVotedRows] = await connection.query(
+    'SELECT user_id, initial_reminder_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
+  );
   
-  for (const row of rows) {
+  for (const row of neverVotedRows) {
+    // Check if 12 hours have passed since the initial reminder
+    if (Date.now() - row.initial_reminder_time.getTime() >= 12 * 60 * 60 * 1000) {
+      const user = await client.users.fetch(row.user_id);
+      sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+    }
+  }
+
+  // Select users who have voted and 12 hours have passed since the last vote
+  const [votedRows] = await connection.query(
+    'SELECT user_id FROM users WHERE voted = 1 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12'
+  );
+
+  for (const row of votedRows) {
     const user = await client.users.fetch(row.user_id);
     sendDM(user, "Hello! It's time to vote for our bot again. Thank you for your support!");
   }
 }
+
 
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
