@@ -1,6 +1,6 @@
 const mysql = require('mysql2/promise');
 const axios = require('axios');
-require('dotenv').config();
+require('dotenv').config(); // Import dotenv and load environment variables
 
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
@@ -41,8 +41,8 @@ async function checkAndRecordUserVote(member) {
 
     // Update the vote status in the database
     const [results] = await connection.query(
-      'INSERT INTO users (user_id, voted, initial_reminder_sent, opt_out) VALUES (?, ?, 0, 0) ON DUPLICATE KEY UPDATE voted = VALUES(voted), initial_reminder_sent = initial_reminder_sent',
-      [member.user.id, voteStatus]
+      'INSERT INTO users (user_id, voted, initial_reminder_sent, opt_out, initial_reminder_time) VALUES (?, ?, 0, 0, ?) ON DUPLICATE KEY UPDATE voted = VALUES(voted), initial_reminder_sent = initial_reminder_sent',
+      [member.user.id, voteStatus, new Date()]
     );
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
@@ -60,9 +60,9 @@ async function checkAndRecordUserVote(member) {
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
       sendDM(member.user, message);
-      
-      // Update the initial_reminder_sent flag in the database
-      await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
+
+      // Update the initial_reminder_sent flag in the database and set the initial reminder time
+      await connection.query('UPDATE users SET initial_reminder_sent = 1, initial_reminder_time = ? WHERE user_id = ?', [new Date(), member.user.id]);
     } else if (user.opt_out === 1) {
       sendDM(
         member.user,
@@ -75,46 +75,79 @@ async function checkAndRecordUserVote(member) {
 }
 
 async function sendRecurringReminders(client) {
-  const currentTime = Date.now();
-
-  const [users] = await connection.query(
+  // Select users who have never voted and 12 hours have passed since the initial reminder
+  const [neverVotedRows] = await connection.query(
     'SELECT user_id, initial_reminder_time, recurring_remind_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
   );
 
-  users.forEach(async (user) => {
-    const initialReminderTime = new Date(user.initial_reminder_time).getTime();
-    const elapsedSinceInitialReminder = currentTime - initialReminderTime;
-    
-    if (elapsedSinceInitialReminder >= 12 * 60 * 60 * 1000) {
-      const discordUser = await client.users.fetch(user.user_id);
-      const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
-      sendDM(discordUser, message);
+  const currentTime = Date.now();
 
-      await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), user.user_id]);
+  const neverVotedPromises = neverVotedRows.map(async (row) => {
+    const initialReminderTime = new Date(row.initial_reminder_time).getTime();
+    const recurringReminderTime = row.recurring_remind_time ? new Date(row.recurring_remind_time).getTime() : null;
+
+    // Check if 12 hours have passed since the initial reminder or the recurring reminder time
+    if (
+      currentTime - initialReminderTime >= 12 * 60 * 60 * 1000 ||
+      (recurringReminderTime !== null && currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000)
+    ) {
+      console.log(`Fetching user with ID: ${row.user_id}`);
+      if (row.user_id) {
+        const user = await client.users.fetch(row.user_id);
+
+        // Check if the user has opted out
+        const [[userData]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
+        if (userData.opt_out !== 1) {
+          const userHasReceivedReminder =
+            recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
+
+          if (!userHasReceivedReminder) {
+            const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+            sendDM(user, message);
+            // Update the recurring_remind_time in the database to the current time
+            await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [
+              new Date(),
+              row.user_id
+            ]);
+          }
+        }
+      } else {
+        console.log('User ID is null');
+      }
     }
   });
+
+  await Promise.all(neverVotedPromises);
+
+  // Schedule the next recurring reminder based on the remaining time until the next 12-hour mark
+  const nextReminderTime = Math.ceil(currentTime / (12 * 60 * 60 * 1000)) * (12 * 60 * 60 * 1000);
+  const delay = nextReminderTime - currentTime;
+
+  setTimeout(() => {
+    // Continue sending recurring reminders every 12 hours
+    setInterval(() => sendRecurringReminders(client), 12 * 60 * 60 * 1000);
+  }, delay);
 }
 
 async function checkAllGuildMembers(client) {
-  client.guilds.cache.forEach(async guild => {
+  client.guilds.cache.forEach(async (guild) => {
     console.log(`Checking guild: ${guild.name}`);
 
-    guild.members.fetch().then(async members => {
-      members.forEach(async member => {
+    guild.members.fetch().then(async (members) => {
+      members.forEach(async (member) => {
+        // Skip if the member is a bot
         if (member.user.bot) {
           return;
         }
 
+        // Check and record vote status
         await checkAndRecordUserVote(member);
       });
     });
   });
 
+  // Immediately send recurring reminders
   await sendRecurringReminders(client);
-
-  setInterval(async () => {
-    await sendRecurringReminders(client);
-  }, 12 * 60 * 60 * 1000);
 }
 
 module.exports = {
