@@ -55,10 +55,6 @@ async function checkAndRecordUserVote(member) {
   }
 }
 
-
-
-
-
 async function sendRecurringReminders(client) {
   // Select users who have never voted and 12 hours have passed since the initial reminder
   const [neverVotedRows] = await connection.query(
@@ -68,12 +64,12 @@ async function sendRecurringReminders(client) {
   const neverVotedPromises = neverVotedRows.map(async row => {
     // Check if 12 hours have passed since the initial reminder
     if (Date.now() - row.initial_reminder_time.getTime() >= 12 * 60 * 60 * 1000) {
-      console.log(`Fetching user with ID: ${row.user_id}`);  // <-- Add logging
-      if (row.user_id) {
+      console.log(`Fetching never voted user with ID: ${row.user_id}`);  // <-- Add logging
+      if (row.user_id && !isNaN(row.user_id)) {
         const user = await client.users.fetch(row.user_id);
         sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
       } else {
-        console.log('User ID is null');  // <-- Add logging
+        console.log('Never voted user ID is null or not a number');  // <-- Add logging
       }
     }
   });
@@ -87,19 +83,18 @@ async function sendRecurringReminders(client) {
   );
 
   const votedPromises = votedRows.map(async row => {
-    console.log(`Fetching user with ID: ${row.user_id}`);  // <-- Add logging
-    if (row.user_id) {
+    console.log(`Fetching voted user with ID: ${row.user_id}`);  // <-- Add logging
+    if (row.user_id && !isNaN(row.user_id)) {
       const user = await client.users.fetch(row.user_id);
       sendDM(user, "Hello! It's time to vote for our bot again. Thank you for your support!");
     } else {
-      console.log('User ID is null');  // <-- Add logging
+      console.log('Voted user ID is null or not a number');  // <-- Add logging
     }
   });
 
   // Await all promises to finish
   await Promise.all(votedPromises);
 }
-
 
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
@@ -124,10 +119,6 @@ async function checkAllGuildMembers(client) {
   // Then continue sending them every hour
   setInterval(() => sendRecurringReminders(client), 1000 * 60 * 60);
 }
-
-
-
-
 
 module.exports = {
   checkAndRecordUserVote,
