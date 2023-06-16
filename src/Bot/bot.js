@@ -102,13 +102,7 @@ client.once('ready', () => {
   (async () => {
     try {
       checkAllGuildMembers(client);
-
-
-   // Start sending recurring reminders every 30 minutes
-    setInterval(() => {
       sendRecurringReminders(client);
-    }, 30 * 60 * 1000);
-
       await slashCommands(client);
 
       console.log('Command Categories:');
