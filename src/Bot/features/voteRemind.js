@@ -104,7 +104,7 @@ async function checkAndRecordUserVote(member) {
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
       // Send an initial reminder DM
-      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders. The owner of the bot is <@OWNER_USER_ID>.`;
+      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders. The owner of the bot is <@${ownerUserId}>.`;
 
       // Add the support server link
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
@@ -113,11 +113,6 @@ async function checkAndRecordUserVote(member) {
 
       // Update the initial_reminder_sent flag in the database
       await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
-    } else if (user.opt_out === 1) {
-      sendDM(
-        member.user,
-        `Hello, ${member.user}! You have opted out of recurring reminders. If you change your mind and want to receive reminders again, use the command /optin.\n\nJoin our support server for any assistance or questions: ${supportServerLink}`
-      );
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
@@ -125,6 +120,8 @@ async function checkAndRecordUserVote(member) {
 }
 
 async function checkAllGuildMembers(client) {
+  console.log('Checking vote status for all guild members...');
+
   client.guilds.cache.forEach(async guild => {
     console.log(`Checking guild: ${guild.name}`);
 
@@ -140,15 +137,10 @@ async function checkAllGuildMembers(client) {
       });
     });
   });
-
-  // Immediately send recurring reminders
-  await sendRecurringReminders(client);
-
-  // Then continue sending them every 30 seconds (for testing purposes)
-  setInterval(() => sendRecurringReminders(client), 1000 * 30);
 }
 
 module.exports = {
   checkAndRecordUserVote,
-  checkAllGuildMembers
+  checkAllGuildMembers,
+  sendRecurringReminders,
 };
