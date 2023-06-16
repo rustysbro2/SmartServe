@@ -97,11 +97,13 @@ client.once('ready', () => {
   });
 
   inviteTracker.execute(client);
+  await checkAllGuildMembers(client);
 
   // Wrap the code within an async function
   (async () => {
     try {
       await slashCommands(client);
+      
 
       console.log('Command Categories:');
       commandCategories.forEach((category) => {
