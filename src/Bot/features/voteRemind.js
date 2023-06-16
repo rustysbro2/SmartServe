@@ -71,9 +71,13 @@ async function sendRecurringReminders(client) {
       console.log(`Fetching user with ID: ${row.user_id}`);
       if (row.user_id) {
         const user = await client.users.fetch(row.user_id);
-        sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
-        // Update the recurring_remind_time in the database to the current time
-        await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), row.user_id]);
+        const userHasReceivedReminder = recurringReminderTime !== null && currentTime - recurringReminderTime < 12 * 60 * 60 * 1000;
+
+        if (!userHasReceivedReminder) {
+          sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+          // Update the recurring_remind_time in the database to the current time
+          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), row.user_id]);
+        }
       } else {
         console.log('User ID is null');
       }
@@ -84,16 +88,20 @@ async function sendRecurringReminders(client) {
 
   // Select users whose vote status has changed from voted to not voted
   const [changedVoteStatusRows] = await connection.query(
-    'SELECT user_id, voted FROM users WHERE voted = 0 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12 AND recurring_remind_time IS NOT NULL'
+    'SELECT user_id, voted, recurring_remind_time FROM users WHERE voted = 0 AND TIMESTAMPDIFF(HOUR, last_vote_time, NOW()) >= 12 AND recurring_remind_time IS NOT NULL'
   );
 
   const changedVoteStatusPromises = changedVoteStatusRows.map(async row => {
     console.log(`Fetching user with ID: ${row.user_id}`);
     if (row.user_id) {
       const user = await client.users.fetch(row.user_id);
-      sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
-      // Update the recurring_remind_time in the database to the current time
-      await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), row.user_id]);
+      const userHasReceivedReminder = currentTime - row.recurring_remind_time < 12 * 60 * 60 * 1000;
+
+      if (!userHasReceivedReminder) {
+        sendDM(user, "Hello! It seems you haven't voted yet. Please consider voting for our bot!");
+        // Update the recurring_remind_time in the database to the current time
+        await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), row.user_id]);
+      }
     } else {
       console.log('User ID is null');
     }
@@ -101,7 +109,6 @@ async function sendRecurringReminders(client) {
 
   await Promise.all(changedVoteStatusPromises);
 }
-
 
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async (guild) => {
