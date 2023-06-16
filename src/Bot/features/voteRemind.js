@@ -48,11 +48,15 @@ async function checkAndRecordUserVote(member) {
     // If the user hasn't voted and the initial reminder hasn't been sent yet, send it.
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) {
-      // Send an initial reminder DM
-      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: http://smartserve.cc/index.php?route=/vote&user=${member.user.id}\n\nYou won't receive further reminders unless you opt in to reminders.`;
+      // Construct the vote link using the top.gg bot ID
+      const voteLink = `https://top.gg/bot/${botId}/vote`;
 
-      // Mention the owner (e.g., @cmdr_ricky#0)
-      message += ` The owner of the bot is <@385324994533654530>.`;
+      // Send an initial reminder DM
+      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${voteLink}\n\nYou won't receive further reminders unless you opt in to reminders.`;
+
+      // Mention the owner
+      const ownerTag = "<@385324994533654530>"; // Replace with the correct owner tag
+      message += ` The owner of the bot is ${ownerTag}.`;
 
       sendDM(member.user, message);
       
@@ -68,7 +72,6 @@ async function checkAndRecordUserVote(member) {
     console.error('Error checking vote status:', error);
   }
 }
-
 
 async function sendRecurringReminders(client) {
   // Select users who have never voted and 12 hours have passed since the initial reminder
