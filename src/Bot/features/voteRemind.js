@@ -70,9 +70,9 @@ async function checkAndRecordUserVote(member) {
 }
 
 async function sendRecurringReminders(client) {
-  // Select users who have never voted and the initial reminder has been sent
+  // Select users who have never voted, the initial reminder has been sent, and have not opted out
   const [neverVotedRows] = await connection.query(
-    'SELECT user_id, initial_reminder_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1'
+    'SELECT user_id, initial_reminder_time FROM users WHERE voted = 0 AND initial_reminder_sent = 1 AND opt_out = 0'
   );
 
   const currentTime = Date.now();
@@ -103,6 +103,7 @@ async function sendRecurringReminders(client) {
 
   await Promise.all(neverVotedPromises);
 }
+
 
 async function checkAllGuildMembers(client) {
   client.guilds.cache.forEach(async guild => {
