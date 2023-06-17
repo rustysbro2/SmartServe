@@ -4,9 +4,10 @@ const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = requir
 const token = process.env.TOKEN;
 const inviteTracker = require('./features/inviteTracker.js');
 const fs = require('fs');
-const helpCommand = require('./commands/help');
-const setJoinMessageChannelCommand = require('./commands/setJoin.js');
-const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
+const path = require('path');
+const helpCommand = require('./commands/General/help');
+const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
+const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
 const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders, handleVoteWebhook } = require('./features/voteRemind');
@@ -37,49 +38,61 @@ app.post('/vote-webhook', (req, res) => {
 client.commands = new Collection();
 client.musicPlayers = new Map();
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+function walkDirectory(directory, callback) {
+  fs.readdirSync(directory).forEach(file => {
+    const absolute = path.join(directory, file);
+    if (fs.statSync(absolute).isDirectory()) {
+      walkDirectory(absolute, callback);
+    } else {
+      callback(absolute);
+    }
+  });
+}
+
 const commandCategories = [];
 
-for (const file of commandFiles) {
-  const command = require(`./commands/${file.endsWith('.js') ? file : file + '.js'}`);
-  client.commands.set(command.data.name, command);
+walkDirectory('./commands', (file) => {
+  if (file.endsWith('.js')) {
+    const command = require(`./${file}`);
+    client.commands.set(command.data.name, command);
 
-  if (command.category) {
-    let category = commandCategories.find(category => category.name === command.category);
-    if (!category) {
-      category = {
-        name: command.category,
-        description: '',
-        commands: [],
-        guildId: command.guildId,
-        categoryDescription: command.categoryDescription // Assign category description here
-      };
-      commandCategories.push(category);
+    if (command.category) {
+      let category = commandCategories.find(category => category.name === command.category);
+      if (!category) {
+        category = {
+          name: command.category,
+          description: '',
+          commands: [],
+          guildId: command.guildId,
+          categoryDescription: command.categoryDescription // Assign category description here
+        };
+        commandCategories.push(category);
+      }
+      category.commands.push({
+        name: command.data.name,
+        description: command.data.description,
+        global: command.global !== false,
+        categoryDescription: command.categoryDescription // Include the categoryDescription property
+      });
+    } else {
+      let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
+      if (!defaultCategory) {
+        defaultCategory = {
+          name: 'Uncategorized',
+          description: 'Commands that do not belong to any specific category',
+          commands: [],
+          guildId: undefined
+        };
+        commandCategories.push(defaultCategory);
+      }
+      defaultCategory.commands.push({
+        name: command.data.name,
+        description: command.data.description,
+        global: command.global !== false
+      });
     }
-    category.commands.push({
-      name: command.data.name,
-      description: command.data.description,
-      global: command.global !== false,
-      categoryDescription: command.categoryDescription // Include the categoryDescription property
-    });
-  } else {
-    let defaultCategory = commandCategories.find(category => category.name === 'Uncategorized');
-    if (!defaultCategory) {
-      defaultCategory = {
-        name: 'Uncategorized',
-        description: 'Commands that do not belong to any specific category',
-        commands: [],
-        guildId: undefined
-      };
-      commandCategories.push(defaultCategory);
-    }
-    defaultCategory.commands.push({
-      name: command.data.name,
-      description: command.data.description,
-      global: command.global !== false
-    });
   }
-}
+});
 
 // Remove empty categories
 commandCategories.forEach((category) => {
