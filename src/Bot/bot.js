@@ -1,4 +1,5 @@
 require('dotenv').config();
+const express = require('express');
 const { Client, Collection, GatewayIntentBits, Presence, ActivityType } = require('discord.js');
 const token = process.env.TOKEN;
 const inviteTracker = require('./features/inviteTracker.js');
@@ -8,9 +9,8 @@ const setJoinMessageChannelCommand = require('./commands/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const pool = require('../database.js');
-const { CHANNEL_TYPES } = require('discord.js');
-const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders } = require('./features/voteRemind'); // Assuming voteCheckModule is the name of the file containing checkAllGuildMembers
-
+const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders, handleVoteWebhook } = require('./features/voteRemind');
+const { AutoPoster } = require('topgg-autoposter');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -26,6 +26,12 @@ const client = new Client({
   intents
 });
 
+const app = express();
+app.use(express.json());
+
+app.post('/vote-webhook', (req, res) => {
+  handleVoteWebhook(req, res, client);
+});
 
 
 client.commands = new Collection();
@@ -83,9 +89,8 @@ commandCategories.forEach((category) => {
   }
 });
 
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log(`Shard ${client.shard.ids} logged in as ${client.user.tag}!`);
-
   client.user.setPresence({
     activities: [
       {
@@ -97,55 +102,43 @@ client.once('ready', () => {
   });
 
   inviteTracker.execute(client);
+  await checkAllGuildMembers(client);
+  await slashCommands(client);
 
-  // Wrap the code within an async function
-  (async () => {
-    try {
-      checkAllGuildMembers(client);
-      await slashCommands(client);
+  console.log('Command Categories:');
+  commandCategories.forEach((category) => {
+    console.log(`Category: ${category.name}`);
+    console.log(`Guild ID: ${category.guildId}`);
+    console.log('Commands:', category.commands);
+  });
 
-      console.log('Command Categories:');
-      commandCategories.forEach((category) => {
-        console.log(`Category: ${category.name}`);
-        console.log(`Guild ID: ${category.guildId}`);
-        console.log('Commands:', category.commands);
-      });
+  const updatePresence = () => {
+    client.user.setPresence({
+      activities: [
+        {
+          name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
+          type: ActivityType.Watching,
+        },
+      ],
+      status: "online",
+    });
+  };
 
-      // Function to update the bot's presence
-      const updatePresence = () => {
-        client.user.setPresence({
-          activities: [
-            {
-              name: `${client.guilds.cache.size} servers | Shard ${client.shard.ids[0]}`,
-              type: ActivityType.Watching,
-            },
-          ],
-          status: "online",
-        });
-      };
+  updatePresence();
+  setInterval(updatePresence, 60000);
+});
 
-      // Initial presence update
-      updatePresence();
-
-      // Set interval to update presence every 1 minute (adjust the interval as desired)
-      setInterval(updatePresence, 60000);
-
-    } catch (error) {
-      console.error('Error during bot initialization:', error);
-    }
-  })();
+app.listen(3006, () => {
+  console.log('Vote webhook server listening on port 3005');
 });
 
 client.on('guildMemberAdd', async (member) => {
-  // Skip if the member is a bot
   if (member.user.bot) {
     return;
   }
 
-  // Check and record vote status for the new member
   await checkAndRecordUserVote(member);
 });
-
 
 client.on('interactionCreate', async (interaction) => {
   try {
@@ -165,14 +158,13 @@ client.on('interactionCreate', async (interaction) => {
 client.on('guildCreate', async (guild) => {
   try {
     console.log(`Bot joined a new guild: ${guild.name} (${guild.id})`);
-    guild.members.fetch().then(async (members) => {
-      members.forEach(async (member) => {
-        if (member.user.bot) {
-          return;
-        }
+    const members = await guild.members.fetch();
+    members.forEach(async (member) => {
+      if (member.user.bot) {
+        return;
+      }
 
-        await checkAndRecordUserVote(member);
-      });
+      await checkAndRecordUserVote(member);
     });
 
     const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
@@ -329,6 +321,14 @@ async function saveLeaveMessageChannelToDatabase(channelId, guildId) {
 
 createGuildsTable();
 client.login(token);
+
+const topGGToken = process.env.TOPGG_TOKEN;
+const poster = AutoPoster(topGGToken, client);
+
+poster.on('posted', (guildCount) => {
+  console.log('Server count posted to Top.gg:', JSON.stringify(guildCount));
+});
+
 
 module.exports = {
   client,

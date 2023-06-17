@@ -1,3 +1,5 @@
+// voteRemind.js
+
 const mysql = require('mysql2/promise');
 const axios = require('axios');
 require('dotenv').config();
@@ -7,6 +9,7 @@ const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK';
 const topGGVoteLink = `https://top.gg/bot/${botId}/vote`;
 const ownerUserId = '385324994533654530';
+const webhookPort = 3006; // Replace with your desired webhook port
 
 const connection = mysql.createPool({
   host: 'localhost',
@@ -41,13 +44,8 @@ async function sendRecurringReminders(client) {
       if (userData.opt_out !== 1) {
         let message;
 
-        // If the user has voted before and it's been more than 12 hours since their last vote
-        if (row.voted === 1 && currentTime - lastVoteTime >= 12 * 60 * 60 * 1000) {
+        if (currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000) {
           message = `Hello! It's been 12 hours since your last vote. Please consider voting for our bot again by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
-        }
-        // If the user has not voted and it's been more than 24 hours since their last reminder
-        else if (row.voted === 0 && currentTime - recurringReminderTime >= 24 * 60 * 60 * 1000) {
-          message = `Hello! It's been 24 hours since your last reminder. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
         }
 
         if (message) {
@@ -63,9 +61,8 @@ async function sendRecurringReminders(client) {
   await Promise.all(recurringReminderPromises);
 }
 
-
 async function checkAndRecordUserVote(member) {
-  console.log(`Checking vote status for user: ${member.user.tag}`);
+  console.log(`Checking vote status for user: ${member.user}`);
 
   try {
     const response = await axios.get(`https://top.gg/api/bots/${botId}/check`, {
@@ -79,16 +76,16 @@ async function checkAndRecordUserVote(member) {
 
     const voteStatus = response.data.voted;
 
-    const [results] = await connection.query(
-      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out) VALUES (?, ?, ?, 0, 1) ON DUPLICATE KEY UPDATE voted = VALUES(voted), last_vote_time = IF(VALUES(voted) = 1, VALUES(last_vote_time), last_vote_time), initial_reminder_sent = initial_reminder_sent',
-      [member.user.id, voteStatus, new Date()]
+    await connection.query(
+      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out) VALUES (?, ?, ?, 0, 1) ON DUPLICATE KEY UPDATE voted = ?, last_vote_time = IF(? = 1, ?, last_vote_time), recurring_remind_time = IF(? = 1, ?, recurring_remind_time), initial_reminder_sent = initial_reminder_sent',
+      [member.user.id, voteStatus, new Date(), voteStatus, voteStatus, new Date(), voteStatus, new Date()]
     );
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0) {
-      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders.\n\nTo opt in or out, use the slash command: /opt\n\nThe owner of the bot is <@${ownerUserId}>.`;
+      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders.\n\nThe owner of the bot is <@${ownerUserId}>.`;
 
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
 
@@ -100,6 +97,43 @@ async function checkAndRecordUserVote(member) {
     console.error('Error checking vote status:', error);
   }
 }
+
+async function handleVoteWebhook(req, res, client) {
+  console.log('Received vote webhook:', req.body);
+
+  const { user } = req.body;
+  console.log('user:', user);
+
+  if (!user) {
+    console.error('Invalid vote webhook request. Missing user ID.');
+    return res.sendStatus(400);
+  }
+
+  console.log(`Received vote webhook for user: ${user}`);
+
+  const member = await client.guilds.cache
+    .map((guild) => guild.members.fetch(user))
+    .find((member) => member);
+
+  console.log('Member:', member);
+
+  if (!member) {
+    console.error(`Member not found for user ID: ${user}`);
+    return res.sendStatus(404);
+  }
+
+  try {
+    await checkAndRecordUserVote(member);
+    console.log(`Vote status checked and recorded for user: ${member.user.tag}`);
+    res.sendStatus(200);
+  } catch (error) {
+    console.error('Error checking vote status:', error);
+    res.sendStatus(500);
+  }
+}
+
+
+
 
 
 async function checkAllGuildMembers(client) {
@@ -121,7 +155,7 @@ async function checkAllGuildMembers(client) {
   sendRecurringReminders(client);
 
   setInterval(() => {
-    console.log('Checking vote status for all guild members (every 30 minutes)...');
+    console.log('Checking vote status for all guild members (every 12 hours)...');
     client.guilds.cache.forEach(async (guild) => {
       guild.members.fetch().then(async (members) => {
         members.forEach(async (member) => {
@@ -136,11 +170,12 @@ async function checkAllGuildMembers(client) {
 
     console.log('Sending recurring reminders...');
     sendRecurringReminders(client);
-  }, 30 * 60 * 1000);
+  }, 12 * 60 * 60 * 1000);
 }
 
 module.exports = {
   checkAndRecordUserVote,
   checkAllGuildMembers,
   sendRecurringReminders,
+  handleVoteWebhook,
 };
