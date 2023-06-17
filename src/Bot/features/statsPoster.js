@@ -1,11 +1,15 @@
 const fetch = require('node-fetch');
+require('dotenv').config();
+
+const botId = process.env.BOT_ID;
+const topGGToken = process.env.TOPGG_TOKEN;
 
 async function postStats(botId, botToken, apiUrl) {
   const response = await fetch(apiUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': botToken
+      'Authorization': TOPGG_TOKEN;
     },
     body: JSON.stringify({
       server_count: botId.guilds.cache.size,
