@@ -8,11 +8,10 @@ const {
 } = require('@discordjs/voice');
 const ytdl = require('ytdl-core-discord');
 const { EmbedBuilder } = require('discord.js');
-const dotenv = require('dotenv');
-
 const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
-dotenv.config();
+
 
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
