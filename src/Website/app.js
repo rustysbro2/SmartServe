@@ -7,9 +7,10 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
 const crypto = require('crypto');
-const pool = require('../../database');
+const pool = require('../database');
+const { client } = require('../Bot/bot.js');
 
-const envPath = path.join(__dirname, '../../.env');
+const envPath = path.join(__dirname, '../.env');
 
 dotenv.config({ path: envPath });
 
@@ -66,19 +67,26 @@ function encryptEmail(email) {
   return iv.toString('hex') + encrypted;
 }
 
-// Decrypt email
 function decryptEmail(encryptedEmail) {
-  const iv = Buffer.from(encryptedEmail.slice(0, 32), 'hex');
-  const encryptedText = encryptedEmail.slice(32);
-  const decipher = crypto.createDecipheriv('aes-256-cbc', encryptionKey, iv);
-  let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
-  decrypted += decipher.final('utf8');
-  return decrypted;
+  try {
+    console.log('Encrypted email:', encryptedEmail);
+    const iv = Buffer.from(encryptedEmail.slice(0, 32), 'hex');
+    console.log('IV:', iv);
+    const encryptedText = encryptedEmail.slice(32);
+    const decipher = crypto.createDecipheriv('aes-256-cbc', encryptionKey, iv);
+    let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
+    decrypted += decipher.final('utf8');
+    return decrypted;
+  } catch (error) {
+    console.error('Error decrypting email:', error);
+    return 'Email decryption failed';
+  }
 }
+
 
 // Configure Discord authentication strategy
 passport.use(new DiscordStrategy({
-  clientID: process.env.CLIENT_ID,
+  clientID: process.env.BOT_ID,
   clientSecret: process.env.CLIENT_SECRET,
   callbackURL: process.env.CALLBACK_URL,
   scope: ['identify', 'email'],
@@ -87,17 +95,17 @@ passport.use(new DiscordStrategy({
 
   try {
     // Check if the user already exists in the database
-    let user = await pool.query('SELECT * FROM users WHERE discordId = ?', [id]);
+    let user = await pool.query('SELECT * FROM web_users WHERE discordId = ?', [id]);
 
     if (user.length === 0) {
       // User does not exist, insert into the database
       const encryptedEmail = encryptEmail(email);
-      await pool.query('INSERT INTO users (discordId, username, email) VALUES (?, ?, ?)', [id, username, encryptedEmail]);
+      await pool.query('INSERT INTO web_users (discordId, username, email) VALUES (?, ?, ?)', [id, username, encryptedEmail]);
       user = { discordId: id, username, email: encryptedEmail };
     } else {
       // User exists, update their username and email
       const encryptedEmail = encryptEmail(email);
-      await pool.query('UPDATE users SET username = ?, email = ? WHERE discordId = ?', [username, encryptedEmail, id]);
+      await pool.query('UPDATE web_users SET username = ?, email = ? WHERE discordId = ?', [username, encryptedEmail, id]);
       user = user[0];
     }
 
@@ -122,7 +130,7 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser(async (id, done) => {
   try {
     // Retrieve the user from the database based on the discordId
-    const user = await pool.query('SELECT * FROM users WHERE discordId = ?', [id]);
+    const user = await pool.query('SELECT * FROM web_users WHERE discordId = ?', [id]);
 
     if (user.length === 0) {
       // User not found
@@ -137,6 +145,10 @@ passport.deserializeUser(async (id, done) => {
     done(error);
   }
 });
+
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -158,17 +170,55 @@ app.get('/callback', passport.authenticate('discord', {
 
 // Define profile route
 app.get('/profile', (req, res) => {
-  res.redirect('/dashboard');
-});
-
-// Define dashboard route
-app.get('/dashboard', (req, res) => {
   if (req.isAuthenticated()) {
-    res.sendFile(path.join(__dirname, 'views', 'dashboard.html'));
+    res.render('profile', {
+      user: req.user.username,
+      email: req.user.email
+    });
   } else {
     res.redirect('/login');
   }
 });
+
+
+
+
+
+
+
+// Define dashboard route
+app.get('/dashboard', async (req, res) => {
+  if (req.isAuthenticated()) {
+    try {
+      const userId = req.user.discordId;
+      const user = await client.users.fetch(userId);
+      const avatarURL = user.displayAvatarURL({ format: 'png', size: 128 });
+
+      res.render('dashboard', {
+        user: req.user,
+        email: req.user.email,
+        avatarURL: avatarURL,
+      });
+    } catch (error) {
+      console.error('Error fetching user avatar:', error);
+      res.redirect('/login');
+    }
+  } else {
+    res.redirect('/login');
+  }
+});
+
+// Logout Route
+app.get('/logout', (req, res) => {
+  req.logout(function (err) {
+    if (err) {
+      console.error('Error occurred during logout:', err);
+    }
+    res.redirect('/');
+  });
+});
+
+
 
 // Start the server
 https.createServer(options, app).listen(port, () => {

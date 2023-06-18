@@ -9,7 +9,7 @@ const helpCommand = require('./commands/General/help');
 const setJoinMessageChannelCommand = require('./commands/Growth/setJoin.js');
 const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
-const pool = require('../database.js');
+const { pool } = require('../database.js');
 const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders, handleVoteWebhook } = require('./features/voteRemind');
 const { AutoPoster } = require('topgg-autoposter');
 

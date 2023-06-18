@@ -1,6 +1,9 @@
+// voteRemind.js
 const path = require('path');
+const mysql = require('mysql2/promise');
 const axios = require('axios');
-require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const { connection } = require('../../database.js');
 
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
@@ -9,7 +12,6 @@ const topGGVoteLink = `https://top.gg/bot/${botId}/vote`;
 const ownerUserId = '385324994533654530';
 const webhookPort = 3006; // Replace with your desired webhook port
 
-const pool = require('../../database');
 
 async function sendDM(user, message) {
   try {
@@ -20,7 +22,7 @@ async function sendDM(user, message) {
 }
 
 async function sendRecurringReminders(client) {
-  const [users] = await pool.query(
+  const [users] = await connection.query(
     'SELECT user_id, voted, last_vote_time, recurring_remind_time FROM users WHERE initial_reminder_sent = 1'
   );
 
@@ -32,7 +34,7 @@ async function sendRecurringReminders(client) {
 
     if (row.user_id) {
       const user = await client.users.fetch(row.user_id);
-      const [[userData]] = await pool.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
+      const [[userData]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
 
       if (userData.opt_out !== 1) {
         let message;
@@ -45,7 +47,7 @@ async function sendRecurringReminders(client) {
           const owner = await client.users.fetch(ownerUserId);
           message += ` The owner of the bot is ${owner}.`;
           sendDM(user, message);
-          await pool.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), row.user_id]);
+          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), row.user_id]);
         }
       }
     }
@@ -69,14 +71,14 @@ async function checkAndRecordUserVote(member) {
 
     const voteStatus = response.data.voted;
 
-    await pool.query(
+    await connection.query(
       'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out) VALUES (?, ?, ?, 0, 1) ON DUPLICATE KEY UPDATE voted = ?, last_vote_time = IF(? = 1, ?, last_vote_time), recurring_remind_time = IF(? = 1, ?, recurring_remind_time), initial_reminder_sent = initial_reminder_sent',
       [member.user.id, voteStatus, new Date(), voteStatus, voteStatus, new Date(), voteStatus, new Date()]
     );
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
-    const [[user]] = await pool.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
+    const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
     if (user.voted === 0 && user.initial_reminder_sent === 0) {
       let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders.\n\nThe owner of the bot is <@${ownerUserId}>.`;
 
@@ -84,7 +86,7 @@ async function checkAndRecordUserVote(member) {
 
       sendDM(member.user, message);
 
-      await pool.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
+      await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
@@ -124,6 +126,10 @@ async function handleVoteWebhook(req, res, client) {
     res.sendStatus(500);
   }
 }
+
+
+
+
 
 async function checkAllGuildMembers(client) {
   console.log('Checking vote status for all guild members at startup...');

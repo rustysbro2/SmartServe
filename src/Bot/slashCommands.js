@@ -3,7 +3,7 @@ require('dotenv').config();
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
-const pool = require('../database.js');
+const { pool } = require('../database.js');
 
 // load the variables from .env file
 const clientId = process.env.CLIENT_ID;

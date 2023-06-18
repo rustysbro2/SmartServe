@@ -30,6 +30,23 @@ nav ul li a {
   font-weight: bold;
 }
 
+/* Add custom styles for the Discord avatar link */
+.avatar-link {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+}
+
+.avatar-link img {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  /* Add any additional styling as desired */
+}
+
+
 /* Main styles */
 
 main {
