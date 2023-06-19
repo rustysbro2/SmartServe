@@ -39,7 +39,7 @@ async function sendRecurringReminders(client) {
       if (userData.opt_out !== 1) {
         let message;
 
-        if (currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000) {
+        if (userData.voted === 0 && (currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000)) {
           message = `Hello! It's been 12 hours since your last vote. Please consider voting for our bot again by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
         }
 
@@ -69,43 +69,17 @@ async function checkAndRecordUserVote(member) {
       },
     });
 
-    const voteStatus = response.data.voted;
-
-    // Fetch current user data from the database
-    const [currentUserDataRows] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
-
-    let currentUserData;
-    if (currentUserDataRows.length > 0) {
-      currentUserData = currentUserDataRows[0];
-    } else {
-      currentUserData = {
-        user_id: member.user.id,
-        voted: 0,
-        last_vote_time: null,
-        initial_reminder_sent: 0,
-        opt_out: 1,  // Default opt_out to 1
-        previous_vote_status: 0
-      };
-    }
+    const voteStatus = 0;
 
     await connection.query(
-      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out, previous_vote_status) VALUES (?, ?, ?, 0, 1, ?) ON DUPLICATE KEY UPDATE voted = ?, last_vote_time = IF(? = 1, NOW(), last_vote_time), recurring_remind_time = IF(? = 1, NOW(), recurring_remind_time), initial_reminder_sent = initial_reminder_sent, previous_vote_status = ?',
-      [member.user.id, voteStatus, new Date(), currentUserData.previous_vote_status, voteStatus, voteStatus, voteStatus, currentUserData.previous_vote_status]
+      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out) VALUES (?, ?, ?, 0, 1) ON DUPLICATE KEY UPDATE voted = ?, last_vote_time = IF(? = 1, ?, last_vote_time), recurring_remind_time = IF(? = 1, ?, recurring_remind_time), initial_reminder_sent = initial_reminder_sent',
+      [member.user.id, voteStatus, new Date(), voteStatus, voteStatus, new Date(), voteStatus, new Date()]
     );
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
-    // If voted status changes from 1 to 0, send a reminder immediately
-    if (currentUserData.voted === 1 && voteStatus === 0) {
-      let message = `Hello, ${member.user}! It seems you have not voted recently. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nThe owner of the bot is <@${ownerUserId}>.`;
-
-      message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
-
-      sendDM(member.user, message);
-    }
-    
     const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
-    if (user.initial_reminder_sent === 0) {
+    if (user.voted === 0 && user.initial_reminder_sent === 0) {
       let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt in to reminders.\n\nThe owner of the bot is <@${ownerUserId}>.`;
 
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
@@ -118,11 +92,6 @@ async function checkAndRecordUserVote(member) {
     console.error('Error checking vote status:', error);
   }
 }
-
-
-
-
-
 
 async function handleVoteWebhook(req, res, client) {
   console.log('Received vote webhook:', req.body);
@@ -196,8 +165,10 @@ async function checkAllGuildMembers(client) {
 
     console.log('Sending recurring reminders...');
     sendRecurringReminders(client);
-  }, 5 * 60 * 1000);
+  }, 10 * 1000);
 }
+
+
 
 
 module.exports = {
