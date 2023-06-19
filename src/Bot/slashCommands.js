@@ -1,8 +1,14 @@
+require('dotenv').config();
+
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const { clientId, guildId, token } = require('./config.js');
 const fs = require('fs');
-const pool = require('./database.js');
+const { pool } = require('../database.js');
+
+// load the variables from .env file
+const clientId = process.env.CLIENT_ID;
+const guildId = process.env.GUILD_ID;
+const token = process.env.TOKEN;
 
 async function createCommandIdsTable() {
   // Create commandIds table if it doesn't exist

@@ -1,5 +1,9 @@
 const { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, EmbedBuilder, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
-const { guildId } = require('../config.js');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
+
+
+const guildId = process.env.guildId;
 
 async function handleSelectMenu(interaction, commandCategories) {
   console.log('Interaction guild ID:', interaction.guildId);

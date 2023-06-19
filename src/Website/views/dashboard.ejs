@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* CSS styles for the Discord avatar link */
+    .avatar-link {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1;
+    }
+
+    .avatar-link img {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      /* Add any additional styling as desired */
+    }
+
+    /* CSS styles for the dashboard section */
+    .dashboard {
+      background-color: #F8F9FA;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .dashboard h2 {
+      color: #7289DA;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .dashboard p {
+      color: #6C757D;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </nav>
+    <!-- Add the Discord avatar link here -->
+    <a class="avatar-link" href="/profile">
+      <img src="<%= avatarURL %>" alt="Discord Avatar">
+    </a>
+  </header>
+  <main>
+    <div class="dashboard">
+      <h1>Welcome to the Dashboard</h1>
+      <div class="user-info">
+        <h2>User Information</h2>
+        <p>Username: <%= user.username %></p>
+        <p>Email: <%= email %></p>
+      </div>
+      <div class="dashboard-widgets">
+        <h2>Widgets</h2>
+        <div class="widget">
+          <h3>Widget 1</h3>
+          <p>This is the content of Widget 1.</p>
+        </div>
+        <div class="widget">
+          <h3>Widget 2</h3>
+          <p>This is the content of Widget 2.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2023 Discord Website. All rights reserved.</p>
+  </footer>
+</body>
+</html>
