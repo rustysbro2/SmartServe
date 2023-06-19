@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits, PermissionsBitField } = require('discord.js');
-const MusicPlayer = require('../features/musicPlayer.js');
+const MusicPlayer = require('../../features/musicPlayer.js');
 const { AudioPlayerStatus, entersState } = require('@discordjs/voice');
 
 module.exports = {

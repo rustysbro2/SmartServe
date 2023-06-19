@@ -1,5 +1,6 @@
-
-config.js
+.env
 node_modules/
 package.json
 package-lock.json
+database.js
+secretKey.json
