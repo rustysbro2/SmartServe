@@ -56,8 +56,17 @@ async function sendRecurringReminders(client) {
   await Promise.all(recurringReminderPromises);
 }
 
+let checkedUsers = new Set();
+
 async function checkAndRecordUserVote(member) {
   console.log(`Checking vote status for user: ${member.user}`);
+
+  // If this user's vote status has been checked in this session, exit the function
+  if (checkedUsers.has(member.user.id)) {
+    return;
+  }
+  // Add the user to the set of checked users
+  checkedUsers.add(member.user.id);
 
   try {
     const response = await axios.get(`https://top.gg/api/bots/${botId}/check`, {
@@ -95,8 +104,8 @@ async function checkAndRecordUserVote(member) {
 
     console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
-    // If voted status changes from 1 to 0, send a reminder immediately
-    if (currentUserData.voted === 1 && voteStatus === 0) {
+    // If voted status changes from 1 to 0 and user did not opt out, send a reminder immediately
+    if (currentUserData.voted === 1 && voteStatus === 0 && currentUserData.opt_out === 0) {
       let message = `Hello, ${member.user}! It seems you have not voted recently. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nThe owner of the bot is <@${ownerUserId}>.`;
 
       message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
@@ -118,10 +127,6 @@ async function checkAndRecordUserVote(member) {
     console.error('Error checking vote status:', error);
   }
 }
-
-
-
-
 
 
 async function handleVoteWebhook(req, res, client) {
