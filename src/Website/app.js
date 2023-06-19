@@ -7,8 +7,7 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
 const crypto = require('crypto');
-const pool = require('../database');
-const { client } = require('../Bot/bot.js');
+const { pool } = require('../database');
 
 const envPath = path.join(__dirname, '../.env');
 
@@ -91,7 +90,7 @@ passport.use(new DiscordStrategy({
   callbackURL: process.env.CALLBACK_URL,
   scope: ['identify', 'email'],
 }, async (accessToken, refreshToken, profile, done) => {
-  const { id, username, email } = profile;
+  const { id, username, email, avatar } = profile;
 
   try {
     // Check if the user already exists in the database
@@ -100,12 +99,12 @@ passport.use(new DiscordStrategy({
     if (user.length === 0) {
       // User does not exist, insert into the database
       const encryptedEmail = encryptEmail(email);
-      await pool.query('INSERT INTO web_users (discordId, username, email) VALUES (?, ?, ?)', [id, username, encryptedEmail]);
-      user = { discordId: id, username, email: encryptedEmail };
+      await pool.query('INSERT INTO web_users (discordId, username, email, avatar) VALUES (?, ?, ?, ?)', [id, username, encryptedEmail, avatar]);
+      user = { discordId: id, username, email: encryptedEmail, avatar };
     } else {
       // User exists, update their username and email
       const encryptedEmail = encryptEmail(email);
-      await pool.query('UPDATE web_users SET username = ?, email = ? WHERE discordId = ?', [username, encryptedEmail, id]);
+      await pool.query('UPDATE web_users SET username = ?, email = ?, avatar = ? WHERE discordId = ?', [username, encryptedEmail, avatar, id]);
       user = user[0];
     }
 
@@ -117,6 +116,7 @@ passport.use(new DiscordStrategy({
     done(error);
   }
 }));
+
 
 // Initialize passport
 app.use(passport.initialize());
@@ -180,19 +180,20 @@ app.get('/profile', (req, res) => {
   }
 });
 
-
-
-
-
-
-
 // Define dashboard route
 app.get('/dashboard', async (req, res) => {
   if (req.isAuthenticated()) {
     try {
       const userId = req.user.discordId;
-      const user = await client.users.fetch(userId);
-      const avatarURL = user.displayAvatarURL({ format: 'png', size: 128 });
+      let avatarURL = '';
+
+      if (req.user.avatar) {
+        // User has a custom avatar set
+        avatarURL = `https://cdn.discordapp.com/avatars/${userId}/${req.user.avatar}.png?size=128`;
+      } else {
+        // User does not have a custom avatar set
+        avatarURL = `https://cdn.discordapp.com/embed/avatars/0.png`;
+      }
 
       res.render('dashboard', {
         user: req.user,
@@ -200,13 +201,16 @@ app.get('/dashboard', async (req, res) => {
         avatarURL: avatarURL,
       });
     } catch (error) {
-      console.error('Error fetching user avatar:', error);
+      console.error('Error rendering dashboard:', error);
       res.redirect('/login');
     }
   } else {
     res.redirect('/login');
   }
 });
+
+
+
 
 // Logout Route
 app.get('/logout', (req, res) => {
@@ -217,8 +221,6 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
   });
 });
-
-
 
 // Start the server
 https.createServer(options, app).listen(port, () => {

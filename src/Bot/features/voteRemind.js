@@ -150,7 +150,7 @@ async function checkAllGuildMembers(client) {
   sendRecurringReminders(client);
 
   setInterval(() => {
-    console.log('Checking vote status for all guild members (every 12 hours)...');
+    console.log('Checking vote status for all guild members (every 5 minutes)...');
     client.guilds.cache.forEach(async (guild) => {
       guild.members.fetch().then(async (members) => {
         members.forEach(async (member) => {
@@ -165,8 +165,9 @@ async function checkAllGuildMembers(client) {
 
     console.log('Sending recurring reminders...');
     sendRecurringReminders(client);
-  }, 12 * 60 * 60 * 1000);
+  }, 5 * 60 * 1000);
 }
+
 
 module.exports = {
   checkAndRecordUserVote,

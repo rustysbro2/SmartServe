@@ -1,99 +1,141 @@
 /* Global styles */
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   margin: 0;
   padding: 0;
+  background-color: #F2F3F5;
+  color: #333333;
 }
 
 /* Header styles */
 
 header {
-  background-color: #f8f9fa;
+  background-color: #7289DA;
   padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  color: #FFFFFF;
+  font-size: 32px;
+  margin: 0;
+}
+
+/* Navigation styles */
+
+nav {
+  background-color: #2C2F33;
+  padding: 10px;
+  text-align: center;
 }
 
 nav ul {
   list-style-type: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
 nav ul li {
-  display: inline;
+  display: inline-block;
   margin-right: 10px;
 }
 
 nav ul li a {
   text-decoration: none;
-  color: #007bff;
-  font-weight: bold;
+  color: #FFFFFF;
+  font-size: 16px;
+  padding: 10px;
+  transition: background-color 0.3s ease;
 }
 
-/* Add custom styles for the Discord avatar link */
-.avatar-link {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1;
+nav ul li a:hover {
+  background-color: #7289DA;
+  color: #FFFFFF;
 }
-
-.avatar-link img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  cursor: pointer;
-  /* Add any additional styling as desired */
-}
-
 
 /* Main styles */
 
 main {
   padding: 20px;
+  text-align: center;
 }
 
-h1 {
-  color: #007bff;
+.homepage {
+  background-color: #FFFFFF;
+  padding: 40px 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.homepage-content {
+  max-width: 500px;
+}
+
+.homepage h1 {
+  color: #7289DA;
   font-size: 28px;
   margin-bottom: 10px;
 }
 
-p {
-  color: #6c757d;
-  font-size: 16px;
+.homepage p {
+  color: #6C757D;
+  font-size: 18px;
+  margin-bottom: 20px;
 }
 
-/* Login form styles */
-
-form {
-  margin-top: 20px;
+.homepage form {
+  display: flex;
+  justify-content: center;
 }
 
-button {
+.homepage button {
   padding: 10px 20px;
-  background-color: #007bff;
-  color: #fff;
+  background-color: #7289DA;
+  color: #FFFFFF;
   border: none;
   border-radius: 4px;
   font-size: 16px;
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #0056b3;
+.homepage button:hover {
+  background-color: #4E5D94;
+}
+
+.dashboard {
+  background-color: #F8F9FA;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.dashboard h2 {
+  color: #7289DA;
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.dashboard p {
+  color: #6C757D;
+  font-size: 16px;
+  margin-bottom: 20px;
 }
 
 /* Footer styles */
 
 footer {
-  background-color: #f8f9fa;
+  background-color: #2C2F33;
   padding: 20px;
   text-align: center;
+  color: #FFFFFF;
 }
 
 footer p {
   margin: 0;
-  color: #6c757d;
   font-size: 14px;
 }
