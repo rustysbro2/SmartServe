@@ -1,0 +1,30 @@
+<!-- index.ejs -->
+
+<html>
+<head>
+  <title><%= pageTitle %></title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Welcome to My Website</h1>
+  </header>
+
+  <main>
+    <h2>Home</h2>
+    <p>This is the homepage of my website.</p>
+
+    <nav>
+      <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <!-- Add more navigation links as needed -->
+      </ul>
+    </nav>
+  </main>
+
+  <footer>
+    &copy; <%= currentYear %> My Website. All rights reserved.
+  </footer>
+</body>
+</html>

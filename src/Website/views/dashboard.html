@@ -2,27 +2,27 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Profile</title>
+  <title>Dashboard</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <header>
-    <h1>Profile</h1>
+    <h1>Dashboard</h1>
   </header>
 
   <main>
     <% if (user) { %>
-      <h2>Welcome, <%= user %></h2>
+      <h2>Welcome to your dashboard, <%= user %></h2>
       <p>Email: <%= email %></p>
-      <a href="/logout">Logout</a>
+      <img src="<%= avatarURL %>" alt="Avatar">
     <% } else { %>
-      <p>You need to log in to access your profile.</p>
+      <p>You need to log in to access the dashboard.</p>
       <a href="/login">Log in</a>
     <% } %>
   </main>
 
   <footer>
-    <p>&copy; <%= new Date().getFullYear() %> Your Website. All rights reserved.</p>
+    <p>&copy; YYYY Your Website. All rights reserved.</p>
   </footer>
 </body>
 </html>

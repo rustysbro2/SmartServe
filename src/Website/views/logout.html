@@ -2,27 +2,25 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Profile</title>
+  <title>Logout</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <header>
-    <h1>Profile</h1>
+    <h1>Logout</h1>
   </header>
 
   <main>
     <% if (user) { %>
-      <h2>Welcome, <%= user %></h2>
-      <p>Email: <%= email %></p>
+      <p>You are logged in as <%= user %>.</p>
       <a href="/logout">Logout</a>
     <% } else { %>
-      <p>You need to log in to access your profile.</p>
-      <a href="/login">Log in</a>
+      <p>You are already logged out.</p>
     <% } %>
   </main>
 
   <footer>
-    <p>&copy; <%= new Date().getFullYear() %> Your Website. All rights reserved.</p>
+    <p>&copy; YYYY Your Website. All rights reserved.</p>
   </footer>
 </body>
 </html>

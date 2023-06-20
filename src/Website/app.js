@@ -1,4 +1,5 @@
 const express = require('express');
+const app = express();
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
@@ -13,13 +14,15 @@ const envPath = path.join(__dirname, '../.env');
 
 dotenv.config({ path: envPath });
 
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'),
   cert: fs.readFileSync('/root/Certs/smartserve_cc.crt'),
   ca: fs.readFileSync('/root/Certs/smartserve_cc.ca-bundle'),
 };
 
-const app = express();
 const port = 443;
 
 // Generate a random session secret
@@ -82,7 +85,6 @@ function decryptEmail(encryptedEmail) {
   }
 }
 
-
 // Configure Discord authentication strategy
 passport.use(new DiscordStrategy({
   clientID: process.env.BOT_ID,
@@ -117,7 +119,6 @@ passport.use(new DiscordStrategy({
   }
 }));
 
-
 // Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -146,81 +147,23 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Set EJS as the view engine
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
-
-// Serve static files
+// Set the static folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Define root route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'views', 'index.html'));
-});
+// Define routes
+const indexRoute = require('./routes/index');
+const loginRoute = require('./routes/login');
+const callbackRoute = require('./routes/callback');
+const profileRoute = require('./routes/profile');
+const dashboardRoute = require('./routes/dashboard');
+const logoutRoute = require('./routes/logout');
 
-// Define login route
-app.get('/login', passport.authenticate('discord'));
-
-// Define callback route
-app.get('/callback', passport.authenticate('discord', {
-  failureRedirect: '/login',
-}), (req, res) => {
-  res.redirect('/profile');
-});
-
-// Define profile route
-app.get('/profile', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.render('profile', {
-      user: req.user.username,
-      email: req.user.email
-    });
-  } else {
-    res.redirect('/login');
-  }
-});
-
-// Define dashboard route
-app.get('/dashboard', async (req, res) => {
-  if (req.isAuthenticated()) {
-    try {
-      const userId = req.user.discordId;
-      let avatarURL = '';
-
-      if (req.user.avatar) {
-        // User has a custom avatar set
-        avatarURL = `https://cdn.discordapp.com/avatars/${userId}/${req.user.avatar}.png?size=128`;
-      } else {
-        // User does not have a custom avatar set
-        avatarURL = `https://cdn.discordapp.com/embed/avatars/0.png`;
-      }
-
-      res.render('dashboard', {
-        user: req.user,
-        email: req.user.email,
-        avatarURL: avatarURL,
-      });
-    } catch (error) {
-      console.error('Error rendering dashboard:', error);
-      res.redirect('/login');
-    }
-  } else {
-    res.redirect('/login');
-  }
-});
-
-
-
-
-// Logout Route
-app.get('/logout', (req, res) => {
-  req.logout(function (err) {
-    if (err) {
-      console.error('Error occurred during logout:', err);
-    }
-    res.redirect('/');
-  });
-});
+app.use('/', indexRoute);
+app.use('/login', loginRoute);
+app.use('/callback', callbackRoute);
+app.use('/profile', profileRoute);
+app.use('/dashboard', dashboardRoute);
+app.use('/logout', logoutRoute);
 
 // Start the server
 https.createServer(options, app).listen(port, () => {
