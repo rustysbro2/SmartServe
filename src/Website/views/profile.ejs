@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h1>Profile</h1>
+    <div class="user-info">
+      <h2>User Information</h2>
+      <p>Username: <%= user.username %></p>
+      <p>Email: <%= email %></p>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2023 Discord Website. All rights reserved.</p>
+  </footer>
+</body>
+</html>
