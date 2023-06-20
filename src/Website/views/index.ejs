@@ -1,30 +1,75 @@
-<!-- index.ejs -->
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <title><%= pageTitle %></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Website</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    body {
+      background-color: #F0EDE7;
+    }
+
+    header {
+      background-color: #7289DA;
+      color: #fff;
+      padding: 20px;
+    }
+
+    nav ul li a {
+      color: #fff;
+    }
+
+    .banner {
+      background-color: #333;
+      color: #fff;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .advertisement-item {
+      background-color: #F9F7F6;
+      color: #333;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
 </head>
 <body>
   <header>
-    <h1>Welcome to My Website</h1>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Features</a></li>
+        <li><a href="#">About</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
   </header>
 
   <main>
-    <h2>Home</h2>
-    <p>This is the homepage of my website.</p>
+    <section class="banner">
+      <h1>Welcome to Your Website</h1>
+      <p>Discover the best features for your Discord server.</p>
+      <a href="#" class="discord-button">Log in with Discord</a>
+    </section>
 
-    <nav>
-      <ul>
-        <li><a href="/dashboard">Dashboard</a></li>
-        <li><a href="/profile">Profile</a></li>
-        <!-- Add more navigation links as needed -->
-      </ul>
-    </nav>
+    <section class="advertisement">
+      <h2>Why Choose Our Bot?</h2>
+      <div class="advertisement-item">
+        <h3>Powerful Moderation Tools</h3>
+        <p>Unlock powerful moderation tools to keep your server safe and secure.</p>
+        <a href="#" class="advertisement-button">Learn More</a>
+      </div>
+      <div class="advertisement-item">
+        <h3>Boost Your Server's Engagement</h3>
+        <p>Engage your community with fun and interactive games and events.</p>
+        <a href="#" class="advertisement-button">Get Started</a>
+      </div>
+    </section>
   </main>
 
   <footer>
-    &copy; <%= currentYear %> My Website. All rights reserved.
+    <p>&copy; 2023 Your Website. All rights reserved.</p>
   </footer>
 </body>
 </html>
