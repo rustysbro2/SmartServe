@@ -1,3 +1,5 @@
+// app.js
+
 const express = require('express');
 const app = express();
 const https = require('https');
@@ -9,13 +11,17 @@ const dotenv = require('dotenv');
 const session = require('express-session');
 const crypto = require('crypto');
 const { pool } = require('../database');
+const morgan = require('morgan');
+const apiLogger = require('./apiLogger');
+const { getGuilds } = require('./helpers/discord'); // Import the getGuilds function
+const { ensureAuthenticated } = require('./middleware/auth');
 
 const envPath = path.join(__dirname, '../.env');
 
 dotenv.config({ path: envPath });
 
-// Set EJS as the view engine
 app.set('view engine', 'ejs');
+app.use(morgan('dev'));
 
 const options = {
   key: fs.readFileSync('/root/Certs/private-key.key'),
@@ -24,43 +30,15 @@ const options = {
 };
 
 const port = 443;
-
-// Generate a random session secret
 const sessionSecret = crypto.randomBytes(32).toString('hex');
-
 app.use(session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
 }));
 
-// Generate and store the secret key in a JSON file
-const generateSecretKey = () => {
-  const secretKey = crypto.randomBytes(32);
-  const secretKeyFile = path.join(__dirname, 'secret-key.json');
-  fs.writeFileSync(secretKeyFile, JSON.stringify({ secretKey: secretKey.toString('base64') }));
-  return secretKey;
-};
+const encryptionKey = crypto.randomBytes(32);
 
-// Read the secret key from the JSON file or generate a new one
-const secretKeyFile = path.join(__dirname, 'secret-key.json');
-let secretKey;
-try {
-  const data = fs.readFileSync(secretKeyFile, 'utf8');
-  const { secretKey: storedSecretKey } = JSON.parse(data);
-  if (storedSecretKey) {
-    secretKey = Buffer.from(storedSecretKey, 'base64');
-  } else {
-    secretKey = generateSecretKey();
-  }
-} catch (err) {
-  secretKey = generateSecretKey();
-}
-
-// Encryption/decryption key
-const encryptionKey = secretKey.slice(0, 32);
-
-// Encrypt email
 function encryptEmail(email) {
   const iv = crypto.randomBytes(16);
   const cipher = crypto.createCipheriv('aes-256-cbc', encryptionKey, iv);
@@ -85,61 +63,55 @@ function decryptEmail(encryptedEmail) {
   }
 }
 
-// Configure Discord authentication strategy
 passport.use(new DiscordStrategy({
   clientID: process.env.BOT_ID,
   clientSecret: process.env.CLIENT_SECRET,
   callbackURL: process.env.CALLBACK_URL,
-  scope: ['identify', 'email'],
+  scope: ['identify', 'email', 'guilds'],
+  prompt: 'consent'
 }, async (accessToken, refreshToken, profile, done) => {
-  const { id, username, email, avatar } = profile;
+  const { id, username, email, avatar, guilds } = profile;
+  console.log(profile);
 
   try {
-    // Check if the user already exists in the database
     let user = await pool.query('SELECT * FROM web_users WHERE discordId = ?', [id]);
 
     if (user.length === 0) {
-      // User does not exist, insert into the database
       const encryptedEmail = encryptEmail(email);
-      await pool.query('INSERT INTO web_users (discordId, username, email, avatar) VALUES (?, ?, ?, ?)', [id, username, encryptedEmail, avatar]);
-      user = { discordId: id, username, email: encryptedEmail, avatar };
+      const result = await pool.query('INSERT INTO web_users (username, email, avatar, accessToken, discordId) VALUES (?, ?, ?, ?, ?)', [username, encryptedEmail, avatar, accessToken, id]);
+      user = { id: result.insertId, username, email, avatar, accessToken, guilds };
     } else {
-      // User exists, update their username and email
       const encryptedEmail = encryptEmail(email);
-      await pool.query('UPDATE web_users SET username = ?, email = ?, avatar = ? WHERE discordId = ?', [username, encryptedEmail, avatar, id]);
+      await pool.query('UPDATE web_users SET username = ?, email = ?, avatar = ?, accessToken = ? WHERE discordId = ?', [username, encryptedEmail, avatar, accessToken, id]);
       user = user[0];
+      user.accessToken = accessToken;
+      user.guilds = guilds;
     }
 
-    // Call the 'done' function to indicate success and pass the user object
+    user.id = id;
     done(null, user);
   } catch (error) {
-    // Error occurred during user data handling
-    // Call the 'done' function with the error to indicate failure
     done(error);
   }
 }));
 
-// Initialize passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Serialize and deserialize user
 passport.serializeUser((user, done) => {
   done(null, user.discordId);
 });
 
 passport.deserializeUser(async (id, done) => {
   try {
-    // Retrieve the user from the database based on the discordId
     const user = await pool.query('SELECT * FROM web_users WHERE discordId = ?', [id]);
 
     if (user.length === 0) {
-      // User not found
       done(null, null);
     } else {
-      // User found, pass the user object to 'deserializeUser'
       const decryptedEmail = decryptEmail(user[0].email);
       user[0].email = decryptedEmail;
+      user[0].accessToken = user[0].accessToken || null;
       done(null, user[0]);
     }
   } catch (error) {
@@ -147,25 +119,29 @@ passport.deserializeUser(async (id, done) => {
   }
 });
 
-// Set the static folder
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(apiLogger);
 
-// Define routes
 const indexRoute = require('./routes/index');
 const loginRoute = require('./routes/login');
-const callbackRoute = require('./routes/callback');
 const profileRoute = require('./routes/profile');
-const dashboardRoute = require('./routes/dashboard');
-const logoutRoute = require('./routes/logout');
+const dashboardRoute = require('./routes/dashboardRoute');
+const featuresRoute = require('./routes/featuresRoute');
+const logoutRoute = require('./routes/logoutRoute');
+const aboutRoute = require('./routes/aboutRoute');
+const contactRoute = require('./routes/contactRoute');
+
+// Register the dashboard route
+app.use('/dashboard', ensureAuthenticated, dashboardRoute);
 
 app.use('/', indexRoute);
 app.use('/login', loginRoute);
-app.use('/callback', callbackRoute);
 app.use('/profile', profileRoute);
-app.use('/dashboard', dashboardRoute);
+app.use('/features', featuresRoute);
 app.use('/logout', logoutRoute);
+app.use('/about', aboutRoute);
+app.use('/contact', contactRoute);
 
-// Start the server
 https.createServer(options, app).listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

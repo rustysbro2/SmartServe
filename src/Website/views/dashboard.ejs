@@ -1,28 +1,59 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard</title>
-  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <style>
+    /* Additional CSS styles if needed */
+  </style>
 </head>
 <body>
   <header>
-    <h1>Dashboard</h1>
+    <nav>
+      <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </nav>
   </header>
 
   <main>
-    <% if (user) { %>
-      <h2>Welcome to your dashboard, <%= user %></h2>
-      <p>Email: <%= email %></p>
-      <img src="<%= avatarURL %>" alt="Avatar">
-    <% } else { %>
-      <p>You need to log in to access the dashboard.</p>
-      <a href="/login">Log in</a>
-    <% } %>
+    <section>
+      <h1>Server List</h1>
+      <ul class="server-list">
+        <% if (servers && servers.length > 0) { %>
+          <% servers.forEach((server) => { %>
+            <li class="server-item">
+              <div class="server-info">
+                <div class="server-avatar">
+                  <img src="<%= server.iconURL || 'https://cdn.discordapp.com/embed/avatars/0.png' %>" alt="Server Avatar">
+                  <% if (!server.iconURL) { %>
+                    <span class="server-acronym"><%= server.nameAcronym %></span>
+                  <% } %>
+                </div>
+                <div class="server-details">
+                  <h2 class="server-name"><%= server.name %></h2>
+                  <p class="server-member-count"><%= server.memberCount %> members</p>
+                </div>
+              </div>
+              <div class="server-actions">
+                <a href="/dashboard/servers/<%= server.id %>" class="server-action-link">View Details</a>
+              </div>
+            </li>
+          <% }); %>
+        <% } else { %>
+          <p>No servers found.</p>
+          <pre><%= JSON.stringify(servers, null, 2) %></pre> <!-- Add this line to display the servers array -->
+        <% } %>
+      </ul>
+    </section>
   </main>
 
   <footer>
-    <p>&copy; <%= new Date().getFullYear() %> Your Website. All rights reserved.</p>
+    <p>&copy; 2023 Your Website. All rights reserved.</p>
   </footer>
 </body>
 </html>

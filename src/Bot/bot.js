@@ -346,5 +346,6 @@ poster.on('posted', (guildCount) => {
 module.exports = {
   client,
   saveJoinMessageChannelToDatabase,
-  saveLeaveMessageChannelToDatabase
+  saveLeaveMessageChannelToDatabase,
+	GatewayIntentBits
 };

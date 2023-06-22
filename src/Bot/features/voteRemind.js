@@ -9,7 +9,7 @@ const { connection } = require('../../database.js');
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK';
-const topGGVoteLink = `https://top.gg/bot/${botId}/vote`;
+const topGGVoteLink = `https://top.gg/bot/1105598736551387247/vote`;
 const ownerUserId = '385324994533654530';
 const webhookPort = 3006; // Replace with your desired webhook port
 
@@ -67,7 +67,7 @@ async function checkAndRecordUserVote(member) {
       },
     });
 
-    const voteStatus = 0;
+    const voteStatus = response.data.voted;
 
     await connection.query(
       'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out) VALUES (?, ?, ?, 0, 1) ON DUPLICATE KEY UPDATE voted = ?, last_vote_time = IF(? = 1, ?, last_vote_time), recurring_remind_time = IF(? = 1, ?, recurring_remind_time), initial_reminder_sent = initial_reminder_sent',
@@ -144,23 +144,23 @@ async function checkAllGuildMembers(client) {
   console.log('Sending recurring reminders at startup...');
   sendRecurringReminders(client);
 
-  setInterval(() => {
-    console.log('Checking vote status for all guild members (every 5 minutes)...');
-    client.guilds.cache.forEach(async (guild) => {
-      guild.members.fetch().then(async (members) => {
-        members.forEach(async (member) => {
-          if (member.user.bot) {
-            return;
-          }
+	setInterval(() => {
+		console.log('Checking vote status for all guild members (every 5 minutes)...');
+		client.guilds.cache.forEach(async (guild) => {
+			guild.members.fetch().then(async (members) => {
+				members.forEach(async (member) => {
+					if (member.user.bot) {
+						return;
+					}
 
-          await checkAndRecordUserVote(member);
-        });
-      });
-    });
+					await checkAndRecordUserVote(member);
+				});
+			});
+		});
 
-    console.log('Sending recurring reminders...');
-    sendRecurringReminders(client);
-  }, 10 * 1000);
+		console.log('Sending recurring reminders...');
+		sendRecurringReminders(client);
+	}, 5 * 60 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
 }
 
 module.exports = {

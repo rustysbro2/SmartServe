@@ -1,0 +1,21 @@
+/* about.css */
+
+/* Import the dashboard.css file */
+@import url('/css/dashboard.css');
+
+/* Additional styles for the About page */
+.main {
+  background-color: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.main h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.main p {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
