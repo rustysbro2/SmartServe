@@ -23,23 +23,23 @@ async function sendDM(user, message) {
 
 async function sendRecurringReminders(client) {
   const [users] = await connection.query(
-    'SELECT user_id, voted, last_vote_time, recurring_remind_time, opt_out FROM users WHERE initial_reminder_sent = 1'
+    'SELECT user_id, voted, last_vote_time, recurring_remind_time, opt_out FROM users WHERE opt_out = 0'
   );
 
   const currentTime = Date.now();
 
   const recurringReminderPromises = users.map(async (row) => {
-    const lastVoteTime = row.last_vote_time ? new Date(row.last_vote_time).getTime() : new Date(0).getTime();
-    const recurringReminderTime = row.recurring_remind_time ? new Date(row.recurring_remind_time).getTime() : new Date(0).getTime();
+    if (row.opt_out === 0) {
+      const lastVoteTime = row.last_vote_time ? new Date(row.last_vote_time).getTime() : new Date(0).getTime();
+      const recurringReminderTime = row.recurring_remind_time ? new Date(row.recurring_remind_time).getTime() : new Date(0).getTime();
 
-    if (row.user_id && row.opt_out === 0) { // Only send reminders if user has not opted out
       const user = await client.users.fetch(row.user_id);
       const [[userData]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [row.user_id]);
 
       let message;
 
       if (userData.voted === 0 && (currentTime - recurringReminderTime >= 12 * 60 * 60 * 1000)) {
-        message = `Hello! It's been 12 hours since your last vote. Please consider voting for our bot again by visiting the vote link: ${topGGVoteLink}\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+        message = `Hello! It's been 12 hours since your last vote. Please consider voting for our bot again by visiting the vote link: ${topGGVoteLink}\n\nThe owner of the bot is <@${ownerUserId}>.\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
       }
 
       if (message) {
@@ -69,28 +69,51 @@ async function checkAndRecordUserVote(member) {
 
     const voteStatus = response.data.voted;
 
-    await connection.query(
-      'INSERT INTO users (user_id, voted, last_vote_time, initial_reminder_sent, opt_out) VALUES (?, ?, ?, 0, 1) ON DUPLICATE KEY UPDATE voted = ?, last_vote_time = IF(? = 1, ?, last_vote_time), recurring_remind_time = IF(? = 1, ?, recurring_remind_time), initial_reminder_sent = initial_reminder_sent',
-      [member.user.id, voteStatus, new Date(), voteStatus, voteStatus, new Date(), voteStatus, new Date()]
-    );
+    // Check if the user exists in the table
+    const [[existingUser]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
 
-    console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
+    if (existingUser) {
+      // User exists in the table, update the vote status and previous vote status
+      const currentVoteStatus = existingUser.voted;
+      const previousVoteStatus = existingUser.previous_vote_status;
 
-    const [[user]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
-    if (user.voted === 0 && user.initial_reminder_sent === 0 && user.opt_out === 0) { // Only send reminder if user has not voted, not received initial reminder, and not opted out
-      let message = `Hello, ${member.user}! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nYou won't receive further reminders unless you opt out of reminders.\n\nThe owner of the bot is <@${ownerUserId}>.`;
+      await connection.query(
+        'UPDATE users SET voted = ?, previous_vote_status = ? WHERE user_id = ?',
+        [voteStatus, currentVoteStatus, member.user.id]
+      );
 
-      message += `\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+      console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
 
-      sendDM(member.user, message);
+      // Check if the vote status has changed
+      if (voteStatus !== currentVoteStatus) {
+        // Vote status has changed, update the previous_vote_status column
+        console.log('Vote status has changed.');
 
-      await connection.query('UPDATE users SET initial_reminder_sent = 1 WHERE user_id = ?', [member.user.id]);
+        if (voteStatus === 0) {
+          // Send a reminder if the user has not voted
+          const user = member.user;
+          const message = `Hello! It seems you haven't voted yet. Please consider voting for our bot by visiting the vote link: ${topGGVoteLink}\n\nThe owner of the bot is <@${ownerUserId}>.\n\nJoin our support server for any assistance or questions: ${supportServerLink}`;
+          sendDM(user, message);
+
+          // Update recurring_remind_time to current time
+          await connection.query('UPDATE users SET recurring_remind_time = ? WHERE user_id = ?', [new Date(), member.user.id]);
+        }
+
+        // Perform any other actions or logic based on the vote status change
+      }
+    } else {
+      // User does not exist in the table, insert a new row with their information
+      await connection.query(
+        'INSERT INTO users (user_id, voted, last_vote_time, previous_vote_status, recurring_remind_time, opt_out) VALUES (?, ?, ?, ?, ?, 1)',
+        [member.user.id, voteStatus, new Date(), voteStatus, new Date()]
+      );
+
+      console.log(`User ${member.user.tag} has been added to the table.`);
     }
   } catch (error) {
     console.error('Error checking vote status:', error);
   }
 }
-
 
 async function handleVoteWebhook(req, res, client) {
   console.log('Received vote webhook:', req.body);
@@ -129,39 +152,66 @@ async function handleVoteWebhook(req, res, client) {
 async function checkAllGuildMembers(client) {
   console.log('Checking vote status for all guild members at startup...');
 
-  client.guilds.cache.forEach(async (guild) => {
-    guild.members.fetch().then(async (members) => {
-      members.forEach(async (member) => {
-        if (member.user.bot) {
-          return;
-        }
+  const checkedUsers = new Set(); // Track checked users
 
+  async function processMember(member) {
+    if (member.user.bot || checkedUsers.has(member.user.id)) {
+      return; // Skip bots and already checked users
+    }
+
+    checkedUsers.add(member.user.id); // Add user to checked set
+
+    const [[userData]] = await connection.query('SELECT * FROM users WHERE user_id = ?', [member.user.id]);
+
+    if (userData) {
+      // User is found in the database
+      if (userData.opt_out === 0) {
         await checkAndRecordUserVote(member);
-      });
-    });
-  });
+      }
+    } else {
+      // User is not found in the database
+      await checkAndRecordUserVote(member);
+    }
+  }
+
+  async function processGuild(guild) {
+    try {
+      const members = await guild.members.fetch();
+
+      for (const [, member] of members) {
+        await processMember(member);
+      }
+    } catch (error) {
+      console.error('Error fetching guild members:', error);
+    }
+  }
+
+  async function processAllGuilds() {
+    for (const [, guild] of client.guilds.cache) {
+      await processGuild(guild);
+    }
+  }
+
+  await processAllGuilds();
 
   console.log('Sending recurring reminders at startup...');
   sendRecurringReminders(client);
 
-	setInterval(() => {
-		console.log('Checking vote status for all guild members (every 5 minutes)...');
-		client.guilds.cache.forEach(async (guild) => {
-			guild.members.fetch().then(async (members) => {
-				members.forEach(async (member) => {
-					if (member.user.bot) {
-						return;
-					}
+  setInterval(async () => {
+    console.log('Checking vote status for all guild members (every 5 minutes)...');
+    checkedUsers.clear(); // Clear the checked users set
 
-					await checkAndRecordUserVote(member);
-				});
-			});
-		});
+    await processAllGuilds();
 
-		console.log('Sending recurring reminders...');
-		sendRecurringReminders(client);
-	}, 5 * 60 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
+    console.log('Sending recurring reminders...');
+    sendRecurringReminders(client);
+  }, 1 * 30 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
 }
+
+
+
+
+
 
 module.exports = {
   checkAndRecordUserVote,
