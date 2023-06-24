@@ -1,0 +1,121 @@
+/* Reset some default styles */
+body, h1, h2, h3, p, ul, li {
+  margin: 0;
+  padding: 0;
+}
+
+/* Set global styles */
+body {
+  font-family: Arial, sans-serif;
+  line-height: 1.5;
+  background-color: #F0EDE7;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  background-color: #7289DA;
+  color: #fff;
+  padding: 20px;
+}
+
+nav ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  padding: 5px;
+}
+
+main {
+  padding: 20px;
+}
+
+.banner {
+  text-align: center;
+  margin-bottom: 40px;
+  background-color: #333;
+  color: #fff;
+  padding: 40px;
+}
+
+.banner h1 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+.banner p {
+  font-size: 18px;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.discord-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #7289DA;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+.advertisement {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.advertisement-item {
+  flex: 0 0 300px;
+  margin: 20px;
+  padding: 20px;
+  background-color: #F9F7F6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.advertisement-item h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.advertisement-item p {
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 10px;
+}
+
+.advertisement-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #7289DA;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+footer {
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+footer p {
+  font-size: 14px;
+}

@@ -1,29 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8">
   <title>Profile</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
   <header>
-    <nav>
-      <ul>
-        <li><a href="/dashboard">Dashboard</a></li>
-        <li><a href="/profile">Profile</a></li>
-        <li><a href="/logout">Logout</a></li>
-      </ul>
-    </nav>
-  </header>
-  <main>
     <h1>Profile</h1>
-    <div class="user-info">
-      <h2>User Information</h2>
-      <p>Username: <%= user.username %></p>
+  </header>
+
+  <main>
+    <% if (user) { %>
+      <h2>Welcome, <%= user %></h2>
       <p>Email: <%= email %></p>
-    </div>
+      <a href="/logout">Logout</a>
+    <% } else { %>
+      <p>You need to log in to access your profile.</p>
+      <a href="/login">Log in</a>
+    <% } %>
   </main>
+
   <footer>
-    <p>&copy; 2023 Discord Website. All rights reserved.</p>
+    <p>&copy; <%= new Date().getFullYear() %> Your Website. All rights reserved.</p>
   </footer>
 </body>
 </html>
