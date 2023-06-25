@@ -38,6 +38,7 @@ async function updateCommandData(commands, rest, client) {
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
 
     function readCommandFiles(directory, parentName = '') {
+      console.log(`Searching directory: ${directory}`);
       const files = fs.readdirSync(directory, { withFileTypes: true });
 
       for (const file of files) {
@@ -47,7 +48,7 @@ async function updateCommandData(commands, rest, client) {
           readCommandFiles(subdirectoryPath, subdirectoryName);
         } else if (file.isFile() && file.name.toLowerCase().endsWith('.js')) {
           const commandFilePath = path.join(directory, file.name);
-	  const command = require(`.${path.sep}${path.relative(__dirname, commandFilePath)}`);
+          const command = require(`.${path.sep}${path.relative(__dirname, commandFilePath)}`);
           const setName = command.data.name.toLowerCase();
           const commandData = {
             name: setName,
@@ -270,6 +271,7 @@ module.exports = async function (client) {
   const commandFiles = fs.readdirSync('./commands', { withFileTypes: true });
 
   function readCommandFiles(directory, parentName = '') {
+    console.log(`Searching directory: ${directory}`);
     const files = fs.readdirSync(directory, { withFileTypes: true });
 
     for (const file of files) {
