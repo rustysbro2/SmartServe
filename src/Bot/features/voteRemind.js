@@ -149,7 +149,7 @@ async function handleVoteWebhook(req, res, client) {
   }
 }
 
-async function checkAllGuildMembers(client) {
+async function checkAllGuildMembers(client, user) {
   console.log('Checking vote status for all guild members at startup...');
 
   const checkedUsers = new Set(); // Track checked users
@@ -174,7 +174,7 @@ async function checkAllGuildMembers(client) {
     }
   }
 
-  async function processGuild(guild, user) {
+  async function processGuild(guild) {
     try {
       const member = await guild.members.fetch(user); // Fetch the member individually for each guild
       if (member) {
@@ -189,7 +189,7 @@ async function checkAllGuildMembers(client) {
 
   async function processAllGuilds() {
     for (const [, guild] of client.guilds.cache) {
-      await processGuild(guild, user);
+      await processGuild(guild);
     }
   }
 
@@ -208,7 +208,6 @@ async function checkAllGuildMembers(client) {
     sendRecurringReminders(client);
   }, 1 * 30 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
 }
-
 
 
 
