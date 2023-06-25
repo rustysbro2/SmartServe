@@ -67,7 +67,7 @@ async function updateCommandData(commands, rest, client) {
 
 
     // Start reading command files from the main commands directory
-    readCommandFiles('./commands');
+    readCommandFiles('commands');
 
     // Retrieve the commandIds from the database and update the commandData object
     const selectCommandIdsQuery = `
