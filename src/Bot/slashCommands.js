@@ -1,11 +1,11 @@
 require('dotenv').config();
-
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
+const path = require('path');
 const { pool } = require('../database.js');
 
-// load the variables from .env file
+// Load the variables from .env file
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
 const token = process.env.TOKEN;
@@ -37,26 +37,69 @@ async function updateCommandData(commands, rest, client) {
     // Get the existing guild-specific slash commands
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
 
-    // Read command files from the commands directory
-    const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
+    function readCommandFiles(directory, parentName = '') {
+      const files = fs.readdirSync(directory, { withFileTypes: true });
 
-    // Map command names to lowercase file names
-    const commandNameToFileMap = commandFiles.reduce((map, file) => {
-      const command = require(`./commands/${file}`);
-      const lowerCaseName = command.data.name.toLowerCase();
-      map[lowerCaseName] = file;
+      for (const file of files) {
+        if (file.isDirectory()) {
+          const subdirectoryPath = path.join(directory, file.name);
+          const subdirectoryName = parentName ? `${parentName}/${file.name}` : file.name;
+          readCommandFiles(subdirectoryPath, subdirectoryName);
+        } else if (file.isFile() && file.name.toLowerCase().endsWith('.js')) {
+          const commandFilePath = path.join(directory, file.name);
+	  const command = require(`.${path.sep}${path.relative(__dirname, commandFilePath)}`);
+          const setName = command.data.name.toLowerCase();
+          const commandData = {
+            name: setName,
+            description: command.data.description,
+            options: command.data.options || [], // Add the options to the command data
+            commandId: null, // Set commandId to null initially
+            lastModified: fs.statSync(commandFilePath).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
+            global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
+          };
+
+          // Add the command data to the commands array
+          commands.push(commandData);
+        }
+      }
+    }
+
+
+    // Start reading command files from the main commands directory
+    readCommandFiles('./commands');
+
+    // Retrieve the commandIds from the database and update the commandData object
+    const selectCommandIdsQuery = `
+      SELECT commandName, commandId, lastModified FROM commandIds
+    `;
+
+    const [rows] = await pool.promise().query(selectCommandIdsQuery);
+    const commandIdMap = rows.reduce((map, row) => {
+      map[row.commandName] = { commandId: row.commandId, lastModified: row.lastModified };
       return map;
     }, {});
 
     for (const command of commands) {
+      const { name } = command;
+      const lowerCaseName = name.toLowerCase();
+
+      if (commandIdMap[lowerCaseName]) {
+        const { commandId, lastModified } = commandIdMap[lowerCaseName];
+        command.commandId = commandId;
+        command.lastModified = lastModified;
+      }
+    }
+
+    for (const command of commands) {
       const { name, description, options, lastModified, global } = command;
       const lowerCaseName = name.toLowerCase();
-      const fileName = commandNameToFileMap[lowerCaseName];
 
-      if (!fileName) {
+      if (!commandIdMap[lowerCaseName]) {
         console.log(`Skipping command update due to missing command: ${JSON.stringify(command)}`);
         continue; // Skip to the next iteration
       }
+
+      const fileName = commandIdMap[lowerCaseName];
 
       const commandData = {
         name: name, // Use the original command name
@@ -83,7 +126,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the command file exists
-            const commandFilePath = `./commands/${fileName}`;
+            const commandFilePath = path.join('./commands', fileName);
             const commandFileExists = fs.existsSync(commandFilePath);
 
             if (commandFileExists) {
@@ -146,7 +189,7 @@ async function updateCommandData(commands, rest, client) {
             console.log(`Command data updated: ${JSON.stringify(command)}`);
           } else {
             // Check if the command file exists
-            const commandFilePath = `./commands/${fileName}`;
+            const commandFilePath = path.join('./commands', fileName);
             const commandFileExists = fs.existsSync(commandFilePath);
 
             if (commandFileExists) {
@@ -223,47 +266,38 @@ module.exports = async function (client) {
 
   const commands = [];
 
-  // Read command files from the commands directory
-  const commandFiles = fs.readdirSync('./commands').filter((file) => file.toLowerCase().endsWith('.js'));
+  // Read command files from the commands directory and subdirectories
+  const commandFiles = fs.readdirSync('./commands', { withFileTypes: true });
 
-  // Loop through command files and register slash commands
-  for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    const setName = command.data.name.toLowerCase();
-    const commandData = {
-      name: setName,
-      description: command.data.description,
-      options: command.data.options || [], // Add the options to the command data
-      commandId: null, // Set commandId to null initially
-      lastModified: fs.statSync(`./commands/${file}`).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
-      global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
-    };
+  function readCommandFiles(directory, parentName = '') {
+    const files = fs.readdirSync(directory, { withFileTypes: true });
 
-    // Add the command data to the commands array
-    commands.push(commandData);
-  }
+    for (const file of files) {
+      if (file.isDirectory()) {
+        const subdirectoryPath = path.join(directory, file.name);
+        const subdirectoryName = parentName ? `${parentName}/${file.name}` : file.name;
+        readCommandFiles(subdirectoryPath, subdirectoryName);
+      } else if (file.isFile() && file.name.toLowerCase().endsWith('.js')) {
+        const commandFilePath = path.join(directory, file.name);
+        const command = require(`./commands/${path.relative(__dirname, commandFilePath)}`);
+        const setName = command.data.name.toLowerCase();
+        const commandData = {
+          name: setName,
+          description: command.data.description,
+          options: command.data.options || [], // Add the options to the command data
+          commandId: null, // Set commandId to null initially
+          lastModified: fs.statSync(commandFilePath).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
+          global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
+        };
 
-  // Retrieve the commandIds from the database and update the commandData object
-  const selectCommandIdsQuery = `
-    SELECT commandName, commandId, lastModified FROM commandIds
-  `;
-
-  const [rows] = await pool.promise().query(selectCommandIdsQuery);
-  const commandIdMap = rows.reduce((map, row) => {
-    map[row.commandName] = { commandId: row.commandId, lastModified: row.lastModified };
-    return map;
-  }, {});
-
-  for (const command of commands) {
-    const { name } = command;
-    const lowerCaseName = name.toLowerCase();
-
-    if (commandIdMap[lowerCaseName]) {
-      const { commandId, lastModified } = commandIdMap[lowerCaseName];
-      command.commandId = commandId;
-      command.lastModified = lastModified;
+        // Add the command data to the commands array
+        commands.push(commandData);
+      }
     }
   }
+
+  // Start reading command files from the main commands directory
+  readCommandFiles('./commands');
 
   const rest = new REST({ version: '10' }).setToken(token);
 
