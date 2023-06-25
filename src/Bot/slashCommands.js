@@ -1,4 +1,4 @@
-require('dotenv').config();
+rerequire('dotenv').config();
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
@@ -53,13 +53,12 @@ async function updateCommandData(commands, rest, client) {
           const commandData = {
             name: setName,
             description: command.data.description,
-            options: command.data.options || [], // Add the options to the command data
-            commandId: null, // Set commandId to null initially
-            lastModified: fs.statSync(commandFilePath).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
-            global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
+            options: command.data.options || [],
+            commandId: null,
+            lastModified: fs.statSync(commandFilePath).mtime.toISOString().slice(0, 16),
+            global: command.global === undefined ? true : command.global,
           };
 
-          // Add the command data to the commands array
           commands.push(commandData);
         }
       }
