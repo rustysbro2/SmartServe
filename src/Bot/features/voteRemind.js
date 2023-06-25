@@ -149,7 +149,7 @@ async function handleVoteWebhook(req, res, client) {
   }
 }
 
-async function checkAllGuildMembers(client, user) {
+async function checkAllGuildMembers(client) {
   console.log('Checking vote status for all guild members at startup...');
 
   const checkedUsers = new Set(); // Track checked users
@@ -176,11 +176,9 @@ async function checkAllGuildMembers(client, user) {
 
   async function processGuild(guild) {
     try {
-      const member = await guild.members.fetch(user); // Fetch the member individually for each guild
-      if (member) {
+      const members = await guild.members.fetch();
+      for (const [, member] of members) {
         await processMember(member);
-      } else {
-        console.log(`Member not found for user ID: ${user}`);
       }
     } catch (error) {
       console.error('Error fetching guild members:', error);
@@ -206,9 +204,8 @@ async function checkAllGuildMembers(client, user) {
 
     console.log('Sending recurring reminders...');
     sendRecurringReminders(client);
-  }, 1 * 30 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
+  }, 5 * 60 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
 }
-
 
 
 module.exports = {
