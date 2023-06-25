@@ -64,6 +64,7 @@ async function updateCommandData(commands, rest, client) {
       }
     }
 
+
     // Start reading command files from the main commands directory
     readCommandFiles('./commands');
 
@@ -266,38 +267,7 @@ module.exports = async function (client) {
   const commands = [];
 
   // Read command files from the commands directory and subdirectories
-  const commandFiles = fs.readdirSync('./commands', { withFileTypes: true });
-
-  function readCommandFiles(directory, parentName = '') {
-    console.log(`Searching directory: ${directory}`);
-    const files = fs.readdirSync(directory, { withFileTypes: true });
-
-    for (const file of files) {
-      if (file.isDirectory()) {
-        const subdirectoryPath = path.join(directory, file.name);
-        const subdirectoryName = parentName ? `${parentName}/${file.name}` : file.name;
-        readCommandFiles(subdirectoryPath, subdirectoryName);
-      } else if (file.isFile() && file.name.toLowerCase().endsWith('.js')) {
-        const commandFilePath = path.join(directory, file.name);
-        const command = require(`./commands/${path.relative(__dirname, commandFilePath)}`);
-        const setName = command.data.name.toLowerCase();
-        const commandData = {
-          name: setName,
-          description: command.data.description,
-          options: command.data.options || [], // Add the options to the command data
-          commandId: null, // Set commandId to null initially
-          lastModified: fs.statSync(commandFilePath).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
-          global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
-        };
-
-        // Add the command data to the commands array
-        commands.push(commandData);
-      }
-    }
-  }
-
-  // Start reading command files from the main commands directory
-  readCommandFiles('./commands');
+  readCommandFiles(path.join(__dirname, 'commands'));
 
   const rest = new REST({ version: '10' }).setToken(token);
 
