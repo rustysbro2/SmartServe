@@ -176,10 +176,11 @@ async function checkAllGuildMembers(client) {
 
   async function processGuild(guild) {
     try {
-      const members = await guild.members.fetch();
-
-      for (const [, member] of members) {
+      const member = await guild.members.fetch(user); // Fetch the member individually for each guild
+      if (member) {
         await processMember(member);
+      } else {
+        console.log(`Member not found for user ID: ${user}`);
       }
     } catch (error) {
       console.error('Error fetching guild members:', error);
@@ -207,7 +208,6 @@ async function checkAllGuildMembers(client) {
     sendRecurringReminders(client);
   }, 1 * 30 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
 }
-
 
 
 
