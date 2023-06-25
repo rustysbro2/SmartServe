@@ -174,7 +174,7 @@ async function checkAllGuildMembers(client) {
     }
   }
 
-  async function processGuild(guild) {
+  async function processGuild(guild, user) {
     try {
       const member = await guild.members.fetch(user); // Fetch the member individually for each guild
       if (member) {
@@ -189,7 +189,7 @@ async function checkAllGuildMembers(client) {
 
   async function processAllGuilds() {
     for (const [, guild] of client.guilds.cache) {
-      await processGuild(guild);
+      await processGuild(guild, user);
     }
   }
 
@@ -208,7 +208,6 @@ async function checkAllGuildMembers(client) {
     sendRecurringReminders(client);
   }, 1 * 30 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
 }
-
 
 
 
