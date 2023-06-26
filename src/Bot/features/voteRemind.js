@@ -177,7 +177,6 @@ async function checkAllGuildMembers(client) {
   async function processGuild(guild) {
     try {
       const members = await guild.members.fetch();
-
       for (const [, member] of members) {
         await processMember(member);
       }
@@ -205,12 +204,8 @@ async function checkAllGuildMembers(client) {
 
     console.log('Sending recurring reminders...');
     sendRecurringReminders(client);
-  }, 1 * 30 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
+  }, 5 * 60 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
 }
-
-
-
-
 
 
 module.exports = {
