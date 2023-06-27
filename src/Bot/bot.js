@@ -11,7 +11,6 @@ const setLeaveMessageChannelCommand = require('./commands/Growth/setLeave.js');
 const slashCommands = require('./slashCommands.js');
 const { pool } = require('../database.js');
 const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders, handleVoteWebhook } = require('./features/voteRemind');
-const { AutoPoster } = require('topgg-autoposter');
 
 const intents = [
   GatewayIntentBits.Guilds,
@@ -336,11 +335,8 @@ createGuildsTable();
 client.login(token);
 
 const topGGToken = process.env.TOPGG_TOKEN;
-const poster = AutoPoster(topGGToken, client);
 
-poster.on('posted', (guildCount) => {
-  console.log('Server count posted to Top.gg:', JSON.stringify(guildCount));
-});
+
 
 
 module.exports = {
