@@ -3,7 +3,7 @@ const router = express.Router();
 const { Client, GatewayIntentBits } = require('discord.js');
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMembers]
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
 });
 
 // Define the dashboard route
@@ -14,7 +14,9 @@ router.get('/', async (req, res) => {
     console.log('User Guilds:', userGuilds);
 
     const botGuilds = userGuilds.filter(guild =>
-      req.user.guilds.some(userGuild => userGuild.id === guild.id) && guild.members.cache.has(client.user.id)
+      userGuilds.some(userGuild => userGuild.id === guild.id) &&
+      client.guilds.cache.has(guild.id) && // Check if the bot is a member of the guild
+      client.guilds.cache.get(guild.id).members.cache.has(client.user.id) // Check if the bot is a member of the guild
     );
 
     console.log('Bot Guilds:', botGuilds);
