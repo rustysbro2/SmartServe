@@ -8,35 +8,30 @@ const client = new Client({
 
 // Define the dashboard route
 // Define the dashboard route
+// Define the dashboard route
 router.get('/', async (req, res) => {
   try {
-    const userGuilds = req.user.guilds; // Assuming req.user contains information about the authenticated user's guilds
-
-    console.log('User Guilds:', userGuilds);
-
-    // Fetch and cache all guilds before filtering
-    await client.guilds.fetch();
-
-    const botGuilds = client.guilds.cache.filter(guild =>
-      userGuilds.includes(guild.id) && guild.members.cache.has(client.user.id)
-    );
-
-    console.log('Bot Guilds:', botGuilds);
-
-    const serverList = botGuilds.map(guild => ({
-      id: guild.id,
-      name: guild.name,
-      iconURL: guild.iconURL({ dynamic: true, format: 'png', size: 4096 }),
-      memberCount: guild.memberCount,
-      nameAcronym: generateAcronym(guild.name)
-    }));
-
-    console.log('Server List:', serverList);
+    const serverList = [
+      {
+        id: '123456789',
+        name: 'Server 1',
+        iconURL: 'https://example.com/server1-icon.png',
+        memberCount: 10,
+        nameAcronym: 'S1'
+      },
+      {
+        id: '987654321',
+        name: 'Server 2',
+        iconURL: 'https://example.com/server2-icon.png',
+        memberCount: 20,
+        nameAcronym: 'S2'
+      }
+    ];
 
     res.render('dashboard', { servers: serverList });
   } catch (error) {
-    console.error('Error fetching guilds:', error);
-    res.status(500).send('Error fetching guilds');
+    console.error('Error rendering dashboard:', error);
+    res.status(500).send('Error rendering dashboard');
   }
 });
 
