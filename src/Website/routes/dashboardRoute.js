@@ -7,11 +7,15 @@ const client = new Client({
 });
 
 // Define the dashboard route
+// Define the dashboard route
 router.get('/', async (req, res) => {
   try {
     const userGuilds = req.user.guilds; // Assuming req.user contains information about the authenticated user's guilds
 
     console.log('User Guilds:', userGuilds);
+
+    // Fetch and cache all guilds before filtering
+    await client.guilds.fetch();
 
     const botGuilds = client.guilds.cache.filter(guild =>
       userGuilds.includes(guild.id) && guild.members.cache.has(client.user.id)
@@ -35,7 +39,6 @@ router.get('/', async (req, res) => {
     res.status(500).send('Error fetching guilds');
   }
 });
-
 
 
 // Generate acronym from server name
