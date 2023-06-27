@@ -9,18 +9,16 @@ const client = new Client({
 // Define the dashboard route
 router.get('/', async (req, res) => {
   try {
-    // Connect the client to Discord
-    await client.login(process.env.TOKEN);
+    const userGuilds = req.user.guilds; // Assuming req.user contains information about the authenticated user's guilds
 
-    // Fetch the user's guilds from Discord
-    const userGuilds = await client.guilds.fetch();
+    console.log('User Guilds:', userGuilds);
 
-    // Filter the guilds based on the user's guilds
     const botGuilds = userGuilds.filter(guild =>
-      req.user.guilds.includes(guild.id) && guild.members.cache.has(client.user.id)
+      req.user.guilds.some(userGuild => userGuild.id === guild.id) && guild.members.cache.has(client.user.id)
     );
 
-    // Create the server list array
+    console.log('Bot Guilds:', botGuilds);
+
     const serverList = botGuilds.map(guild => ({
       id: guild.id,
       name: guild.name,
@@ -29,22 +27,14 @@ router.get('/', async (req, res) => {
       nameAcronym: generateAcronym(guild.name)
     }));
 
-    // Log the fetched guilds for debugging
-    console.log('User Guilds:', userGuilds);
-    console.log('Bot Guilds:', botGuilds);
     console.log('Server List:', serverList);
 
-    // Render the dashboard template with the server list
     res.render('dashboard', { servers: serverList });
   } catch (error) {
     console.error('Error fetching guilds:', error);
     res.status(500).send('Error fetching guilds');
-  } finally {
-    // Disconnect the client from Discord
-    await client.destroy();
   }
 });
-
 
 // Generate acronym from server name
 function generateAcronym(name) {
