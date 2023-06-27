@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
     const serverList = botGuilds.map(guild => ({
       id: guild.id,
       name: guild.name,
-      iconURL: guild.iconURL({ dynamic: true, format: 'png', size: 4096 }),
+      iconURL: guild.iconURL ? guild.iconURL({ dynamic: true, format: 'png', size: 4096 }) : 'https://example.com/default-icon.png', // Provide a default URL or fallback value for the icon
       memberCount: guild.memberCount,
       nameAcronym: generateAcronym(guild.name)
     }));
