@@ -119,7 +119,7 @@ async function handleVoteWebhook(req, res, client) {
   console.log('Received vote webhook:', req.body);
 
   const { user } = req.body;
-  console.log('user:', user);
+  console.log('User:', user);
 
   if (!user) {
     console.error('Invalid vote webhook request. Missing user ID.');
@@ -128,26 +128,33 @@ async function handleVoteWebhook(req, res, client) {
 
   console.log(`Received vote webhook for user: ${user}`);
 
-  const member = await client.guilds.cache
-    .map((guild) => guild.members.fetch(user))
-    .find((member) => member);
+  const guilds = client.guilds.cache.filter((guild) => guild.members.cache.has(user));
 
-  console.log('Member:', member);
-
-  if (!member) {
-    console.error(`Member not found for user ID: ${user}`);
-    return res.sendStatus(404);
+  if (guilds.size === 0) {
+    console.error(`Member not found in any guild for user ID: ${user}`);
+    return;
   }
 
   try {
-    await checkAndRecordUserVote(member);
-    console.log(`Vote status checked and recorded for user: ${member.user.tag}`);
+    for (const [, guild] of guilds) {
+      const member = await guild.members.fetch(user);
+
+      if (member) {
+        await checkAndRecordUserVote(member);
+        console.log(`Vote status checked and recorded for user: ${member.user.tag}`);
+        break;
+      }
+    }
+
     res.sendStatus(200);
   } catch (error) {
     console.error('Error checking vote status:', error);
     res.sendStatus(500);
   }
 }
+
+
+
 
 async function checkAllGuildMembers(client) {
   console.log('Checking vote status for all guild members at startup...');
@@ -177,6 +184,7 @@ async function checkAllGuildMembers(client) {
   async function processGuild(guild) {
     try {
       const members = await guild.members.fetch();
+
       for (const [, member] of members) {
         await processMember(member);
       }
@@ -204,8 +212,12 @@ async function checkAllGuildMembers(client) {
 
     console.log('Sending recurring reminders...');
     sendRecurringReminders(client);
-  }, 5 * 60 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
+  }, 1 * 30 * 1000); // Interval set to 5 minutes (5 * 60 * 1000 milliseconds)
 }
+
+
+
+
 
 
 module.exports = {
