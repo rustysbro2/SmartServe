@@ -8,7 +8,7 @@ const DiscordStrategy = require('passport-discord').Strategy;
 const dotenv = require('dotenv');
 const session = require('express-session');
 const crypto = require('crypto');
-const { pool } = require('../database');
+const { pool, connection } = require('../database');
 const morgan = require('morgan');
 const apiLogger = require('./apiLogger');
 const { getGuilds } = require('./helpers/discord'); // Import the getGuilds function
@@ -131,6 +131,7 @@ const featuresRoute = require('./routes/featuresRoute');
 const logoutRoute = require('./routes/logoutRoute');
 const aboutRoute = require('./routes/aboutRoute');
 const contactRoute = require('./routes/contactRoute');
+const serverDetailsRoute = require('./routes/serverDetailsRoute');
 
 // Register the dashboard route
 app.use('/dashboard', ensureAuthenticated, dashboardRoute);
@@ -142,7 +143,12 @@ app.use('/features', featuresRoute);
 app.use('/logout', logoutRoute);
 app.use('/about', aboutRoute);
 app.use('/contact', contactRoute);
+app.use('/dashboard/servers', serverDetailsRoute);
 
 https.createServer(options, app).listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+
+
+

@@ -5,9 +5,28 @@
 <head>
   <meta charset="UTF-8">
   <title>Server Details</title>
+  <link rel="stylesheet" href="/css/server-details.css">
 </head>
 <body>
-  <h1><%= server.name %></h1>
-  <p><%= server.description %></p>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/profile">Profile</a></li>
+        <li><a href="/logout">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h1><%= server.name %></h1>
+      <p><%= server.description %></p>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2023 Your Website. All rights reserved.</p>
+  </footer>
 </body>
 </html>

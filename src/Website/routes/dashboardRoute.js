@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { Client, GatewayIntentBits } = require('discord.js');
+const { pool } = require ('../../database');
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers]
 });
+
 
 // Define the dashboard route
 router.get('/', async (req, res) => {
@@ -24,8 +26,10 @@ router.get('/', async (req, res) => {
     const serverList = botGuilds.map(guild => ({
       id: guild.id,
       name: guild.name,
-      iconURL: guild.iconURL ? guild.iconURL({ dynamic: true, format: 'png', size: 4096 }) : 'https://example.com/default-icon.png', // Provide a default URL or fallback value for the icon
-      memberCount: guild.memberCount,
+      iconURL: guild.icon
+        ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
+        : 'https://cdn.discordapp.com/embed/avatars/0.png', // Use the default Discord server icon URL
+      memberCount: client.guilds.cache.get(guild.id).memberCount, // Get the member count directly from the Discord cache
       nameAcronym: generateAcronym(guild.name)
     }));
 
