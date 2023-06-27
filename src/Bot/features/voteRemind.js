@@ -132,7 +132,7 @@ async function handleVoteWebhook(req, res, client) {
 
   if (guilds.size === 0) {
     console.error(`Member not found in any guild for user ID: ${user}`);
-    return res.sendStatus(404);
+    return;
   }
 
   try {
@@ -152,6 +152,7 @@ async function handleVoteWebhook(req, res, client) {
     res.sendStatus(500);
   }
 }
+
 
 
 

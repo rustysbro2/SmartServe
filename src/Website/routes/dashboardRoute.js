@@ -9,10 +9,15 @@ const client = new Client({
 // Define the dashboard route
 router.get('/', async (req, res) => {
   try {
-    const guilds = client.guilds.cache;
+    const userGuilds = req.user.guilds; // Assuming req.user contains information about the authenticated user's guilds
 
-    // Filter the guilds to include only the servers where your bot is a member
-    const botGuilds = guilds.filter(guild => guild.members.cache.has(client.user.id));
+    console.log('User Guilds:', userGuilds);
+
+    const botGuilds = client.guilds.cache.filter(guild =>
+      userGuilds.includes(guild.id) && guild.members.cache.has(client.user.id)
+    );
+
+    console.log('Bot Guilds:', botGuilds);
 
     const serverList = botGuilds.map(guild => ({
       id: guild.id,
@@ -22,12 +27,16 @@ router.get('/', async (req, res) => {
       nameAcronym: generateAcronym(guild.name)
     }));
 
+    console.log('Server List:', serverList);
+
     res.render('dashboard', { servers: serverList });
   } catch (error) {
     console.error('Error fetching guilds:', error);
     res.status(500).send('Error fetching guilds');
   }
 });
+
+
 
 // Generate acronym from server name
 function generateAcronym(name) {

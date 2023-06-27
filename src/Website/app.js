@@ -1,5 +1,3 @@
-// app.js
-
 const express = require('express');
 const app = express();
 const https = require('https');
@@ -78,11 +76,11 @@ passport.use(new DiscordStrategy({
 
     if (user.length === 0) {
       const encryptedEmail = encryptEmail(email);
-      const result = await pool.query('INSERT INTO web_users (username, email, avatar, accessToken, discordId) VALUES (?, ?, ?, ?, ?)', [username, encryptedEmail, avatar, accessToken, id]);
+      const result = await pool.query('INSERT INTO web_users (username, email, avatar, accessToken, discordId, guilds) VALUES (?, ?, ?, ?, ?, ?)', [username, encryptedEmail, avatar, accessToken, id, JSON.stringify(guilds)]);
       user = { id: result.insertId, username, email, avatar, accessToken, guilds };
     } else {
       const encryptedEmail = encryptEmail(email);
-      await pool.query('UPDATE web_users SET username = ?, email = ?, avatar = ?, accessToken = ? WHERE discordId = ?', [username, encryptedEmail, avatar, accessToken, id]);
+      await pool.query('UPDATE web_users SET username = ?, email = ?, avatar = ?, accessToken = ?, guilds = ? WHERE discordId = ?', [username, encryptedEmail, avatar, accessToken, JSON.stringify(guilds), id]);
       user = user[0];
       user.accessToken = accessToken;
       user.guilds = guilds;
@@ -99,12 +97,14 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.serializeUser((user, done) => {
-  done(null, user.discordId);
+  done(null, { discordId: user.discordId, guilds: user.guilds }); // Include guilds information in the serialized user object
 });
 
-passport.deserializeUser(async (id, done) => {
+passport.deserializeUser(async (serializedUser, done) => {
+  const { discordId, guilds } = serializedUser;
+
   try {
-    const user = await pool.query('SELECT * FROM web_users WHERE discordId = ?', [id]);
+    const user = await pool.query('SELECT * FROM web_users WHERE discordId = ?', [discordId]);
 
     if (user.length === 0) {
       done(null, null);
@@ -112,6 +112,7 @@ passport.deserializeUser(async (id, done) => {
       const decryptedEmail = decryptEmail(user[0].email);
       user[0].email = decryptedEmail;
       user[0].accessToken = user[0].accessToken || null;
+      user[0].guilds = guilds; // Assign the guilds information to the user object
       done(null, user[0]);
     }
   } catch (error) {
