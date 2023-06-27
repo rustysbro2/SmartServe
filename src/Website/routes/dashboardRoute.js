@@ -29,6 +29,11 @@ router.get('/', async (req, res) => {
       nameAcronym: generateAcronym(guild.name)
     }));
 
+    // Log the fetched guilds for debugging
+    console.log('User Guilds:', userGuilds);
+    console.log('Bot Guilds:', botGuilds);
+    console.log('Server List:', serverList);
+
     // Render the dashboard template with the server list
     res.render('dashboard', { servers: serverList });
   } catch (error) {
