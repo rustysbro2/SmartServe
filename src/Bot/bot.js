@@ -12,7 +12,11 @@ const slashCommands = require('./slashCommands.js');
 const { pool } = require('../database.js');
 const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders, handleVoteWebhook } = require('./features/voteRemind');
 const { AutoPoster } = require('topgg-autoposter');
-const { setCountingChannel, checkCountingChannel } = require('./features/countGame.js');
+const { setCountingChannel, getCountingChannelId, handleCountingMessage, loadCountingChannel } = require('./features/countGame.js');
+
+
+
+
 
 
 const intents = [
@@ -148,12 +152,6 @@ app.listen(3007, () => {
   console.log('Vote webhook server listening on port 3005');
 });
 
-client.on('messageCreate', async (message) => {
-  const guildId = message.guild.id; // Get the guild ID
-  await checkCountingChannel(guildId, message, client, message.guild);
-});
-
-
 
 client.on('guildMemberAdd', async (member) => {
   if (member.user.bot) {
@@ -177,6 +175,17 @@ client.on('interactionCreate', async (interaction) => {
     console.error('Error handling interaction:', error);
   }
 });
+
+
+// Call the loadCountingChannel function to load the counting channel from the database
+loadCountingChannel();
+
+
+client.on('messageCreate', (message) => {
+  // Handle counting messages
+  handleCountingMessage(message);
+});
+
 
 client.on('guildCreate', async (guild) => {
   try {

@@ -5,7 +5,7 @@ const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
 const { pool } = require('../database.js');
 
-// load the variables from .env file
+// Load the variables from .env file
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
 const token = process.env.TOKEN;
@@ -37,12 +37,45 @@ async function updateCommandData(commands, rest, client) {
     // Get the existing guild-specific slash commands
     const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
 
+    // Unregister commands that are no longer in the commands array
+    for (const existingCommand of existingGlobalCommands) {
+      const commandExists = commands.some(cmd => cmd.name.toLowerCase() === existingCommand.name.toLowerCase());
+      if (!commandExists) {
+        unregisterCommand(rest, clientId, existingCommand.id, true);
+        console.log(`Command unregistered (global): ${existingCommand.name}`);
+      }
+    }
+    for (const existingCommand of existingGuildCommands) {
+      const commandExists = commands.some(cmd => cmd.name.toLowerCase() === existingCommand.name.toLowerCase());
+      if (!commandExists) {
+        unregisterCommand(rest, clientId, existingCommand.id, false);
+        console.log(`Command unregistered (guild-specific): ${existingCommand.name}`);
+      }
+    }
+
+    // Register or update commands in the commands array
     for (const command of commands) {
       const { name, description, options, lastModified, global, file } = command;
       const lowerCaseName = name.toLowerCase();
 
-      if (!fs.existsSync(file)) {
-        console.log(`Skipping command update due to missing command file: ${file}`);
+      // Check if the command file exists
+      const fileExists = fs.existsSync(file);
+
+      // Unregister the command if the file doesn't exist
+      if (!fileExists) {
+        if (global) {
+          const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
+          if (existingGlobalCommand) {
+            unregisterCommand(rest, clientId, existingGlobalCommand.id, true);
+            console.log(`Command unregistered: ${existingGlobalCommand.name}`);
+          }
+        } else {
+          const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
+          if (existingGuildCommand) {
+            unregisterCommand(rest, clientId, existingGuildCommand.id, false);
+            console.log(`Command unregistered: ${existingGuildCommand.name}`);
+          }
+        }
         continue; // Skip to the next iteration
       }
 
@@ -94,7 +127,7 @@ async function updateCommandData(commands, rest, client) {
 
               // Delete the old command if the name has changed
               if (existingGlobalCommand.name.toLowerCase() !== lowerCaseName) {
-                await rest.delete(Routes.applicationCommand(clientId, existingGlobalCommand.id));
+                unregisterCommand(rest, clientId, existingGlobalCommand.id, true);
                 console.log(`Old command deleted: ${existingGlobalCommand.name}`);
               }
             } else {
@@ -105,7 +138,7 @@ async function updateCommandData(commands, rest, client) {
           // Delete the command if it exists as a guild-specific command
           const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
           if (existingGuildCommand) {
-            await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id));
+            unregisterCommand(rest, clientId, existingGuildCommand.id, false);
             console.log(`Command deleted as it needs to be registered as a global command: ${JSON.stringify(command)}`);
           }
         } else {
@@ -149,7 +182,7 @@ async function updateCommandData(commands, rest, client) {
 
               // Delete the old command if the name has changed
               if (existingGuildCommand.name.toLowerCase() !== lowerCaseName) {
-                await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id));
+                unregisterCommand(rest, clientId, existingGuildCommand.id, false);
                 console.log(`Old command deleted: ${existingGuildCommand.name}`);
               }
             } else {
@@ -160,7 +193,7 @@ async function updateCommandData(commands, rest, client) {
           // Delete the command if it exists as a global command
           const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
           if (existingGlobalCommand) {
-            await rest.delete(Routes.applicationCommand(clientId, existingGlobalCommand.id));
+            unregisterCommand(rest, clientId, existingGlobalCommand.id, true);
             console.log(`Command deleted as it needs to be registered as a guild-specific command: ${JSON.stringify(command)}`);
           }
         }
@@ -184,8 +217,31 @@ async function updateCommandData(commands, rest, client) {
     }
 
     console.log('Command data updated successfully.');
+
+    // Debug: Log all registered commands
+    console.log('Registered commands:');
+    console.log('Global commands:');
+    for (const command of existingGlobalCommands) {
+      console.log(`- Name: ${command.name}, ID: ${command.id}`);
+    }
+    console.log('Guild-specific commands:');
+    for (const command of existingGuildCommands) {
+      console.log(`- Name: ${command.name}, ID: ${command.id}`);
+    }
   } catch (error) {
     console.error('Error updating command data:', error);
+  }
+}
+
+async function unregisterCommand(rest, clientId, commandId, global) {
+  try {
+    if (global) {
+      await rest.delete(Routes.applicationCommand(clientId, commandId));
+    } else {
+      await rest.delete(Routes.applicationGuildCommand(clientId, guildId, commandId));
+    }
+  } catch (error) {
+    console.error('Error unregistering command:', error);
   }
 }
 
