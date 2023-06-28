@@ -11,7 +11,7 @@ const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = 'https://discord.gg/wtzp28pHRK';
 const topGGVoteLink = `https://top.gg/bot/1105598736551387247/vote`;
 const ownerUserId = '385324994533654530';
-const webhookPort = 3006; // Replace with your desired webhook port
+const webhookPort = 3007; // Replace with your desired webhook port
 
 async function sendDM(user, message) {
   try {
@@ -55,8 +55,6 @@ async function sendRecurringReminders(client) {
 }
 
 async function checkAndRecordUserVote(member) {
-  console.log(`Checking vote status for user: ${member.user}`);
-
   try {
     const response = await axios.get(`https://top.gg/api/bots/${botId}/check`, {
       params: {

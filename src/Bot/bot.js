@@ -12,13 +12,16 @@ const slashCommands = require('./slashCommands.js');
 const { pool } = require('../database.js');
 const { checkAllGuildMembers, checkAndRecordUserVote, sendRecurringReminders, handleVoteWebhook } = require('./features/voteRemind');
 const { AutoPoster } = require('topgg-autoposter');
+const { setCountingChannel, checkCountingChannel } = require('./features/countGame.js');
+
 
 const intents = [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildVoiceStates,
-  GatewayIntentBits.GuildPresences
+  GatewayIntentBits.GuildPresences,
+	GatewayIntentBits.MessageContent
 ];
 
 const client = new Client({
@@ -141,9 +144,16 @@ client.once('ready', async () => {
   setInterval(updatePresence, 60000);
 });
 
-app.listen(3006, () => {
+app.listen(3007, () => {
   console.log('Vote webhook server listening on port 3005');
 });
+
+client.on('messageCreate', async (message) => {
+  const guildId = message.guild.id; // Get the guild ID
+  await checkCountingChannel(guildId, message, client, message.guild);
+});
+
+
 
 client.on('guildMemberAdd', async (member) => {
   if (member.user.bot) {
