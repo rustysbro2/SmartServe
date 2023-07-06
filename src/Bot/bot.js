@@ -1,12 +1,11 @@
 require('dotenv').config();
-const interactionCreateEvent = require('./events/interactionCreate');
-
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { updatePresence } = require('./utils/presenceUpdater');
 const { handleVoteWebhook } = require('./features/voteRemind');
 const { populateCommands, generateCommandCategories } = require('./utils/commandUtils');
 
-const slashCommands = require('./slashCommands');
+const slashCommands = require('./utils/slashCommands');
+const interactionCreateEvent = require('./events/interactionCreate');
 
 const token = process.env.TOKEN;
 const intents = [
@@ -26,54 +25,32 @@ const client = new Client({
 client.commands = new Collection();
 client.musicPlayers = new Map();
 
-// Move the declaration of commandCategories outside the initializeBot function
 let commandCategories;
 
-async function initializeBot() {
-  // Populate commands
-  populateCommands(client);
+// Populate commands
+populateCommands(client);
 
-  // Generate command categories
+// Generate command categories
+commandCategories = generateCommandCategories(client.commands);
 
-  // Start an interval to check for changes in the commands array
-  const checkCommandsInterval = setInterval(() => {
-    if (client.commands.size > 0) {
-      // Commands array is populated, clear the interval
-      clearInterval(checkCommandsInterval);
+// Register slash commands
+slashCommands(client, commandCategories);
 
-      // Generate command categories
-      commandCategories = generateCommandCategories(client.commands);
+// Other initialization code
 
-      // Register slash commands
-      slashCommands(client, commandCategories);
-    }
-  }, 1000);
-
-  // Other initialization code
-
-  // Start the bot
-  await client.login(token);
-}
-
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
+client.once('ready', (shardID) => {
+  console.log(`Shard ${shardID} is ready!`);
   updatePresence(client);
 
   // Call other initialization functions here
 
-
-
-  initializeBot().catch((error) => {
-    console.error('Error initializing bot:', error);
-  });
+  // Start the bot
+  console.log('Bot is now online!');
 });
-
 
 client.on('interactionCreate', async (interaction) => {
   interactionCreateEvent(interaction, client, commandCategories);
 });
-
-
 
 client.on('guildMemberAdd', (member) => {
   // Call your guildMemberAdd event function
@@ -105,6 +82,3 @@ client.on('error', (error) => {
 
 // Define your util functions here
 
-initializeBot().catch((error) => {
-  console.error('Error initializing bot:', error);
-});

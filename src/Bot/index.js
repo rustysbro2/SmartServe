@@ -1,8 +1,5 @@
 const { ShardingManager } = require('discord.js');
-
-const path = require('path');
-const dotenvPath = path.resolve(__dirname, '../.env');
-require('dotenv').config({ path: dotenvPath });
+require('dotenv').config();
 
 const token = process.env.TOKEN;
 

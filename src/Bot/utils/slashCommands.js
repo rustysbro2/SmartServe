@@ -3,7 +3,8 @@ require('dotenv').config();
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
-const { pool } = require('../database.js');
+const { pool } = require('../../database.js');
+const path = require('path');
 
 // load the variables from .env file
 const clientId = process.env.CLIENT_ID;
@@ -195,40 +196,46 @@ module.exports = async function (client) {
 
   const commands = [];
 
+
   // Read command files from the commands directory and its subdirectories
-  const commandDirectory = './commands';
-  console.log(`Searching for command files in directory: ${commandDirectory}`);
-  getCommandFiles(commandDirectory);
+	const commandDirectory = path.join(__dirname, '..', 'commands');
+	console.log(`Searching for command files in directory: ${commandDirectory}`);
+	getCommandFiles(commandDirectory);
 
-  function getCommandFiles(directory) {
-    const files = fs.readdirSync(directory);
+	function getCommandFiles(directory) {
+		const absoluteDirectory = path.resolve(__dirname, '..', '..', 'commands', directory);
+		const files = fs.readdirSync(absoluteDirectory);
 
-    for (const file of files) {
-      const filePath = `${directory}/${file}`;
-      const isDirectory = fs.statSync(filePath).isDirectory();
+		for (const file of files) {
+			const filePath = path.join(absoluteDirectory, file);
+			const isDirectory = fs.statSync(filePath).isDirectory();
 
-      if (isDirectory) {
-        console.log(`Searching for command files in subdirectory: ${filePath}`);
-        getCommandFiles(filePath);
-      } else if (file.toLowerCase().endsWith('.js')) {
-        const command = require(filePath);
-        const setName = command.data.name.toLowerCase();
-        const commandData = {
-          name: setName,
-          description: command.data.description,
-          options: command.data.options || [], // Add the options to the command data
-          commandId: null, // Set commandId to null initially
-          lastModified: fs.statSync(filePath).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
-          global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
-          file: filePath, // Store the file path for reference
-        };
+			if (isDirectory) {
+				console.log(`Searching for command files in subdirectory: ${filePath}`);
+				getCommandFiles(path.join(directory, file));
+			} else if (file.toLowerCase().endsWith('.js')) {
+				const commandPath = path.join(directory, file);
+				const command = require(commandPath);
 
-        // Add the command data to the commands array
-        commands.push(commandData);
-        console.log(`Command file found: ${filePath}`);
-      }
-    }
-  }
+				const setName = command.data.name.toLowerCase();
+				const commandData = {
+					name: setName,
+					description: command.data.description,
+					options: command.data.options || [],
+					commandId: null,
+					lastModified: fs.statSync(filePath).mtime.toISOString().slice(0, 16),
+					global: command.global === undefined ? true : command.global,
+					file: filePath,
+				};
+
+				commands.push(commandData);
+				console.log(`Command file found: ${filePath}`);
+			}
+		}
+	}
+
+
+
 
   // Retrieve the commandIds from the database and update the commandData object
   const selectCommandIdsQuery = `
