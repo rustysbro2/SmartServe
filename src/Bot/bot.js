@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { updatePresence } = require('./utils/presenceUpdater');
 const { handleVoteWebhook } = require('./features/voteRemind');
@@ -27,25 +28,21 @@ client.musicPlayers = new Map();
 
 let commandCategories;
 
-// Populate commands
+// Populate commands and generate command categories
 populateCommands(client);
-
-// Generate command categories
 commandCategories = generateCommandCategories(client.commands);
 
 // Register slash commands
 slashCommands(client, commandCategories);
 
-// Other initialization code
-
-client.once('ready', (shardID) => {
-  console.log(`Shard ${shardID} is ready!`);
+client.on('ready', () => {
+  console.log(`Shard ${client.shard.ids[0]} is ready!`);
   updatePresence(client);
 
   // Call other initialization functions here
 
-  // Start the bot
-  console.log('Bot is now online!');
+  // Login the client after all initialization is complete
+  client.login(token);
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -81,4 +78,5 @@ client.on('error', (error) => {
 // Util Functions
 
 // Define your util functions here
+
 
