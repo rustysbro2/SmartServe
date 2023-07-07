@@ -1,8 +1,10 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { updatePresence } = require('./utils/presenceUpdater');
-const { handleVoteWebhook } = require('./features/voteRemind');
+const { startWebServer } = require('./Express - Vote/VoteWebserver');
+const { checkAllGuildMembers, sendRecurringReminders } = require('./features/voteRemind')
 const { populateCommands, generateCommandCategories } = require('./utils/commandUtils');
 
 const slashCommands = require('./utils/slashCommands');
@@ -40,9 +42,8 @@ client.on('ready', () => {
   updatePresence(client);
 
   // Call other initialization functions here
-
+  startWebServer(client);
   // Login the client after all initialization is complete
-  client.login(token);
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -79,4 +80,5 @@ client.on('error', (error) => {
 
 // Define your util functions here
 
-
+// Start the bot
+client.login(token);

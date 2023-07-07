@@ -1,6 +1,10 @@
+const path = require('path');
+const dotenv = require('dotenv');
+const envPath = path.join(__dirname, '..', '..', '.env');
+dotenv.config({ path: envPath }); // Load environment variables from .env file
 const { EmbedBuilder } = require('discord.js');
 const { pool } = require('../../database.js');
-const path = require('path');
+
 
 let invites = {};
 
