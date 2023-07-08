@@ -4,7 +4,6 @@ const helpCommand = require('../commands/General/help');
 
 function populateCommands(client) {
   const commandFiles = getAllCommandFiles(path.join(__dirname, '../commands'));
-  console.log('Command files:', commandFiles);
 
   for (const file of commandFiles) {
     try {
@@ -12,7 +11,6 @@ function populateCommands(client) {
 
       if (isValidCommand(command)) {
         client.commands.set(command.data.name, command);
-        console.log(`Command registered: ${command.data.name}`);
       } else {
         console.warn(`Invalid command module: ${file}`);
       }

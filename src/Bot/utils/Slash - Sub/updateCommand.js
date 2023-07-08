@@ -14,183 +14,142 @@ dotenv.config({ path: envPath });
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
 
+async function getExistingCommands(rest) {
+  const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+  const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
+
+  return {
+    existingGlobalCommands,
+    existingGuildCommands,
+  };
+}
+
+function findCommand(commands, name) {
+  const lowerCaseName = name.toLowerCase();
+  return commands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
+}
+
+async function handleMissingFiles(commands, existingCommands, commandType, rest) {
+  for (const existingCommand of existingCommands) {
+    const command = findCommand(commands, existingCommand.name);
+    const route = commandType === 'global'
+      ? Routes.applicationCommand(clientId, existingCommand.id)
+      : Routes.applicationGuildCommand(clientId, guildId, existingCommand.id);
+
+    if (!command || !command.file || !fs.existsSync(command.file)) {
+      await rest.delete(route);
+      console.log(`${commandType.charAt(0).toUpperCase() + commandType.slice(1)} command unregistered due to missing file: ${existingCommand.name}`);
+    }
+  }
+}
+
+async function updateCommands(commands, existingCommands, commandType, rest) {
+  for (const command of commands) {
+    const { name, description, options, lastModified, global, file } = command;
+
+    if (!file || !fs.existsSync(file)) {
+      continue;
+    }
+
+    const commandData = { name, description, options };
+    const existingCommand = findCommand(existingCommands, name);
+
+    if (global === (commandType === 'global')) {
+      await updateOrCreateCommand(command, existingCommand, commandData, rest, commandType);
+    }
+  }
+}
+
+async function updateOrCreateCommand(command, existingCommand, commandData, rest, commandType) {
+  if (!existingCommand) {
+    await createCommand(command, commandData, rest, commandType);
+  } else {
+    await updateCommandIfModified(command, existingCommand, commandData, rest, commandType);
+  }
+}
+
+async function createCommand(command, commandData, rest, commandType) {
+  const route = commandType === 'global'
+    ? Routes.applicationCommands(clientId)
+    : Routes.applicationGuildCommands(clientId, guildId);
+
+  const response = await rest.post(route, { body: commandData });
+  const newCommandId = response.id;
+
+  command.commandId = newCommandId;
+  command.lastModified = new Date();
+
+  console.log(`Command data updated: ${JSON.stringify(command)}`);
+}
+
+async function updateCommandIfModified(command, existingCommand, commandData, rest, commandType) {
+  const { file, name } = command;
+  const newLastModified = fs.statSync(file).mtime;
+  const lastModifiedDate = new Date(command.lastModified);
+  const newLastModifiedDate = new Date(newLastModified);
+
+  lastModifiedDate.setMilliseconds(0);
+  newLastModifiedDate.setMilliseconds(0);
+
+  if (newLastModifiedDate > lastModifiedDate) {
+    const route = commandType === 'global'
+      ? Routes.applicationCommand(clientId, existingCommand.id)
+      : Routes.applicationGuildCommand(clientId, guildId, existingCommand.id);
+
+    await updateCommand(command, existingCommand, commandData, rest, route, newLastModifiedDate);
+  }
+}
+
+async function updateCommand(command, existingCommand, commandData, rest, route, newLastModifiedDate) {
+  console.log(`Updating command '${command.name}':`);
+  console.log(`- Command ID: ${command.commandId}`);
+  console.log(`- Last Modified: ${new Date(command.lastModified)}`);
+  console.log(`- New Last Modified: ${newLastModifiedDate}`);
+
+  const response = await rest.patch(route, { body: commandData });
+  const newCommandId = response.id;
+
+  command.commandId = newCommandId;
+  command.lastModified = newLastModifiedDate;
+
+  console.log(`Command data updated: ${JSON.stringify(command)}`);
+
+  if (existingCommand.name.toLowerCase() !== command.name.toLowerCase()) {
+    await rest.delete(route);
+    console.log(`Old command deleted: ${existingCommand.name}`);
+  }
+}
+
+async function updateDatabase(commands) {
+  for (const command of commands) {
+    const { name, commandId, lastModified } = command;
+    const lowerCaseName = name.toLowerCase();
+
+    const insertUpdateQuery = `
+      INSERT INTO commandIds (commandName, commandId, lastModified)
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
+    `;
+
+    await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
+  }
+}
+
 async function updateCommandData(commands, rest, client) {
   try {
-    // Get the existing global slash commands
-    const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
+    const { existingGlobalCommands, existingGuildCommands } = await getExistingCommands(rest);
 
-    // Get the existing guild-specific slash commands
-    const existingGuildCommands = await rest.get(Routes.applicationGuildCommands(clientId, guildId));
+    await handleMissingFiles(commands, existingGlobalCommands, 'global', rest);
+    await handleMissingFiles(commands, existingGuildCommands, 'guild', rest);
 
-    unregisterCommandsIfFilesMissing(existingGlobalCommands, existingGuildCommands, commands, rest);
+    await updateCommands(commands, existingGlobalCommands, 'global', rest);
+    await updateCommands(commands, existingGuildCommands, 'guild', rest);
 
-    for (const command of commands) {
-      const { name, description, options, lastModified, global, file } = command;
-      const lowerCaseName = name.toLowerCase();
-
-      if (!file || !fs.existsSync(file)) {
-        // Skip to the next iteration
-        continue;
-      }
-
-      const commandData = {
-        name: name,
-        description: description,
-        options: options,
-      };
-
-      try {
-        if (global) {
-          const existingGlobalCommand = existingGlobalCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
-
-          if (!existingGlobalCommand) {
-            // Register the command as a global command
-            const response = await rest.post(Routes.applicationCommands(clientId), {
-              body: commandData,
-            });
-
-            const newCommandId = response.id;
-
-            // Update the command data in the array
-            command.commandId = newCommandId;
-            command.lastModified = new Date();
-
-            console.log(`Command data updated: ${JSON.stringify(command)}`);
-          } else {
-            const newLastModified = fs.statSync(file).mtime;
-            const lastModifiedDate = new Date(lastModified);
-            const newLastModifiedDate = new Date(newLastModified);
-
-            // Truncate milliseconds from both last modified dates
-            lastModifiedDate.setMilliseconds(0);
-            newLastModifiedDate.setMilliseconds(0);
-
-            if (newLastModifiedDate > lastModifiedDate) {
-              console.log(`Updating command '${name}':`);
-              console.log(`- Command ID: ${command.commandId}`);
-              console.log(`- Last Modified: ${lastModifiedDate}`);
-              console.log(`- New Last Modified: ${newLastModifiedDate}`);
-
-              const response = await rest.patch(Routes.applicationCommand(clientId, existingGlobalCommand.id), {
-                body: commandData,
-              });
-
-              const newCommandId = response.id;
-
-              // Update the command data in the array
-              command.commandId = newCommandId;
-              command.lastModified = newLastModified;
-
-              console.log(`Command data updated: ${JSON.stringify(command)}`);
-
-              // Delete the old command if the name has changed
-              if (existingGlobalCommand.name.toLowerCase() !== lowerCaseName) {
-                await rest.delete(Routes.applicationCommand(clientId, existingGlobalCommand.id));
-                console.log(`Old command deleted: ${existingGlobalCommand.name}`);
-              }
-            } else {
-              console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
-            }
-          }
-        } else {
-          const existingGuildCommand = existingGuildCommands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
-
-          if (!existingGuildCommand) {
-            // Register the command as a guild-specific command
-            const response = await rest.post(Routes.applicationGuildCommands(clientId, guildId), {
-              body: commandData,
-            });
-
-            const newCommandId = response.id;
-
-            // Update the command data in the array
-            command.commandId = newCommandId;
-            command.lastModified = new Date();
-
-            console.log(`Command data updated: ${JSON.stringify(command)}`);
-          } else {
-            const newLastModified = fs.statSync(file).mtime;
-            const lastModifiedDate = new Date(lastModified);
-            const newLastModifiedDate = new Date(newLastModified);
-
-            // Truncate milliseconds from both last modified dates
-            lastModifiedDate.setMilliseconds(0);
-            newLastModifiedDate.setMilliseconds(0);
-
-            if (newLastModifiedDate > lastModifiedDate) {
-              console.log(`Updating command '${name}':`);
-              console.log(`- Command ID: ${command.commandId}`);
-              console.log(`- Last Modified: ${lastModifiedDate}`);
-              console.log(`- New Last Modified: ${newLastModifiedDate}`);
-
-              const response = await rest.patch(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id), {
-                body: commandData,
-              });
-
-              const newCommandId = response.id;
-
-              // Update the command data in the array
-              command.commandId = newCommandId;
-              command.lastModified = newLastModified;
-
-              console.log(`Command data updated: ${JSON.stringify(command)}`);
-
-              // Delete the old command if the name has changed
-              if (existingGuildCommand.name.toLowerCase() !== lowerCaseName) {
-                await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id));
-                console.log(`Old command deleted: ${existingGuildCommand.name}`);
-              }
-            } else {
-              console.log(`Skipping command update since last modified date has not changed: ${JSON.stringify(command)}`);
-            }
-          }
-        }
-      } catch (error) {
-        console.error(`Error updating command data: ${error.message}`);
-      }
-    }
-
-    // Update the command data in the database
-    for (const command of commands) {
-      const { name, commandId, lastModified } = command;
-      const lowerCaseName = name.toLowerCase();
-
-      const insertUpdateQuery = `
-        INSERT INTO commandIds (commandName, commandId, lastModified)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE commandId = ?, lastModified = ?
-      `;
-
-      await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
-    }
+    await updateDatabase(commands);
 
     console.log('Command data updated successfully.');
   } catch (error) {
     console.error('Error updating command data:', error);
-  }
-}
-
-async function unregisterCommandsIfFilesMissing(existingGlobalCommands, existingGuildCommands, commands, rest) {
-  // Unregister global commands with missing files
-  for (const existingGlobalCommand of existingGlobalCommands) {
-    const lowerCaseName = existingGlobalCommand.name.toLowerCase();
-    const command = commands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
-
-    if (!command || !command.file || !fs.existsSync(command.file)) {
-      await rest.delete(Routes.applicationCommand(clientId, existingGlobalCommand.id));
-      console.log(`Global command unregistered due to missing file: ${existingGlobalCommand.name}`);
-    }
-  }
-
-  // Unregister guild-specific commands with missing files
-  for (const existingGuildCommand of existingGuildCommands) {
-    const lowerCaseName = existingGuildCommand.name.toLowerCase();
-    const command = commands.find(cmd => cmd.name.toLowerCase() === lowerCaseName);
-
-    if (!command || !command.file || !fs.existsSync(command.file)) {
-      await rest.delete(Routes.applicationGuildCommand(clientId, guildId, existingGuildCommand.id));
-      console.log(`Guild command unregistered due to missing file: ${existingGuildCommand.name}`);
-    }
   }
 }
 
