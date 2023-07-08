@@ -1,4 +1,3 @@
-
 const { SlashCommandBuilder } = require('discord.js');
 const { setCountingChannel } = require('../../features/countGame.js');
 const { pool } = require('../../../database.js');
@@ -41,4 +40,6 @@ module.exports = {
 
     await interaction.reply('Counting channel set!');
   },
+
+  category: 'Counting',
 };

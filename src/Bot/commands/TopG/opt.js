@@ -32,4 +32,6 @@ module.exports = {
       await interaction.reply('An error occurred while updating your opt-out status. Please try again later.');
     }
   },
+
+  category: 'Voting',
 };
