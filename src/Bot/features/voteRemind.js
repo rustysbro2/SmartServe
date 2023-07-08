@@ -77,14 +77,6 @@ async function checkAndRecordUserVote(member) {
       const currentVoteStatus = existingUser.voted;
       const previousVoteStatus = existingUser.previous_vote_status;
 
-      await connection.query(
-        'UPDATE users SET voted = ?, previous_vote_status = ? WHERE user_id = ?',
-        [voteStatus, currentVoteStatus, member.user.id]
-      );
-
-      console.log(`User ${member.user.tag} has ${voteStatus === 1 ? '' : 'not '}voted.`);
-
-      // Check if the vote status has changed
       if (voteStatus !== currentVoteStatus) {
         // Vote status has changed, update the previous_vote_status column
         console.log('Vote status has changed.');
@@ -100,6 +92,9 @@ async function checkAndRecordUserVote(member) {
         }
 
         // Perform any other actions or logic based on the vote status change
+
+        // Update the vote status and previous vote status in the database
+        await connection.query('UPDATE users SET voted = ?, previous_vote_status = ? WHERE user_id = ?', [voteStatus, currentVoteStatus, member.user.id]);
       }
     } else {
       // User does not exist in the table, insert a new row with their information
@@ -111,7 +106,11 @@ async function checkAndRecordUserVote(member) {
       console.log(`User ${member.user.tag} has been added to the table.`);
     }
   } catch (error) {
-    console.error('Error checking vote status:', error);
+    if (error.code === 'ER_DUP_ENTRY') {
+      console.error(`User ${member.user.tag} already exists in the table.`);
+    } else {
+      console.error('Error checking vote status:', error);
+    }
   }
 }
 

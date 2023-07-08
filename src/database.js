@@ -1,9 +1,6 @@
 const mysql = require('mysql2');
 const mysqlPromise = require('mysql2/promise');
 const { promisify } = require('util');
-const dotenv = require('dotenv');
-
-dotenv.config(); // Load environment variables from .env file
 
 const dbConfig = process.env.DB_CONFIG;
 const dbConfigRegex = /DB_HOST=(\S+)\s+DB_USER=(\S+)\s+DB_PASSWORD=(\S+)\s+DB_DATABASE=(\S+)/;
@@ -25,7 +22,85 @@ const connection = mysqlPromise.createPool({
   database,
 });
 
+async function createCountTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS count_table (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        guild_id VARCHAR(255) NOT NULL,
+        channel_id VARCHAR(255) NOT NULL,
+        current_count INT NOT NULL DEFAULT 0,
+        CONSTRAINT uc_guild_id UNIQUE (guild_id)
+      )
+    `);
+    console.log('Count table created');
+  } catch (error) {
+    console.error('Error creating count table:', error);
+  }
+}
+
+async function createInviteTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS invites (
+        guildId VARCHAR(255),
+        code VARCHAR(255),
+        uses INT,
+        inviterId VARCHAR(255),
+        PRIMARY KEY (guildId, code)
+      )
+    `);
+    console.log('Invite table created');
+  } catch (error) {
+    console.error('Error creating invite table:', error);
+  }
+}
+
+async function createGuildsTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS guilds (
+        join_message_channel VARCHAR(255) NOT NULL,
+        leave_message_channel VARCHAR(255) NOT NULL,
+        target_guild_id VARCHAR(255) NOT NULL
+      )
+    `);
+    console.log('Guilds table created');
+  } catch (error) {
+    console.error('Error creating guilds table:', error);
+  }
+}
+
+async function createCommandTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS commands (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(255) NOT NULL,
+        description VARCHAR(255) NOT NULL
+      )
+    `);
+    console.log('Commands table created');
+  } catch (error) {
+    console.error('Error creating commands table:', error);
+  }
+}
+
+async function createTables() {
+  try {
+    await createCountTable();
+    await createInviteTable();
+    await createGuildsTable();
+    await createCommandTable();
+    console.log('Database tables created');
+  } catch (error) {
+    console.error('Error creating database tables:', error);
+  }
+}
+
+createTables();
+
 module.exports = {
   pool,
-  connection
+  connection,
 };

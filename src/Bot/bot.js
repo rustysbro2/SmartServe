@@ -6,6 +6,7 @@ const { updatePresence } = require('./utils/presenceUpdater');
 const { startWebServer } = require('./Express - Vote/VoteWebserver');
 const { checkAllGuildMembers, sendRecurringReminders } = require('./features/voteRemind')
 const { populateCommands, generateCommandCategories } = require('./utils/commandUtils');
+const { setCountingChannel, getCountingChannelId, handleCountingMessage, loadCountingChannels } = require('./features/countGame');
 
 const slashCommands = require('./utils/slashCommands');
 const interactionCreateEvent = require('./events/interactionCreate');
@@ -17,6 +18,8 @@ const intents = [
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildVoiceStates,
   GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.MessageContent,
+
 ];
 
 const client = new Client({
@@ -40,7 +43,7 @@ slashCommands(client, commandCategories);
 client.on('ready', () => {
   console.log(`Shard ${client.shard.ids[0]} is ready!`);
   updatePresence(client);
-
+  loadCountingChannels();
   // Call other initialization functions here
   startWebServer(client);
   // Login the client after all initialization is complete
@@ -78,7 +81,9 @@ client.on('error', (error) => {
 
 // Util Functions
 
-// Define your util functions here
-
+client.on('messageCreate', async (message) => {
+  // Handle counting messages
+  handleCountingMessage(message);
+});
 // Start the bot
 client.login(token);
