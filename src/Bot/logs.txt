@@ -1,0 +1,128 @@
+{"level":"info","message":"This is a test log message."}
+{"level":"info","message":"Vote webhook server listening on port 3005"}
+{"level":"info","message":"Counting channel loaded:\n1125504412731846806"}
+{"level":"info","message":"Counting channel loaded:\n1125507752597389453"}
+{"level":"info","message":"Count table created"}
+{"level":"info","message":"Shard 0 logged in as SmartServe Beta#1377!"}
+{"level":"info","message":"Checking vote status for all guild members at startup..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders at startup..."}
+{"level":"info","message":"CommandIds table created or already exists."}
+{"level":"info","message":"Searching for command files in directory: ./commands"}
+{"level":"info","message":"Searching for command files in subdirectory: ./commands/Counting"}
+{"level":"info","message":"Command file found: ./commands/Counting/countChannel.js"}
+{"level":"info","message":"Command file found: ./commands/Counting/countIncrement.js"}
+{"level":"info","message":"Searching for command files in subdirectory: ./commands/General"}
+{"level":"info","message":"Command file found: ./commands/General/help.js"}
+{"level":"info","message":"Command file found: ./commands/General/ping.js"}
+{"level":"info","message":"Searching for command files in subdirectory: ./commands/Growth"}
+{"level":"info","message":"Command file found: ./commands/Growth/setInviteChannel.js"}
+{"level":"info","message":"Command file found: ./commands/Growth/setJoin.js"}
+{"level":"info","message":"Command file found: ./commands/Growth/setLeave.js"}
+{"level":"info","message":"Searching for command files in subdirectory: ./commands/Music"}
+{"level":"info","message":"Command file found: ./commands/Music/play.js"}
+{"level":"info","message":"Command file found: ./commands/Music/voteSkip.js"}
+{"level":"info","message":"Searching for command files in subdirectory: ./commands/TopG"}
+{"level":"info","message":"Command file found: ./commands/TopG/opt.js"}
+{"level":"info","message":"Started refreshing application (/) commands."}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"countchannel\",\"description\":\"Designate a counting channel\",\"options\":[{\"name\":\"channel\",\"description\":\"The counting channel\",\"required\":true,\"type\":7}],\"commandId\":\"1123603595246444625\",\"lastModified\":\"2023-06-28T16:05:27.000Z\",\"global\":true,\"file\":\"./commands/Counting/countChannel.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"setincrement\",\"description\":\"Set the increment value\",\"options\":[{\"type\":4,\"name\":\"value\",\"description\":\"The new increment value\",\"required\":true}],\"commandId\":\"1123653955206004736\",\"lastModified\":\"2023-06-28T19:17:15.000Z\",\"global\":true,\"file\":\"./commands/Counting/countIncrement.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"help\",\"description\":\"List all commands or info about a specific command\",\"options\":[],\"commandId\":\"1119408917047410748\",\"lastModified\":\"2023-06-27T15:01:50.000Z\",\"global\":true,\"file\":\"./commands/General/help.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"ping\",\"description\":\"Replies with the current ping of the bot\",\"options\":[],\"commandId\":\"1119408923154325515\",\"lastModified\":\"2023-06-27T15:01:50.000Z\",\"global\":true,\"file\":\"./commands/General/ping.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"setinvite\",\"description\":\"Set the channel for invite tracking messages\",\"options\":[{\"name\":\"channel\",\"description\":\"The channel to send messages in\",\"required\":true,\"type\":7}],\"commandId\":\"1119408926077747310\",\"lastModified\":\"2023-06-27T15:01:50.000Z\",\"global\":true,\"file\":\"./commands/Growth/setInviteChannel.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"setjoin\",\"description\":\"Set the channel for the bot to send a join message when added to a new guild\",\"options\":[{\"name\":\"channel\",\"description\":\"The channel to send the join message\",\"required\":true,\"type\":7}],\"commandId\":\"1119408927302500454\",\"lastModified\":\"2023-06-13T14:53:58.000Z\",\"global\":false,\"file\":\"./commands/Growth/setJoin.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"setleave\",\"description\":\"Set the channel for the bot to send a leave message when removed from a guild\",\"options\":[{\"name\":\"channel\",\"description\":\"The channel to send the leave message\",\"required\":true,\"type\":7}],\"commandId\":\"1119409002762211340\",\"lastModified\":\"2023-06-13T14:54:06.000Z\",\"global\":false,\"file\":\"./commands/Growth/setLeave.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"play\",\"description\":\"Play a song from YouTube\",\"options\":[{\"type\":3,\"name\":\"url\",\"description\":\"The YouTube URL of the song to play\",\"required\":true}],\"commandId\":\"1119408924739768360\",\"lastModified\":\"2023-06-27T15:01:51.000Z\",\"global\":true,\"file\":\"./commands/Music/play.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"voteskip\",\"description\":\"Vote to skip the current song\",\"options\":[],\"commandId\":\"1123299091036786688\",\"lastModified\":\"2023-06-27T15:01:51.000Z\",\"global\":true,\"file\":\"./commands/Music/voteSkip.js\"}"}
+{"level":"info","message":"Skipping command update since last modified date has not changed: {\"name\":\"opt\",\"description\":\"Opt out or opt back in to receive recurring reminders\",\"options\":[{\"name\":\"opt_out\",\"description\":\"Opt out or opt back in\",\"required\":true,\"type\":5}],\"commandId\":\"1119408922118340741\",\"lastModified\":\"2023-06-27T15:01:50.000Z\",\"global\":true,\"file\":\"./commands/TopG/opt.js\"}"}
+{"level":"info","message":"Command data updated successfully."}
+{"level":"info","message":"Registered commands:"}
+{"level":"info","message":"Global commands:"}
+{"level":"info","message":"- Name: help, ID: 1123299004181139486"}
+{"level":"info","message":"- Name: opt, ID: 1123299005154213959"}
+{"level":"info","message":"- Name: ping, ID: 1123299006446059730"}
+{"level":"info","message":"- Name: setinvite, ID: 1123299007519793243"}
+{"level":"info","message":"- Name: play, ID: 1123299089933672561"}
+{"level":"info","message":"- Name: voteskip, ID: 1123299091036786688"}
+{"level":"info","message":"- Name: countchannel, ID: 1123603595246444625"}
+{"level":"info","message":"- Name: setincrement, ID: 1123653955206004736"}
+{"level":"info","message":"Guild-specific commands:"}
+{"level":"info","message":"- Name: setjoin, ID: 1123299009436586004"}
+{"level":"info","message":"- Name: setleave, ID: 1123299089312923719"}
+{"level":"info","message":"Successfully refreshed application (/) commands."}
+{"level":"info","message":"Command Categories:"}
+{"level":"info","message":"Category: Uncategorized"}
+{"level":"info","message":"Guild ID: undefined"}
+{"level":"info","message":"Commands:\n[object Object],[object Object],[object Object],[object Object]"}
+{"level":"info","message":"Category: General"}
+{"level":"info","message":"Guild ID: undefined"}
+{"level":"info","message":"Commands:\n[object Object]"}
+{"level":"info","message":"Category: Invite Tracker"}
+{"level":"info","message":"Guild ID: undefined"}
+{"level":"info","message":"Commands:\n[object Object]"}
+{"level":"info","message":"Category: Administration"}
+{"level":"info","message":"Guild ID: undefined"}
+{"level":"info","message":"Commands:\n[object Object],[object Object]"}
+{"level":"info","message":"Category: Music"}
+{"level":"info","message":"Guild ID: undefined"}
+{"level":"info","message":"Commands:\n[object Object],[object Object]"}
+{"level":"info","message":"Server count posted to Top.gg:\n{\"serverCount\":3,\"shardId\":0,\"shardCount\":1}"}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Server count posted to Top.gg:\n{\"serverCount\":3,\"shardId\":0,\"shardCount\":1}"}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Server count posted to Top.gg:\n{\"serverCount\":3,\"shardId\":0,\"shardCount\":1}"}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}
+{"level":"info","message":"Checking vote status for all guild members (every 5 minutes)..."}
+{"level":"info","message":"User cmdr_ricky#0 has voted."}
+{"level":"info","message":"User 804meets#0 has not voted."}
+{"level":"info","message":"Sending recurring reminders..."}

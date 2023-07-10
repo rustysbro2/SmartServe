@@ -40,4 +40,6 @@ module.exports = {
 
     await interaction.reply('Counting channel set!');
   },
+
+  category: 'Counting',
 };

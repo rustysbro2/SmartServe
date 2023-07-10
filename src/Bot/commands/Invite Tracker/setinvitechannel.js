@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionsBitField } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, PermissionsBitField  } = require('discord.js');
 const inviteTracker = require('../../features/inviteTracker.js');
 
 module.exports = {
@@ -6,8 +6,7 @@ module.exports = {
     .setName('setinvite')
     .setDescription('Set the channel for invite tracking messages')
     .addChannelOption(option =>
-      option
-        .setName('channel')
+      option.setName('channel')
         .setDescription('The channel to send messages in')
         .setRequired(true)),
 
@@ -19,12 +18,17 @@ module.exports = {
       return;
     }
 
-    // Permission checks for the bot
-    const botMember = await interaction.guild.members.fetch(interaction.client.user.id);
-    if (!botMember.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+    const guild = interaction.guild;
+    const botMember = await guild.members.fetch(interaction.client.user.id);
+
+    if (!interaction.guild.members.me.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
       await interaction.reply("I need the 'Manage Server' permission to track invites.");
       return;
     }
+
+
+
+
 
     const channel = interaction.options.getChannel('channel');
     inviteTracker.setInviteChannel(interaction.guildId, channel.id);

@@ -55,7 +55,7 @@ async function updateCommandData(commands, rest, client) {
 
     // Register or update commands in the commands array
     for (const command of commands) {
-      const { name, description, options, lastModified, global, file } = command;
+      const { name, description, options, lastModified, global, file, category } = command;
       const lowerCaseName = name.toLowerCase();
 
       // Check if the command file exists
@@ -84,6 +84,11 @@ async function updateCommandData(commands, rest, client) {
         description: description,
         options: options, // Add the options to the command data
       };
+
+      // Add the category to the command data
+      if (category) {
+        commandData.category = category;
+      }
 
       try {
         if (global) {
@@ -245,7 +250,7 @@ async function unregisterCommand(rest, clientId, commandId, global) {
   }
 }
 
-module.exports = async function (client) {
+module.exports = async function (client, commandCategories) {
   // Create the commandIds table if it doesn't exist
   await createCommandIdsTable();
 
@@ -256,17 +261,18 @@ module.exports = async function (client) {
   console.log(`Searching for command files in directory: ${commandDirectory}`);
   getCommandFiles(commandDirectory);
 
-  function getCommandFiles(directory) {
-    const files = fs.readdirSync(directory);
+function getCommandFiles(directory) {
+  const files = fs.readdirSync(directory);
 
-    for (const file of files) {
-      const filePath = `${directory}/${file}`;
-      const isDirectory = fs.statSync(filePath).isDirectory();
+  for (const file of files) {
+    const filePath = `${directory}/${file}`;
+    const isDirectory = fs.statSync(filePath).isDirectory();
 
-      if (isDirectory) {
-        console.log(`Searching for command files in subdirectory: ${filePath}`);
-        getCommandFiles(filePath);
-      } else if (file.toLowerCase().endsWith('.js')) {
+    if (isDirectory) {
+      console.log(`Searching for command files in subdirectory: ${filePath}`);
+      getCommandFiles(filePath);
+    } else if (file.toLowerCase().endsWith('.js')) {
+      try {
         const command = require(filePath);
         const setName = command.data.name.toLowerCase();
         const commandData = {
@@ -277,36 +283,20 @@ module.exports = async function (client) {
           lastModified: fs.statSync(filePath).mtime.toISOString().slice(0, 16), // Get the ISO string of the last modified date without seconds
           global: command.global === undefined ? true : command.global, // Set global to true by default if not specified in the command file
           file: filePath, // Store the file path for reference
+          category: command.category || 'Uncategorized', // Use 'Uncategorized' as the default category if not defined
         };
 
         // Add the command data to the commands array
         commands.push(commandData);
         console.log(`Command file found: ${filePath}`);
+      } catch (error) {
+        console.error(`Error loading command file: ${filePath}`);
+        console.error(error);
       }
     }
   }
+}
 
-  // Retrieve the commandIds from the database and update the commandData object
-  const selectCommandIdsQuery = `
-    SELECT commandName, commandId, lastModified FROM commandIds
-  `;
-
-  const [rows] = await pool.promise().query(selectCommandIdsQuery);
-  const commandIdMap = rows.reduce((map, row) => {
-    map[row.commandName] = { commandId: row.commandId, lastModified: row.lastModified };
-    return map;
-  }, {});
-
-  for (const command of commands) {
-    const { name } = command;
-    const lowerCaseName = name.toLowerCase();
-
-    if (commandIdMap[lowerCaseName]) {
-      const { commandId, lastModified } = commandIdMap[lowerCaseName];
-      command.commandId = commandId;
-      command.lastModified = lastModified;
-    }
-  }
 
   const rest = new REST({ version: '10' }).setToken(token);
 
@@ -317,6 +307,7 @@ module.exports = async function (client) {
     await updateCommandData(commands, rest, client);
 
     console.log('Successfully refreshed application (/) commands.');
+    console.log('Registered commands:', client.commands);
   } catch (error) {
     console.error('Error refreshing application (/) commands:', error);
 

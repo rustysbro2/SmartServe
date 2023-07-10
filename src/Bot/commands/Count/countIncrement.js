@@ -48,4 +48,6 @@ module.exports = {
       await interaction.reply('An error occurred while updating the increment value.');
     }
   },
+
+  category: 'Counting',
 };

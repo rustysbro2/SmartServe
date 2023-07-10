@@ -1,11 +1,13 @@
 const express = require('express');
+const path = require('path');
+const dotenv = require('dotenv');
+const envPath = path.join(__dirname, '../.env');
+dotenv.config({ path: envPath });
 const app = express();
 const https = require('https');
 const fs = require('fs');
-const path = require('path');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
-const dotenv = require('dotenv');
 const session = require('express-session');
 const crypto = require('crypto');
 const { pool, connection } = require('../database');
@@ -14,9 +16,6 @@ const apiLogger = require('./apiLogger');
 const { getGuilds } = require('./helpers/discord'); // Import the getGuilds function
 const { ensureAuthenticated } = require('./middleware/auth');
 
-const envPath = path.join(__dirname, '../.env');
-
-dotenv.config({ path: envPath });
 
 app.set('view engine', 'ejs');
 app.use(morgan('dev'));
