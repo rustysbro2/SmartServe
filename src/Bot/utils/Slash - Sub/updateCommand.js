@@ -11,8 +11,10 @@ const envPath = path.join(__dirname, '..', '..', '.env');
 dotenv.config({ path: envPath });
 
 // Import the clientId and guildId from the .env file
-const clientId = process.env.CLIENT_ID;
-const guildId = process.env.GUILD_ID;
+const clientId = process.env.BETA === 'true' ? process.env.BETA_CLIENT_ID : process.env.CLIENT_ID;
+
+const guildId = process.env.GUILD_ID
+
 
 async function getExistingCommands(rest) {
   const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));

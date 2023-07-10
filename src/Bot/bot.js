@@ -11,15 +11,24 @@ const { setCountingChannel, getCountingChannelId, handleCountingMessage, loadCou
 const slashCommands = require('./utils/slashCommands');
 const interactionCreateEvent = require('./events/interactionCreate');
 
-const token = process.env.TOKEN;
+if (process.env.BETA === 'true') {
+  global.token = process.env.TOKEN_BETA;
+  global.CLIENT_ID = process.env.BETA_CLIENT_ID;
+  global.BOT_ID = process.env.BETA_BOT_ID;
+} else {
+  global.token = process.env.TOKEN;
+  global.CLIENT_ID = process.env.CLIENT_ID;
+  global.BOT_ID = process.env.BOT_ID;
+}
+
+const token = global.token;
 const intents = [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMessages,
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildVoiceStates,
   GatewayIntentBits.GuildPresences,
-    GatewayIntentBits.MessageContent,
-
+  GatewayIntentBits.MessageContent,
 ];
 
 const client = new Client({
@@ -85,5 +94,6 @@ client.on('messageCreate', async (message) => {
   // Handle counting messages
   handleCountingMessage(message);
 });
+
 // Start the bot
 client.login(token);

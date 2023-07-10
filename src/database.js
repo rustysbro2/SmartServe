@@ -2,7 +2,8 @@ const mysql = require('mysql2');
 const mysqlPromise = require('mysql2/promise');
 const { promisify } = require('util');
 
-const dbConfig = process.env.DB_CONFIG;
+const isBeta = process.env.BETA === 'true';
+const dbConfig = isBeta ? process.env.DB_CONFIG_SMARTBETA : process.env.DB_CONFIG_SMARTSERVE;
 const dbConfigRegex = /DB_HOST=(\S+)\s+DB_USER=(\S+)\s+DB_PASSWORD=(\S+)\s+DB_DATABASE=(\S+)/;
 const [, host, user, password, database] = dbConfigRegex.exec(dbConfig);
 

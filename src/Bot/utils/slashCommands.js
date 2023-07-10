@@ -2,15 +2,14 @@ const path = require('path');
 const dotenv = require('dotenv');
 const { REST } = require('@discordjs/rest');
 const fs = require('fs');
-
-const deleteMissingCommandIds = require('./Slash - Sub/deleteMissing');
 const updateCommandData = require('./Slash - Sub/updateCommand');
+const deleteMissingCommandIds = require('./Slash - Sub/deleteMissing');
 const getCommandFiles = require('./Slash - Sub/getCommand');
 
 // Load environment variables from .env file
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
-module.exports = async function (client) {
+module.exports = async function(client) {
   const commands = [];
 
   // Read command files from the commands directory and its subdirectories
@@ -18,10 +17,12 @@ module.exports = async function (client) {
   console.log(`Searching for command files in directory: ${commandDirectory}`);
   getCommandFiles(commands, commandDirectory);
 
-  const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
-
   try {
     console.log('Started refreshing application (/) commands.');
+
+    // Create a new REST client and set the token
+    const rest = new REST({ version: '10' }).setToken(global.token);
+    console.log('Token:', global.token);
 
     // Manually define the GUILD_ID and CLIENT_ID for testing
     const GUILD_ID = process.env.GUILD_ID;
