@@ -11,8 +11,6 @@ const { EmbedBuilder } = require('discord.js');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
-
-
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
 const token = process.env.token;
@@ -218,7 +216,7 @@ class MusicPlayer {
   }
 
   checkVoiceChannel() {
-    if (!this.connection) {
+    if (!thisconnection) {
       console.log('Bot is not connected to a voice channel.');
       return;
     }

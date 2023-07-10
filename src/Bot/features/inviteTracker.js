@@ -1,10 +1,10 @@
 const path = require('path');
 const dotenv = require('dotenv');
-const envPath = path.join(__dirname, '..', '..', '.env');
-dotenv.config({ path: envPath }); // Load environment variables from .env file
 const { EmbedBuilder } = require('discord.js');
 const { pool } = require('../../database.js');
 
+const envPath = path.join(__dirname, '..', '..', '.env');
+dotenv.config({ path: envPath }); // Load environment variables from .env file
 
 let invites = {};
 
@@ -19,7 +19,6 @@ async function fetchInvites(guild) {
     console.error(`Error fetching invites for guild ${guild.name}:`, error);
   }
 }
-
 
 function updateInviteInDb(guildId, code, uses, inviterId) {
   pool.query(
@@ -36,33 +35,6 @@ function updateInviteInDb(guildId, code, uses, inviterId) {
     }
   );
 }
-
-pool.query(
-  `
-  CREATE TABLE IF NOT EXISTS invites (
-    guildId VARCHAR(255),
-    code VARCHAR(255),
-    uses INT,
-    inviterId VARCHAR(255),
-    PRIMARY KEY (guildId, code)
-  )
-`,
-  function (error) {
-    if (error) throw error;
-  }
-);
-
-pool.query(
-  `
-  CREATE TABLE IF NOT EXISTS inviteChannels (
-    guildId VARCHAR(255) PRIMARY KEY,
-    channelId VARCHAR(255)
-  )
-`,
-  function (error) {
-    if (error) throw error;
-  }
-);
 
 module.exports = {
   name: 'inviteTracker',
