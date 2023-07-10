@@ -12,9 +12,7 @@ dotenv.config({ path: envPath });
 
 // Import the clientId and guildId from the .env file
 const clientId = process.env.BETA === 'true' ? process.env.BETA_CLIENT_ID : process.env.CLIENT_ID;
-
-const guildId = process.env.GUILD_ID
-
+const guildId = process.env.GUILD_ID;
 
 async function getExistingCommands(rest) {
   const existingGlobalCommands = await rest.get(Routes.applicationCommands(clientId));
@@ -81,17 +79,27 @@ async function createCommand(command, commandData, rest, commandType) {
   command.commandId = newCommandId;
   command.lastModified = new Date();
 
-  console.log(`Command data updated: ${JSON.stringify(command)}`);
+  console.log(`Command created: ${JSON.stringify(command)}`);
+
+  // Update the lastModified value in the database
+  await updateLastModifiedInDB(command.name, command.lastModified);
 }
 
 async function updateCommandIfModified(command, existingCommand, commandData, rest, commandType) {
   const { file, name } = command;
-  const newLastModified = fs.statSync(file).mtime;
-  const lastModifiedDate = new Date(command.lastModified);
+  const newLastModifiedLocal = fs.statSync(file).mtime;
+  const newLastModified = convertToUTC(newLastModifiedLocal);
+  const lastModifiedFromDB = await getLastModifiedFromDB(command);
+
+  const lastModifiedDate = new Date(lastModifiedFromDB);
   const newLastModifiedDate = new Date(newLastModified);
 
   lastModifiedDate.setMilliseconds(0);
   newLastModifiedDate.setMilliseconds(0);
+
+  console.log(`Comparing timestamps for command '${name}':`);
+  console.log(`- Last Modified (command): ${lastModifiedDate}`);
+  console.log(`- New Last Modified (file): ${newLastModifiedDate}`);
 
   if (newLastModifiedDate > lastModifiedDate) {
     const route = commandType === 'global'
@@ -102,10 +110,11 @@ async function updateCommandIfModified(command, existingCommand, commandData, re
   }
 }
 
+
 async function updateCommand(command, existingCommand, commandData, rest, route, newLastModifiedDate) {
   console.log(`Updating command '${command.name}':`);
   console.log(`- Command ID: ${command.commandId}`);
-  console.log(`- Last Modified: ${new Date(command.lastModified)}`);
+  console.log(`- Last Modified (before update): ${new Date(command.lastModified)}`);
   console.log(`- New Last Modified: ${newLastModifiedDate}`);
 
   const response = await rest.patch(route, { body: commandData });
@@ -114,12 +123,16 @@ async function updateCommand(command, existingCommand, commandData, rest, route,
   command.commandId = newCommandId;
   command.lastModified = newLastModifiedDate;
 
-  console.log(`Command data updated: ${JSON.stringify(command)}`);
+  console.log(`Command updated: ${JSON.stringify(command)}`);
+  console.log(`- Last Modified (after update): ${new Date(command.lastModified)}`);
 
   if (existingCommand.name.toLowerCase() !== command.name.toLowerCase()) {
     await rest.delete(route);
     console.log(`Old command deleted: ${existingCommand.name}`);
   }
+
+  // Update the lastModified value in the database
+  await updateLastModifiedInDB(command.name, command.lastModified);
 }
 
 async function updateDatabase(commands) {
@@ -135,6 +148,21 @@ async function updateDatabase(commands) {
 
     await pool.promise().query(insertUpdateQuery, [lowerCaseName, commandId, lastModified, commandId, lastModified]);
   }
+}
+
+async function getLastModifiedFromDB(command) {
+  const { name } = command;
+	const query = 'SELECT lastModified FROM commandIds WHERE commandName = ?';
+  const [rows] = await pool.promise().query(query, [name]);
+  if (rows.length > 0) {
+    return rows[0].lastModified;
+  }
+  return null;
+}
+
+async function updateLastModifiedInDB(commandName, lastModified) {
+  const query = 'UPDATE commandIds SET lastModified = ? WHERE commandName = ?';
+  await pool.promise().query(query, [lastModified, commandName]);
 }
 
 async function updateCommandData(commands, rest, client) {
@@ -154,5 +182,11 @@ async function updateCommandData(commands, rest, client) {
     console.error('Error updating command data:', error);
   }
 }
+
+function convertToUTC(date) {
+  const utcOffsetMinutes = date.getTimezoneOffset();
+  return new Date(date.getTime() + utcOffsetMinutes * 60000);
+}
+
 
 module.exports = updateCommandData;

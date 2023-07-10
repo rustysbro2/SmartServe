@@ -1,4 +1,5 @@
 const helpCommand = require('../commands/General/help');
+const strikeCommand = require('../commands/strike');
 
 module.exports = async (interaction, client, commandCategories) => {
   try {
@@ -14,3 +15,8 @@ module.exports = async (interaction, client, commandCategories) => {
     console.error('Error handling interaction:', error);
   }
 };
+
+async function handleStrikeCommand(interaction, client) {
+  const strike = client.commands.get('strike');
+  await strike.execute(interaction);
+}

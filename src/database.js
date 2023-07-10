@@ -1,3 +1,4 @@
+//database.js
 const mysql = require('mysql2');
 const mysqlPromise = require('mysql2/promise');
 const { promisify } = require('util');
@@ -87,17 +88,54 @@ async function createCommandTable() {
   }
 }
 
+async function createStrikesTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS strikes (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        guild_id VARCHAR(255) NOT NULL,
+        user_id VARCHAR(255) NOT NULL,
+        strike_count INT NOT NULL DEFAULT 0
+      )
+    `);
+    console.log('Strikes table created');
+  } catch (error) {
+    console.error('Error creating strikes table:', error);
+  }
+}
+
+async function createStrikeChannelsTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS strike_channels (
+        guild_id VARCHAR(255) PRIMARY KEY,
+        channel_id VARCHAR(255) NOT NULL
+      )
+    `);
+    console.log('Strike channels table created');
+  } catch (error) {
+    console.error('Error creating strike channels table:', error);
+  }
+}
+
+
 async function createTables() {
   try {
     await createCountTable();
     await createInviteTable();
     await createGuildsTable();
     await createCommandTable();
+    await createStrikesTable();
+    await createStrikeChannelsTable(); // Call the createStrikeChannelsTable function
     console.log('Database tables created');
   } catch (error) {
     console.error('Error creating database tables:', error);
   }
 }
+
+
+
+
 
 createTables();
 
