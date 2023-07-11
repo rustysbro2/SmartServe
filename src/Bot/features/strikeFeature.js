@@ -1,9 +1,10 @@
 const { pool } = require('../../database');
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, Client, GatewayIntentBits } = require('discord.js');
 
 async function handleStrike(interaction, client, targetUserId) {
   try {
     const guildId = interaction.guildId;
+    const channelId = interaction.channelId;
 
     const strike = {
       guildId,
@@ -56,90 +57,62 @@ async function handleStrike(interaction, client, targetUserId) {
       }
     }
 
-    // Fetch the strike channel
-    const selectChannelQuery = `
-      SELECT guild_id, channel_id
-      FROM strike_channels
+    const selectAllStrikesQuery = `
+      SELECT user_id, strike_count
+      FROM strikes
       WHERE guild_id = ?
     `;
-    const selectChannelValues = [strike.guildId];
+    const selectAllStrikesValues = [strike.guildId];
 
-    let channelRows;
+    let strikeRows;
     try {
-      const result = await pool.query(selectChannelQuery, selectChannelValues);
-      channelRows = result[0];
+      const result = await pool.query(selectAllStrikesQuery, selectAllStrikesValues);
+      strikeRows = result[0];
     } catch (error) {
-      console.error('Error with strike channel query:', error);
+      console.error('Error retrieving strikes:', error);
       return;
     }
 
-    console.log('Strike channel query result:', channelRows);
+    const embed = new EmbedBuilder()
+      .setColor(0xff0000)
+      .setTitle('Strike List');
 
-    if (channelRows && channelRows.length > 0) {
-      const strikeChannelId = channelRows[0].channel_id;
-
-      const guild = client.guilds.cache.get(strike.guildId);
-      if (!guild) {
-        console.error('Guild not found. ID:', strike.guildId);
-        return;
-      }
-
-      const strikeChannel = guild.channels.resolve(strikeChannelId);
-      if (!strikeChannel) {
-        console.error('Strike channel not found. ID:', strikeChannelId);
-        console.log('Guild channels:');
-        guild.channels.cache.forEach((channel) => {
-          console.log(channel.id, channel.name, channel.type);
-        });
-        return;
-      }
-
-      // Fetch all strikes
-      const selectAllStrikesQuery = `
-        SELECT user_id, strike_count
-        FROM strikes
-        WHERE guild_id = ?
-      `;
-      const selectAllStrikesValues = [strike.guildId];
-
-      const [allStrikesRows] = await pool.query(selectAllStrikesQuery, selectAllStrikesValues);
-
-      const embed = new EmbedBuilder()
-        .setColor(0xff0000)
-        .setTitle('Strike List');
-
-      for (const row of allStrikesRows) {
+    if (Array.isArray(strikeRows) && strikeRows.length > 0) {
+      for (const row of strikeRows) {
         embed.addFields(
           { name: `User <@${row.user_id}>`, value: `Strike Count: ${row.strike_count}`, inline: false },
         );
       }
-
-      // Send or update the message in the strike channel
-      const messages = await strikeChannel.messages.fetch({ limit: 1 });
-      const lastMessage = messages.first();
-
-      if (lastMessage && lastMessage.author.bot) {
-        // If the last message was sent by the bot, edit it
-        await lastMessage.edit({ embeds: [embed] });
-      } else {
-        // Otherwise, send a new message
-        await strikeChannel.send({ embeds: [embed] });
-      }
     } else {
-      console.error('Strike channel ID not found');
-      const guild = client.guilds.cache.get(strike.guildId);
-      if (!guild) {
-        console.error('Guild not found. ID:', strike.guildId);
-        return;
-      }
-      console.log('Guild channels:');
-      guild.channels.cache.forEach((channel) => {
-        console.log(channel.id, channel.name, channel.type);
-      });
-      return;
+      embed.setDescription('No strikes found.');
     }
 
-    console.log('Strike handled successfully');
+    // Fetch the strike channel using the Discord API
+    const apiClient = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+    await apiClient.login(process.env.DISCORD_BOT_TOKEN);
+    const guild = await apiClient.guilds.fetch(strike.guildId);
+
+    console.log('Channels in the guild:');
+    guild.channels.cache.each(channel => {
+      console.log(`Channel ID: ${channel.id}`);
+      console.log(`Channel Name: ${channel.name}`);
+      console.log(`Channel Type: ${channel.type}`);
+      console.log('---');
+    });
+
+    const strikeChannel = guild.channels.cache.get(channelId);
+
+    console.log('Strike Channel:', strikeChannel); // Add this line for debugging
+
+    if (strikeChannel) {
+      await strikeChannel.send({ embeds: [embed] });
+      console.log('Strike handled successfully');
+    } else {
+      console.error('Strike channel not found.');
+      console.log('Guild ID:', strike.guildId);
+      console.log('Channel ID:', channelId);
+      console.log('Guild:', guild);
+    }
   } catch (error) {
     console.error('Error handling the strike:', error);
   }

@@ -24,11 +24,24 @@ if (process.env.BETA === 'true') {
 const token = global.token;
 const intents = [
   GatewayIntentBits.Guilds,
-  GatewayIntentBits.GuildMessages,
   GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildModeration,
+  GatewayIntentBits.GuildEmojisAndStickers,
+  GatewayIntentBits.GuildIntegrations,
+  GatewayIntentBits.GuildWebhooks,
+  GatewayIntentBits.GuildInvites,
   GatewayIntentBits.GuildVoiceStates,
   GatewayIntentBits.GuildPresences,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildMessageReactions,
+  GatewayIntentBits.GuildMessageTyping,
+  GatewayIntentBits.DirectMessages,
+  GatewayIntentBits.DirectMessageReactions,
+  GatewayIntentBits.DirectMessageTyping,
   GatewayIntentBits.MessageContent,
+  GatewayIntentBits.GuildScheduledEvents,
+  GatewayIntentBits.AutoModerationConfiguration,
+  GatewayIntentBits.AutoModerationExecution,
 ];
 
 const client = new Client({

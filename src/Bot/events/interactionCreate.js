@@ -1,5 +1,4 @@
-const helpCommand = require('../commands/General/help');
-const strikeCommand = require('../commands/strike');
+const { handleStrike } = require('../features/strikeFeature');
 
 module.exports = async (interaction, client, commandCategories) => {
   try {
