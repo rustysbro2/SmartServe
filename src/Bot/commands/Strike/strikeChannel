@@ -1,0 +1,14 @@
+const { CommandInteraction } = require('discord.js');
+const { setStrikeChannel } = require('../../features/strikeLogic');
+
+async function setStrikeChannelCommand(interaction = new CommandInteraction()) {
+    const channel = interaction.options.getChannel('channel');
+
+    if (await setStrikeChannel(channel.id)) {
+        interaction.reply(`Strike channel has been set to <#${channel.id}>.`);
+    } else {
+        interaction.reply('Failed to set strike channel.');
+    }
+}
+
+module.exports = setStrikeChannelCommand;
