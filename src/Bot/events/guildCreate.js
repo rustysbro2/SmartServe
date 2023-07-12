@@ -1,4 +1,4 @@
-const { getJoinMessageChannelFromDatabase } = require('../database/database');
+const { getJoinMessageChannelFromDatabase } = require("../database/database");
 
 async function guildCreateEvent(guild, client) {
   try {
@@ -10,9 +10,11 @@ async function guildCreateEvent(guild, client) {
       await checkAndRecordUserVote(member);
     });
 
-    const joinMessageChannel = await getJoinMessageChannelFromDatabase(guild.id);
+    const joinMessageChannel = await getJoinMessageChannelFromDatabase(
+      guild.id,
+    );
     if (!joinMessageChannel) {
-      console.log('Join message channel not set in the database.');
+      console.log("Join message channel not set in the database.");
       return;
     }
 
@@ -21,20 +23,20 @@ async function guildCreateEvent(guild, client) {
 
     const targetGuild = client.guilds.cache.get(target_guild_id);
     if (!targetGuild) {
-      console.log('Target guild not found.');
+      console.log("Target guild not found.");
       return;
     }
 
     const channel = targetGuild.channels.cache.get(join_message_channel);
-    if (!channel || channel.type !== 'GUILD_TEXT') {
-      console.log('Text channel not found in the target guild.');
+    if (!channel || channel.type !== "GUILD_TEXT") {
+      console.log("Text channel not found in the target guild.");
       return;
     }
 
     await channel.send(joinMessage);
-    console.log('Join message sent successfully.');
+    console.log("Join message sent successfully.");
   } catch (error) {
-    console.error('Error handling guildCreate event:', error);
+    console.error("Error handling guildCreate event:", error);
   }
 }
 

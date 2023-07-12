@@ -1,5 +1,11 @@
 /* Reset some default styles */
-body, h1, h2, h3, p, ul, li {
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+li {
   margin: 0;
   padding: 0;
 }
@@ -8,7 +14,7 @@ body, h1, h2, h3, p, ul, li {
 body {
   font-family: Arial, sans-serif;
   line-height: 1.5;
-  background-color: #F0EDE7;
+  background-color: #f0ede7;
 }
 
 .container {
@@ -18,7 +24,7 @@ body {
 }
 
 header {
-  background-color: #7289DA;
+  background-color: #7289da;
   color: #fff;
   padding: 20px;
 }
@@ -66,7 +72,7 @@ main {
 .discord-button {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #7289DA;
+  background-color: #7289da;
   color: #fff;
   text-decoration: none;
   border-radius: 4px;
@@ -83,7 +89,7 @@ main {
   flex: 0 0 300px;
   margin: 20px;
   padding: 20px;
-  background-color: #F9F7F6;
+  background-color: #f9f7f6;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
@@ -103,7 +109,7 @@ main {
 .advertisement-button {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #7289DA;
+  background-color: #7289da;
   color: #fff;
   text-decoration: none;
   border-radius: 4px;
