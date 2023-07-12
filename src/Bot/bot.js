@@ -39,9 +39,6 @@ const intents = [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildModeration,
-  GatewayIntentBits.GuildEmojisAndStickers,
-  GatewayIntentBits.GuildIntegrations,
-  GatewayIntentBits.GuildWebhooks,
   GatewayIntentBits.GuildInvites,
   GatewayIntentBits.GuildVoiceStates,
   GatewayIntentBits.GuildPresences,
@@ -52,9 +49,6 @@ const intents = [
   GatewayIntentBits.DirectMessageReactions,
   GatewayIntentBits.DirectMessageTyping,
   GatewayIntentBits.MessageContent,
-  GatewayIntentBits.GuildScheduledEvents,
-  GatewayIntentBits.AutoModerationConfiguration,
-  GatewayIntentBits.AutoModerationExecution,
 ];
 
 const client = new Client({
