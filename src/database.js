@@ -1,30 +1,33 @@
-//database.js
-const mysql = require('mysql2');
-const mysqlPromise = require('mysql2/promise');
-const { promisify } = require('util');
+// database.js
+const mysql = require('mysql2')
+const mysqlPromise = require('mysql2/promise')
+const { promisify } = require('util')
 
-const isBeta = process.env.BETA === 'true';
-const dbConfig = isBeta ? process.env.DB_CONFIG_SMARTBETA : process.env.DB_CONFIG_SMARTSERVE;
-const dbConfigRegex = /DB_HOST=(\S+)\s+DB_USER=(\S+)\s+DB_PASSWORD=(\S+)\s+DB_DATABASE=(\S+)/;
-const [, host, user, password, database] = dbConfigRegex.exec(dbConfig);
+const isBeta = process.env.BETA === 'true'
+const dbConfig = isBeta
+  ? process.env.DB_CONFIG_SMARTBETA
+  : process.env.DB_CONFIG_SMARTSERVE
+const dbConfigRegex =
+  /DB_HOST=(\S+)\s+DB_USER=(\S+)\s+DB_PASSWORD=(\S+)\s+DB_DATABASE=(\S+)/
+const [, host, user, password, database] = dbConfigRegex.exec(dbConfig)
 
 const pool = mysql.createPool({
   host,
   user,
   password,
-  database,
-});
+  database
+})
 
-pool.query = promisify(pool.query);
+pool.query = promisify(pool.query)
 
 const connection = mysqlPromise.createPool({
   host,
   user,
   password,
-  database,
-});
+  database
+})
 
-async function createCountTable() {
+async function createCountTable () {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS count_table (
@@ -34,14 +37,14 @@ async function createCountTable() {
         current_count INT NOT NULL DEFAULT 0,
         CONSTRAINT uc_guild_id UNIQUE (guild_id)
       )
-    `);
-    console.log('Count table created');
+    `)
+    console.log('Count table created')
   } catch (error) {
-    console.error('Error creating count table:', error);
+    console.error('Error creating count table:', error)
   }
 }
 
-async function createInviteTable() {
+async function createInviteTable () {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS invites (
@@ -51,14 +54,14 @@ async function createInviteTable() {
         inviterId VARCHAR(255),
         PRIMARY KEY (guildId, code)
       )
-    `);
-    console.log('Invite table created');
+    `)
+    console.log('Invite table created')
   } catch (error) {
-    console.error('Error creating invite table:', error);
+    console.error('Error creating invite table:', error)
   }
 }
 
-async function createGuildsTable() {
+async function createGuildsTable () {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS guilds (
@@ -66,14 +69,14 @@ async function createGuildsTable() {
         leave_message_channel VARCHAR(255) NOT NULL,
         target_guild_id VARCHAR(255) NOT NULL
       )
-    `);
-    console.log('Guilds table created');
+    `)
+    console.log('Guilds table created')
   } catch (error) {
-    console.error('Error creating guilds table:', error);
+    console.error('Error creating guilds table:', error)
   }
 }
 
-async function createCommandTable() {
+async function createCommandTable () {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS commands (
@@ -81,14 +84,14 @@ async function createCommandTable() {
         name VARCHAR(255) NOT NULL,
         description VARCHAR(255) NOT NULL
       )
-    `);
-    console.log('Commands table created');
+    `)
+    console.log('Commands table created')
   } catch (error) {
-    console.error('Error creating commands table:', error);
+    console.error('Error creating commands table:', error)
   }
 }
 
-async function createStrikesTable() {
+async function createStrikesTable () {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS strikes (
@@ -97,48 +100,44 @@ async function createStrikesTable() {
         user_id VARCHAR(255) NOT NULL,
         strike_count INT NOT NULL DEFAULT 0
       )
-    `);
-    console.log('Strikes table created');
+    `)
+    console.log('Strikes table created')
   } catch (error) {
-    console.error('Error creating strikes table:', error);
+    console.error('Error creating strikes table:', error)
   }
 }
 
-async function createStrikeChannelsTable() {
+async function createStrikeChannelsTable () {
   try {
     await pool.query(`
       CREATE TABLE IF NOT EXISTS strike_channels (
         guild_id VARCHAR(255) PRIMARY KEY,
         channel_id VARCHAR(255) NOT NULL
       )
-    `);
-    console.log('Strike channels table created');
+    `)
+    console.log('Strike channels table created')
   } catch (error) {
-    console.error('Error creating strike channels table:', error);
+    console.error('Error creating strike channels table:', error)
   }
 }
 
-
-async function createTables() {
+async function createTables () {
   try {
-    await createCountTable();
-    await createInviteTable();
-    await createGuildsTable();
-    await createCommandTable();
-    await createStrikesTable();
-    await createStrikeChannelsTable(); // Call the createStrikeChannelsTable function
-    console.log('Database tables created');
+    await createCountTable()
+    await createInviteTable()
+    await createGuildsTable()
+    await createCommandTable()
+    await createStrikesTable()
+    await createStrikeChannelsTable() // Call the createStrikeChannelsTable function
+    console.log('Database tables created')
   } catch (error) {
-    console.error('Error creating database tables:', error);
+    console.error('Error creating database tables:', error)
   }
 }
 
-
-
-
-createTables();
+createTables()
 
 module.exports = {
   pool,
-  connection,
-};
+  connection
+}

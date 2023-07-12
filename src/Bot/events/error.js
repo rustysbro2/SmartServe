@@ -1,7 +1,7 @@
-function errorEvent(error) {
-  console.error('Discord client error:', error);
+function errorEvent (error) {
+  console.error('Discord client error:', error)
 }
 
 module.exports = {
-  errorEvent,
-};
+  errorEvent
+}

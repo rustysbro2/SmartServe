@@ -1,26 +1,26 @@
-const { ActivityType } = require('discord.js');
+const { ActivityType } = require('discord.js')
 
-function updatePresence(client) {
+function updatePresence (client) {
   try {
-    const guildsSize = client.guilds.cache.size;
-    const shardId = client.shard.ids[0];
+    const guildsSize = client.guilds.cache.size
+    const shardId = client.shard.ids[0]
 
     const presenceData = {
       activities: [
         {
           name: `${guildsSize} servers | Shard ${shardId}`,
-          type: ActivityType.Watching,
-        },
+          type: ActivityType.Watching
+        }
       ],
-      status: 'online',
-    };
+      status: 'online'
+    }
 
-    client.user.setPresence(presenceData);
+    client.user.setPresence(presenceData)
   } catch (error) {
-    console.error('Error updating presence:', error);
+    console.error('Error updating presence:', error)
   }
 }
 
 module.exports = {
-  updatePresence,
-};
+  updatePresence
+}
