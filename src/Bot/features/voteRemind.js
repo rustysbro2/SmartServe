@@ -7,7 +7,7 @@ const { connection } = require("../../database.js");
 const botId = process.env.BOT_ID;
 const topGGToken = process.env.TOPGG_TOKEN;
 const supportServerLink = "https://discord.gg/wtzp28pHRK";
-const topGGVoteLink = `https://top.gg/bot/1105598736551387247/vote`;
+const topGGVoteLink = "https://top.gg/bot/1105598736551387247/vote";
 const ownerUserId = "385324994533654530";
 const webhookPort = 3006; // Replace with your desired webhook port
 

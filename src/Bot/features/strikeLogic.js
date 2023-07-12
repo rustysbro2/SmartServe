@@ -5,7 +5,7 @@ const { client } = require("../bot.js"); // Replace with the path to your Discor
 async function strikePlayer(guildId, userId, reason) {
   try {
     const { affectedRows } = await pool.query(
-      `INSERT INTO strikes (guildId, userId, reason) VALUES (?, ?, ?)`,
+      "INSERT INTO strikes (guildId, userId, reason) VALUES (?, ?, ?)",
       [guildId, userId, reason],
     );
     return affectedRows > 0;
@@ -18,7 +18,7 @@ async function strikePlayer(guildId, userId, reason) {
 async function getStrikes(guildId) {
   try {
     const result = await pool.query(
-      `SELECT userId, reason FROM strikes WHERE guildId = ?`,
+      "SELECT userId, reason FROM strikes WHERE guildId = ?",
       [guildId],
     );
     console.log("Query result:", result);
@@ -32,7 +32,7 @@ async function getStrikes(guildId) {
 async function setStrikeChannel(guildId, channelId) {
   try {
     const { affectedRows } = await pool.query(
-      `INSERT INTO strike_channels (guild_id, channel_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE channel_id = ?`,
+      "INSERT INTO strike_channels (guild_id, channel_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE channel_id = ?",
       [guildId, channelId, channelId],
     );
     return affectedRows > 0;
@@ -45,7 +45,7 @@ async function setStrikeChannel(guildId, channelId) {
 async function getStrikeChannel(guildId) {
   try {
     const [row] = await pool.query(
-      `SELECT channel_id FROM strike_channels WHERE guild_id = ? LIMIT 1`,
+      "SELECT channel_id FROM strike_channels WHERE guild_id = ? LIMIT 1",
       [guildId],
     );
     const channel = row ? row.channel_id : null;
@@ -60,7 +60,7 @@ async function getStrikeChannel(guildId) {
 async function getStrikeMessageId(guildId) {
   try {
     const [row] = await pool.query(
-      `SELECT message_id FROM strike_messages WHERE guild_id = ? LIMIT 1`,
+      "SELECT message_id FROM strike_messages WHERE guild_id = ? LIMIT 1",
       [guildId],
     );
     const messageId = row ? row.message_id : null;
@@ -75,7 +75,7 @@ async function getStrikeMessageId(guildId) {
 async function setStrikeMessageId(guildId, messageId) {
   try {
     const { affectedRows } = await pool.query(
-      `INSERT INTO strike_messages (guild_id, message_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE message_id = ?`,
+      "INSERT INTO strike_messages (guild_id, message_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE message_id = ?",
       [guildId, messageId, messageId],
     );
     return affectedRows > 0;
@@ -149,7 +149,7 @@ async function getStrikeEmbed(guildId, client) {
 async function getDistinctReasons(guildId) {
   try {
     const [result] = await pool.query(
-      `SELECT DISTINCT reason FROM strikes WHERE guildId = ?`,
+      "SELECT DISTINCT reason FROM strikes WHERE guildId = ?",
       [guildId],
     );
     console.log("Query result:", result);
