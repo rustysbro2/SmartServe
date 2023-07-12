@@ -106,10 +106,6 @@ client.on("error", (error) => {
   errorEvent(error);
 });
 
-// Add more client.on statements for other event functions
-
-// Util Functions
-
 client.on("messageCreate", async (message) => {
   // Handle counting messages
   handleCountingMessage(message);
