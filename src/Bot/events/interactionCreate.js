@@ -15,5 +15,3 @@ module.exports = async (interaction, client, commandCategories) => {
     console.error('Error handling interaction:', error);
   }
 };
-
-

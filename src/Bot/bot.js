@@ -7,7 +7,9 @@ const { startWebServer } = require('./Express - Vote/VoteWebserver');
 const { checkAllGuildMembers, sendRecurringReminders } = require('./features/voteRemind')
 const { populateCommands, generateCommandCategories } = require('./utils/commandUtils');
 const { setCountingChannel, getCountingChannelId, handleCountingMessage, loadCountingChannels } = require('./features/countGame');
+const { getStrikeEmbed } = require('./features/strikeLogic');
 
+// Inside the function or event where you want to use getStrikeEmbed
 const slashCommands = require('./utils/slashCommands');
 const interactionCreateEvent = require('./events/interactionCreate');
 
@@ -110,3 +112,4 @@ client.on('messageCreate', async (message) => {
 
 // Start the bot
 client.login(token);
+module.exports = client;
