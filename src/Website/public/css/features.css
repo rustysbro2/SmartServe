@@ -1,5 +1,11 @@
 /* Reset some default styles */
-body, h1, h2, h3, p, ul, li {
+body,
+h1,
+h2,
+h3,
+p,
+ul,
+li {
   margin: 0;
   padding: 0;
 }
@@ -8,7 +14,7 @@ body, h1, h2, h3, p, ul, li {
 body {
   font-family: Arial, sans-serif;
   line-height: 1.5;
-  background-color: #F0EDE7;
+  background-color: #f0ede7;
 }
 
 .container {
@@ -18,7 +24,7 @@ body {
 }
 
 header {
-  background-color: #7289DA;
+  background-color: #7289da;
   color: #fff;
   padding: 20px;
 }
@@ -45,7 +51,7 @@ main {
 }
 
 section {
-  background-color: #F9F7F6;
+  background-color: #f9f7f6;
   color: #333;
   margin-bottom: 40px;
   padding: 40px;

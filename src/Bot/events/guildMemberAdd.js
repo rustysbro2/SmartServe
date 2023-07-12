@@ -1,4 +1,4 @@
-const { checkAndRecordUserVote } = require('../features/voteRemind');
+const { checkAndRecordUserVote } = require("../features/voteRemind");
 
 async function guildMemberAddEvent(member, client) {
   try {
@@ -8,7 +8,7 @@ async function guildMemberAddEvent(member, client) {
 
     await checkAndRecordUserVote(member);
   } catch (error) {
-    console.error('Error handling guildMemberAdd event:', error);
+    console.error("Error handling guildMemberAdd event:", error);
   }
 }
 

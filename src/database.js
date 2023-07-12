@@ -1,11 +1,14 @@
 //database.js
-const mysql = require('mysql2');
-const mysqlPromise = require('mysql2/promise');
-const { promisify } = require('util');
+const mysql = require("mysql2");
+const mysqlPromise = require("mysql2/promise");
+const { promisify } = require("util");
 
-const isBeta = process.env.BETA === 'true';
-const dbConfig = isBeta ? process.env.DB_CONFIG_SMARTBETA : process.env.DB_CONFIG_SMARTSERVE;
-const dbConfigRegex = /DB_HOST=(\S+)\s+DB_USER=(\S+)\s+DB_PASSWORD=(\S+)\s+DB_DATABASE=(\S+)/;
+const isBeta = process.env.BETA === "true";
+const dbConfig = isBeta
+  ? process.env.DB_CONFIG_SMARTBETA
+  : process.env.DB_CONFIG_SMARTSERVE;
+const dbConfigRegex =
+  /DB_HOST=(\S+)\s+DB_USER=(\S+)\s+DB_PASSWORD=(\S+)\s+DB_DATABASE=(\S+)/;
 const [, host, user, password, database] = dbConfigRegex.exec(dbConfig);
 
 const pool = mysql.createPool({
@@ -35,9 +38,9 @@ async function createCountTable() {
         CONSTRAINT uc_guild_id UNIQUE (guild_id)
       )
     `);
-    console.log('Count table created');
+    console.log("Count table created");
   } catch (error) {
-    console.error('Error creating count table:', error);
+    console.error("Error creating count table:", error);
   }
 }
 
@@ -52,9 +55,9 @@ async function createInviteTable() {
         PRIMARY KEY (guildId, code)
       )
     `);
-    console.log('Invite table created');
+    console.log("Invite table created");
   } catch (error) {
-    console.error('Error creating invite table:', error);
+    console.error("Error creating invite table:", error);
   }
 }
 
@@ -67,9 +70,9 @@ async function createGuildsTable() {
         target_guild_id VARCHAR(255) NOT NULL
       )
     `);
-    console.log('Guilds table created');
+    console.log("Guilds table created");
   } catch (error) {
-    console.error('Error creating guilds table:', error);
+    console.error("Error creating guilds table:", error);
   }
 }
 
@@ -82,9 +85,9 @@ async function createCommandTable() {
         description VARCHAR(255) NOT NULL
       )
     `);
-    console.log('Commands table created');
+    console.log("Commands table created");
   } catch (error) {
-    console.error('Error creating commands table:', error);
+    console.error("Error creating commands table:", error);
   }
 }
 
@@ -98,9 +101,9 @@ async function createStrikesTable() {
         strike_count INT NOT NULL DEFAULT 0
       )
     `);
-    console.log('Strikes table created');
+    console.log("Strikes table created");
   } catch (error) {
-    console.error('Error creating strikes table:', error);
+    console.error("Error creating strikes table:", error);
   }
 }
 
@@ -112,12 +115,11 @@ async function createStrikeChannelsTable() {
         channel_id VARCHAR(255) NOT NULL
       )
     `);
-    console.log('Strike channels table created');
+    console.log("Strike channels table created");
   } catch (error) {
-    console.error('Error creating strike channels table:', error);
+    console.error("Error creating strike channels table:", error);
   }
 }
-
 
 async function createTables() {
   try {
@@ -127,14 +129,11 @@ async function createTables() {
     await createCommandTable();
     await createStrikesTable();
     await createStrikeChannelsTable(); // Call the createStrikeChannelsTable function
-    console.log('Database tables created');
+    console.log("Database tables created");
   } catch (error) {
-    console.error('Error creating database tables:', error);
+    console.error("Error creating database tables:", error);
   }
 }
-
-
-
 
 createTables();
 
