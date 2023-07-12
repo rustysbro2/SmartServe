@@ -1,4 +1,4 @@
-const { ActivityType } = require('discord.js');
+const { ActivityType } = require("discord.js");
 
 function updatePresence(client) {
   try {
@@ -12,12 +12,12 @@ function updatePresence(client) {
           type: ActivityType.Watching,
         },
       ],
-      status: 'online',
+      status: "online",
     };
 
     client.user.setPresence(presenceData);
   } catch (error) {
-    console.error('Error updating presence:', error);
+    console.error("Error updating presence:", error);
   }
 }
 

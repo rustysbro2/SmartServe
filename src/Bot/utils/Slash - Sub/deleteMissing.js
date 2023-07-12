@@ -1,9 +1,11 @@
 // deleteMissingCommandIds.js
-const path = require('path');
-const { pool } = require('../../../database.js');
+const path = require("path");
+const { pool } = require("../../../database.js");
 
 async function deleteMissingCommandIds(commands) {
-  const existingCommandNames = commands.map((command) => command.name.toLowerCase());
+  const existingCommandNames = commands.map((command) =>
+    command.name.toLowerCase(),
+  );
 
   // Get the command names from the database
   const selectCommandNamesQuery = `
@@ -16,7 +18,7 @@ async function deleteMissingCommandIds(commands) {
 
     // Get the command names that are in the database but no longer exist in the command list
     const missingCommandNames = commandNamesInDatabase.filter(
-      (commandName) => !existingCommandNames.includes(commandName)
+      (commandName) => !existingCommandNames.includes(commandName),
     );
 
     if (missingCommandNames.length > 0) {
@@ -26,10 +28,13 @@ async function deleteMissingCommandIds(commands) {
       `;
 
       await pool.promise().query(deleteQuery, [missingCommandNames]);
-      console.log('Missing command IDs deleted successfully:', missingCommandNames);
+      console.log(
+        "Missing command IDs deleted successfully:",
+        missingCommandNames,
+      );
     }
   } catch (error) {
-    console.error('Error deleting missing command IDs:', error);
+    console.error("Error deleting missing command IDs:", error);
   }
 }
 
