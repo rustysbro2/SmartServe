@@ -54,8 +54,6 @@ router.get("/:id", async (req, res) => {
     const query = "SELECT * FROM web_users WHERE id = ? AND guilds LIKE ?";
     const [user] = await pool.query(query, [req.user.id, `%${serverId}%`]);
 
-
-
     if (user) {
       const server = {
         id: serverId,
