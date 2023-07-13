@@ -1,17 +1,30 @@
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
-const { Client, Collection, GatewayIntentBits } = require('discord.js');
-const { updatePresence } = require('./utils/presenceUpdater');
-const { startWebServer } = require('./Express - Vote/VoteWebserver');
-const { checkAllGuildMembers, sendRecurringReminders } = require('./features/voteRemind')
-const { populateCommands, generateCommandCategories } = require('./utils/commandUtils');
-const { setCountingChannel, getCountingChannelId, handleCountingMessage, loadCountingChannels } = require('./features/countGame');
+const { Client, Collection, GatewayIntentBits } = require("discord.js");
+const { updatePresence } = require("./utils/presenceUpdater");
+const { startWebServer } = require("./Express - Vote/VoteWebserver");
+const {
+  checkAllGuildMembers,
+  sendRecurringReminders,
+} = require("./features/voteRemind");
+const {
+  populateCommands,
+  generateCommandCategories,
+} = require("./utils/commandUtils");
+const {
+  setCountingChannel,
+  getCountingChannelId,
+  handleCountingMessage,
+  loadCountingChannels,
+} = require("./features/countGame");
+const { getStrikeEmbed } = require("./features/strikeLogic");
 
-const slashCommands = require('./utils/slashCommands');
-const interactionCreateEvent = require('./events/interactionCreate');
+// Inside the function or event where you want to use getStrikeEmbed
+const slashCommands = require("./utils/slashCommands");
+const interactionCreateEvent = require("./events/interactionCreate");
 
-if (process.env.BETA === 'true') {
+if (process.env.BETA === "true") {
   global.token = process.env.TOKEN_BETA;
   global.CLIENT_ID = process.env.BETA_CLIENT_ID;
   global.BOT_ID = process.env.BETA_BOT_ID;
@@ -24,16 +37,23 @@ if (process.env.BETA === 'true') {
 const token = global.token;
 const intents = [
   GatewayIntentBits.Guilds,
-  GatewayIntentBits.GuildMessages,
   GatewayIntentBits.GuildMembers,
+  GatewayIntentBits.GuildModeration,
+  GatewayIntentBits.GuildInvites,
   GatewayIntentBits.GuildVoiceStates,
   GatewayIntentBits.GuildPresences,
+  GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.GuildMessageReactions,
+  GatewayIntentBits.GuildMessageTyping,
+  GatewayIntentBits.DirectMessages,
+  GatewayIntentBits.DirectMessageReactions,
+  GatewayIntentBits.DirectMessageTyping,
   GatewayIntentBits.MessageContent,
 ];
 
 const client = new Client({
   shardReadyTimeout: Number.MAX_SAFE_INTEGER,
-  shards: 'auto',
+  shards: "auto",
   intents,
 });
 
@@ -49,7 +69,7 @@ commandCategories = generateCommandCategories(client.commands);
 // Register slash commands
 slashCommands(client, commandCategories);
 
-client.on('ready', () => {
+client.on("ready", () => {
   console.log(`Shard ${client.shard.ids[0]} is ready!`);
   updatePresence(client);
   loadCountingChannels();
@@ -58,42 +78,39 @@ client.on('ready', () => {
   // Login the client after all initialization is complete
 });
 
-client.on('interactionCreate', async (interaction) => {
+client.on("interactionCreate", async (interaction) => {
   interactionCreateEvent(interaction, client, commandCategories);
 });
 
-client.on('guildMemberAdd', (member) => {
+client.on("guildMemberAdd", (member) => {
   // Call your guildMemberAdd event function
-  const { guildMemberAddEvent } = require('./events/guildMemberAdd');
+  const { guildMemberAddEvent } = require("./events/guildMemberAdd");
   guildMemberAddEvent(member, client);
 });
 
-client.on('guildCreate', (guild) => {
+client.on("guildCreate", (guild) => {
   // Call your guildCreate event function
-  const guildCreateEvent = require('./events/guildCreate');
+  const guildCreateEvent = require("./events/guildCreate");
   guildCreateEvent(guild, client);
 });
 
-client.on('guildDelete', (guild) => {
+client.on("guildDelete", (guild) => {
   // Call your guildDelete event function
-  const guildDeleteEvent = require('./events/guildDelete');
+  const guildDeleteEvent = require("./events/guildDelete");
   guildDeleteEvent(guild, client);
 });
 
-client.on('error', (error) => {
+client.on("error", (error) => {
   // Call your error event function
-  const errorEvent = require('./events/error');
+  const errorEvent = require("./events/error");
   errorEvent(error);
 });
 
-// Add more client.on statements for other event functions
-
-// Util Functions
-
-client.on('messageCreate', async (message) => {
+client.on("messageCreate", async (message) => {
   // Handle counting messages
   handleCountingMessage(message);
 });
 
 // Start the bot
 client.login(token);
+module.exports = client;
