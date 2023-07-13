@@ -15,6 +15,7 @@ async function getGuilds(accessToken) {
 
     return response.data;
   } catch (error) {
+    console.error("Error retrieving guilds:", error);
     throw new Error("Error retrieving guilds");
   }
 }

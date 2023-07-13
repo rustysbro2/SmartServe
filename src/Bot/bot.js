@@ -20,7 +20,6 @@ const {
 } = require("./features/countGame");
 const { getStrikeEmbed } = require("./features/strikeLogic");
 
-// Inside the function or event where you want to use getStrikeEmbed
 const slashCommands = require("./utils/slashCommands");
 const interactionCreateEvent = require("./events/interactionCreate");
 
@@ -75,7 +74,6 @@ client.on("ready", () => {
   loadCountingChannels();
   // Call other initialization functions here
   startWebServer(client);
-  // Login the client after all initialization is complete
 });
 
 client.on("interactionCreate", async (interaction) => {
@@ -111,6 +109,10 @@ client.on("messageCreate", async (message) => {
   handleCountingMessage(message);
 });
 
-// Start the bot
-client.login(token);
+// Export the client object
 module.exports = client;
+
+// Start the bot only if this file is being run directly
+if (require.main === module) {
+  client.login(token);
+}

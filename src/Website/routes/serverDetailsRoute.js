@@ -2,16 +2,14 @@ const express = require("express");
 const router = express.Router();
 const dotenv = require("dotenv");
 const path = require("path");
-const { Client, GatewayIntentBits } = require("discord.js");
+const { getClient } = require("../client");
 const { pool } = require("../../database");
 
 const envPath = path.resolve(__dirname, "../../.env");
 dotenv.config({ path: envPath });
-const token = process.env.TOKEN;
 
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers],
-});
+// Get the client instance
+const client = getClient();
 
 // Define the setupDatabase function
 async function setupDatabase() {
@@ -36,22 +34,40 @@ async function setupDatabase() {
 }
 
 // Invoke the setupDatabase function
-
-// Start the bot and connect to Discord
-client.login(token);
 setupDatabase();
+
+// Function to retrieve user's avatar URL
+async function getUserAvatarURL(userId) {
+  try {
+    const user = await client.users.fetch(userId);
+    return user.avatarURL({ dynamic: true });
+  } catch (error) {
+    console.error("Error fetching user's avatar:", error);
+    return null;
+  }
+}
 
 router.get("/:id", async (req, res) => {
   const serverId = req.params.id;
 
   try {
-    const query = "SELECT * FROM servers WHERE id = ?";
-    const [server] = await pool.query(query, [serverId]);
+    const query = "SELECT * FROM web_users WHERE id = ? AND guilds LIKE ?";
+    const [user] = await pool.query(query, [req.user.id, `%${serverId}%`]);
 
-    if (server) {
-      res.render("server-details", { server });
+
+
+    if (user) {
+      const server = {
+        id: serverId,
+        name: user.name,
+        description: "Server Description", // Replace with the actual server description column from the table
+      };
+
+      const avatarURL = await getUserAvatarURL(user.discordId);
+
+      res.render("server-details", { server, avatarURL });
     } else {
-      res.status(404).send("Server not found");
+      res.status(404).send("User not found");
     }
   } catch (error) {
     console.error("Error retrieving server details:", error);
