@@ -12,9 +12,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.5.0
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v2.5.2
+        with:
+          node-version: '16.x'
+
+      - name: Install dependencies
+        run: npm install
 
       - name: actionsx/prettier
-        uses: actionsx/prettier@v2
+        uses: actionsx/prettier@v2.6.0
         with:
           args: "--write ."
