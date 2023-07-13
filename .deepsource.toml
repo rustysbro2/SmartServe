@@ -4,10 +4,16 @@ version = 1
 name = "javascript"
 
   [analyzers.meta]
-  environment = ["nodejs"]
+  environment = [
+    "nodejs",
+    "jquery"
+  ]
 
 [[analyzers]]
 name = "sql"
 
 [[transformers]]
 name = "prettier"
+
+[[transformers]]
+name = "standardjs"
