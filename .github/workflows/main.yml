@@ -12,26 +12,9 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2.5.1
+        uses: actions/checkout@v2
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Prettier Action
-        uses: creyD/prettier_action@v4.3
+      - name: actionsx/prettier
+        uses: actionsx/prettier@v2
         with:
-          commit_message: "Prettified Code!"
-          commit_description: ""
-          same_commit: false
-          commit_options: ""
-          push_options: ""
-          file_pattern: "*.{js,css,ejs,html}"
-          prettier_options: "--write **/*.js **/*.css **/*.ejs **/*.html --tab-width 2 --single-quote"
-          dry: false
-          prettier_version: ""
-          working_directory: ""
-          only_changed: false
-          prettier_plugins: |
-            @prettier/plugin-jsdoc
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          clean_node_folder: true
+          args: "--write ."
