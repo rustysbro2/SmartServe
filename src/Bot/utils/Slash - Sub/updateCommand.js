@@ -143,7 +143,7 @@ async function updateCommandIfModified(
   console.log(`- Last Modified (command): ${lastModifiedDate}`);
   console.log(`- New Last Modified (file): ${newLastModifiedDate}`);
 
-  if (newLastModifiedDate > lastModifiedDate) {
+  if (newLastModifiedDate.getTime() > lastModifiedDate.getTime() + 47000) {
     const route =
       commandType === "global"
         ? Routes.applicationCommand(clientId, existingCommand.id)

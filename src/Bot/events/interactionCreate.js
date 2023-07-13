@@ -3,7 +3,7 @@ const helpCommand = require("../commands/General/help");
 module.exports = async (interaction, client, commandCategories) => {
   try {
     if (
-      interaction.isSelectMenu() &&
+      interaction.isStringSelectMenu() &&
       interaction.customId === "help_category"
     ) {
       helpCommand.handleSelectMenu(interaction, commandCategories);

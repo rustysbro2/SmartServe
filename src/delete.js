@@ -1,7 +1,7 @@
 require("dotenv").config();
 
 const { Client, GatewayIntentBits } = require("discord.js");
-const { CLIENT_ID, TOKEN, guildId } = process.env;
+const { CLIENT_ID, TOKEN, SUPPORT_ID } = process.env;
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -20,8 +20,8 @@ client.once("ready", async () => {
 
     console.log(`Successfully deleted ${deletedGlobalCount} global commands.`);
 
-    if (guildId) {
-      const guild = await client.guilds.fetch(guildId);
+    if (SUPPORT_ID) {
+      const guild = await client.guilds.fetch(SUPPORT_ID);
       const guildCommands = await guild.commands.fetch();
       let deletedGuildCount = 0;
 
