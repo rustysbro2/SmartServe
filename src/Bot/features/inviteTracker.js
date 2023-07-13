@@ -1,9 +1,9 @@
-const path = require('path');
-const dotenv = require('dotenv');
-const { EmbedBuilder } = require('discord.js');
-const { pool } = require('../../database.js');
+const path = require("path");
+const dotenv = require("dotenv");
+const { EmbedBuilder } = require("discord.js");
+const { pool } = require("../../database.js");
 
-const envPath = path.join(__dirname, '..', '..', '.env');
+const envPath = path.join(__dirname, "..", "..", ".env");
 dotenv.config({ path: envPath }); // Load environment variables from .env file
 
 let invites = {};
@@ -13,7 +13,12 @@ async function fetchInvites(guild) {
     const guildInvites = await guild.invites.fetch();
     invites[guild.id] = guildInvites;
     guildInvites.forEach((invite) =>
-      updateInviteInDb(guild.id, invite.code, invite.uses, invite.inviter ? invite.inviter.id : null)
+      updateInviteInDb(
+        guild.id,
+        invite.code,
+        invite.uses,
+        invite.inviter ? invite.inviter.id : null,
+      ),
     );
   } catch (error) {
     console.error(`Error fetching invites for guild ${guild.name}:`, error);
@@ -32,23 +37,23 @@ function updateInviteInDb(guildId, code, uses, inviterId) {
     [guildId, code, uses, inviterId],
     function (error) {
       if (error) throw error;
-    }
+    },
   );
 }
 
 module.exports = {
-  name: 'inviteTracker',
+  name: "inviteTracker",
   execute(client) {
     client.guilds.cache.forEach((guild) => {
       fetchInvites(guild);
     });
 
-    client.on('guildCreate', (guild) => {
+    client.on("guildCreate", (guild) => {
       fetchInvites(guild);
       console.log(`Bot joined a new guild: ${guild.name}`);
     });
 
-    client.on('guildMemberAdd', async (member) => {
+    client.on("guildMemberAdd", async (member) => {
       console.log(`New member added: ${member.user.tag}`);
       pool.query(
         `
@@ -59,43 +64,55 @@ module.exports = {
         [member.guild.id],
         async function (error, dbInvites) {
           if (error) throw error;
-          const newInvite = invites[member.guild.id].find((invite) => invite.uses !== dbInvites[invite.code]);
-          let joinMethod = '';
+          const newInvite = invites[member.guild.id].find(
+            (invite) => invite.uses !== dbInvites[invite.code],
+          );
+          let joinMethod = "";
           let inviter = null;
           if (newInvite) {
-            inviter = newInvite.inviter ? client.users.cache.get(newInvite.inviter.id) : null;
+            inviter = newInvite.inviter
+              ? client.users.cache.get(newInvite.inviter.id)
+              : null;
             joinMethod = `They were invited by <@${inviter.id}>.`;
           } else {
             if (member.user.bot) {
-              joinMethod = 'They joined via OAuth2.';
+              joinMethod = "They joined via OAuth2.";
             } else {
-              joinMethod = 'They likely used a Vanity URL or an invite that was later deleted.';
+              joinMethod =
+                "They likely used a Vanity URL or an invite that was later deleted.";
             }
           }
 
           const exampleEmbed = new EmbedBuilder()
-            .setTitle(member.user.bot ? 'Bot Joined!' : 'New Member Joined!')
-            .setDescription(`<@${member.user.id}> has joined the server. ${joinMethod}`)
-            .setColor(0x32CD32);
+            .setTitle(member.user.bot ? "Bot Joined!" : "New Member Joined!")
+            .setDescription(
+              `<@${member.user.id}> has joined the server. ${joinMethod}`,
+            )
+            .setColor(0x32cd32);
 
           const channelId = await getInviteChannelId(member.guild.id);
           const channel = member.guild.channels.cache.get(channelId);
           if (channel) channel.send({ embeds: [exampleEmbed] });
-        }
+        },
       );
     });
 
-    client.on('inviteCreate', async (invite) => {
+    client.on("inviteCreate", async (invite) => {
       console.log(`Invite created: ${invite.code}`);
       if (!invites[invite.guild.id]) {
         await fetchInvites(invite.guild);
       } else {
         invites[invite.guild.id].set(invite.code, invite);
-        updateInviteInDb(invite.guild.id, invite.code, invite.uses, invite.inviter ? invite.inviter.id : null);
+        updateInviteInDb(
+          invite.guild.id,
+          invite.code,
+          invite.uses,
+          invite.inviter ? invite.inviter.id : null,
+        );
       }
     });
 
-    client.on('inviteDelete', async (invite) => {
+    client.on("inviteDelete", async (invite) => {
       console.log(`Invite deleted: ${invite.code}`);
       const cachedInvites = invites[invite.guild.id];
       cachedInvites.delete(invite.code);
@@ -114,7 +131,7 @@ module.exports = {
       [guildId, channelId],
       function (error) {
         if (error) throw error;
-      }
+      },
     );
   },
 };
@@ -132,7 +149,7 @@ async function getInviteChannelId(guildId) {
         if (error) return reject(error);
         if (results.length > 0) resolve(results[0].channelId);
         else resolve(null);
-      }
+      },
     );
   });
 }

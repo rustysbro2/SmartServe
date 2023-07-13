@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 function walkDirectory(directory, callback) {
-  fs.readdirSync(directory).forEach(file => {
+  fs.readdirSync(directory).forEach((file) => {
     const absolute = path.join(directory, file);
     if (fs.statSync(absolute).isDirectory()) {
       walkDirectory(absolute, callback);
@@ -13,5 +13,5 @@ function walkDirectory(directory, callback) {
 }
 
 module.exports = {
-  walkDirectory
+  walkDirectory,
 };

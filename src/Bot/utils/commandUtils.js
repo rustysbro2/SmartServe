@@ -1,9 +1,9 @@
-const fs = require('fs');
-const path = require('path');
-const helpCommand = require('../commands/General/help');
+const fs = require("fs");
+const path = require("path");
+const helpCommand = require("../commands/General/help");
 
 function populateCommands(client) {
-  const commandFiles = getAllCommandFiles(path.join(__dirname, '../commands'));
+  const commandFiles = getAllCommandFiles(path.join(__dirname, "../commands"));
 
   for (const file of commandFiles) {
     try {
@@ -20,13 +20,13 @@ function populateCommands(client) {
   }
 
   const commandCategories = generateCommandCategories(client.commands);
-  console.log('Command categories:', commandCategories);
+  console.log("Command categories:", commandCategories);
 
   if (commandCategories && Object.keys(commandCategories).length > 0) {
-    console.log('Command categories populated');
+    console.log("Command categories populated");
     // Perform any additional actions or checks with the commandCategories array here
   } else {
-    console.log('Command categories not populated');
+    console.log("Command categories not populated");
   }
 
   return commandCategories;
@@ -44,7 +44,7 @@ function getAllCommandFiles(directory) {
 
       if (isDirectory) {
         traverseDirectory(filePath);
-      } else if (file.endsWith('.js')) {
+      } else if (file.endsWith(".js")) {
         commandFiles.push(filePath);
       }
     }
@@ -57,10 +57,10 @@ function getAllCommandFiles(directory) {
 
 function isValidCommand(command) {
   return (
-    typeof command === 'object' &&
+    typeof command === "object" &&
     command.data &&
-    typeof command.data.name === 'string' &&
-    typeof command.execute === 'function'
+    typeof command.data.name === "string" &&
+    typeof command.execute === "function"
   );
 }
 
@@ -68,15 +68,15 @@ function generateCommandCategories(commands) {
   const commandCategories = {};
 
   for (const [commandName, command] of commands.entries()) {
-    const category = command.category || 'Uncategorized';
+    const category = command.category || "Uncategorized";
 
     if (!commandCategories[category]) {
       commandCategories[category] = {
         name: category,
-        description: '',
+        description: "",
         commands: [],
         guildId: command.guildId,
-        categoryDescription: command.categoryDescription
+        categoryDescription: command.categoryDescription,
       };
     }
 
@@ -84,16 +84,14 @@ function generateCommandCategories(commands) {
       name: command.data.name,
       description: command.data.description,
       global: command.global !== false,
-      categoryDescription: command.categoryDescription
+      categoryDescription: command.categoryDescription,
     });
   }
 
   return Object.values(commandCategories);
 }
 
-
-
 module.exports = {
   populateCommands,
-  generateCommandCategories
+  generateCommandCategories,
 };
