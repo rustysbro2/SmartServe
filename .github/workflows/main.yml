@@ -1,4 +1,4 @@
-name: Prettier
+name: Prettify Code
 
 on:
   push:
@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  your-job-name:
-    name: Your Job Name
+  prettify-code:
+    name: Prettify Code
     runs-on: ubuntu-latest
 
     steps:
@@ -17,17 +17,18 @@ jobs:
       - name: Prettier Action
         uses: creyD/prettier_action@v4.3
         with:
-          commit_message: # optional, default is "Prettified Code!"
-          commit_description: # optional, default is an empty string
-          same_commit: # optional
-          commit_options: # optional
-          push_options: # optional
-          file_pattern: # optional, default is "*"
-          prettier_options: # optional, default is "--write **/*.js"
-          dry: # optional
-          prettier_version: # optional
-          working_directory: # optional
-          only_changed: # optional
-          prettier_plugins: # optional, default is an empty string
-          github_token: # optional, default is ${{ github.token }}
-          clean_node_folder: # optional, default is true
+          commit_message: "Prettified Code!"
+          commit_description: ""
+          same_commit: false
+          commit_options: ""
+          push_options: ""
+          file_pattern: "*.{js,css,ejs,html}"
+          prettier_options: "--write **/*.js **/*.css **/*.ejs **/*.html --tab-width 2 --single-quote"
+          dry: false
+          prettier_version: ""
+          working_directory: ""
+          only_changed: false
+          prettier_plugins: |
+            @prettier/plugin-jsdoc
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          clean_node_folder: true
