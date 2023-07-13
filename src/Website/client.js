@@ -1,12 +1,12 @@
-const { Client, GatewayIntentBits } = require('discord.js');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const { Client, GatewayIntentBits } = require("discord.js");
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
 let client; // Declare the client variable
 
 function getClient() {
   if (!client) {
-    if (process.env.BETA === 'true') {
+    if (process.env.BETA === "true") {
       global.token = process.env.TOKEN_BETA;
       global.CLIENT_ID = process.env.BETA_CLIENT_ID;
       global.BOT_ID = process.env.BETA_BOT_ID;
@@ -30,12 +30,13 @@ function getClient() {
     // Add more event listeners and functionality as needed
 
     // Login the bot using the bot token
-    client.login(token)
+    client
+      .login(token)
       .then(() => {
         console.log(`Bot is ready! Logged in as ${client.user.tag}`);
       })
       .catch((error) => {
-        console.error('Error logging in:', error);
+        console.error("Error logging in:", error);
       });
   }
 
