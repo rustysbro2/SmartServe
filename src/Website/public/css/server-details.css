@@ -4,30 +4,277 @@ body {
   font-family: Arial, sans-serif;
   background-color: #f2f2f2;
   padding: 20px;
-}
-
-h1 {
   color: #333;
-  font-size: 24px;
-  margin-bottom: 10px;
 }
 
-p {
-  color: #666;
+.container {
+  display: flex;
+}
+
+.banner {
+  background-color: #7289da;
+  color: #fff;
+  padding: 20px;
+}
+
+.banner h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.sidebar {
+  width: 240px;
+  background-color: #e2e8f0;
+  padding: 20px;
+}
+
+.category-menu {
+  margin-bottom: 20px;
+}
+
+.category-items {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.category-item {
+  margin-bottom: 10px;
+  color: #555;
   font-size: 16px;
 }
 
-ul {
-  list-style: none;
+.category-item:hover {
+  color: #333;
+  cursor: pointer;
+}
+
+.sidebar-links {
+  margin-bottom: 20px;
+}
+
+.sidebar-links ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-links li {
+  margin-bottom: 10px;
+}
+
+.sidebar-links li a {
+  color: #333;
+  text-decoration: none;
+  padding: 5px;
+  display: inline-block;
+  transition: color 0.3s ease;
+}
+
+.sidebar-links li a:hover {
+  color: #7289da;
+}
+
+.content {
+  flex-grow: 1;
+  padding-left: 20px;
+}
+
+header {
+  background-color: #7289da;
+  color: #fff;
+  padding: 20px;
+}
+
+nav ul {
+  list-style-type: none;
+  margin: 0;
   padding: 0;
 }
 
-li {
+nav ul li {
+  margin-bottom: 10px;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+  padding: 5px;
+}
+
+.user-profile {
+  position: relative;
+  display: inline-block;
+  float: right;
+  margin-right: 20px;
+}
+
+.user-profile img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  display: none;
+  z-index: 1000;
+}
+
+.user-profile:hover .dropdown-menu {
+  display: block;
+}
+
+main {
+  padding: 20px;
+}
+
+section {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 40px;
+  padding: 40px;
+}
+
+section h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #333;
+  border-bottom: none;
+}
+
+section p {
+  font-size: 16px;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+footer {
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+footer p {
+  font-size: 14px;
+}
+
+/* Custom styles for dashboard */
+.server-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-gap: 20px;
+}
+
+.server-item {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.server-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.server-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.server-avatar img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.server-details {
+  flex-grow: 1;
+}
+
+.server-name {
+  font-size: 18px;
+  margin-bottom: 5px;
+  color: #333;
+  border: none;
+}
+
+.server-member-count {
+  font-size: 14px;
+  color: #777;
+}
+
+.server-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.server-action-link {
+  padding: 8px 12px;
+  background-color: #7289da;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+}
+
+.server-action-link:hover {
+  background-color: #5a6fbf;
+}
+
+.dashboard-link,
+.profile-link,
+.logout-link {
+  font-size: 16px;
+  color: #7289da;
+  text-decoration: none;
+  margin-right: 10px;
+  transition: color 0.3s ease;
+}
+
+.dashboard-link:hover,
+.profile-link:hover,
+.logout-link:hover {
+  color: #333;
+  cursor: pointer;
+}
+
+.dropdown-menu ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dropdown-menu li {
   margin-bottom: 5px;
 }
 
-h2 {
+.dropdown-menu li a {
+  display: block;
+  padding: 5px;
   color: #333;
-  font-size: 20px;
-  margin-bottom: 10px;
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.dropdown-menu li a:hover {
+  background-color: #f2f2f2;
+  color: #333; /* Add this line to set the text color on hover */
 }

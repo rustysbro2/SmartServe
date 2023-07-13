@@ -1,15 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
-const mysql = require("mysql2/promise");
 const path = require("path");
 require("dotenv").config({ path: path.resolve(__dirname, "../../../.env") });
-
-// MySQL connection settings
-const connection = mysql.createPool({
-  host: "localhost",
-  user: "rustysbro",
-  password: "Dincas50@/",
-  database: "SmartBeta",
-});
+const { connection } = require("../../../database.js");
 
 module.exports = {
   data: new SlashCommandBuilder()

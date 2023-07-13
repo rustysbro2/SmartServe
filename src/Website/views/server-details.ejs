@@ -11,22 +11,46 @@
   <header>
     <nav>
       <ul>
-        <li><a href="/dashboard">Dashboard</a></li>
-        <li><a href="/profile">Profile</a></li>
-        <li><a href="/logout">Logout</a></li>
+        <li>
+          <div class="user-profile">
+            <img src="/images/profile-picture.jpg" alt="User Profile Picture">
+            <div class="dropdown-menu">
+              <ul>
+                <li><a href="/dashboard">Dashboard</a></li>
+                <li><a href="/profile">Profile</a></li>
+                <li><a href="/logout">Logout</a></li>
+              </ul>
+            </div>
+          </div>
+        </li>
       </ul>
     </nav>
   </header>
 
-  <main>
-    <section>
-      <h1><%= server.name %></h1>
-      <p><%= server.description %></p>
-    </section>
-  </main>
+  <div class="banner">
+    <h1><%= server.name %></h1>
+  </div>
 
-  <footer>
-    <p>&copy; 2023 Your Website. All rights reserved.</p>
-  </footer>
+  <div class="sidebar">
+    <div class="category-menu">
+      <ul class="category-items">
+        <li class="category-item">Category 1</li>
+        <li class="category-item">Category 2</li>
+        <li class="category-item">Category 3</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="content">
+    <main>
+      <section>
+        <p><%= server.description %></p>
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2023 Your Website. All rights reserved.</p>
+    </footer>
+  </div>
 </body>
 </html>
